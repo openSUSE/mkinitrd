@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.81 $
+# $Revision: 1.82 $
 
 #
 # Print usage and exit
@@ -60,7 +60,6 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
 	  -S               Load policy file for SELinux if exist.
-	  -u               Disable the use of udev
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
 EOM
@@ -135,7 +134,6 @@ use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
 use_selinux=
-use_udev=1
 
 # architecture dependend changes:
 arch=$(uname -m)
@@ -148,7 +146,7 @@ s390)
     ;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:St:D:a:u a ; do
+while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -197,8 +195,6 @@ while getopts :hk:i:m:b:d:o:s:St:D:a:u a ; do
 	a)  acpi_dsdt="$OPTARG"
 	    ;;
 	S)  use_selinux=1
-	    ;;
-	u)  use_udev=
 	    ;;
 	h)  usage
 	    ;;
@@ -269,16 +265,13 @@ if [ -n "$use_static_binaries" ]; then
 else
     initrd_shell=$initrd_shell_dynamic
 fi
-
 # The shell-bang line to use inside initrd.
 shebang=${initrd_shell#$root_dir}
 shebang=${shebang%.static}
-if [ -n "$use_udev" ]; then
-    if [ -x /lib/klibc/bin/sh ]; then
-	shebang="/bin/ash"
-	initrd_shell="/lib/klibc/bin/sh"
-	initrd_shell_dynamic=
-    fi
+
+if [ -x /lib/klibc/bin/sh ]; then
+    initrd_shell="/lib/klibc/bin/sh"
+    shebang="/bin/sh"
 fi
 
 [ -x $root_dir/sbin/insmod ] \
@@ -698,7 +691,7 @@ block_driver() {
 # Create the initrd image $2 for kernel $1 (both are absolute path names).
 mkinitrd_kernel () {
     local kernel_image=$1 initrd_image=$2
-    local kernel_version need_mount sysfs_root need_block_driver
+    local kernel_version need_mount sysfs_root use_udev need_block_driver
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
@@ -787,9 +780,6 @@ mkinitrd_kernel () {
     2.6*)
 	sysfs_root=1
 	use_udev=1
-	;;
-    *)
-	use_udev=
 	;;
     esac
 
@@ -1204,9 +1194,13 @@ mkinitrd_kernel () {
 
     if [ -n "$root_lvm" ] ; then
 	# need dummy entry so fsck doesn't complain
+	if [ -z "$use_udev" ]; then
+	    cat_linuxrc <<-'EOF'
+		|# scan for lvm devices
+		|createpartitiondevs
+		EOF
+	fi
 	cat_linuxrc <<-'EOF'
-	|# scan for lvm devices
-	|createpartitiondevs
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvmtab.d
 	|vgscan
@@ -1223,9 +1217,13 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$root_dm" ] ; then
+	if [ -z "$use_udev" ]; then
+	    cat_linuxrc <<-'EOF'
+		|# scan for lvm devices
+		|createpartitiondevs
+		EOF
+	fi
 	cat_linuxrc <<-'EOF'
-	|# scan for lvm devices
-	|createpartitiondevs
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvm
 	|/sbin/devmap_mknod.sh
@@ -1296,8 +1294,8 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    if [ -n "$use_pivot_root" ] ; then
-	cat_linuxrc <<-EOF
+    if [ -n "$use_pivot_root" -a -z "$use_udev" ] ; then
+	cat_linuxrc <<-'EOF'
 	|# create missing devices
 	|createpartitiondevs
 	EOF
@@ -1374,8 +1372,13 @@ mkinitrd_kernel () {
 	|
 	|  # need to redo-this setting up the root dev now that the disk is present
 	|  discover_root
-	|  createpartitiondevs
-	|
+	EOF
+	if [ -z "$use_udev" ]; then
+	    cat_linuxrc <<-'EOF'
+		|  createpartitiondevs
+		EOF
+	fi
+	cat_linuxrc <<-'EOF'
 	|  # clear dhcp_mode so it looks like we're disk booted...
 	|  dhcp_mode=
 	|fi
