@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.172 $
+# $Revision: 1.173 $
 
 #
 # Print usage and exit
@@ -60,7 +60,7 @@ usage() {
 	  		   Description Table) to initrd. This replaces the
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
-          -r               Use initramfs instead of initrd.
+          -R               Use initrd instead of initramfs.
           -g               Use glibc instead of klibc binaries.
           -u               Do not use udev for root device discovery.
 	  -S               Load policy file for SELinux if exist.
@@ -562,16 +562,20 @@ attach_dsdt() {
     fi
     if ! grep -q "DSDT" "$acpi_dsdt" ; then
 	oops 2 "File $acpi_dsdt is not a valid ACPI DSDT. Ignoring."
+	return
     elif grep -qE 'DefinitionBlock' "$acpi_dsdt" ; then
     	oops 2 "ACPI DSDT $acpi_dsdt does not seem to be in binary form." \
 	       "Will not attach this to $initrd_image."
-    else
+	return
+    fi
+    if [ "$mkinit_type" = "rd" ]; then
 	{   echo -ne "INITRDDSDT123DSDT123\0"
 	    cat "$acpi_dsdt"
-	    echo -ne "INITRDDSDT321DSDT321\0"
 	} >> $initrd_image
-	echo -e "ACPI DSDT:\t$acpi_dsdt"
+    else
+	cp "$acpi_dsdt" $tmp_mnt/DSDT.aml
     fi
+    echo -e "ACPI DSDT:\t$acpi_dsdt"
 }
 
 # Check for IDE module
@@ -2508,11 +2512,7 @@ mkinitrd_kernel() {
 	    $splash_bin -s -f $splash_image > $tmp_mnt/bootsplash
 	fi
 
-	# Include custom DSDT
-	if [ -n "$acpi_dsdt" -a -f "$acpi_dsdt" ]; then
-	    cat "$acpi_dsdt" > $tmp_mnt/DSDT.aml
-	    echo -e "ACPI DSDT:\t$acpi_dsdt"
-	fi
+	attach_dsdt
 
 	pushd . > /dev/null 2>&1
 	cd $tmp_mnt

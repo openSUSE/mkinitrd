@@ -4,6 +4,12 @@ Mon Feb 28 12:21:58 CET 2005 - hare@suse.de
 - Add links to /dev/stdin, /dev/stdout and /dev/stderr (#66841).
 
 -------------------------------------------------------------------
+Sun Feb 27 18:08:16 CET 2005 - trenn@suse.de
+
+- correctly add dsdt to initramfs
+- corrected manpage -> initramfs default -> -R use initrd
+
+-------------------------------------------------------------------
 Wed Feb 23 14:52:17 CET 2005 - hare@suse.de
 
 - Make root=0304 style parameters working again (#66023)
