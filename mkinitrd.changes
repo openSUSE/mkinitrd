@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May 26 15:11:04 CEST 2004 - olh@suse.de
+
+- mkinitramfs: remove misleading error message. (#39625)
+
+-------------------------------------------------------------------
 Tue May 25 20:51:54 CEST 2004 - garloff@suse.de
 
 - mkinitrd and mkinitramfs: Find iscsid in either /usr/sbin or 

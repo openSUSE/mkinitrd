@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.33 2004/05/25 19:01:19 garloff Exp $
+# $Id: mkinitramfs,v 1.34 2004/05/26 13:11:36 olh Exp $
 
 #
 # Print usage and exit
@@ -733,7 +733,7 @@ mkinitrd_kernel () {
 	    continue
 	fi
 	if ! ( cd / ; cp -p --parents $module $tmp_mnt ) ; then
-	    oops 6 "Failed to add module $module. Initrd too small?"
+	    oops 6 "Failed to add module $module.?"
 	    return
 	fi
 
