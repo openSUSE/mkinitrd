@@ -9,6 +9,12 @@ Wed Oct 27 16:47:40 CEST 2004 - olh@suse.de
 - mkinitramfs: fix iscsi root, move udevstart (#34258 - LTC6040)
 
 -------------------------------------------------------------------
+Tue Oct 26 17:04:00 CEST 2004 - agruen@suse.de
+
+- Allow to pivot-root mount by UUID (UUID=* was missing in case
+  statement).
+
+-------------------------------------------------------------------
 Thu Oct 21 10:04:24 CEST 2004 - hare@suse.de
 
 - Fix syntax errors on failure (#47441)

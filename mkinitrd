@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.9 $
+# $Revision: 1.124.2.10 $
 
 #
 # Print usage and exit
@@ -2064,7 +2064,7 @@ mkinitrd_kernel() {
     if [ -n "$use_pivot_root" ] ; then
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
-	|ROOT=*|LABEL=*)
+	|ROOT=*|LABEL=*|UUID=*)
 	|   pivotroot=1 ;;
 	|*)
 	|   pivotroot=$dhcp_mode ;;
