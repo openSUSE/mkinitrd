@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.26 2004/09/03 18:58:06 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.27 2004/09/03 18:59:38 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -329,9 +329,13 @@ if [ -x /vendor_init.sh ] ; then
 fi
 
 # ready to leave
+cd /root
+if [ -f etc/mtab ] ; then
+	echo fixating mtab...
+	mount -o bind /proc/1/mounts etc/mtab
+fi
 umount /proc
 umount /sys
-cd /root
 
 #
 # the point of no return!

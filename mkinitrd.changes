@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  3 20:59:08 CEST 2004 - olh@suse.de
+
+- mkinitramfs: bind mount /etc/mtab to /proc/1/mounts
+
+-------------------------------------------------------------------
 Fri Sep  3 20:57:02 CEST 2004 - olh@suse.de
 
 - mkinitramfs: copy the /tmp/net-*.conf files to /dev/nfsroot/ 
