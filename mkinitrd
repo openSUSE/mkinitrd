@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.157 $
+# $Revision: 1.158 $
 
 #
 # Print usage and exit
@@ -1336,6 +1336,11 @@ mkinitrd_kernel() {
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
 	|    linuxrc=trace)
+	|	echo -n "cmdline: "
+	|	for arg in \$@; do
+	|	    echo -n "\$arg "
+	|	done
+	|	echo ""
 	|	set -x
 	|	;;
 	|    noresume)
@@ -1343,6 +1348,9 @@ mkinitrd_kernel() {
 	|	;;
 	|    sysrq=yes|sysrq=1)
 	|	echo 1 > /proc/sys/kernel/sysrq
+	|	;;
+	|    1|2|3|4|5|S|single)
+	|	runlevel=\$o
 	|	;;
 	|    esac
 	|done
@@ -1360,6 +1368,10 @@ mkinitrd_kernel() {
 	|    resume=*)
 	|	set -- \$(IFS== ; echo \$o)
 	|	resumedev=\$2
+	|	;;
+	|    init=*)
+	|	set -- \$(IFS== ; echo \$o)
+	|	init=\$2
 	|	;;
 	|    esac
 	|done
@@ -2193,7 +2205,7 @@ mkinitrd_kernel() {
 	|done
 	|rm -rf /bin /lib*
 	|exec /run_init "$@" < "./dev/console" > "./dev/console" 2>&1
-	|echo huhu ...
+	|echo could not exec run_init!
 	EOF
     fi
 

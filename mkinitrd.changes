@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb  4 09:36:36 CET 2005 - hare@suse.de
+
+- Make initramfs to accept init= parameter (#50455).
+
+-------------------------------------------------------------------
 Mon Jan 31 15:14:22 CET 2005 - hare@suse.de
 
 - Remove mkinitramfs symlinks (#50301)
