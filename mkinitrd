@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.108 $
+# $Revision: 1.109 $
 
 #
 # Print usage and exit
@@ -2251,7 +2251,7 @@ You may now have to update the elilo boot loader configuration."
   *)
     if [ -f "$root_dir/etc/zipl.conf" ]; then
 	echo "
-initrd updated, you have to update the IPL record before IPL using zipl now."
+initrd updated, you have to update the IPL record using zipl before IPL!"
     else
 	echo "
 You may now have to update your boot loader configuration."
