@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.114 $
+# $Revision: 1.115 $
 
 #
 # Print usage and exit
@@ -305,7 +305,7 @@ auto)
     [ -f $root_dir/boot/grub/menu.lst ] \
 	&& bootconf="$bootconf $root_dir/boot/grub/menu.lst"
     for vga in $(sed -e '/^[ \t]*#/d' $bootconf \
-	    	 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
+	    	 | sed -ne 's/^.*vga[ \t]*=[ \t]*\([^ \t]*\).*/\1/p' \
 		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
 	splashsize=
 	case $(($vga)) in  # $((...)) : Convert 0xFOO to decimal

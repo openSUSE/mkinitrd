@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.41 2004/06/08 10:36:56 agruen Exp $
+# $Id: mkinitramfs,v 1.42 2004/06/08 23:25:21 agruen Exp $
 
 #
 # Print usage and exit
@@ -244,7 +244,7 @@ auto)
     [ -f /boot/grub/menu.lst ] \
 	&& bootconf="$bootconf /boot/grub/menu.lst"
     for vga in $(sed -e '/^[ \t]*#/d' $bootconf \
-		 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
+		 | sed -ne 's/^.*vga[ \t]*=[ \t]*\([^ \t]*\).*/\1/p' \
 		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
 	splashsize=
 	case $[$vga] in  # $[...] : Convert 0xFOO to decimal
