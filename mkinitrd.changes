@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat May 29 23:19:29 CEST 2004 - olh@suse.de
+
+- mkinitramfs-kinit.sh:
+  remove hardcoded unconditional 42 panic timeout 
+
+-------------------------------------------------------------------
 Wed May 26 15:53:20 CEST 2004 - agruen@suse.de
 
 - #41225: vga mode parsing bug.

@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.13 2004/05/24 20:42:07 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.14 2004/05/29 21:20:24 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -40,8 +40,6 @@ done
 
 if [ ! -f /proc/cpuinfo ] ; then mount -t proc proc /proc ; fi
 if [ ! -d /sys/class ] ; then mount -t sysfs sysfs /sys ; fi
-
-echo 42 > /proc/sys/kernel/panic
 
 # load drivers for the root filesystem, if needed
 if [ -x /load_modules.sh ] ; then
