@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.45 $
+# $Revision: 1.46 $
 
 #
 # Print usage and exit
@@ -1311,7 +1311,7 @@ if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
     [ "$major" -eq 254 ] && root_dm=1
 fi
 
-s390_zfcp() {
+s390_zfcp_proc() {
    zfcp_param=
    if [ ! -s $root_dir/etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
    then
@@ -1344,8 +1344,51 @@ you can save the current configuration with this command:
     fi
 }
 
-s390_dasd() {
+s390_dasd_sysfs() {
+    local dev_major dev_minor
+
+    read dev_major dev_minor < <(stat -c "0x%t 0x%T" $rootdev)
+
+    for dir in /sys/block/*/*; do
+	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
+	    IFS=":" read tmp_major tmp_minor < $dir/dev
+	    if (($tmp_major == $dev_major && $tmp_minor == $dev_minor)); then
+		path=$dir
+		break;
+	    fi
+	fi
+    done
+
+    if [ "$path" ] && [ -d ${path}/../device ]; then
+	if [ -r ${path}/../device/discipline ]; then
+	    read type < ${path}/../device/discipline
+
+	    case $type in
+		ECKD)
+		    add_module dasd_eckd_mod
+		    ;;
+		FBA)
+		    add_module dasd_fba_mod
+		    ;;
+		DIAG)
+		    add_module dasd_diag_mod
+		    ;;
+		*)
+		    ;;
+	    esac
+	else
+	    echo "root device $rootdev is not a dasd device."
+	fi
+    else
+	error 1 "\
+Could not detect sysfs path for root device $rootdev.
+(Broken driver ?)"
+    fi
+}
+
+s390_dasd_proc() {
     local zipl_conf_with_dasd dasd_module
+
     if [ -f $root_dir/etc/zipl.conf ] \
        && grep -q '^[[:space:]]*parameters[[:space:]]*=' \
 	    $root_dir/etc/zipl.conf; then
@@ -1412,8 +1455,12 @@ fi
 
 if [ "$arch" = s390 ]; then
     # Check if zfcp or dasd modules need to be added automatically:
-    s390_zfcp
-    s390_dasd
+    if [ -d /sys/block ]; then
+	s390_dasd_sysfs
+    else
+	s390_dasd_proc
+	s390_zfcp_proc
+    fi
 fi
 
 # check if an initrd is needed at all.
