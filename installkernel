@@ -8,7 +8,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/installkernel,v $
-# $Revision: 1.4 $
+# $Revision: 1.5 $
 #
 
 : ${INSTALL_PATH:=/boot}
@@ -16,14 +16,23 @@ KERNEL_VERSION=$1
 BOOTIMAGE=$2
 MAPFILE=$3
 
+case "`uname -m`" in
+	ppc|ppc64)
+	BOOTFILE=vmlinux
+	;;
+	*)
+	BOOTFILE=vmlinuz
+	;;
+esac
+
 #
 # Move away files from versions up to SuSE Linux 8.2
 #
 
-if [ -f $INSTALL_PATH/vmlinuz -a ! -L $INSTALL_PATH/vmlinuz ]; then
-    mv $INSTALL_PATH/vmlinuz $INSTALL_PATH/vmlinuz.old
+if [ -f $INSTALL_PATH/${BOOTFILE} -a ! -L $INSTALL_PATH/${BOOTFILE} ]; then
+    mv $INSTALL_PATH/${BOOTFILE} $INSTALL_PATH/${BOOTFILE}.old
 fi
-ln -sf vmlinuz-$KERNEL_VERSION $INSTALL_PATH/vmlinuz
+ln -sf ${BOOTFILE}-$KERNEL_VERSION $INSTALL_PATH/${BOOTFILE}
 
 if [ -L $INSTALL_PATH/System.map ]; then
     rm -f $INSTALL_PATH/System.map
@@ -35,9 +44,9 @@ fi
 # Move away files from after SuSE Linux 8.2
 #
 
-if [ -f $INSTALL_PATH/vmlinuz-$KERNEL_VERSION ]; then
-    mv $INSTALL_PATH/vmlinuz-$KERNEL_VERSION \
-	$INSTALL_PATH/vmlinuz-$KERNEL_VERSION.old;
+if [ -f $INSTALL_PATH/${BOOTFILE}-$KERNEL_VERSION ]; then
+    mv $INSTALL_PATH/${BOOTFILE}-$KERNEL_VERSION \
+	$INSTALL_PATH/${BOOTFILE}-$KERNEL_VERSION.old;
 fi
 
 if [ -f $INSTALL_PATH/System.map-$KERNEL_VERSION ]; then
@@ -49,9 +58,9 @@ fi
 # Install new files
 #
 
-cp -fp $BOOTIMAGE $INSTALL_PATH/vmlinuz-$KERNEL_VERSION
+cp -fp $BOOTIMAGE $INSTALL_PATH/${BOOTFILE}-$KERNEL_VERSION
 cp -fp $MAPFILE $INSTALL_PATH/System.map-$KERNEL_VERSION
-ln -sf vmlinuz-$KERNEL_VERSION $INSTALL_PATH/vmlinuz
+ln -sf ${BOOTFILE}-$KERNEL_VERSION $INSTALL_PATH/${BOOTFILE}
 
 KERNTYPES=$(dirname $MAPFILE)/init/kerntypes.o
 if [ -e $KERNTYPES ]; then
@@ -64,7 +73,7 @@ fi
 [ -x /sbin/mk_initrd ] && : ${MKINITRD:=/sbin/mk_initrd}
 [ -x /sbin/mkinitrd ]  && : ${MKINITRD:=/sbin/mkinitrd}
 if [ -n "$MKINITRD" -a -d /lib/modules/$KERNEL_VERSION ]; then
-    $MKINITRD -k vmlinuz-$KERNEL_VERSION -i initrd-$KERNEL_VERSION \
+    $MKINITRD -k ${BOOTFILE}-$KERNEL_VERSION -i initrd-$KERNEL_VERSION \
 	      -b $INSTALL_PATH
 else
     echo "You may need to create an initial ramdisk now."
