@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 18 21:07:47 CEST 2004 - olh@suse.de
+
+- fix syntax error in mkinitramfs-kinit.sh, in nfsroot path
+
+-------------------------------------------------------------------
 Sat Oct 16 11:46:19 CEST 2004 - olh@suse.de
 
 - use either vmlinux or vmlinuz in installkernel (#39427 - LTC7872)
