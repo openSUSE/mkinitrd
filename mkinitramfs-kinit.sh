@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.22 2004/08/22 20:42:00 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.23 2004/08/27 11:10:40 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -28,6 +28,9 @@ chmod 0755 "$udev_root"
 if [ ! -f /proc/cpuinfo ] ; then mount -t proc proc /proc ; fi
 if [ ! -d /sys/class ] ; then mount -t sysfs sysfs /sys ; fi
 ln -s /proc/self/fd "$udev_root/fd"
+ln -s fd/0 "$udev_root/stdin"
+ln -s fd/1 "$udev_root/stdout"
+ln -s fd/2 "$udev_root/stderr"
 
 # create all mem devices, ash cant live without /dev/null
 for i in \

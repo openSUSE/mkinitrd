@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 27 13:09:42 CEST 2004 - olh@suse.de
+
+- mkinitramfs: create /dev/std{in,out,err} symlinks (#43338)
+
+-------------------------------------------------------------------
 Tue Aug 24 20:34:03 CEST 2004 - agruen@suse.de
 
 - Remove support for the root_dir parameter: The same effect can
