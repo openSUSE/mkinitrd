@@ -23,8 +23,7 @@
 
 # This file is kept in the following CVS repository:
 #
-# $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitramfs,v $
-# $Revision: 1.15 $
+# $Id: mkinitramfs,v 1.16 2004/04/20 19:57:36 olh Exp $
 
 #
 # Print usage and exit
