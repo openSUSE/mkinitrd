@@ -23,13 +23,13 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.18 $
+# $Revision: 1.19 $
 
 #
 # Print usage and exit
 #
 usage() {
-	cat<<EOM
+    cat<<EOM
 	Create initial ramdisk images that contain all kernel modules
 	needed in the early boot process, before the root file system
 	becomes available. This usually includes SCSI and/or RAID
@@ -62,17 +62,7 @@ usage() {
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
 EOM
-	case $arch in
-	    s390*)
-		cat <<-EOF
-
-		If the zfcp module is configured in root_dir/etc/zfcp.conf, mkinitrd
-		will add zfcp support to the initrd as well.
-
-		EOF
-		;;
-	esac
-	exit
+    exit
 }
 
 # Readlink is not present on some older distributions: emulate it.
@@ -88,7 +78,9 @@ default_kernel_images () {
 	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
 	case "$arch" in
-		s390)	regex='kernel/image'
+		s390*)	kernel_images=/boot/kernel/image
+			initrd_images=/boot/initrd
+			return
 			;;
 		ppc)	regex='vmlinu[xz]\(64\)\?'
 			;;
@@ -351,14 +343,6 @@ cleanup_finish () {
     [ -d "$work_dir" ] && rmdir $work_dir
 }
 
-enable_module () {
-    modules="$modules $1"
-    echo "
-Note: If you want to add $2 support for later mkinitrd
-calls where possibly no $2 is found, add $1
-to INITRD_MODULES in /etc/sysconfig/kernel"
-}
-
 handle_terminate () {
     echo "(received signal)
 
@@ -405,6 +389,17 @@ add_module () {
     for module in "$@"; do
 	has_module "$module" || modules="$modules $module"
     done
+}
+
+enable_module () {
+    add_module "$1"
+    echo "
+Automatically adding module $1.
+
+If you want to add $2 support for later mkinitrd calls where
+possibly no $2 is found, add $1 to INITRD_MODULES
+in /etc/sysconfig/kernel
+"
 }
 
 # Install a binary file
@@ -721,11 +716,6 @@ mkinitrd_kernel () {
 	fi
     fi
 
-    # DEBUG agruen: Copying a dynamic binary into the initrd
-    # will also add shared libraries, and the dynamically linked
-    # version of insmod will get used.
-    #cp_bin $root_dir/bin/cat $tmp_mnt/bin
-
     echo -ne "Shared libs:\t"
     # Only check those binaries against dynamic libraries that were
     # taken from the root_dir: We don't want to go into library
@@ -840,13 +830,21 @@ mkinitrd_kernel () {
 	    return
 	fi
 
-	# Override specific module parameters
-	case $module in
-	    *zfcp.o)
-		# FIXME agruen: check if this is correct. Aren't the
-		# parameters returned correctly by modprobe anyway?
-		params=$zfcp_param
+	case "$module" in
+	    */dasd_mod.o)
+		# kernel cmdline dasd parameter is placed into the environment.
+		# all we need to to have it evaluated at insmod time....:
+		params='dasd=$dasd'
 		;;
+	    */zfcp.o)
+		params="map=\"$zfcp_param\""
+		;;
+	    *)
+		if [ -z "$params" ]; then
+		    modparms=`grep "^[      ]*options \<$i\>" \
+			"$root_dir"/etc/modules.conf`
+		    params="${modparms#* * }"
+		fi
 	esac
 
 	mp="/$module${params:+ $params}"
@@ -861,18 +859,6 @@ mkinitrd_kernel () {
 
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
-    fi
-
-
-    if has_module zfcp ; then
-	echo "Including zfcp support"
-	cat_linuxrc <<-EOF
-	|echo "zfcp ..."
-	|mount -n -tproc none /proc
-	|cat /etc/zfcp.conf > /proc/scsi/zfcp/add_map
-	|umount -n /proc
-	|echo "done ..."
-	EOF
     fi
 
     if has_any_module raid0 raid1 raid5 linear multipath ; then
@@ -1223,28 +1209,24 @@ if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
     [ "$major" -eq 58 ] && root_lvm=1
 fi
 
-###################################################################
-#
-# zFCP
-#
-# If the initial zfcp setup is not done, do it(important for installation):
+s390_zfcp() {
+   zfcp_param=
+   if [ ! -s $root_dir/etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
+   then
+	fcpconf=`cat /proc/scsi/zfcp/map`
+	if [ -n "$fcpconf" ]; then
+	    echo "$fcpconf" > $root_dir/etc/zfcp.conf
+	    chmod 644 $root_dir/etc/zfcp.conf
+	fi
+   fi
+   if [ -s $root_dir/etc/zfcp.conf ]; then
+	add_module zfcp
 
-if cat /proc/modules | grep -q "^zfcp" &&
-   [ ! -s $root_dir/etc/zfcp.conf ]; then
-    fcpconf=`cat /proc/scsi/zfcp/map`
-    if [ -n "$fcpconf" ]; then
-	echo "$fcpconf" > $root_dir/etc/zfcp.conf
-	chmod 644 $root_dir/etc/zfcp.conf
-    fi
-fi
-
-zfcp_param=
-if [ -s $root_dir/etc/zfcp.conf ]; then
-    zfcp_param=$(sed -e 's,#.*,,' -e '/^[[:blank:]]*$/d'
+	zfcp_param=$(sed -e 's,#.*,,' -e '/^[[:blank:]]*$/d'
 		     $root_dir/etc/zfcp.conf)
 
-    if [ -z "$zfcp_param" ]; then
-	error 1 "\
+	if [ -z "$zfcp_param" ]; then
+	    error 1 "\
 zfcp module loaded but root_dir/etc/zfcp.conf empty.
 don't know how to configure zfcp in initrd.
 
@@ -1252,85 +1234,46 @@ you can save the current configuration with this command:
 
     cat /proc/scsi/zfcp/map >> root_dir/etc/zfcp.conf
 "
+	fi
     fi
-    add_module zfcp
-fi
+}
 
-###################################################################
-#
-# DASD
-#
-# the dasd module has to be configured in root_dir/etc/zipl.conf or
-# with a parameter in modules.conf
-#
-# If dasd= is mentioned in zipl.conf, or configured in modules.conf,
-# assume it should be used. If dasd is compiled into the kernel,
-# mkinitrd will will create an initrd without dasd module.
+s390_dasd() {
+    if [ -f $root_dir/etc/zipl.conf ]; then
+	if grep -q '^[[:space:]]*parameters=' $root_dir/etc/zipl.conf; then
+	    zipl_conf_with_dasd=1
+	fi
+    fi
 
-if [ -f $root_dir/etc/zipl.conf ]; then
-    # check for zipl boot parameters with dasd= and check for
-    # parameters without dasd=.  if both are present, warn below.
+    if grep -q '^[[:space:]]*options[[:space:]]\+dasd_mod'\
+		$root_dir/etc/modules.conf; then
+	dasd_modules_conf=1
+    fi
 
-    zipl_dasd_params=$(grep '^[[:space:]]*parameters=' \
-		            $root_dir/etc/zipl.conf)
-    echo "$zipl_dasd_params" | grep -q 'dasd=' \
-	&& zipl_conf_with_dasd=1
-    echo "$zipl_dasd_params" | grep -qv 'dasd=' \
-	&& zipl_conf_no_dasd=1
-fi
+    if cat /proc/modules | grep -q -e "^dasd" \
+	|| [ -n "$zipl_conf_with_dasd" ] \
+	|| [ -n "$dasd_modules_conf" ] \
+	|| has_module dasd_mod ; then
 
-grep -q '^[[:space:]]*options[[:space:]]\+dasd_mod' $root_dir/etc/modules.conf \
-    && dasd_modules_conf=1
-
-if cat /proc/modules | grep -q -e "^dasd" \
-   || [ -n "$zipl_conf_with_dasd" ] \
-   || [ -n "$dasd_modules_conf" ] \
-   || has_module dasd_mod ; then
-
-    # sanity checks
-    if [ ! "$zipl_conf_with_dasd" -a ! "$dasd_modules_conf" ]; then
-	error 1 "\
+	if [ ! "$zipl_conf_with_dasd" -a ! "$dasd_modules_conf" ]; then
+	    error 1 "\
 The dasd module is required, but no dasd configuration was found in
 root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
+	fi
+
+	if grep -q ECKD /proc/dasd/devices ; then
+	    enable_module dasd_eckd_mod 'ECKD dasd'
+	fi
+
+	if grep -q FBA  /proc/dasd/devices ; then
+	    enable_module dasd_fba_mod  'FBA dasd'
+	fi
+
+	if grep -q DIAG /proc/dasd/devices ; then
+	    enable_module dasd_diag_mod 'DIAG dasd'
+	fi
     fi
-
-    if [ "$zipl_conf_with_dasd" -a "$zipl_conf_no_dasd" ]; then
-	echo "\
-Warning: there are some parameter definitions without dasd parameter
-in root_dir/etc/zipl.conf:"
-
-	# show all sections with paramenters
-	grep -n -e '^[[:space:]]*\[' -e '^[[:space:]]*parameters=' \
-	     $root_dir/etc/zipl.conf \
-	| grep --before-context=1 '^[[:digit:]]*:[[:space:]]*parameters='
-	# FIXME agruen: The parameters from zipl.conf are not extracted
-	# anywhere, and are not passed to the insmod command. I suppose
-	# this is an bug. I have commented out the misleading comment
-	# for now.
-
-	#if [ -n "$dasd_modules_conf" ]; then
-	#    echo "\
-#For those parameter definitions without dasd parameter, the parmline
-#from root_dir/etc/modules.conf will be used."
-	#fi
-    fi
-
-    # add dasd disciplines
-    if has_module dasd_eckd_mod && grep -q ECKD /proc/dasd/devices ; then
-       echo -e "\nFound ECKD dasd, adding dasd eckd discipline!"
-       enable_module dasd_eckd_mod 'ECKD dasd'
-    fi
-
-    if has_module dasd_fba_mod  && grep -q FBA  /proc/dasd/devices ; then
-       echo -e "\nFound FBA dasd, adding dasd fba discipline!"
-       enable_module dasd_fba_mod  'FBA dasd'
-    fi
-
-    if has_module dasd_diag_mod && grep -q DIAG /proc/dasd/devices ; then
-       echo -e "\nFound DIAG dasd, adding dasd diag discipline!"
-       enable_module dasd_diag_mod 'DIAG dasd'
-    fi
-fi
+}
 
 ###################################################################
 
@@ -1353,7 +1296,13 @@ fi
 ###################################################################
 # add modules required by features
 if [ -n "$root_lvm" ] ; then
-  add_module lvm-mod
+    add_module lvm-mod
+fi
+
+if [ "$arch" = s390 ]; then
+    # Check if zfcp or dasd modules need to be added automatically:
+    s390_zfcp
+    s390_dasd
 fi
 
 # check if an initrd is needed at all.
@@ -1413,16 +1362,14 @@ Run lilo now to update the boot loader configuration."
   grub | elilo)
     ;;
   *)
-    echo "
+    if [ -f "$root_dir/etc/zipl.conf" ]; then
+	echo -e "\ninitrd updated, zipl needs to update the IPL record before IPL!"
+    else
+	echo "
 You may be using the lilo boot loader. If this is the case, \
 run lilo now to update its configuration."
+    fi
     ;;
 esac
-
-if test -f "$root_dir/etc/zipl.conf"; then
-    echo "
-Run zipl now to update the IPL record!
-"
-fi
 
 exit $exit_code
