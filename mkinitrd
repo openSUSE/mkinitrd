@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.129 $
+# $Revision: 1.130 $
 
 #
 # Print usage and exit
@@ -1157,10 +1157,9 @@ mkinitrd_kernel() {
 	    if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
 		cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
 		    $tmp_mnt/lib/klibc/bin
-		if [ -e $tmp_mnt/bin/$klibc_bin ]; then
-		    rm -f $tmp_mnt/bin/$klibc_bin
+		if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
+		    ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
 		fi
-		ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
 	    fi
 	done
 
