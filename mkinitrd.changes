@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Mar  4 13:00:51 CET 2005 - hare@suse.de
+
+- Export ROOTFS_BLKDEV for boot scripts.
+
+-------------------------------------------------------------------
+Thu Mar  3 09:03:04 CET 2005 - hare@suse.de
+
+- Do not load ide-floppy by default.
+
+-------------------------------------------------------------------
 Mon Feb 28 17:16:26 CET 2005 - hare@suse.de
 
 - Add device /dev/isdninfo as no-one seems to create it (#66745).

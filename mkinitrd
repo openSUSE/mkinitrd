@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.175 $
+# $Revision: 1.176 $
 
 #
 # Print usage and exit
@@ -684,9 +684,10 @@ check_ide_modules() {
 	if grep -q ide-disk ${modules_dir}/modules.dep; then
 	    add_module ide-disk
 	fi
-	if grep -q ide-floppy ${modules_dir}/modules.dep; then
-	    add_module ide-floppy
-	fi
+	# IDE-floppy is considered obsolete
+	# if grep -q ide-floppy ${modules_dir}/modules.dep; then
+	#     add_module ide-floppy
+	# fi
 	if grep -q ide-cd ${modules_dir}/modules.dep; then
 	    add_module ide-cd
 	fi
@@ -2366,6 +2367,10 @@ mkinitrd_kernel() {
 	|
 	|INIT="$init"
 	|export INIT
+	|
+	|# Export root fs information
+	|ROOTFS_BLKDEV="$rootdev"
+	|export ROOTFS_BLKDEV
 	|
 	|# The point of no return!
 	|for i in /*
