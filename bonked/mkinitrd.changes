@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May 25 20:51:54 CEST 2004 - garloff@suse.de
+
+- mkinitrd: Find iscsid in either /usr/sbin/ or /sbin/.
+
+-------------------------------------------------------------------
 Mon May 24 21:48:46 CEST 2004 - olh@suse.de
 
 - mkinitramfs: fix nfsroot to take nfsroot=server:/dir
