@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.113 $
+# $Revision: 1.114 $
 
 #
 # Print usage and exit
@@ -639,12 +639,9 @@ check_ide_modules() {
     fi
 
     while read pci_id none class_id dev_id rev_id; do
-	saved_IFS="$IFS"
-	IFS=":"
-	set -- $dev_id
+	set -- $(IFS=: ; echo $dev_id)
 	vendor_id=$1
 	device_id=$2
-	IFS="$saved_IFS"
 	if [ "$class_id" == "0101:" ] ; then
 	    pci_vendor_id=$(printf "0x%08x" $((0x$vendor_id)))
 	    pci_device_id=$(printf "0x%08x" $((0x$device_id)))
