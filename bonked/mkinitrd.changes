@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Jun 18 02:55:26 CEST 2004 - agruen@suse.de
+
+- With multiple root= kernel command line options, the last one is
+  supposed to count.
+- Lilo tries to be clever and strips off the /dev/ prefix from
+  device names. Check and fix; this is needed for EVMS root.
+- Convert some back-tick quoting to $() quoting.
+
+-------------------------------------------------------------------
 Mon Jun 14 11:51:48 CEST 2004 - olh@suse.de
 
 - mkinitramfs: mount /proc correctly
