@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.43.4.3 2004/10/28 12:55:07 olh Exp $
+# $Id: mkinitramfs,v 1.43.4.4 2005/01/18 12:57:55 olh Exp $
 
 #
 # Print usage and exit
@@ -810,7 +810,6 @@ mkinitrd_kernel () {
 	|echo "raidautorun ..."
 	|raidautorun
 	|echo "done..."
-	|exit 0
 	EOF
     fi
 

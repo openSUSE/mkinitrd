@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 18 13:56:22 CET 2005 - olh@suse.de
+
+- mkinitramfs: remove exit 0 from load_md.sh to allow root
+  on lvm on raid (#49909)
+
+-------------------------------------------------------------------
 Thu Dec 16 14:56:14 CET 2004 - hare@suse.de
 
 - Always mount /sys if not mounted (#49320).
