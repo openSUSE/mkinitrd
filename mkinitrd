@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.182 $
+# $Revision: 1.183 $
 
 #
 # Print usage and exit
@@ -1540,12 +1540,14 @@ mkinitrd_kernel() {
 	|	    ;;
 	|	LABEL=*)
 	|	    label=\${rootdev#LABEL=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"\*\", PROGRAM="/bin/udev_volume_id -l %N", RESULT=\"\$label\", "SYMLINK=\"root\"" > /etc/udev/rules.d/01-label.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/bin/udev_volume_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" > /etc/udev/rules.d/01-label.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/bin/udev_volume_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" >> /etc/udev/rules.d/01-label.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	UUID=*)
 	|	    uuid=\${rootdev#UUID=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"\*\", PROGRAM="/bin/udev_volume_id -u %N", RESULT=\"\$uuid\", "SYMLINK=\"root\"" > /etc/udev/rules.d/02-label.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/bin/udev_volume_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" > /etc/udev/rules.d/02-uuid.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/bin/udev_volume_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])

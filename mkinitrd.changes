@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 10 08:41:57 CET 2005 - hare@suse.de
+
+- Fix mount by label properly (#65886).
+
+-------------------------------------------------------------------
 Wed Mar  9 12:00:50 CET 2005 - hare@suse.de
 
 - Always mount rootfs read-write when using jfs (#67328).
