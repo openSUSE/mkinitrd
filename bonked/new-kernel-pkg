@@ -1,4 +1,29 @@
 #! /bin/sh
+#
+# new-kernel-pkg - Install a new kernel package
+#
+# Copyright (C) 2004 SuSE Linux AG, Nuernberg, Germany
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+# USA.
+
+# This file is kept in the following CVS repository:
+#
+# $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/new-kernel-pkg,v $
+# $Revision: 1.2 $
+
 
 update_zipl_conf() {
 	local zipl_conf=$1
@@ -111,32 +136,34 @@ case "$LOADER_TYPE" in
 	;;
     s390)
 	ZIPL_CONF=/etc/zipl.conf
-	echo "Updating $ZIPL_CONF..."
-	out=$(update_zipl_conf $ZIPL_CONF 2>&1) || {
-	    echo "Could not update your $ZIPL_CONF file."
-	    echo "The error was:"
-	    echo ""
-	    echo "$out"
-	    echo ""
-	    echo "Please update your zipl.conf file to include a section"
-	    echo 
-	    echo "[ipl]"
-	    echo "image=/boot/image"
-	    echo "ramdisk=/boot/initrd"
-	    echo ""
-	    mv $ZIPL_CONF.rpmorig $ZIPL_CONF
-	    exit 1
-	} >&2
-	echo "Running zipl..."
-	out=$(/sbin/zipl -V 2>&1) || {
-	    echo "zipl failed to update the IPL record of your system."
-	    echo "The output from zipl is:"
-	    echo ""
-	    echo "$out"
-	    echo ""
-	    echo "Please check that /etc/zipl.conf is correct"
-	    echo "and run /sbin/zipl again."
-	} >&2
+	if [ -f "$ZIPL_CONF" ]; then
+	    echo "Updating $ZIPL_CONF..."
+	    out=$(update_zipl_conf $ZIPL_CONF 2>&1) || {
+		echo "Could not update your $ZIPL_CONF file."
+		echo "The error was:"
+		echo ""
+		echo "$out"
+		echo ""
+		echo "Please update your zipl.conf file to include a section"
+		echo 
+		echo "[ipl]"
+		echo "image=/boot/image"
+		echo "ramdisk=/boot/initrd"
+		echo ""
+		mv $ZIPL_CONF.rpmorig $ZIPL_CONF
+		exit 1
+	    } >&2
+	    echo "Running zipl..."
+	    out=$(/sbin/zipl -V 2>&1) || {
+		echo "zipl failed to update the IPL record of your system."
+		echo "The output from zipl is:"
+		echo ""
+		echo "$out"
+		echo ""
+		echo "Please check that /etc/zipl.conf is correct"
+		echo "and run /sbin/zipl again."
+	    } >&2
+	fi
 	;;
     *)
 	{
