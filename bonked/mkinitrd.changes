@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Tue Jun  8 12:45:57 CEST 2004 - agruen@suse.de
+Tue Jun  8 12:38:08 CEST 2004 - agruen@suse.de
 
-- mkinitrd: Fix generation of several images (#41765)
+- #41765: Reset IFS to original value in one place.
+- Reset initrd_bins between creating multiple initrds.
 
 -------------------------------------------------------------------
 Mon Jun  7 14:29:06 CEST 2004 - hare@suse.de
