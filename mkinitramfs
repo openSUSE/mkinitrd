@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/Attic/mkinitramfs,v $
-# $Revision: 1.5 $
+# $Revision: 1.6 $
 
 #
 # Print usage and exit
@@ -606,9 +606,11 @@ mkinitrd_kernel () {
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
     cp_bin /bin/mknod $tmp_mnt/bin/mknod
+    if [ -d /etc/sysconfig/hardware ] ; then
     cp -a /etc/hotplug $tmp_mnt/etc/hotplug
     cp -a /etc/sysconfig/hardware $tmp_mnt/etc/sysconfig/hardware
     cp -a /sbin/hotplug $tmp_mnt/sbin
+    fi
 
     # If exists, copy also insmod.static.old, it is created by modutils for
     # 2.5.47+ kernels and it is needed by these to work with older kernels.
