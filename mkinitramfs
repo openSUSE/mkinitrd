@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/Attic/mkinitramfs,v $
-# $Revision: 1.10 $
+# $Revision: 1.11 $
 
 #
 # Print usage and exit
@@ -609,8 +609,9 @@ mkinitrd_kernel () {
     cp_bin /bin/mknod $tmp_mnt/bin/mknod
     cp_bin /bin/rm $tmp_mnt/bin/rm
     if [ -d /etc/sysconfig/hardware ] ; then
-    cp -a /etc/hotplug $tmp_mnt/etc/hotplug
-    cp -a /etc/sysconfig/hardware $tmp_mnt/etc/sysconfig/hardware
+    mkdir -p $tmp_mnt/etc/sysconfig
+    cp -a /etc/hotplug $tmp_mnt/etc
+    cp -a /etc/sysconfig/hardware $tmp_mnt/etc/sysconfig
     cp -a /sbin/hotplug $tmp_mnt/sbin
     fi
 
