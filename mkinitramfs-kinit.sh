@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.5 2004/04/17 18:31:56 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.6 2004/04/18 19:53:46 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -50,6 +50,12 @@ fi
 #
 # create all remaining device nodes
 /sbin/udevstart
+
+# workaround chicken/egg bug in mdadm and raidautorun
+# they do the ioctl on the not yet existing device node...
+mknod -m 660 /dev/md0 b 9 0
+mknod -m 660 /dev/md1 b 9 1
+mknod -m 660 /dev/md2 b 9 2
 
 # FIXME XXX
 if [ -x /load_md.sh ] ; then
