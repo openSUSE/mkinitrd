@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.150 $
+# $Revision: 1.151 $
 
 #
 # Print usage and exit
@@ -2049,6 +2049,9 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_pivot_root" ] ; then
+	# FIXME: rootdev is "ROOT=..." will not be recognized by the
+	#	 mount call below!
+
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
 	|ROOT=*|LABEL=*|UUID=*)
