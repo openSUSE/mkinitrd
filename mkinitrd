@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.10 $
+# $Revision: 1.124.2.11 $
 
 #
 # Print usage and exit
@@ -1805,12 +1805,16 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
 	|	local root
+	|	local i
+	|
+	|	echo > /.udevdb.lock
 	|	case "$rootdev" in
-	|	/dev/*)	root=$(expr substr $rootdev 6 99) ;;
+	|	/dev/*)	root=${rootdev#/dev/} ;;
 	|	esac
 	|	if [ -n "$root" ]; then
 	|	    echo -n "Waiting for device /dev/$root to appear: "
-	|	    for i in 1 2 3 4 5; do
+	|	    i=0
+	|	    while [ $i -lt 5 ]; do
 	|		if [ -e /dev/$root ]; then
 	|		    path=$(udevinfo -q path -n $root)
 	|		    if [ $? -eq 0 ]; then
@@ -1819,8 +1823,14 @@ mkinitrd_kernel() {
 	|		    else
 	|		        path=
 	|		    fi
+	|		else
+	|		    if [ /dev/.udev.tdb -nt /.udevdb.lock ]; then
+	|			echo > /.udevdb.lock
+	|			i=0
+	|		    fi
 	|		fi
 	|		sleep 1
+	|		i=$(expr $i + 1)
 	|		echo -n "."
 	|	    done
 	|	    if [ -n "$path" ]; then

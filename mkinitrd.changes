@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov  4 09:12:54 CET 2004 - hare@suse.de
+
+- mkinitrd: reset timeout if udev db has been changed (#47700)
+
+-------------------------------------------------------------------
 Thu Oct 28 14:53:06 CEST 2004 - olh@suse.de
 
 - mkinitramfs: create /var/run (#34258 - LTC6040)
