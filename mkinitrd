@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# mk_initrd - create the inital ramdisk images
+# mkinitrd - create the inital ramdisk images
 # usage: see below usage() or call with -h
 #
 # Copyright (C) 1999-2003 SuSE Linux AG, Nuernberg, Germany
@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.8 $
+# $Revision: 1.9 $
 
 #
 # Print usage and exit
@@ -36,7 +36,7 @@ usage() {
 	modules, a file system module for the root file system, or
 	a network interface driver module for dhcp.
 
-        mk_initrd [options] [root_dir]
+        mkinitrd [options] [root_dir]
 
         options:
           -h               This Text.
@@ -66,7 +66,7 @@ EOM
 	    s390*)
 		cat <<-EOF
 
-		If the zfcp module is configured in root_dir/etc/zfcp.conf, mk_initrd
+		If the zfcp module is configured in root_dir/etc/zfcp.conf, mkinitrd
 		will add zfcp support to the initrd as well.
 
 		EOF
@@ -119,7 +119,7 @@ default_kernel_images () {
 }
 
 # You can specify the root device via the environment variable rootdev (e.g.
-# "rootdev=/dev/hda mk_initrd").
+# "rootdev=/dev/hda mkinitrd").
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general configurable parameters
@@ -167,7 +167,7 @@ while getopts :hk:i:m:b:d:o:s:t:D:a: a ; do
 		a)  echo "-a requires a DSDT parameter"
 		    ;;
 		*)  echo "Unknown option: -$OPTARG"
-		    echo "Try mk_initrd -h"
+		    echo "Try mkinitrd -h"
 		    ;;
 	    esac
 	    exit 1
@@ -1197,7 +1197,7 @@ fi
 #
 # If dasd= is mentioned in zipl.conf, or configured in modules.conf,
 # assume it should be used. If dasd is compiled into the kernel,
-# mk_initrd will will create an initrd without dasd module.
+# mkinitrd will will create an initrd without dasd module.
 
 if [ -f $root_dir/etc/zipl.conf ]; then
     # check for zipl boot parameters with dasd= and check for
