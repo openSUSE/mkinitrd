@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 14 14:34:31 CEST 2004 - hare@suse.de
+
+- #46270: Fix DASD activation order to be more sensible.
+
+-------------------------------------------------------------------
 Thu Oct  7 12:32:46 CEST 2004 - agruen@suse.de
 
 - #46866: Create a dummy /etc/mtab in the initrd so that mount
