@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.178 $
+# $Revision: 1.179 $
 
 #
 # Print usage and exit
@@ -156,7 +156,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hgRk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
+while getopts :hgMRk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -511,7 +511,7 @@ resolve_modules() {
 	    with_modprobe_conf="-C /etc/modprobe.conf"
 	fi
 	module_list=$(/sbin/modprobe $with_modprobe_conf \
-	    --set-version $kernel_version \
+	    --set-version $kernel_version --ignore-install \
 	    --show-depends $module 2> /dev/null \
 	    | sed -ne 's:.*insmod /\?::p' )
 	if [ -z "$module_list" ]; then
@@ -612,7 +612,10 @@ check_ide_modules_hwinfo() {
     pci_subid_device=$5
 
     while read hwinfo_module; do
-	ide_modules="$ide_modules $hwinfo_module"
+	# Skip ahci module from hwinfo output
+	if [ "$hwinfo_module" != "ahci" ]; then
+	    ide_modules="$ide_modules $hwinfo_module"
+	fi
     done < <(hwinfo --kernel-version $kernel_version \
 	            --db "pci ${pci_id_vendor:+vendor=$pci_id_vendor} 
                          ${pci_id_device:+device=$pci_id_device} 
@@ -1495,6 +1498,9 @@ mkinitrd_kernel() {
 	|    1|2|3|4|5|S|single)
 	|	runlevel=\$o
 	|	;;
+	|    rw)
+	|       read_write=1
+	|       ;;
 	|    esac
 	|done
 	|
@@ -1539,6 +1545,7 @@ mkinitrd_kernel() {
 	|	    rootdevn=\$maj:\$min
 	|	    rootdev=/dev/root ;;
 	|	*:*)
+	|	    rootfstype="nfs"
 	|	    ;;
 	|	*)
 	|	    rootdev=/dev/\$rootdev
@@ -1887,12 +1894,15 @@ mkinitrd_kernel() {
 	|  case "$ROOTPATH" in
 	|    "") ;;
 	|    *:*)
+	|	rootfstype="nfs"
 	|	rootdev="$ROOTPATH" ;;
 	|    *)
 	|	if [ -n "$DHCPSIADDR" ]; then
 	|	    rootdev="$DHCPSIADDR:$ROOTPATH"
+	|	    rootfstype="nfs"
 	|	elif [ -n "$DHCPSNAME" ]; then
 	|	    rootdev="$DHCPSNAME:$ROOTPATH"
+	|	    rootfstype="nfs"
 	|	fi ;;
 	|   esac
 	|   if [ -z "$rootdev" ]; then
@@ -1995,6 +2005,7 @@ mkinitrd_kernel() {
 	|udev_discover_root() {
 	|    local root
 	|    case "$rootdev" in
+	|	*:*) root= ;;
 	|	/dev/nfs) root= ;;
 	|	/dev/*)	root=${rootdev#/dev/} ;;
 	|    esac
@@ -2177,7 +2188,6 @@ mkinitrd_kernel() {
 	|	# hex number or major:minor pair
 	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
 	|    esac
-	|    die 0
 	|fi
 	EOF
     fi
@@ -2273,10 +2283,23 @@ mkinitrd_kernel() {
 	EOF
     fi
 
+    if [ "$mkinit_type" = "ramfs" -o -n "$pivot_root" ]; then
+	cat_linuxrc <<-'EOF'
+	|if [ -z "$rootfstype" ]; then
+	|    rootfstype=$(/bin/udev_volume_id -t $rootdev)
+	|    [ $? -ne 0 ] && $rootfstype=
+	|fi
+	EOF
+    fi
+
     if has_module jfs && [ -n "$rootdev" ] ; then
 	cat_linuxrc <<-'EOF'
 	|# check filesystem if it is of type jfs
-	|[ -z "$dhcp_mode" ] && fsck -t jfs $rootdev
+	|if [ "$rootfstype" = "jfs" ]; then
+	|    fsck -t jfs $rootdev
+	|    # Always mount jfs read-write
+	|    read_write=1
+	|fi
 	EOF
     fi
 
@@ -2295,11 +2318,6 @@ mkinitrd_kernel() {
 
     if [ "$mkinit_type" = "ramfs" ]; then
 	cat_linuxrc <<-'EOF'
-	|read_write=
-	|for o in $(cat /proc/cmdline); do
-	|   [ $o = rw ] && read_write=1
-	|done
-	|
 	|opt="-o ro"
 	|[ -n "$read_write" ] && opt="-o rw"
 	|[ -n "$dhcp_mode" ] && opt="${opt},nolock"
@@ -2308,8 +2326,7 @@ mkinitrd_kernel() {
 	|echo 256 > /proc/sys/kernel/real-root-dev
 	|# mount the actual root device below /root
 	|echo "Mounting root $rootdev"
-	|rootfstype=$(/bin/udev_volume_id -t $rootdev)
-	|[ $? -eq 0 ] && opt="${opt} -t $rootfstype"
+	|[ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
 	|mount $opt $rootdev /root || die 1
 	|
 	|# Look for an init binary on the root filesystem
@@ -2415,11 +2432,6 @@ mkinitrd_kernel() {
 	|esac
 	|
 	|if [ -n "$pivotroot" ]; then
-	|   read_write=
-	|   for o in $(cat /proc/cmdline); do
-	|	[ $o = rw ] && read_write=1
-	|   done
-	|
 	|   opt=-oro
 	|   [ -n "$read_write" ] && opt=-orw
 	|   [ -n "$dhcp_mode" ] && opt="${opt},nolock"
@@ -2428,6 +2440,7 @@ mkinitrd_kernel() {
 	|   echo 256 > /proc/sys/kernel/real-root-dev
 	|   # mount the actual root device below /mnt
 	|   echo "Mounting root $rootdev"
+	|   [ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
 	|   mount $opt $rootdev /mnt || die 1
 	|
 	|   # do pivot-root call
