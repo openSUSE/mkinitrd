@@ -1,11 +1,7 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.19 2004/08/22 18:15:42 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.20 2004/08/22 18:42:27 olh Exp $
 # vim: syntax=sh
 # set -x
-
-# do not export PATH or bad things will happen once init runs
-PATH=/sbin:/usr/sbin:/bin:/usr/bin:/lib/klibc/bin
-echo " running ($$:$#) $0" "$@"
 
 if [ "$$" != 1 ] ; then
 	echo $0 must run as /init process
@@ -13,21 +9,13 @@ if [ "$$" != 1 ] ; then
 	exit 42
 fi
 
-# create all mem devices, ash cant live without /dev/null
-for i in \
-/sys/class/mem/*/dev \
-; do
-	if [ ! -f $i ] ; then continue ; fi
-	echo -n "."
-	DEVPATH=${i##/sys}
-	ACTION=add DEVPATH=${DEVPATH%/dev} /sbin/udev mem
-done
+# use the device node provided by the kernel
 exec < /dev/console > /dev/console 2>&1
-echo
-
+# do not export PATH or bad things will happen once init runs
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/lib/klibc/bin
+echo " running ($$:$#) $0" "$@"
+#
 . /etc/udev/udev.conf
-
-
 mkdir -p "$udev_root"
 # allow bind mount, to not lose events
 mount -t tmpfs -o size=3% initramdevs "$udev_root"
@@ -41,6 +29,22 @@ done
 if [ ! -f /proc/cpuinfo ] ; then mount -t proc proc /proc ; fi
 if [ ! -d /sys/class ] ; then mount -t sysfs sysfs /sys ; fi
 
+# create all mem devices, ash cant live without /dev/null
+for i in \
+/sys/class/mem/*/dev \
+; do
+	if [ ! -f $i ] ; then continue ; fi
+	echo -n "."
+	DEVPATH=${i##/sys}
+	UDEV_NO_SLEEP=yes ACTION=add DEVPATH=${DEVPATH%/dev} /sbin/udev mem
+done
+echo
+
+if [ ! -x /sbin/hotplug ] ; then
+rm -f /sbin/hotplug
+ln -s /sbin/udev /sbin/hotplug
+fi
+
 # load drivers for the root filesystem, if needed
 if [ -x /load_modules.sh ] ; then
 	PATH=$PATH /load_modules.sh
@@ -48,7 +52,7 @@ fi
 #
 # create all remaining device nodes
 echo -n "creating device nodes ."
-/sbin/udevstart
+UDEV_NO_SLEEP=yes /sbin/udevstart
 echo -n .
 
 # workaround chicken/egg bug in mdadm and raidautorun
@@ -60,7 +64,16 @@ for i in 0 1 2 3 4 5 6 7 8 9 \
 ; do
 mknod -m 660 /dev/md$i b 9 $i
 done
+if [ ! -e /dev/isdninfo ] ; then
 mknod -m 400 /dev/isdninfo c 45 255
+fi
+if [ ! -e /dev/fb0 ] ; then
+mknod -m 660 /dev/fb0 c 29 0
+mknod -m 660 /dev/fb1 c 29 1
+fi
+if [ ! -e /dev/ppp ] ; then
+mknod -m 644 /dev/ppp c 108 0
+fi
 echo .
 
 if [ -x /load_md.sh ] ; then
@@ -289,15 +302,19 @@ ln -s /proc/self/fd "/root$udev_root/fd"
 if [ -x /root/sbin/MAKEDEV ] ; then
 	ln -s /sbin/MAKEDEV "/root$udev_root/MAKEDEV"
 fi
-mknod /dev/fb0 c 29 0
-mknod /dev/fb1 c 29 1
-mknod /dev/ppp c 108 0
 #
 # sh
 #
 # debugging aid
 if [ -x /root/sbin/hotplug-beta -a -f /proc/sys/kernel/hotplug ] ; then
 	echo /sbin/hotplug-beta > /proc/sys/kernel/hotplug
+fi
+#
+INIT="$init"
+export INIT
+if [ "$debug" = "true" ] ; then
+echo starting shell because debug was found in /proc/cmdline
+PATH=$PATH sh
 fi
 #
 if [ -x /vendor_init.sh ] ; then
@@ -309,12 +326,6 @@ umount /proc
 umount /sys
 cd /root
 
-INIT="$init"
-export INIT
-if [ "$debug" = "true" ] ; then
-echo starting shell because debug was found in /proc/cmdline
-PATH=$PATH sh
-fi
 #
 # the point of no return!
 #

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Sun Aug 22 20:37:14 CEST 2004 - olh@suse.de
+
+- mkinitramfs: rearrange the kinit.sh code, mount /dev earlier,
+  run mknod earlier, run udev on asynchronous events
+  run debug shell before vendor script
+
+-------------------------------------------------------------------
 Sun Aug 22 20:15:08 CEST 2004 - olh@suse.de
 
 - mkinitramfs: handle ip=*:* case, ipconfig is fixed
