@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.115 $
+# $Revision: 1.116 $
 
 #
 # Print usage and exit
@@ -429,7 +429,7 @@ do_chroot() {
 	if [ ! -x $CHROOT ]; then
 	    error 2 "I need $CHROOT."
 	else
-	    $CHROOT "$@"
+	    $CHROOT "$root_dir" "$@"
 	fi
     else
 	"$@"

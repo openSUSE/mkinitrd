@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun 10 22:47:38 CEST 2004 - agruen@suse.de
+
+- #41896: Fix do_chroot.
+
+-------------------------------------------------------------------
 Wed Jun  9 01:25:37 CEST 2004 - agruen@suse.de
 
 - #41821: mkinitrd / mkiniramfs vga mode scanning bug.
