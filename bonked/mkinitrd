@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.92 $
+# $Revision: 1.93 $
 
 #
 # Print usage and exit
@@ -1440,26 +1440,42 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$root_lvm" ] ; then
+	# Name of the volume containing the root filesystem
+        local vg_root=${rootdev#/dev/}
+        vg_root=${vg_root%%/*}
+
 	if [ -z "$use_udev" ]; then
 	    cat_linuxrc <<-'EOF'
 		|# scan for lvm devices
 		|createpartitiondevs
 		EOF
 	fi
-	cat_linuxrc <<-'EOF'
+	cat_linuxrc <<-EOF
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvmtab.d
 	|vgscan
-	|vgchange -a y
+	|for o in \`cat /proc/cmdline\` ; do
+	|  case \$o in
+	|    root=/dev/*)
+	|	set -- \`IFS=/ ; echo \$o\`
+	|	vg_root=\$2
+	|	break ;;
+	|  esac
+	|done
+	|if [ -z "\$vg_root" ]; then
+	|  vg_root=$vg_root
+	|fi
+	|
+	|vgchange -a y \$vg_root
 	|umount -n /etc/lvmtab.d
 	|# set the right root device if user specified a lvm root
-	|if [ "$(block_driver "$rootdev")" = lvm ]; then
-	|    case $rootdev in
+	|if [ "$(block_driver "\$rootdev")" = lvm ]; then
+	|    case \$rootdev in
 	|    /dev/*)
-	|	echo $(devnumber $rootdev) > /proc/sys/kernel/real-root-dev ;;
+	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
 	|    *)
 	|	# hex number or major:minor pair
-	|	echo $rootdev > /proc/sys/kernel/real-root-dev ;;
+	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
 	|    esac
 	|    die 0
 	|fi
@@ -1467,21 +1483,37 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$root_dm" ] ; then
-	cat_linuxrc <<-'EOF'
+	# Name of the volume containing the root filesystem
+        local vg_root=${rootdev#/dev/}
+        vg_root=${vg_root%%/*}
+
+	cat_linuxrc <<-EOF
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvm
 	|/sbin/devmap_mknod.sh
 	|vgscan --mknodes
-	|vgchange -a y
+	|for o in \`cat /proc/cmdline\` ; do
+	|  case \$o in
+	|    root=/dev/*)
+	|       set -- \`IFS=/ ; echo \$o\`
+	|       vg_root=\$2
+	|       break ;;
+	|  esac
+	|done
+	|if [ -z "\$vg_root" ]; then
+	|  vg_root=$vg_root
+	|fi
+	|
+	|vgchange -a y \$vg_root
 	|umount -n /etc/lvm
 	|# set the right root device if user specified a lvm root
-	|if [ "$(block_driver "$rootdev")" = device-mapper ]; then
-	|    case $rootdev in
+	|if [ "\$(block_driver "\$rootdev")" = device-mapper ]; then
+	|    case \$rootdev in
 	|    /dev/*)
-	|	echo $(devnumber $rootdev) > /proc/sys/kernel/real-root-dev ;;
+	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
 	|    *)
 	|	# hex number or major:minor pair
-	|	echo $rootdev > /proc/sys/kernel/real-root-dev ;;
+	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
 	|    esac
 	|    die 0
 	|fi
