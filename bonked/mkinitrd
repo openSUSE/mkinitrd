@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.14 $
+# $Revision: 1.15 $
 
 #
 # Print usage and exit
@@ -589,7 +589,8 @@ attach_dsdt () {
 
 # Create the initrd image $2 for kernel $1 (both are absolute path names).
 mkinitrd_kernel () {
-    local kernel_image=$1 initrd_image=$2 kernel_version need_mount
+    local kernel_image=$1 initrd_image=$2
+    local kernel_version need_mount sysfs_root
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
@@ -654,6 +655,15 @@ mkinitrd_kernel () {
       cp_bin $initrd_insmod.old $tmp_mnt/sbin/insmod.old 2>/dev/null
     fi
 
+    case "$kernel_version" in
+    2.6*)
+	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
+	cp_bin $root_dir/bin/cat $tmp_mnt/bin
+	sysfs_root=1
+	need_mount=1
+	;;
+    esac
+
     if [ -n "$root_lvm" ] ; then
 	echo "Including LVM support"
 	cp -a $root_dir/dev/lvm  $tmp_mnt/dev
@@ -697,7 +707,7 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$need_mount" ] ; then
-	mkdir -p $tmp_mnt/{etc,proc,mnt}
+	mkdir -p $tmp_mnt/{etc,proc,sys,mnt}
 	echo 'none /proc proc defaults 0 0' > $tmp_mnt/etc/fstab
 	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
 	if [ -z "$use_pivot_root" -a -b "$root_dir/$rootdev" ] ; then
@@ -900,6 +910,57 @@ mkinitrd_kernel () {
 	|    echo "\$rootdevn" > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
+	|umount -n /proc
+	EOF
+    fi
+
+    if [ -n "$sysfs_root" ]; then
+	cat_linuxrc <<-'EOF'
+	|sh_basename () {
+	|	local path="$1" IFS="/"
+	|
+	|	set -- $path
+	|	while test "$#" -gt 1; do shift; done
+	|	echo "$1"
+	|}
+	|
+	|sysfs_set_root_dir () {
+	|	local entry name major minor dev_t dir="$1" search="$2"
+	|
+	|	name="$(sh_basename $dir)"
+	|	if test -f "$dir/dev" -a "$name" = "$search"; then
+	|		IFS=: read major minor < "$dir/dev"
+	|		dev_t=`expr "$major" "*" "256" "+" "$minor"`
+	|		echo "rootfs: /dev/$name major=$major minor=$minor dev_t=$dev_t"
+	|		echo "$dev_t" > /proc/sys/kernel/real-root-dev
+	|	fi
+	|	for entry in "$dir/"*; do
+	|		test -L "$entry" && continue
+	|		test -d "$entry" || continue
+	|		sysfs_set_root_dir "$entry" "$search"
+	|	done
+	|}
+	|
+	|sysfs_set_root () {
+	|	local mount=0 root="$1"
+	|
+	|	test -d /sys/block		|| mount=1
+	|	test -d /sys			|| mkdir /sys
+	|	if test "$mount" = "1"; then
+	|		mount -t sysfs sysfs /sys > /dev/null 2>&1 \
+	|			|| return
+	|	fi
+	|	sysfs_set_root_dir /sys/block $root
+	|	test "$mount" = "1"		&&  umount /sys
+	|}
+	|
+	|mount -n -tproc none /proc
+	|for item in $(cat /proc/cmdline); do
+	|	case "$item" in
+	|		root=/dev/*)
+	|			sysfs_set_root `expr substr $item 11 99` ;;
+	|	esac
+	|done
 	|umount -n /proc
 	EOF
     fi
