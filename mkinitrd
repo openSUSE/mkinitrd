@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.119 $
+# $Revision: 1.120 $
 
 #
 # Print usage and exit
@@ -1313,8 +1313,8 @@ mkinitrd_kernel() {
 	|mount -n -tproc proc /proc
 	|mount -n -tsysfs sysfs /sys > /dev/null 2>&1
 	|
-	|for o in $(cat /proc/cmdline); do
-	|    case $o in
+	|for o in \$(cat /proc/cmdline); do
+	|    case \$o in
 	|    linuxrc-trace)
 	|        set -x
 	|        ;;
