@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.75 $
+# $Revision: 1.76 $
 
 #
 # Print usage and exit
@@ -777,6 +777,11 @@ mkinitrd_kernel () {
 	need_mount=1
     fi
 
+    if [ -n "s390_zfcp_disks" ]; then
+	cp_bin $root_dir/sbin/zfcp_host_configure $tmp_mnt/sbin
+	cp_bin $root_dir/sbin/zfcp_disk_configure $tmp_mnt/sbin
+    fi
+
     if [ -n "$use_udev" ] ; then
 	if [ -x $root_dir/lib/klibc/bin/sleep ]; then
 	    cp_bin $root_dir/lib/klibc/bin/sleep $tmp_mnt/bin
@@ -1028,8 +1033,9 @@ mkinitrd_kernel () {
 		params="dasd=\$dasd"
 		;;
 	    */zfcp.*)
-		# FIXME hare: Check against 2.6 whether configuration is
-		# still the same ...
+		# zfcp_param is only used on 2.4 kernels,
+		# in 2.6 disks are activated manually
+		# (see s390_zfcp_sysfs)
 		if [ "$zfcp_param" ]; then
 			params="map=\"$zfcp_param\""
 		fi
@@ -1063,6 +1069,32 @@ mkinitrd_kernel () {
 
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
+    fi
+
+    if [ -n "$s390_zfcp_disks" ]; then
+	echo -e -n "zfcp HBAs:\t"
+	for hba in $s390_zfcp_hbas; do
+	    echo -n "$hba "
+	    cat_linuxrc <<-EOF
+	|echo "Activating zfcp host $hba"
+	|/sbin/zfcp_host_configure $hba 1
+	EOF
+	done
+	echo
+
+	echo -e "zfcp disks:\t"
+	s390_zfcp_disk_num=0
+	for disk in $s390_zfcp_disks; do
+	    s390_zfcp_disk_num=$(expr $s390_zfcp_disk_num + 1)
+	    saved_IFS="$IFS"
+	    IFS=":"
+	    set -- $disk
+	    echo -e "\t\t$1:$2:$3"
+	    cat_linuxrc <<-EOF
+	|echo "Activating zfcp disk $1:$2:$3"
+	|/sbin/zfcp_disk_configure $1 $2 $3 1
+	EOF
+	done
     fi
 
     if has_any_module raid0 raid1 raid5 linear multipath ; then
@@ -1547,6 +1579,10 @@ if [ -n "$realrootdev" -a -b "$root_dir/$realrootdev" ] ; then
     (( 0x${dev_hex:0:2} == "$DMDEV" )) && root_dm=1
 fi
 
+###################################################################
+#
+# S/390 specific procedures
+#
 s390_zfcp_proc() {
    zfcp_param=
    if [ ! -s $root_dir/etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
@@ -1578,6 +1614,53 @@ you can save the current configuration with this command:
 "
 	fi
     fi
+}
+
+# Detect all zfcp disks
+# We need to activate all disks in the same order
+# as found in the running system to get the same
+# behaviour during booting.
+s390_zfcp_sysfs() {
+    local path
+    local dev_hex=$(hex_dev_number $rootdev)
+
+    for dir in /sys/block/*/*; do
+	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
+	    IFS=":" read tmp_major tmp_minor < $dir/dev
+	    if (($tmp_major == 0x${dev_hex:0:2} &&
+		 $tmp_minor == 0x${dev_hex:2:2})); then
+		path=$dir
+		break;
+	    fi
+	fi
+    done
+
+    if [ "$path" ] && [ -d "$path/../device" ] && [ -e "$path/../device/scsi_level" ] ; then
+	# Root is on SCSI, detect all SCSI devices
+	for dev_dir in /sys/class/scsi_device/*; do
+	    if [ -d "$dev_dir" ] && [ -e "$dev_dir/device" ]; then
+		cd $dev_dir;
+		cd $(readlink device);
+		read fcp_disk_hba < ./hba_id
+		read fcp_disk_wwpn < ./wwpn
+		read fcp_disk_lun < ./fcp_lun
+	    
+		s390_zfcp_disks="$s390_zfcp_disks $fcp_disk_hba:$fcp_disk_wwpn:$fcp_disk_lun"
+
+		for id in $s390_zfcp_hbas; do
+		    if [ "$id" == "$fcp_disk_hba" ]; then
+			fcp_disk_hba=
+		    fi
+		done
+		[ "$fcp_disk_hba" ] && s390_zfcp_hbas="$s390_zfcp_hbas $fcp_disk_hba"
+	    fi
+	done
+	add_module sd_mod
+	add_module zfcp
+    else
+	echo "root device $rootdev is not a zfcp disk"
+    fi
+
 }
 
 s390_dasd_sysfs() {
@@ -1698,6 +1781,7 @@ if [ "$arch" = s390 ]; then
     # Check if zfcp or dasd modules need to be added automatically:
     if [ -d /sys/block ]; then
 	s390_dasd_sysfs
+	s390_zfcp_sysfs
     else
 	s390_dasd_proc
 	s390_zfcp_proc
