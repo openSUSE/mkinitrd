@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.7 $
+# $Revision: 1.8 $
 
 #
 # Print usage and exit
@@ -512,6 +512,19 @@ resolve_modules () {
 		# and were modularized later. They will be missing in older
 		# kernels; ignore error messages.
 	    	;;
+	    xfs_dmapi|xfs_support)  # gone in 2.4.20
+		# These modules do no longer exist. Do not produce an error
+		# message, but warn that they should be removed manually.
+    		echo -n "Warning: Module $module no longer exists, and" \
+		     "should be removed " >&2
+	        if [ -e $root_dir/etc/sysconfig/kernel ]; then
+		    echo "from /etc/sysconfig/kernel." >&2
+	        elif [ -e $root_dir/etc/rc.config ]; then
+		    echo "from /etc/rc.config." >&2
+		else
+		    echo "." >&2
+		fi
+		;;
 	    *)
 		oops 7 "Cannot determine dependencies of module $module." \
 		       "Is modules.dep up to date?"
