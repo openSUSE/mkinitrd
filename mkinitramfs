@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.37 2004/05/29 21:38:11 olh Exp $
+# $Id: mkinitramfs,v 1.38 2004/05/29 22:18:55 olh Exp $
 
 #
 # Print usage and exit
@@ -351,6 +351,9 @@ cp_bin () {
 }
 
 find_rootfstype() {
+	if [ ! -f /proc/self/mounts ] ; then
+		return
+	fi
 	local a b c d fs
 	fs=
 	while read a b c d; do
@@ -868,24 +871,6 @@ mkinitrd_kernel () {
 
 ###################################################################
 
-mounted_proc=
-if [ ! -r /proc/mounts ]; then
-  mounted_proc=/proc
-  mount -t proc proc $mounted_proc
-fi
-
-rootfstype=`find_rootfstype`
-
-root_lvm=
-root_md=
-major=`stat --format='%D' /`
-major="${major%??}"
-# check if the root device is an lvm2 via dm device
-if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
-if [ "$major" = "fd" ] ; then root_lvm=1 ; fi
-# check if the root device is an md device
-if [ "$major" = "9" ] ; then root_md=1 ; fi
-
 s390_zfcp_proc() {
    zfcp_param=
    if [ ! -s /etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
@@ -1007,6 +992,9 @@ The dasd module is required, but no dasd configuration was found in
 
 ###################################################################
 
+mounted_proc=
+root_lvm=
+root_md=
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
     if [ -e /etc/sysconfig/kernel ]; then
@@ -1016,6 +1004,20 @@ if [ -z "$modules_set" ]; then
 	. /etc/sysconfig/kernel
 	modules="$INITRD_MODULES"
     fi
+if [ ! -r /proc/mounts ]; then
+  mount -t proc proc $mounted_proc && mounted_proc=/proc
+fi
+
+rootfstype=`find_rootfstype`
+
+major=`stat --format='%D' /`
+major="${major%??}"
+# check if the root device is an lvm2 via dm device
+if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
+if [ "$major" = "fd" ] ; then root_lvm=1 ; fi
+# check if the root device is an md device
+if [ "$major" = "9" ] ; then root_md=1 ; fi
+
 fi
 
 modules="$modules $rootfstype"

@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Sun May 30 00:02:59 CEST 2004 - olh@suse.de
+
+- mkinitramfs: if -m is given, expect that ALL required modules
+  are given on cmdline, dont do autodetection for root filesystem
+  type and lvm/md/dm in this case
+  check also if /proc is mounted, do not fail if not
+  this is required if the initrd is built for another host as user
+
+-------------------------------------------------------------------
 Sat May 29 23:36:31 CEST 2004 - olh@suse.de
 
 - mkinitramfs: remove <() process substitution,
