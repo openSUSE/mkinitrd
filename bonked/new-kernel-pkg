@@ -1,0 +1,152 @@
+#! /bin/sh
+
+update_zipl_conf() {
+	local zipl_conf=$1
+	local common='
+	function uq(x)	{ return gensub(/^"(.*)"$/, "\\1", "", x) }
+	function fields(a,x) \
+			{ x=$a ; 
+			  while (++a<=NF) x=x OFS $a
+			  return x }
+        $1 ~ /[^ ]*=[^ ]*/	{ sub(/=/, " = ") }
+	/^\[.*\]$/	{ sec = gensub(/^\[(.*)\]$/, "\\1", "", $0) }
+	'
+
+	# Find out the default boot section defined by the
+	# default=* setting in [defaultboot]
+	local boot=$(
+	awk "$common"'
+        /^\#/            { next }
+        /^ *$/            { next }
+	sec == "defaultboot" && $1 == "default" \
+			{ print uq($3) ; exit(0) }
+	' "$zipl_conf")
+
+	mv "$zipl_conf" "$zipl_conf".rpmorig
+	# Update the default boot section
+	# - image is always '/boot/image'
+	# - ramdisk is always '/boot/initrd'
+	# - Add a parameter 'TERM=dumb' to the kernel commandline
+	#   if no 'TERM' parameter is set
+	awk "$common"'
+	sec == "'"$boot"'" \
+			{ $1 == "image"		&& $3 = "/boot/image"
+			  $1 == "ramdisk"	&& $3 = "/boot/initrd"
+                          if ($1 == "parameters" && $0 !~ /TERM=/) { \
+			      $0 = "parameters = \"" uq(fields(3)) \
+			         " TERM=dumb\"" } }
+			{ print }
+	' "$zipl_conf".rpmorig > "$zipl_conf"
+}
+
+if [ -f /etc/sysconfig/bootloader ]; then
+  . /etc/sysconfig/bootloader
+fi
+
+looks_like_lilo () {
+    [ -s /etc/lilo.conf -a -x /sbin/lilo ]
+}
+
+looks_like_grub () {
+    [ -s /boot/grub/menu.lst -a -s /boot/grub/device.map ]
+}
+
+looks_like_zipl () {
+    [ -d /boot/zipl -a -x /sbin/zipl ]
+}
+
+if [ -n "$LOADER_TYPE" ]; then
+    case "$LOADER_TYPE" in
+	lilo)
+	    looks_like_lilo || LOADER_TYPE=
+	    ;;
+	grub)
+	    looks_like_grub || LOADER_TYPE=
+	    ;;
+	s390)
+	    looks_like_zipl || LOADER_TYPE=
+	    ;;
+    esac
+else
+    looks_like_grub && LOADER_TYPE="grub"
+    if [ -z "$LOADER_TYPE" ]; then
+	looks_like_lilo && LOADER_TYPE="lilo"
+    fi
+    if [ -z "$LOADER_TYPE" ]; then
+	looks_like_zipl && LOADER_TYPE="s390"
+    fi
+fi
+
+case "$LOADER_LOCATION" in
+    floppy)
+	{
+	echo "Your boot loader is configured to be installed to a floppy disk."
+        echo "Cannot perform automatic update."
+	} >&2
+	LOADER_TYPE=
+	;;
+    none)
+	{
+	  echo "Your boot loader is not configured to be installed to disk."
+	  echo "Cannot perform automatic update."
+	} >&2
+	LOADER_TYPE=
+	;;
+esac
+
+case "$LOADER_TYPE" in
+    lilo|elilo)
+	echo "Running $LOADER_TYPE..."
+	out=$($LOADER_TYPE 2>&1) || {
+	  echo "$LOADER_TYPE failed to write the boot record for your system."
+	  echo "The output from $LOADER_TYPE is:"
+	  echo ""
+	  echo "$out"
+	  echo ""
+	  echo "Please check manually that your system has a valid boot record!"
+	} >&2
+	;;
+    grub)
+	echo "Using $LOADER_TYPE, re-install of bootloader not required."
+	;;
+    s390)
+	ZIPL_CONF=/etc/zipl.conf
+	echo "Updating $ZIPL_CONF..."
+	out=$(update_zipl_conf $ZIPL_CONF 2>&1) || {
+	    echo "Could not update your $ZIPL_CONF file."
+	    echo "The error was:"
+	    echo ""
+	    echo "$out"
+	    echo ""
+	    echo "Please update your zipl.conf file to include a section"
+	    echo 
+	    echo "[ipl]"
+	    echo "image=/boot/image"
+	    echo "ramdisk=/boot/initrd"
+	    echo ""
+	    mv $ZIPL_CONF.rpmorig $ZIPL_CONF
+	    exit 1
+	} >&2
+	echo "Running zipl..."
+	out=$(/sbin/zipl -V 2>&1) || {
+	    echo "zipl failed to update the IPL record of your system."
+	    echo "The output from zipl is:"
+	    echo ""
+	    echo "$out"
+	    echo ""
+	    echo "Please check that /etc/zipl.conf is correct"
+	    echo "and run /sbin/zipl again."
+	} >&2
+	;;
+    *)
+	{
+	  echo "Warning! Your bootloader type could not be determined"
+	  echo "or the configuration is inconsistent."
+	  echo
+	  echo "By consequence, your system might not be bootable after"
+	  echo "performing this kernel update."
+	  echo "Please check manually if your bootloader is properly"
+	  echo "initialized!"
+	} >&2
+	;;
+esac
