@@ -4,6 +4,8 @@ Thu Mar 10 14:25:15 CET 2005 - hare@suse.de
 - Fixed dynamic /dev generation.
   If disabled, dynamic devs will be mounted on
   /lib/klibc/dev.
+- Separate driver and fs module for clean resume (#71218).
+- Attempt fsck of the rootfs if possible.
 
 -------------------------------------------------------------------
 Thu Mar 10 08:41:57 CET 2005 - hare@suse.de

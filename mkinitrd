@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.184 $
+# $Revision: 1.185 $
 
 #
 # Print usage and exit
@@ -1373,10 +1373,34 @@ mkinitrd_kernel() {
 	need_mount=1
     fi
   
+    if has_module ext2 ; then
+	features=(${features[@]} fsck.ext2)
+	cp_bin /sbin/fsck $tmp_mnt/bin
+	cp_bin /sbin/fsck.ext2 $tmp_mnt/bin
+    fi
+
+    if has_module ext3 ; then
+	features=(${features[@]} fsck.ext3)
+	cp_bin /sbin/fsck $tmp_mnt/bin
+	cp_bin /sbin/fsck.ext3 $tmp_mnt/bin
+    fi
+
+    if has_module reiserfs ; then
+	features=(${features[@]} fsck.reiserfs)
+	cp_bin /sbin/fsck $tmp_mnt/bin
+	cp_bin /sbin/fsck.reiserfs $tmp_mnt/bin
+    fi
+
     if has_module jfs ; then
 	features=(${features[@]} fsck.jfs)
 	cp_bin /sbin/fsck $tmp_mnt/bin
 	cp_bin /sbin/fsck.jfs $tmp_mnt/bin
+    fi
+
+    if has_module xfs ; then
+	features=(${features[@]} fsck.xfs)
+	cp_bin /sbin/fsck $tmp_mnt/bin
+	cp_bin /sbin/fsck.xfs $tmp_mnt/bin
     fi
 
     if [ -n "$debug_mkinit" ]; then
@@ -1583,6 +1607,7 @@ mkinitrd_kernel() {
 	|else
 	|    resume_mode=
 	|fi
+	|
 	EOF
 
     if [ -n "$need_block_driver" ]; then
@@ -1627,7 +1652,7 @@ mkinitrd_kernel() {
     # that the root file system is on a SCSI device, and also include
     # sd_mod.
     local have_scsi have_sd
-    case "$resolved_modules" in
+    case "$drv_modules" in
 	*/scsi_mod.*)   have_scsi=1
 			;;
 	*/sd_mod.*)	have_sd=1
@@ -1639,8 +1664,20 @@ mkinitrd_kernel() {
 	resolved_modules="$(resolve_modules $kernel_version $modules)"
     fi
 
+    # Filter modules into fs and non-fs (driver) modules
+    for module in $resolved_modules; do
+	case $module in
+	    */kernel/fs/*)
+		fs_modules="${fs_modules}${fs_modules:+\n}${module}"
+		;;
+	    *)
+		drv_modules="${drv_modules}${drv_modules:+\n}${module}"
+		;;
+	esac
+    done
+
     # Copy the modules to the initrd
-    echo -ne "Modules:\t"
+    echo -ne "Driver modules:\t"
     initrd_is_using_modules=
     while read module params ; do
 	[ -z "$module" ] && continue
@@ -1739,7 +1776,7 @@ mkinitrd_kernel() {
 	|insmod $mp
 	EOF
 	initrd_is_using_modules=1
-    done < <(echo "$resolved_modules")
+    done < <(echo -e $drv_modules)
     echo
 
     if [ -z "$initrd_is_using_modules" ]; then
@@ -2076,6 +2113,30 @@ mkinitrd_kernel() {
 	EOF
     fi
 
+    # Load fs modules _after_ resume
+    echo -ne "Filesystem modules:\t"
+    initrd_is_using_modules=
+    while read module params ; do
+	[ -z "$module" ] && continue
+	echo -n "${module#lib/modules/$kernel_version/} "
+	if [ ! -r $root_dir/$module ]; then
+	    oops 9 "Module $module not found."
+	    continue
+	fi
+	if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
+	    oops 6 "Failed to add module $module."
+	    return
+	fi
+
+	mp="/$module${params:+ $params}"
+	cat_linuxrc <<-EOF
+	|echo "Loading ${mp#/lib/modules/$kernel_version/}"
+	|insmod $mp
+	EOF
+	initrd_is_using_modules=1
+    done < <(echo -e "$fs_modules")
+    echo
+
     if [ -n "$need_raidautorun" ]; then
 	features=(${features[@]} raidautorun)
 	cat_linuxrc <<-EOF
@@ -2211,15 +2272,7 @@ mkinitrd_kernel() {
     if [ -n "$use_udev" ] ; then
 	cat_linuxrc <<-'EOF'
 	|if ! udev_discover_root ; then
-	|    echo "not found -- entering manual mode:"
-	|#    cd ${devdir}
-	|#    for dev in *; do
-	|#	if [ -e "$dev" ]; then
-	|#	    echo -n "$dev "
-	|#	fi
-	|#    done
-	|#    echo ""
-	|    echo "No root device found; exiting to /bin/sh"
+	|    echo "not found -- exiting to /bin/sh"
 	|    cd /
 	|    PATH=$PATH PS1='$ ' /bin/sh
 	|fi
@@ -2305,16 +2358,27 @@ mkinitrd_kernel() {
 	|    rootfstype=$(/bin/udev_volume_id -t $rootdev)
 	|    [ $? -ne 0 ] && $rootfstype=
 	|fi
-	EOF
-    fi
-
-    if has_module jfs && [ -n "$rootdev" ] ; then
-	cat_linuxrc <<-'EOF'
-	|# check filesystem if it is of type jfs
-	|if [ "$rootfstype" = "jfs" ]; then
-	|    fsck -t jfs $rootdev
-	|    # Always mount jfs read-write
-	|    read_write=1
+	|
+	|# check filesystem if possible
+	|if [ -n "rootfstype" -a -x /bin/fsck.${rootfstype} ]; then
+	|    # fsck is unhappy without it
+	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
+	|    fsck -t $rootfstype -a $rootdev
+	|    # Return the fsck status
+	|    ROOTFS_FSCK=$?
+	|    export ROOTFS_FSCK
+	|    if [ $ROOTFS_FSCK -gt 1 -a $ROOTFS_FSCK -lt 4 ]; then
+	|        # reboot needed
+	|        echo "fsck succeeded, but reboot is required."
+	|        echo "Rebooting system."
+	|        /bin/reboot -d -f
+	|    elif [ $ROOTFS_FSCK -gt 3 ] ; then
+	|        echo "fsck failed. Mounting root device read-only."
+	|        read_write=
+	|    else
+	|        echo "fsck succeeded. Mounting root device read-write."
+	|        read_write=1
+	|    fi
 	|fi
 	EOF
     fi
