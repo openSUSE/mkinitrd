@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.7 2004/04/24 21:31:44 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.8 2004/05/03 15:39:07 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -71,7 +71,6 @@ root=
 rootfstype=
 read cmdline < /proc/cmdline
 for i in $cmdline ; do
-	echo i $i
 	oifs="$IFS"
 	opt=
 	case "$i" in
