@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 27 16:47:40 CEST 2004 - olh@suse.de
+
+- mkinitramfs: fix iscsi root, move udevstart (#34258 - LTC6040)
+
+-------------------------------------------------------------------
 Tue Oct 26 16:31:50 CEST 2004 - agruen@suse.de
 
 - Fix ldd output parsing (last change was still broken in some
