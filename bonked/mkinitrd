@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.27 $
+# $Revision: 1.28 $
 
 #
 # Print usage and exit
@@ -59,6 +59,7 @@ usage() {
 	  		   Description Table) to initrd. This replaces the
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
+	  -S               Load policy file for SELinux if exist.
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
 EOM
@@ -125,6 +126,7 @@ splash="auto"
 use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
+use_selinux=
 
 # architecture dependend changes:
 arch=`uname -m`
@@ -137,7 +139,7 @@ s390)
     ;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:t:D:a: a ; do
+while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -184,6 +186,8 @@ while getopts :hk:i:m:b:d:o:s:t:D:a: a ; do
 	    use_pivot_root=1
 	    ;;
 	a)  acpi_dsdt="$OPTARG"
+	    ;;
+	S)  use_selinux=1
 	    ;;
 	h)  usage
 	    ;;
@@ -681,6 +685,19 @@ mkinitrd_kernel () {
       cp_bin $initrd_insmod.old $tmp_mnt/sbin/insmod.old 2>/dev/null
     fi
 
+   # SELinux: Binary policy file and load_policy utility for loading it.
+   if [ -n "$use_selinux" ] ; then
+	if [ -f $root_dir/etc/security/selinux/policy.15 -a -f $root_dir/usr/sbin/load_policy ] ; then
+	   echo -e "SELinux policy:\tadded"
+	   mkdir -p $tmp_mnt/selinux
+	   mkdir -p $tmp_mnt/etc/security/selinux
+	   cp -p $root_dir/etc/security/selinux/policy.15 $tmp_mnt/etc/security/selinux
+	   cp_bin $root_dir/usr/sbin/load_policy $tmp_mnt/sbin/load_policy
+	else
+	   echo -e "SELinux policy:\tnot found"
+	fi
+    fi
+
     case "$kernel_version" in
     2.6*)
 	sysfs_root=1
@@ -958,11 +975,11 @@ mkinitrd_kernel () {
 	|
 	|	test -d /sys/block		|| mount=1
 	|	if test "$mount" = "1"; then
-	|		mount -t sysfs sysfs /sys > /dev/null 2>&1 \
+	|		mount -n -t sysfs sysfs /sys > /dev/null 2>&1 \
 	|			|| return
 	|	fi
 	|	sysfs_set_root_dir /sys/block $root
-	|	test "$mount" = "1"		&&  umount /sys
+	|	test "$mount" = "1"		&&  umount -n /sys
 	|}
 	|
 	|mount -n -tproc none /proc
@@ -1056,6 +1073,15 @@ mkinitrd_kernel () {
 	|mount -n -tproc none /proc
 	|test -z "\$dhcp_mode" && fsck -t jfs "$rootdev"
 	|umount -n /proc
+	EOF
+    fi
+
+    if [ -n "$use_selinux" -a -d $tmp_mnt/selinux ]; then
+	cat_linuxrc <<-EOF
+	|echo "Loading policy"
+	|mount -n -t selinuxfs none /selinux
+	|/sbin/load_policy /etc/security/selinux/policy.15
+	|umount -n /selinux
 	EOF
     fi
 
@@ -1346,7 +1372,7 @@ fi
 # on s390 the initrd is always needed as long as we don't set the
 # initrd flag in /etc/zipl.conf with YaST.
 if [ -z "$modules" -a -z "$root_lvm" -a -z "$use_pivot_root" -a \
-     -z "$splash" -a "$arch" != s390 ]; then
+     -z "$splash" -a "$arch" != s390 -a -z "$use_selinux" ]; then
     ( cd $boot_dir
       rm -f $initrd_images )
     error 0 "No initrd required"
