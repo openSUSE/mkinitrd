@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.4 2004/04/17 15:08:52 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.5 2004/04/17 18:31:56 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -280,6 +280,7 @@ if [ -z "$init" ] ; then
 fi
 
 mount -o bind "$udev_root" "/root$udev_root"
+chmod 0755 "/root$udev_root"
 ln -s /proc/self/fd "/root$udev_root/fd"
 mknod /dev/fb0 c 29 0
 mknod /dev/fb1 c 29 1

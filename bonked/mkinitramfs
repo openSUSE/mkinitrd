@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitramfs,v $
-# $Revision: 1.12 $
+# $Revision: 1.13 $
 
 #
 # Print usage and exit
@@ -607,6 +607,7 @@ mkinitrd_kernel () {
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
     cp_bin /bin/mknod $tmp_mnt/bin/mknod
+    cp_bin /bin/chmod $tmp_mnt/bin/chmod
     cp_bin /bin/rm $tmp_mnt/bin/rm
     if [ -d /etc/sysconfig/hardware ] ; then
     mkdir -p $tmp_mnt/etc/sysconfig
