@@ -1,9 +1,4 @@
 -------------------------------------------------------------------
-Sun Oct  3 18:53:08 CEST 2004 - agruen@suse.de
-
-- Add missing -n options to a few umount invocations.
-
--------------------------------------------------------------------
 Thu Sep  9 14:50:46 CEST 2004 - agruen@suse.de
 
 - Create missing /dev/shm directory.
