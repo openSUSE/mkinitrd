@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 20 11:18:41 CEST 2004 - olh@suse.de
+
+- mkinitrd: udevinfo.static is in /sbin again
+
+-------------------------------------------------------------------
 Thu Aug 12 15:11:41 CEST 2004 - hare@suse.de
 
 - Added -g for including glibc binaries instead of klibc ones.

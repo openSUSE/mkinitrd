@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.139 $
+# $Revision: 1.140 $
 
 #
 # Print usage and exit
@@ -1137,7 +1137,7 @@ mkinitrd_kernel() {
 
     if [ -z "$use_glibc" ] ; then
 	cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
-	cp_bin $root_dir/usr/bin/udevinfo.static $tmp_mnt/sbin/udevinfo
+	cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
 	cp_bin $root_dir/sbin/udevstart.static $tmp_mnt/sbin/udevstart
     else
 	cp_bin $root_dir/sbin/udev $tmp_mnt/sbin/udev
