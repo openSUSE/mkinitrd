@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/Attic/mkinitramfs,v $
-# $Revision: 1.9 $
+# $Revision: 1.10 $
 
 #
 # Print usage and exit
@@ -436,7 +436,8 @@ shared_object_files () {
 	    # kernel address space transition) in 2.6 kernels.
 	    continue ;;
 	/*)
-	    lib="${lib:1}" ;;
+	   lib="${lib#/}"
+	    ;;
 	*)
 	    # Library could not be found.
 	    oops 7 "Dynamic library $lib not found"
@@ -926,7 +927,7 @@ major="${major%??}"
 # check if the root device is an lvm device
 if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
 # check if the root device is an dm/lvm2 device
-if [ "$major" = "fe" ] ; then root_dm=1 ; fi
+if [ "$major" = "fd" ] ; then root_dm=1 ; fi
 
 s390_zfcp_proc() {
    zfcp_param=
