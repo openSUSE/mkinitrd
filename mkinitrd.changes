@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 20 10:47:54 CET 2005 - hare@suse.de
+
+- Rearrange dhcp sections to make nfs-root work again.
+- Actually include udev as it's always needed.
+- Re-add hotplug.sh which is needed for initramfs.
+
+-------------------------------------------------------------------
 Sun Dec 12 23:18:15 CET 2004 - olh@suse.de
 
 - drop mkinitramfs

@@ -28,6 +28,8 @@ Source:       mkinitrd
 Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
+Source4:      hotplug.sh
+
 #
 # Missing: man page for mkinitrd etc.
 #
@@ -62,15 +64,21 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/sbin
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
 cp %SOURCE0 %SOURCE1 %SOURCE2 $RPM_BUILD_ROOT/sbin/
+mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd
+cp %SOURCE4 $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
+ln -sf mkinitramfs $RPM_BUILD_ROOT/sbin/mkinitramfs
 cp %SOURCE3 $RPM_BUILD_ROOT/%{_mandir}/man8
 
 %files
 %defattr(755,root,root)
+%dir /usr/share/mkinitrd
 /sbin/mkinitrd
+/sbin/mkinitramfs
 /sbin/mk_initrd
 /sbin/installkernel
 /sbin/new-kernel-pkg
+/usr/share/mkinitrd/hotplug.sh
 %{_mandir}/man8/mkinitrd.8.gz
 
 %changelog -n mkinitrd
