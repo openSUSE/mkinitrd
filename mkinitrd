@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.155 $
+# $Revision: 1.156 $
 
 #
 # Print usage and exit
@@ -1323,8 +1323,11 @@ mkinitrd_kernel() {
 	|
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
-	|    initrd=trace)
+	|    linuxrc=trace)
 	|	set -x
+	|	;;
+	|    noresume)
+	|	resume_mode=no
 	|	;;
 	|    sysrq=yes|sysrq=1)
 	|	echo 1 > /proc/sys/kernel/sysrq
@@ -1341,6 +1344,10 @@ mkinitrd_kernel() {
 	|	set -- \$(IFS== ; echo \$o)
 	|	rootdev=\$2
 	|	rootdev_cmdline=1
+	|	;;
+	|    resume=*)
+	|	set -- \$(IFS== ; echo \$o)
+	|	resumedev=\$2
 	|	;;
 	|    esac
 	|done
@@ -1361,6 +1368,18 @@ mkinitrd_kernel() {
 	|	    rootdev=/dev/\$rootdev
 	|	    ;;
 	|    esac
+	|fi
+	|
+	|# Verify manual resume mode
+	|if [ "$resume_mode" != "off" -a -n "\$resumedev" ]; then
+	|    if [ -w /sys/power/resume ]; then
+	|	echo "Trying manual resume from \$resumedev"
+	|	resume_mode=1
+	|    else
+	|	resumedev=
+	|    fi
+	|else
+	|    resume_mode=
 	|fi
 	EOF
 
@@ -1863,42 +1882,109 @@ mkinitrd_kernel() {
 
     if [ -n "$use_udev" ] ; then
 	cat_linuxrc <<-'EOF'
-	|udev_discover_root() {
-	|	local root
-	|	case "$rootdev" in
-	|	/dev/nfs) root= ;;
-	|	/dev/*)	root=${rootdev#/dev/} ;;
-	|	esac
-	|	if [ -n "$root" ]; then
-	|	    echo -n "Waiting for device /dev/$root to appear: "
-	|	    for i in 1 2 3 4 5; do
-	|		if [ -e /dev/$root ]; then
-	|		    path=$(udevinfo -q path -n $root)
-	|		    if [ $? -eq 0 ]; then
-	|		        echo " ok"
-	|			break
-	|		    else
-	|		        path=
-	|		    fi
-	|		fi
-	|		sleep 1
-	|		echo -n "."
-	|	    done
-	|	    if [ -n "$path" ]; then
-	|	        dev=/sys$path/dev
-	|		if [ -f $dev ]; then
-	|		    local major minor devn
-	|		    IFS=":" read major minor < $dev
-	|		    devn=$(mkdevn $major $minor)
-	|		    echo "rootfs: $entry major=$major minor=$minor" \
-	|			 "devn=$devn"
-	|		    echo $devn > /proc/sys/kernel/real-root-dev
-	|		    return 0
+	|# Waiting for a device to appear
+	|# device node will be created by udev
+	|udev_wait_for_device() {
+	|    local root
+	|    local retval=1
+	|    local timeout=$udev_timeout
+	|    root=$1
+	|    if [ -n "$root" ]; then
+	|	echo -n "Waiting for device /dev/$root to appear: "
+	|	while [ $timeout -gt 0 ]; do
+	|	    if [ -e /dev/$root ]; then
+	|		if [ $? -eq 0 ]; then
+	|		    echo " ok"
+	|		    retval=0
+	|		    break;
 	|		fi
 	|	    fi
-	|	    return 1
-	|	fi
+	|	    sleep 1
+	|	    echo -n "."
+	|	    timeout=$(( $timeout - 1 ))
+	|	done
+	|    fi
+	|    return $retval;
 	|}
+	|
+	|# Reads the major:minor pair from a sysfs path
+	|# and converts it into a devno
+	|udev_read_devn() {
+	|    local dev;
+	|    local devn;
+	|
+	|    if [ -z "$1" ]; then
+	|	echo ""
+	|	return
+	|    fi
+	|
+	|    dev=/sys$1/dev
+	|    if [ -f $dev ]; then
+	|	local major minor devn
+	|	IFS=":" read major minor < $dev
+	|	devn=$(mkdevn $major $minor)
+	|	echo "$devn $major $minor"
+	|    else
+	|	echo ""
+	|    fi
+	|}
+	|
+	|udev_discover_root() {
+	|    local root
+	|    case "$rootdev" in
+	|	/dev/nfs) root= ;;
+	|	/dev/*)	root=${rootdev#/dev/} ;;
+	|    esac
+	|    # Waits for the resume device to appear
+	|    if [ -n "$resume_mode" ]; then
+	|	resume=${resumedev#/dev/}
+	|	if udev_wait_for_device $resume; then
+	|	    path=$(udevinfo -q path -n $resume)
+	|	    set -- $(udev_read_devn $path)
+	|	    if [ -n "$1" ]; then
+	|		devn=$1
+	|		major=$2
+	|		minor=$3
+	|		echo "$major:$minor" > /sys/power/resume
+	|		devn=
+	|	    fi
+	|	    path=
+	|	else
+	|	    echo " not found (ignoring)"
+	|	fi
+	|    fi
+	|    if udev_wait_for_device $root; then
+	|	path=$(udevinfo -q path -n $root)
+	|	set -- $(udev_read_devn $path)
+	|	if [ -n "$1" ]; then
+	|	    devn=$1
+	|	    major=$2
+	|	    minor=$3
+	|	else
+	|	    echo " not found"
+	|	fi
+	|    fi
+	|    if [ -n "$devn" ]; then
+	|	echo "rootfs: $entry major=$major minor=$minor" \
+	|	    "devn=$devn"
+	|	echo $devn > /proc/sys/kernel/real-root-dev
+	|	return 0
+	|    else
+	|	return 1
+	|    fi
+	|}
+	|
+	|# Default timeout is 5 seconds
+	|udev_timeout=5
+	|# Override timeout from commandline
+	|for o in $(cat /proc/cmdline); do
+	|    case $o in
+	|    udev_timeout=*)
+	|	set -- $(IFS== ; echo $o)
+	|	udev_timeout=$2
+	|	;;
+	|    esac
+	|done
 	|
 	|if ! udev_discover_root ; then
 	|    echo "not found -- device nodes:"
@@ -1908,9 +1994,10 @@ mkinitrd_kernel() {
 	|	    echo -n "$dev "
 	|	fi
 	|    done
+	|    echo ""
 	|    echo "No root device found; exiting to /bin/sh"
 	|    cd /
-	|    PATH=$PATH /bin/sh
+	|    PATH=$PATH PS1='$ ' /bin/sh
 	|fi
 	EOF
     fi
@@ -2052,7 +2139,7 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|# These links are required by devices.txt
-	|ln -s /proc/self/fd /dev/fd
+	|(cd /dev; ln -s /proc/self/fd fd)
 	|# (cd /dev; ln -s stdin fd/0; ln -s stdout fd/1; ln -s stderr fd/2)
 	|
 	|
@@ -2141,6 +2228,44 @@ mkinitrd_kernel() {
 	|die 0
 	EOF
 
+    [ ${#features[@]} -gt 0 ] \
+	&& echo -e "Including:\t${features[@]}"
+
+    splash_bin=
+    [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
+    [ -x /bin/splash ] && splash_bin=/bin/splash
+    if [ -n "$splashsizes" -a -n "$splash_bin" ]; then
+	if [ -f /etc/sysconfig/bootsplash ]; then
+	    . /etc/sysconfig/bootsplash
+	fi
+
+	themes_dir=
+	if [ -d "$root_dir/etc/bootsplash/themes" ]; then
+	    themes_dir="$root_dir/etc/bootsplash/themes"
+	elif [ -d "$root_dir/usr/share/splash/themes" ]; then
+	    themes_dir="$root_dir/usr/share/splash/themes"
+	fi
+
+	echo -ne "Bootsplash:\t"
+	if [ -n "$themes_dir" -a \
+	     -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
+	    for size in $splashsizes; do
+		bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
+		cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
+		if [ ! -r $cfgname ] ; then
+		    echo "disabled for resolution $size"
+		elif [ ! -r $bootsplash_picture ] ; then
+		    echo "no image for resolution $size"
+		else
+		    echo "$THEME ($size)"
+		    splash_image="$cfgname"
+		fi
+	    done
+	else
+	    echo "no theme selected"
+	fi
+    fi
+
     if [ "$mkinit_type" = "rd" ]; then
         # Create a second initrd with minimal size
 
@@ -2174,7 +2299,23 @@ mkinitrd_kernel() {
 	    oops 8 "Failed to install initrd"
 	    return
 	fi
+	
+	if [ -n "$splash_image" ]; then
+	    $splash_bin -s -f $splash_image >> $initrd_image
+	fi
+
     else
+	# Include bootsplash image
+	if [ -n "$splash_image" ]; then
+	    $splash_bin -s -f $splash_image > $tmp_mnt/bootsplash
+	fi
+
+	# Include custom DSDT
+	if [ -n "$acpi_dsdt" -a -f "$acpi_dsdt" ]; then
+	    cat "$acpi_dsdt" > $tmp_mnt/DSDT.aml
+	    echo -e "ACPI DSDT:\t$acpi_dsdt"
+	fi
+
 	pushd . > /dev/null 2>&1
 	cd $tmp_mnt
 	find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
@@ -2187,43 +2328,6 @@ mkinitrd_kernel() {
 	rm -rf $tmp_mnt
     fi
 
-    [ ${#features[@]} -gt 0 ] \
-	&& echo -e "Including:\t${features[@]}"
-
-    splash_bin=
-    [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
-    [ -x /bin/splash ] && splash_bin=/bin/splash
-    if [ -n "$splashsizes" -a -n "$splash_bin" ]; then
-	if [ -f /etc/sysconfig/bootsplash ]; then
-	    . /etc/sysconfig/bootsplash
-	fi
-
-	themes_dir=
-	if [ -d "$root_dir/etc/bootsplash/themes" ]; then
-	    themes_dir="$root_dir/etc/bootsplash/themes"
-	elif [ -d "$root_dir/usr/share/splash/themes" ]; then
-	    themes_dir="$root_dir/usr/share/splash/themes"
-	fi
-
-	echo -ne "Bootsplash:\t"
-	if [ -n "$themes_dir" -a \
-	     -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
-	    for size in $splashsizes; do
-		bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
-		cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
-		if [ ! -r $cfgname ] ; then
-		    echo "disabled for resolution $size"
-		elif [ ! -r $bootsplash_picture ] ; then
-		    echo "no image for resolution $size"
-		else
-		    echo "$THEME ($size)"
-		    $splash_bin -s -f $cfgname >> $initrd_image
-		fi
-	    done
-	else
-	    echo "no theme selected"
-	fi
-    fi
 
 }
 
@@ -2375,7 +2479,9 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     	&& initrd_image=$boot_dir/$initrd_image
 
     mkinitrd_kernel $kernel_image $initrd_image
-    attach_dsdt $initrd_image
+    if [ "$mkinit_type" = "rd" ]; then
+	attach_dsdt $initrd_image
+    fi
 
     # If the current $kernel_image has a symlink without "-<version>" (e.g.
     # "vmlinuz") pointing to it, create an "initrd" symlink for the
