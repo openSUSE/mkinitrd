@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.44 $
+# $Revision: 1.45 $
 
 #
 # Print usage and exit
@@ -1011,7 +1011,7 @@ mkinitrd_kernel () {
         |mount -n -tsysfs sysfs /sys > /dev/null 2>&1
 	|for item in $(cat /proc/cmdline); do
 	|	set -- $(IFS=/ ; echo $item)
-	|	test $1 = root= -a $2 = dev || continue
+	|	test "$1" = root= -a "$2" = dev || continue
 	|	shift 2
 	|	# FIXME: there are a lot more exceptions below...
 	|	case $1 in
