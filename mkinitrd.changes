@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun  2 00:10:07 CEST 2004 - olh@suse.de
+
+- mkinitramfs: add raid/lvm support if raid or dm-mod given with -m
+
+-------------------------------------------------------------------
 Tue Jun  1 15:01:17 CEST 2004 - hare@suse.de
 
 - mkinitrd: Fix EVMS handling on S/390.

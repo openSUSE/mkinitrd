@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.39 2004/05/31 18:19:11 olh Exp $
+# $Id: mkinitramfs,v 1.40 2004/06/01 22:11:25 olh Exp $
 
 #
 # Print usage and exit
@@ -796,7 +796,7 @@ mkinitrd_kernel () {
 	echo "none"
     fi
 
-    if has_any_module raid0 raid1 raid5 linear multipath ; then
+    if has_any_module raid0 raid1 raid5 raid6 linear multipath ; then
 	echo "Including raidautorun"
 	cp_bin /sbin/raidautorun $tmp_mnt/sbin/raidautorun
 	cat_load_md <<-EOF
@@ -1010,20 +1010,24 @@ if [ -z "$modules_set" ]; then
 	. /etc/sysconfig/kernel
 	modules="$INITRD_MODULES"
     fi
-if [ ! -r /proc/mounts ]; then
-  mount -t proc proc $mounted_proc && mounted_proc=/proc
-fi
+    if [ ! -r /proc/mounts ]; then
+	  mount -t proc proc $mounted_proc && mounted_proc=/proc
+    fi
 
-rootfstype=`find_rootfstype`
+    rootfstype=`find_rootfstype`
 
-major=`stat --format='%D' /`
-major="${major%??}"
-# check if the root device is an lvm2 via dm device
-if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
-if [ "$major" = "fd" ] ; then root_lvm=1 ; fi
-# check if the root device is an md device
-if [ "$major" = "9" ] ; then root_md=1 ; fi
-
+    major=`stat --format='%D' /`
+    major="${major%??}"
+    # check if the root device is an lvm2 via dm device
+    if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
+    if [ "$major" = "fd" ] ; then root_lvm=1 ; fi
+    # check if the root device is an md device
+    if [ "$major" = "9" ] ; then root_md=1 ; fi
+else
+    if has_any_module raid0 raid1 raid5 raid6 linear multipath dm-mod ; then
+	root_lvm=1
+	root_md=1
+    fi
 fi
 
 modules="$modules $rootfstype"
