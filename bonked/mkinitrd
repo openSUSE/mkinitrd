@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.25 $
+# $Revision: 1.26 $
 
 #
 # Print usage and exit
@@ -1148,24 +1148,34 @@ mkinitrd_kernel () {
 	return
     fi
 
-    if [ -n "$splash" -a -x /sbin/splash.bin ]; then
+    splash_bin=
+    [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
+    [ -x /bin/splash ] && splash_bin=/bin/splash
+    if [ -n "$splash" -a -n "$splash_bin" ]; then
 	if [ -f /etc/sysconfig/bootsplash ]; then
 	    . /etc/sysconfig/bootsplash
 	fi
-	bootsplash_picture_dir="$root_dir/etc/bootsplash/themes/$THEME"
+
+	themes_dir=
+	if [ -d "$root_dir/etc/bootsplash/themes" ]; then
+	    themes_dir="$root_dir/etc/bootsplash/themes"
+	elif [ -d "$root_dir/usr/share/splash/themes" ]; then
+	    themes_dir="$root_dir/usr/share/splash/themes"
+	fi
 
 	echo -ne "Bootsplash:\t"
-	if [ -d $bootsplash_picture_dir -o -L $bootsplash_picture_dir ]; then
+	if [ -n "$themes_dir" -a \
+	     -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
 	    for size in ${splash//,/ }; do
-		bootsplash_picture="$bootsplash_picture_dir/images/bootsplash-$size.jpg"
-		cfgname="$bootsplash_picture_dir/config/bootsplash-$size.cfg"
+		bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
+		cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
 		if [ ! -r $cfgname ] ; then
 		    echo "disabled for resolution $size"
 		elif [ ! -r $bootsplash_picture ] ; then
 		    echo "no image for resolution $size"
 		else
 		    echo "$THEME ($size)"
-		    /sbin/splash.bin -s -f $cfgname >> $initrd_image
+		    $splash_bin -s -f $cfgname >> $initrd_image
 		fi
 	    done
 	else
