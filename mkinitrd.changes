@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun  2 12:50:43 CEST 2004 - hare@suse.de
+
+- mkinitrd: Always activate all disks (#41484).
+
+-------------------------------------------------------------------
 Wed Jun  2 00:10:07 CEST 2004 - olh@suse.de
 
 - mkinitramfs: add raid/lvm support if raid or dm-mod given with -m

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.105 $
+# $Revision: 1.106 $
 
 #
 # Print usage and exit
@@ -723,16 +723,16 @@ s390_check_lvm2() {
     local devname
     
     # Check whether the LVM is on zfcp or DASD
-    vgname=`lvdisplay -c $rootdev | cut -d : -f 2`
+    vgname=`lvdisplay -c $1 | cut -d : -f 2`
 
     if [ "$vgname" ]; then
 	for devname in `pvdisplay -c | grep $vgname | cut -d : -f 1`; do
 	    case "$devname" in
 		*/dasd*)
-		    enable_dasd=1
+		    s390_enable_dasd=1
 		    ;;
 		*/sd*)
-		    enable_zfcp=1
+		    s390_enable_zfcp=1
 		    ;;
 		*)
 		    ;;
@@ -752,8 +752,8 @@ s390_check_evms() {
 	return 1
     fi
 
-    if [ -n "$rootdev" ]; then
-	evms_cmd="q:r,v=$rootdev"
+    if [ -n "$1" ]; then
+	evms_cmd="q:r,v=$1"
 
 	while read a b c d; do
 	    if [ "$a $b" = "Region Name:" ]; then
@@ -794,13 +794,50 @@ s390_check_evms() {
     for dsk in $evms_dsk; do
 	case $dsk in
 	    dasd*)
-		enable_dasd=1;
+		s390_enable_dasd=1;
 		;;
 	    sd*)
-		enable_zfcp=1
+		s390_enable_zfcp=1
 		;;
 	esac
     done
+}
+
+s390_check_dasd() {
+    local devn=$(devnumber $1)
+
+    for dir in /sys/block/*/*; do
+	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
+	    IFS=":" read major minor < $dir/dev
+	    if (($devn == $(mkdevn $major $minor) )); then
+		path=$dir
+		break;
+	    fi
+	fi
+    done
+    if [ "$path" ] && [ -d ${path}/../device ]; then
+	if [ -r ${path}/../device/discipline ]; then
+	    s390_enable_dasd=1
+	fi
+    fi
+}
+
+s390_check_zfcp() {
+    local devn=$(devnumber $1)
+
+    for dir in /sys/block/*/*; do
+	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
+	    IFS=":" read major minor < $dir/dev
+	    if (($devn == $(mkdevn $major $minor) )); then
+		path=$dir
+		break;
+	    fi
+	fi
+    done
+    
+    if [ "$path" ] && [ -d "$path/../device" ] && [ -e "$path/../device/scsi_level" ] ; then
+	s390_enable_zfcp=1
+    fi
 }
 
 s390_zfcp_proc() {
@@ -842,46 +879,27 @@ you can save the current configuration with this command:
 # behaviour during booting.
 s390_zfcp_sysfs() {
     local path
-    local devn=$(devnumber $rootdev)
-    local enable_zfcp
 
-    if [ "$root_evms" ]; then
-	s390_check_evms $rootdev
-    elif [ "$root_dm" ]; then
-	s390_check_lvm2 $rootdev
-    else
-	for dir in /sys/block/*/*; do
-	    if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
-		IFS=":" read major minor < $dir/dev
-		if (($devn == $(mkdevn $major $minor) )); then
-		    path=$dir
-		    break;
-		fi
-	    fi
-	done
-
-	if [ "$path" ] && [ -d "$path/../device" ] && [ -e "$path/../device/scsi_level" ] ; then
-	    enable_zfcp=1
-	fi
-    fi
-    if [ "$enable_zfcp" ] ; then
+    if [ "$s390_enable_zfcp" ] ; then
 	# Root is on SCSI, detect all SCSI devices
 	for dev_dir in /sys/class/scsi_device/*; do
 	    if [ -d "$dev_dir" ] && [ -e "$dev_dir/device" ]; then
 		cd $dev_dir;
 		cd $(readlink device);
-		read fcp_disk_hba < ./hba_id
-		read fcp_disk_wwpn < ./wwpn
-		read fcp_disk_lun < ./fcp_lun
+		if [ -r ./hba_id ]; then
+		    read fcp_disk_hba < ./hba_id
+		    read fcp_disk_wwpn < ./wwpn
+		    read fcp_disk_lun < ./fcp_lun
 	    
-		s390_zfcp_disks="$s390_zfcp_disks $fcp_disk_hba:$fcp_disk_wwpn:$fcp_disk_lun"
+		    s390_zfcp_disks="$s390_zfcp_disks $fcp_disk_hba:$fcp_disk_wwpn:$fcp_disk_lun"
 
-		for id in $s390_zfcp_hbas; do
-		    if [ "$id" == "$fcp_disk_hba" ]; then
-			fcp_disk_hba=
-		    fi
-		done
-		[ "$fcp_disk_hba" ] && s390_zfcp_hbas="$s390_zfcp_hbas $fcp_disk_hba"
+		    for id in $s390_zfcp_hbas; do
+			if [ "$id" == "$fcp_disk_hba" ]; then
+			    fcp_disk_hba=
+			fi
+		    done
+		    [ "$fcp_disk_hba" ] && s390_zfcp_hbas="$s390_zfcp_hbas $fcp_disk_hba"
+		fi
 	    fi
 	done
 	add_module sd_mod
@@ -891,31 +909,10 @@ s390_zfcp_sysfs() {
 }
 
 s390_dasd_sysfs() {
-    local devn=$(devnumber $rootdev)
-    local enable_dasd
+    local type
+    local use_diag
 
-    if [ "$root_evms" ]; then
-	s390_check_evms $rootdev
-    elif [ "$root_dm" ]; then
-	s390_check_lvm2 $rootdev
-    else
-	for dir in /sys/block/*/*; do
-	    if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
-		IFS=":" read major minor < $dir/dev
-		if (($devn == $(mkdevn $major $minor) )); then
-		    path=$dir
-		    break;
-		fi
-	    fi
-	done
-	if [ "$path" ] && [ -d ${path}/../device ]; then
-	    if [ -r ${path}/../device/discipline ]; then
-		enable_dasd=1
-	    fi
-	fi
-    fi
-
-    if [ "$enable_dasd" ]; then
+    if [ "$s390_enable_dasd" ]; then
 	# Root device is on a dasd device, enable all dasd disks
 	for dir in /sys/block/*; do
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
@@ -986,6 +983,7 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 	fi
     fi
 }
+
 ###################################################################
 #
 # Create the initrd image $2 for kernel $1 (both are absolute path names).
@@ -2149,6 +2147,18 @@ fi
 if [ "$arch" = s390 ]; then
     # Check if zfcp or dasd modules need to be added automatically:
     if [ -d /sys/block ]; then
+	# Always enable all devices, hotplug is completely garbled
+	s390_enable_dasd=1
+	s390_enable_zfcp=1
+	# if [ "$root_evms" ]; then
+	#     s390_check_evms $rootdev
+	# elif [ "$root_dm" ]; then
+	#     s390_check_lvm2 $rootdev
+	# else
+	#     s390_check_dasd $rootdev
+	#     s390_check_zfcp $rootdev
+	# fi
+	# Activate devices
 	s390_dasd_sysfs
 	s390_zfcp_sysfs
     else
