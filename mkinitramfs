@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/Attic/mkinitramfs,v $
-# $Revision: 1.8 $
+# $Revision: 1.9 $
 
 #
 # Print usage and exit
@@ -837,6 +837,11 @@ mkinitrd_kernel () {
 
     cp -pfv /lib/mkinitrd/kinit.sh $tmp_mnt/init
     ln -sfv ../init $tmp_mnt/sbin/init
+    # if we run as user, mount may get the suid bit
+    # this gives the mount process the wrong permissions
+    chmod 0755 $tmp_mnt/bin/*
+    chmod 0755 $tmp_mnt/sbin/*
+
 
     pushd .
     cd $tmp_mnt
