@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.78 $
+# $Revision: 1.79 $
 
 #
 # Print usage and exit
@@ -1508,7 +1508,7 @@ mkinitrd_kernel () {
 }
 
 hex_dev_number() {
-    ls -l $1 | awk '{printf "%02x%02x\n", $5, $6}'
+    ls -l -L $1 | awk '{printf "%02x%02x\n", $5, $6}'
 }
 
 ###################################################################
