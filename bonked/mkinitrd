@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.17 $
+# $Revision: 1.18 $
 
 #
 # Print usage and exit
@@ -1273,10 +1273,10 @@ if [ -f $root_dir/etc/zipl.conf ]; then
 
     zipl_dasd_params=$(grep '^[[:space:]]*parameters=' \
 		            $root_dir/etc/zipl.conf)
-    cat "$zipl_dasd_params" | grep -q 'dasd=' \
+    echo "$zipl_dasd_params" | grep -q 'dasd=' \
 	&& zipl_conf_with_dasd=1
-    cat "$zipl_dasd_params" | grep -qv 'dasd=' \
-	&& zipl_conf_with_dasd=1
+    echo "$zipl_dasd_params" | grep -qv 'dasd=' \
+	&& zipl_conf_no_dasd=1
 fi
 
 grep -q '^[[:space:]]*options[[:space:]]\+dasd_mod' $root_dir/etc/modules.conf \
