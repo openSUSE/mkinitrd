@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.165 $
+# $Revision: 1.166 $
 
 #
 # Print usage and exit
@@ -1490,8 +1490,7 @@ mkinitrd_kernel() {
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
 	|    root=*)
-	|	set -- \$(IFS== ; echo \$o)
-	|	rootdev=\$2
+	|	rootdev=\$(expr substr \$o 6 99)
 	|	rootdev_cmdline=1
 	|	;;
 	|    resume=*)
@@ -1510,6 +1509,8 @@ mkinitrd_kernel() {
 	|    # lilo strips off the /dev/prefix from device names!
 	|    case \$rootdev in
 	|	/dev/*)
+	|	    ;;
+	|	LABEL=*)
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    rootdev=0\$rootdev ;;
