@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.12 $
+# $Revision: 1.124.2.13 $
 
 #
 # Print usage and exit
@@ -1101,6 +1101,7 @@ mkinitrd_kernel() {
     esac
 
     if has_module iscsi ; then
+	features=(${features[@]} iscsi)
 	if test -x $root_dir/usr/sbin/iscsid; then
 	    cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
 	elif test -x $root_dir/sbin/iscsid; then
@@ -1110,6 +1111,7 @@ mkinitrd_kernel() {
 	fi
 	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
 	need_mount=1
+	use_pivot_root=
     fi
 
     if [ -n "$sysfs_root" ]; then
@@ -1217,12 +1219,13 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$dhcp_interface" ] ; then
-	echo " Using dhcp on $dhcp_interface"
+	features=(${features[@]} dhcp\($dhcp_interface\))
 	cp_bin $root_dir/sbin/dhcpcd $tmp_mnt/bin
 	cp_bin $root_dir/bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
 	mkdir -p $tmp_mnt/var/run
 	need_mount=1
+	use_dhcp=1
     fi
 
     if has_module jfs ; then
@@ -1612,6 +1615,82 @@ mkinitrd_kernel() {
 	    ;;
     esac
 
+    if [ -n "$use_dhcp" ] ; then
+	cat_linuxrc <<-'EOF'
+	|case $rootdev in
+	|/dev/nfs|*:/*|"")
+	|   dhcp_mode=1 ;;
+	|esac
+	EOF
+    fi
+
+    if has_module iscsi ; then
+	cat_linuxrc <<-'EOF'
+	|for o in $(cat /proc/cmdline); do
+	|  case $o in
+	|    DiscoveryAddress=*)
+	|      target="$o" ; iscsi_boot=1 ;;
+	|    InitiatorName=*)
+	|      initiatorname="$o" ; iscsi_boot=1 ;;
+	|  esac
+	|done
+	|# iscsi boot requires dhcp, regardless of root= format
+	|if [ -n "$iscsi_boot" ]; then
+	|  dhcp_mode=1
+	|fi
+	EOF
+    fi
+
+    if [ -n "$use_dhcp" ] ; then
+	cat_linuxrc <<-EOF
+	|# run dhcp
+	|if [ -n "\$dhcp_mode" ]; then
+	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
+	|  # portmap
+	|  echo "running dhcpcd on interface $dhcp_interface"
+	|  dhcpcd -R -Y -N -t 100000000 $dhcp_interface
+	|  [ -s /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info ] || {
+	|    echo "no response from dhcp server."
+	|    echo 256 > /proc/sys/kernel/real-root-dev
+	|    die 0
+	|  }
+	|  . /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info
+	|  kill -9 \$(cat /var/run/dhcpcd-$dhcp_interface.pid)
+	|  if [ -n "\$DNS" ]; then
+	|    oifs="\$IFS"
+	|    IFS=","
+	|    for ns in \$DNS ; do
+	|      echo "nameserver \$ns" >> /etc/resolv.conf
+	|    done
+	|    IFS="\$oifs"
+	|    if [ -n "\$DOMAIN" ]; then
+	|	echo "search \$DOMAIN" >> /etc/resolv.conf
+	|    fi
+	|    echo 'hosts: dns' > /etc/nsswitch.conf
+	|  fi
+	|fi
+	EOF
+    fi
+
+    if has_module iscsi ; then
+	cat_linuxrc <<-'EOF'
+	|if [ -n "$iscsi_boot" ]; then
+	|  echo "Continuous=no" >> /etc/iscsi.conf
+	|  echo "ImmediateData=no" >> /etc/iscsi.conf
+	|  echo "$target" >> /etc/iscsi.conf
+	|  echo "$initiatorname" >> /etc/initiatorname.iscsi
+	|
+	|  echo "Starting iSCSI"
+	|  iscsid
+	|  usleep 5000000
+	|
+	|  # clear dhcp_mode so it looks like we're disk booted...
+	|  dhcp_mode=
+	|fi
+	EOF
+	use_dhcp=
+    fi
+
     if [ -n "$need_raidautorun" ]; then
 	features=(${features[@]} raidautorun)
 	cat_linuxrc <<-EOF
@@ -1946,91 +2025,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$dhcp_interface" ] ; then
-	cat_linuxrc <<-'EOF'
-	|case $rootdev in
-	|/dev/nfs|*:/*|"")
-	|   dhcp_mode=1 ;;
-	|esac
-	EOF
-    fi
-
-    if has_module iscsi ; then
-	cat_linuxrc <<-'EOF'
-	|for o in $(cat /proc/cmdline); do
-	|  case $o in
-	|    DiscoveryAddress=*)
-	|      target="$o" ; iscsi_boot=1 ;;
-	|    InitiatorName=*)
-	|      initiatorname="$o" ; iscsi_boot=1 ;;
-	|  esac
-	|done
-	|# iscsi boot requires dhcp, regardless of root= format
-	|if [ -n "$iscsi_boot" ]; then
-	|  dhcp_mode=1
-	|fi
-	EOF
-    fi
-
-    if [ -n "$dhcp_interface" ] ; then
-	cat_linuxrc <<-EOF
-	|# run dhcp
-	|if [ -n "\$dhcp_mode" ]; then
-	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
-	|  # portmap
-	|  echo "running dhcpcd on interface $dhcp_interface"
-	|  dhcpcd -R -Y -N -t 100000000 $dhcp_interface
-	|  [ -s /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info ] || {
-	|    echo "no response from dhcp server."
-	|    echo 256 > /proc/sys/kernel/real-root-dev
-	|    die 0
-	|  }
-	|  . /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info
-	|  kill -9 \$(cat /var/run/dhcpcd-$dhcp_interface.pid)
-	|  if [ -n "\$DNS" ]; then
-	|    oifs="\$IFS"
-	|    IFS=","
-	|    for ns in \$DNS ; do
-	|      echo "nameserver \$ns" >> /etc/resolv.conf
-	|    done
-	|    IFS="\$oifs"
-	|    if [ -n "\$DOMAIN" ]; then
-	|	echo "search \$DOMAIN" >> /etc/resolv.conf
-	|    fi
-	|    echo 'hosts: dns' > /etc/nsswitch.conf
-	|  fi
-	|fi
-	EOF
-    fi
-
-    if has_module iscsi ; then
-	cat_linuxrc <<-'EOF'
-	|if [ -n "$iscsi_boot" ]; then
-	|  echo "Continuous=no" >> /etc/iscsi.conf
-	|  echo "ImmediateData=no" >> /etc/iscsi.conf
-	|  echo "$target" >> /etc/iscsi.conf
-	|  echo "$initiatorname" >> /etc/initiatorname.iscsi
-	|
-	|  echo "Starting iSCSI"
-	|  iscsid
-	|  usleep 5000000
-	|
-	|  # need to redo-this setting up the root dev now that the disk is present
-	|  discover_root
-	EOF
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-		|  createpartitiondevs
-		EOF
-	fi
-	cat_linuxrc <<-'EOF'
-	|  # clear dhcp_mode so it looks like we're disk booted...
-	|  dhcp_mode=
-	|fi
-	EOF
-    fi
-
-    if [ -n "$dhcp_interface" ]; then
+    if [ -n "$use_dhcp" ]; then
 	cat_linuxrc <<-'EOF'
 	|if [ -z "$rootdev_cmdline" ]; then
 	|  case "$ROOTPATH" in
@@ -2220,7 +2215,7 @@ else
   rootfstype=$(echo $x1 | cut -f 3 -d " ")
 fi
 
-if [ -z "$dhcp_interface" ]; then
+if [ -z "$use_dhcp" ]; then
     [ -z "$rootdev" ] \
 	&& error 1 "No '/' mountpoint specified in $root_dir/etc/fstab"
 else
@@ -2259,7 +2254,7 @@ fi
 ###################################################################
 
 x="$rootdev"
-[ -n "$dhcp_interface" ] && x="nfs-root"
+[ -n "$use_dhcp" ] && x="nfs-root"
 [ "$rootdev" != "$realrootdev" ] && x="$x ($realrootdev)"
 echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 
@@ -2289,6 +2284,14 @@ if [ -n "$dhcp_interface" ]; then
     # dhcpd reqires the af_packet module, we include it here
     # in case the root FS will be mounted via NFS
     add_module af_packet
+    # Try to load the appropriate driver module
+    if [ -d /sys/class ]; then
+	netdrv_path=/sys/class/net/$dhcp_interface/driver
+	if [ -d "$netdrv_path" ]; then
+	    netdrv=`cd -P $netdrv_path; echo $(basename $PWD)`
+	    [ -n "$netdrv" ] && add_module "$netdrv"
+	fi
+    fi
 fi
 
 case "$(uname -m)" in

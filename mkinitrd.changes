@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 17 14:04:17 CET 2004 - hare@suse.de
+
+- Reordered sections to enable boot from iSCSI (#34258)
+
+-------------------------------------------------------------------
 Mon Nov  8 16:43:52 CET 2004 - agruen@suse.de
 
 - Recognize the sysrq={yes|1} kernel command-line option for
