@@ -6,6 +6,11 @@ Thu Jul  1 23:49:40 CEST 2004 - agruen@suse.de
   correctly.
 
 -------------------------------------------------------------------
+Wed Jun 23 18:17:31 CEST 2004 - fehr@suse.de
+
+- Add code that makes root filesystem on EVMS possible (#41198)
+  
+-------------------------------------------------------------------
 Mon Jun 21 17:00:11 CEST 2004 - agruen@suse.de
 
 - The udev helper scripts use /lib/klibc/bin/sh as their shell, so
