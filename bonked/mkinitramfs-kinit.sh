@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.11 2004/05/23 00:26:17 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.12 2004/05/24 19:49:29 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -90,7 +90,8 @@ for i in $cmdline ; do
 		nfsroot=*)
 			nfsroot="`echo $i | sed -e 's@^nfsroot=@@'`"
 			nfsoptions="`echo $i | sed -e 's@\(^[^,]\+,\)\(.*\)@-o \2@p;d'`"
-			nfsserver="`echo $nfsroot | sed -e 's@\(^[^:]\+\):.*@\1@p;d'`"
+			#nfsserver="`echo $nfsroot | sed -e 's@\(^[^:]\+\):.*@\1@p;d'`"
+			nfsserver="`echo $nfsroot | sed -e 's@\(^[^:]\+:[^,]\+\),.*@\1@p;d'`"
 			if [ -z "$root" ] ; then
 				root=/dev/nfs
 			fi

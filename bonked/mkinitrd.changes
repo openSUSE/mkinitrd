@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 24 21:48:46 CEST 2004 - olh@suse.de
+
+- mkinitramfs: fix nfsroot to take nfsroot=server:/dir
+
+-------------------------------------------------------------------
 Mon May 24 14:23:55 CEST 2004 - hare@suse.de
 
 - Call devmap_mknod.sh if no udev is running
