@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 31 20:30:34 CEST 2004 - olh@suse.de
+
+- mkinitramfs: disable 'debug' per default in kinit.sh
+
+-------------------------------------------------------------------
 Mon May 31 19:44:22 CEST 2004 - olh@suse.de
 
 - mkinitramfs: use modprobe.conf from -b <dir>/etc, if it exits

@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.14 2004/05/29 21:20:24 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.15 2004/05/31 18:31:06 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -64,6 +64,7 @@ fi
 #
 # sh
 #
+debug=
 init=
 root=
 rootfstype=
@@ -110,7 +111,7 @@ for i in $cmdline ; do
 			readonly=true
 			;;
 		debug)
-			debug=true
+			#debug=true
 			;;
 	esac
 	IFS="$oifs"
@@ -311,7 +312,7 @@ INIT="$init"
 export INIT
 if [ "$debug" = "true" ] ; then
 echo starting shell because debug was found in /proc/cmdline
-sh
+PATH=$PATH sh
 fi
 #
 # the point of no return!
