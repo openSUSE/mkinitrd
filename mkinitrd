@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124 $
+# $Revision: 1.125 $
 
 #
 # Print usage and exit
@@ -1357,6 +1357,8 @@ mkinitrd_kernel() {
 	|    case \$rootdev in
 	|	/dev/*)
 	|	    ;;
+	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
+	|	    rootdev=0\$rootdev ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    ;;
 	|	*:*)

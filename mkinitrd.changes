@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul  1 23:49:40 CEST 2004 - agruen@suse.de
+
+- #42696: Lilo passes the root device number as three to four-digit
+  hex number. Make mkinitrd recognize the dree-digit case
+  correctly.
+
+-------------------------------------------------------------------
 Mon Jun 21 17:00:11 CEST 2004 - agruen@suse.de
 
 - The udev helper scripts use /lib/klibc/bin/sh as their shell, so
