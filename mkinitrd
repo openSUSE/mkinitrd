@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.58 $
+# $Revision: 1.59 $
 
 #
 # Print usage and exit
@@ -1075,15 +1075,12 @@ mkinitrd_kernel () {
 	sysfs_root=
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
-	|	echo -n "Kernel cmdline: "
-	|	while read item; do
-	|		echo -n "$item "
+	|	for item in $(cat /proc/cmdline); do
 	|		case $item in
 	|		  root=/dev/*)	node=$(expr substr $item 11 99) ;;
 	|		  *)		continue ;;
 	|		esac
-	|	done < /proc/cmdline
-	|	echo
+	|	done
 	|	if test -n "$node" ; then
 	|	    echo -n "Waiting for device $node to appear: "
 	|	    for i in 1 2 3 4 5; do
