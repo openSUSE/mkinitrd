@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.82 $
+# $Revision: 1.83 $
 
 #
 # Print usage and exit
@@ -692,6 +692,7 @@ block_driver() {
 mkinitrd_kernel () {
     local kernel_image=$1 initrd_image=$2
     local kernel_version need_mount sysfs_root use_udev need_block_driver
+    local did_raidautorun
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
@@ -1130,6 +1131,7 @@ mkinitrd_kernel () {
 	|raidautorun
 	|echo "done..."
 	EOF
+	did_raidautorun=1
     fi
 
     if [ -n "$use_udev" ]; then
@@ -1198,6 +1200,15 @@ mkinitrd_kernel () {
 	    cat_linuxrc <<-'EOF'
 		|# scan for lvm devices
 		|createpartitiondevs
+		EOF
+	fi
+	if [ -z "$did_raidautorun" -a \
+	     $(pvscan 2>/dev/null | grep "/dev/md[0-9]" | wc -l) -gt 0 ]
+	then
+	    cat_linuxrc <<-EOF
+		|echo "raidautorun ..."
+		|raidautorun
+		|echo "done..."
 		EOF
 	fi
 	cat_linuxrc <<-'EOF'
