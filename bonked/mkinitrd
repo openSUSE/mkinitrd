@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.19 $
+# $Revision: 1.20 $
 
 #
 # Print usage and exit
@@ -289,7 +289,7 @@ if [ "x$splash" = xauto ] ; then
 	&& vgascan="$vgascan $root_dir/boot/grub/menu.lst"
     for vga in `cat $vgascan \
 	        | sed -ne '/^[ \t]*#/d' \
-		      -e 's/^.*[ \t]*vga[ \t]*=[ \t]*\([0-9a-fA-FxX]*\).*$/\1/p'` ; do
+		      -e 's/^.*[ \t]*vga[ \t]*=[ \t]*\([0-9]\+\|0[xX][0-9a-fA-F]\+\).*$/\1/p'` ; do
 	splashsize=
 	case $vga in
 	    785|786|0x311|0x312|0x0311|0x0312) splashsize=640x480   ;;
@@ -298,7 +298,7 @@ if [ "x$splash" = xauto ] ; then
 	    794|0x31a|0x31A|0x031a)     splashsize=1280x1024 ;;
 	    795|0x31b|0x31B|0x031b)     splashsize=1280x1024 ;;
 	    *)
-		vgahex=`printf 0x%04x "$vga"`
+	    	vgahex="`printf 0x%04x "$[$vga]"`"
 		splashsize=`hwinfo debug=0 -all +bios.vbe \
 			    | sed -ne 's/^.*Mode '$vgahex': \([^ ][^ ]*\) .*$/\1/p' 2>/dev/null`
 		;;
