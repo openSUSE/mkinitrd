@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.173 $
+# $Revision: 1.174 $
 
 #
 # Print usage and exit
@@ -1456,7 +1456,7 @@ mkinitrd_kernel() {
 	|
 	|exec < /dev/console > /dev/console 2>&1
 	|
-	|mount -t tmpfs -o 'size=3%' initramdevs /dev
+	|mount -t tmpfs -o 'size=5%' initramdevs /dev
 	|mkdir -p /dev/pts
 	|
 	|[ ! -f /proc/cpuinfo ] && mount -tproc proc /proc
@@ -2329,7 +2329,7 @@ mkinitrd_kernel() {
 	|if [ -f /proc/fb ]; then
 	|    cat /proc/fb | while read fbnum fbtype; do
 	|        if [ $(($fbnum < 32)) ] ; then
-	|            mknod /dev/fb$fbnum c 29 $fbnum
+	|            [ -c /dev/fb$fbnum ] || mknod /dev/fb$fbnum c 29 $fbnum
 	|        fi
 	|    done
 	|fi
