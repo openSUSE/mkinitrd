@@ -3,6 +3,7 @@ Mon Mar  7 09:09:25 CET 2005 - hare@suse.de
 
 - Fixed booting on LVM2 (#67221).
 - Try to make umount /dev work.
+  (Disabled for now, doesn't work).
 
 -------------------------------------------------------------------
 Fri Mar  4 16:43:20 CET 2005 - hare@suse.de
