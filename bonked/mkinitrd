@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.56 $
+# $Revision: 1.57 $
 
 #
 # Print usage and exit
@@ -987,11 +987,10 @@ mkinitrd_kernel () {
     if [ -n "$sysfs_root" ]; then
 	cat_linuxrc <<-'EOF'
 	|sh_basename () {
-	|	local path=$1 IFS=/
+	|	local IFS=/
 	|
-	|	set -- $path
-	|	while test $# -gt 1; do shift; done
-	|	echo $1
+	|	set -- $1
+	|	eval echo \${$#}
 	|}
 	|
 	|sysfs_set_root_dir () {
