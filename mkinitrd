@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.135 $
+# $Revision: 1.136 $
 
 #
 # Print usage and exit
@@ -631,15 +631,18 @@ check_ide_modules() {
 
 # Convert a major:minor pair into a device number
 mkdevn() {
-    local major=$1 minor=$2
-    expr '(' $minor % 256 ')' + '(' $major '*' 256 ')' + \
-	 '(' '(' $minor / 256 ')' '*' 256 '*' 4096 ')'
+    local major=$1 minor=$2 minorhi minorlo
+    major=$(($major * 256))
+    minorhi=$(($minor / 256))
+    minorlo=$(($minor % 256))
+    minor=$(($minorhi * 256 * 4096))
+    echo $(( $minorlo + $major + $minor ))
 }
 
 # Extract the major part from a device number
 devmajor() {
-    local devn=$1
-    expr '(' $devn / 256 ')' % 4096
+    local devn=$(($1 / 256))
+    echo $(( $devn % 4096 ))
 }
 
 block_driver() {
@@ -925,7 +928,7 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 #
 mkinitrd_kernel() {
     local kernel_image=$1 initrd_image=$2
-    local kernel_version need_mount sysfs_root need_block_driver
+    local kernel_version need_block_driver
     local need_raidautorun
     local -a features
 
@@ -979,7 +982,7 @@ mkinitrd_kernel() {
 	rmdir $tmp_mnt/lost+found
     fi
     # fill the initrd
-    mkdir -p $tmp_mnt/{sbin,bin,etc,dev}
+    mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys}
 
     if [ "$mkinit_type" = "rd" ]; then
 	initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
@@ -992,7 +995,7 @@ mkinitrd_kernel() {
 	esac
 	(cd ${root_dir:-/} ; cp -R --parents $initrd_devices $tmp_mnt )
     else
-	mkdir -p $tmp_mnt/{proc,sys,tmp,root}
+	mkdir -p $tmp_mnt/{tmp,root}
 	touch $tmp_mnt/etc/mtab
     fi
 
@@ -1013,8 +1016,8 @@ mkinitrd_kernel() {
       cp_bin $initrd_insmod.old $tmp_mnt/sbin/insmod.old 2>/dev/null
     fi
 
-   # SELinux: Binary policy file and load_policy utility for loading it.
-   if [ -n "$use_selinux" ] ; then
+    # SELinux: Binary policy file and load_policy utility for loading it.
+    if [ -n "$use_selinux" ] ; then
 	if [ -f $root_dir/etc/security/selinux/policy.15 -a \
 	     -f $root_dir/usr/sbin/load_policy ] ; then
 	   echo -e "SELinux policy:\tadded"
@@ -1037,16 +1040,6 @@ mkinitrd_kernel() {
 	    echo -e "iSCSI error:\tcan't find iscsid"
 	fi
 	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
-	need_mount=1
-    fi
-
-    if [ -n "$sysfs_root" ]; then
-	if [ ! -d $tmp_mnt/sys ]; then
-	    mkdir -p $tmp_mnt/sys
-	fi
-	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
-	need_mount=1
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
@@ -1077,7 +1070,13 @@ mkinitrd_kernel() {
     done
 
     cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
-    
+
+    # cat might not be present as klibc binary
+    if [ ! -e $tmp_mnt/bin/cat ] ; then
+	cp_bin $root_dir/bin/cat $tmp_mnt/bin
+    fi
+
+    # copy common utilities
     for bin in chmod mkdir mknod mount rm; do
 	cp_bin $root_dir/bin/$bin $tmp_mnt/bin
     done
@@ -1087,9 +1086,6 @@ mkinitrd_kernel() {
     if [ -x $root_dir/lib/mkinitrd/hotplug.sh ] ; then
 	cp_bin $root_dir/lib/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
     fi
-
-    # This has to go ...
-    cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
 
     # all dev nodes belong to root, according to udev.permissions
     # but some may be owned by a group other than root
@@ -1105,6 +1101,7 @@ mkinitrd_kernel() {
     cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
     mkdir -p $tmp_mnt/etc/udev
     cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
+
     if [ "$mkinit_type" = "ramfs" ] ; then
 	mkdir -p $tmp_mnt/events
 	cp_bin $root_dir/sbin/hotplugeventrecorder $tmp_mnt/sbin
@@ -1116,8 +1113,6 @@ mkinitrd_kernel() {
 	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
 	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
-	need_mount=1
 	need_block_driver=1
     fi
 
@@ -1126,24 +1121,23 @@ mkinitrd_kernel() {
 	mkdir -p $tmp_mnt/etc/lvm
 	mkdir -p $tmp_mnt/var/lock/lvm
 	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
-	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod,ls} $tmp_mnt/bin
+	cp_bin $root_dir/bin/{sed,mkdir,mknod,ls} $tmp_mnt/bin
 	cp -a $root_dir/etc/lvm/lvm.conf $tmp_mnt/etc/lvm
-	need_mount=1
 	need_block_driver=1
     fi
 
     if [ -n "$root_evms" ] ; then
 	features=(${features[@]} dm/evms2)
 	cp_bin $root_dir/sbin/{evms_activate,dmsetup} $tmp_mnt/sbin
-	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod,rm} $tmp_mnt/bin
-	mkdir -p $tmp_mnt/etc
+	cp_bin $root_dir/bin/{sed,mkdir,mknod,rm} $tmp_mnt/bin
+	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
+	mkdir -p $tmp_mnt/mnt
 	cp -a $root_dir/etc/evms.conf $tmp_mnt/etc
 	mkdir -p $tmp_mnt/lib/evms
 	SD=$(ls -A $root_dir/lib/evms | tail -n 1)
 	(cd $tmp_mnt/lib/evms && mkdir -p $SD)
 	cp_bin $root_dir/lib/evms/$SD/* $tmp_mnt/lib/evms/$SD
 	rm -f $tmp_mnt/lib/evms/*/*{ext2,jfs,ogfs,reiser,swap,xfs}*so
-	need_mount=1
 	need_block_driver=1
     fi
 
@@ -1155,12 +1149,10 @@ mkinitrd_kernel() {
     if [ -n "$use_pivot_root" ] ; then
 	features=(${features[@]} pivot-root)
 	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	echo "#! $shebang" > $tmp_mnt/bin/init
 	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
 	chmod 755 $tmp_mnt/bin/init
 	mkdir -p $tmp_mnt/mnt
-	need_mount=1
     fi
 
     if [ -n "$dhcp_interface" ] ; then
@@ -1169,29 +1161,12 @@ mkinitrd_kernel() {
 	cp_bin $root_dir/bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
 	mkdir -p $tmp_mnt/var/run
-	need_mount=1
     fi
 
     if has_module jfs ; then
 	features=(${features[@]} fsck.jfs)
 	cp_bin $root_dir/sbin/fsck $tmp_mnt/bin
 	cp_bin $root_dir/sbin/fsck.jfs $tmp_mnt/bin
-	need_mount=1
-    fi
-
-    if has_module scsi_mod ; then
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
-	need_mount=1
-    fi
-
-    if [ -n "$need_mount" ] ; then
-	mkdir -p $tmp_mnt/{etc,proc,mnt}
-	echo 'none /proc proc defaults 0 0' > $tmp_mnt/etc/fstab
-	if [ "$sysfs_root" ] ; then
-	    echo 'sysfs /sys sysfs defaults 0 0' > $tmp_mnt/etc/fstab
-	fi
-	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
-	
     fi
 
     if [ -n "$debug_mkinit" ]; then
@@ -1750,7 +1725,7 @@ mkinitrd_kernel() {
 	|udev_discover_root() {
 	|	local root
 	|	case "$rootdev" in
-	|	/dev/*)	root=${$rootdev#/dev/} ;;
+	|	/dev/*)	root=${rootdev#/dev/} ;;
 	|	esac
 	|	if [ -n "$root" ]; then
 	|	    echo -n "Waiting for device /dev/$root to appear: "
