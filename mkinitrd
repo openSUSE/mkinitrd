@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.188 $
+# $Revision: 1.189 $
 
 #
 # Print usage and exit
@@ -1297,7 +1297,7 @@ mkinitrd_kernel() {
 	    fi
 	else
 	    cp_bin /sbin/udev $tmp_mnt/sbin/
-	    cp_bin /sbin/udevinfo $tmp_mnt/sbin/
+	    cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/
 	    if [ ! -L /sbin/udevstart ] ; then
 		cp_bin /sbin/udevstart $tmp_mnt/sbin/
 	    else
