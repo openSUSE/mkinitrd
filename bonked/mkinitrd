@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.88 $
+# $Revision: 1.89 $
 
 #
 # Print usage and exit
@@ -1208,7 +1208,7 @@ mkinitrd_kernel() {
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvm
 	|/sbin/devmap_mknod.sh
-	|vgscan
+	|vgscan --mknodes
 	|vgchange -a y
 	|umount -n /etc/lvm
 	|# set the right root device if user specified a lvm root
@@ -1331,6 +1331,7 @@ mkinitrd_kernel() {
 	|		   )!$(expr substr $root   $(expr $idx + 1) 99)
 	|	    done
 	|	    sysfs_set_root $root
+	|	fi
 	|}
 	|
 	|if ! discover_root ; then
