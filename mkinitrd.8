@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.1 2004/05/10 10:44:54 hare Exp $
+.\"$Id: mkinitrd.8,v 1.2 2004/07/28 09:39:03 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -42,6 +42,9 @@ Add OEM resize support.
 .TP
 \fB-t tmp_dir\fR 
 tmp dir, defaults to "/tmp"
+\fB-r\fR
+Use initramfs instead of initrd.
+.TP
 .TP
 \fBroot_dir\fR
 the directory the root partition is mounted to defaults to "/"
