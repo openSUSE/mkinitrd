@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.43 $
+# $Revision: 1.44 $
 
 #
 # Print usage and exit
@@ -905,13 +905,13 @@ mkinitrd_kernel () {
 		# Hack around this by scanning /proc/cmdline in linuxrc.
 		params="\$extra_scsi_params${params:+ $params}"
 
-		cat_linuxrc <<-EOF
+		cat_linuxrc <<-'EOF'
 		|# check for SCSI parameters in /proc/cmdline
 		|mount -n -tproc none /proc
-		|for p in \$(cat /proc/cmdline) ; do
-		|  case \$p in
+		|for p in $(cat /proc/cmdline) ; do
+		|  case $p in
 		|    scsi*|*_scsi_*|llun_blklst=*|max_report_luns=*)
-		|      extra_scsi_params="\$extra_scsi_params \$p"
+		|      extra_scsi_params="$extra_scsi_params $p"
 		|      ;;
 		|  esac
 		|done
