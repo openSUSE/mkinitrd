@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.169 $
+# $Revision: 1.170 $
 
 #
 # Print usage and exit
@@ -1184,7 +1184,7 @@ mkinitrd_kernel() {
     if [ -z "$use_glibc" ] ; then
 	mkdir -p $tmp_mnt/lib/klibc/bin
 	for klibc_bin in devnumber sed sleep ata_identify scsi_id \
-	    cat ln umount; do
+	    cat ln umount udev_volume_id; do
 	  if [ -e /lib/klibc/bin/$klibc_bin ]; then
 	      cp_bin /lib/klibc/bin/$klibc_bin \
 		  $tmp_mnt/lib/klibc/bin
@@ -1200,6 +1200,7 @@ mkinitrd_kernel() {
 	done
 	cp_bin /sbin/scsi_id $tmp_mnt/bin
 	cp_bin /sbin/ata_identify $tmp_mnt/bin
+	cp_bin /sbin/udev_volume_id $tmp_mnt/bin
 	# this must be a static binry because /lib is already gone when it runs
 	cp_bin /lib/klibc/bin/run_init $tmp_mnt/run_init
     fi
@@ -1513,9 +1514,17 @@ mkinitrd_kernel() {
 	|	LABEL=*)
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
-	|	    rootdev=0\$rootdev ;;
+	|	    maj=\$((0x0\$rootdev >> 8))
+	|	    min=\$((0x0\$rootdev & 0xff))
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/00-lilo.rules
+	|	    rootdevn=\$maj:\$min
+	|	    rootdev=/dev/root ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
-	|	    ;;
+	|	    maj=\$((0x\$rootdev >> 8))
+	|	    min=\$((0x\$rootdev & 0xff))
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/00-lilo.rules
+	|	    rootdevn=\$maj:\$min
+	|	    rootdev=/dev/root ;;
 	|	*:*)
 	|	    ;;
 	|	*)
