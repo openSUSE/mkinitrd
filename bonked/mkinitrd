@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.67 $
+# $Revision: 1.68 $
 
 #
 # Print usage and exit
@@ -1663,7 +1663,7 @@ if [ -n "$root_dm" ] ; then
     add_module dm-mod
 fi
 
-if [ -n "$dhcp_interface" ]
+if [ -n "$dhcp_interface" ]; then
     # dhcpd reqires the af_packet module, we include it here
     # in case the root FS will be mounted via NFS
     add_module af_packet
