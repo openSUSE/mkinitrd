@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.28 2004/05/22 20:41:16 olh Exp $
+# $Id: mkinitramfs,v 1.29 2004/05/22 20:46:33 olh Exp $
 
 #
 # Print usage and exit
@@ -132,7 +132,7 @@ s390)
     ;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:St:V:a: a ; do
+while getopts :hk:i:m:b:o:s:St:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -142,8 +142,6 @@ while getopts :hk:i:m:b:d:o:s:St:V:a: a ; do
 		m)  echo "-m requires module list parameter"
 		    ;;
 		b)  echo "-b requires boot dir parameter"
-		    ;;
-		d)  echo "-d requires root device parameter"
 		    ;;
 		s)  echo "-s requires image size(s)"
 		    ;;
