@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.16.4.2 2004/10/18 19:09:25 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.16.4.3 2004/10/27 14:52:33 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -45,27 +45,6 @@ if [ ! -d /sys/class ] ; then mount -t sysfs sysfs /sys ; fi
 if [ -x /load_modules.sh ] ; then
 	PATH=$PATH /load_modules.sh
 fi
-#
-# create all remaining device nodes
-echo -n "creating device nodes ."
-/sbin/udevstart
-echo -n .
-
-# workaround chicken/egg bug in mdadm and raidautorun
-# they do the ioctl on the not yet existing device node...
-for i in 0 1 2 3 4 5 6 7 8 9 \
-	10 11 12 13 14 15 16 17 18 19 \
-	20 21 22 23 24 25 26 27 28 29 \
-	30 31 \
-; do
-mknod -m 660 /dev/md$i b 9 $i
-done
-mknod -m 400 /dev/isdninfo c 45 255
-echo .
-
-if [ -x /load_md.sh ] ; then
-	PATH=$PATH /load_md.sh
-fi
 
 #
 # sh
@@ -81,7 +60,6 @@ for i in $cmdline ; do
 		init=*) 
 			init="`echo $i | sed -e 's@^init=@@'`"
 			;;
-		ip=*:*) ipinterface=false;;
 		ip=*)
 			ipinterface="`echo $i | sed -e 's@^ip=@@'`"
 			;;
@@ -101,10 +79,10 @@ for i in $cmdline ; do
 			;;
 		# iscsi
 		DiscoveryAddress=*)
-			DiscoveryAddress="`echo $i | sed -e 's@^DiscoveryAddress=@@'`"
+			DiscoveryAddress=$i
 			;;
 		InitiatorName=*)
-			InitiatorName="`echo $i | sed -e 's@^InitiatorName=@@'`"
+			InitiatorName=$i
 			;;
 		#
 		rw)
@@ -137,15 +115,11 @@ else
 fi
 
 if [ -z "$root" ] ; then
-	if [ ! -z "$DiscoveryAddress" -a ! -z "$InitiatorName" ] ; then
-		root=iscsi
-	else
-		echo root= not provided on kernel cmdline
-		echo root=discover not yet implemented
-		sleep 5
-		echo 42 > /proc/sys/kernel/panic
-		exit 1
-	fi
+	echo root= not provided on kernel cmdline
+	echo root=discover not yet implemented
+	sleep 5
+	echo 42 > /proc/sys/kernel/panic
+	exit 1
 fi
 
 while read dev type ; do
@@ -169,23 +143,43 @@ while read dev type ; do
 	esac
 done < /proc/filesystems
 
+# establish iSCSI sessions
+if [ ! -z "$DiscoveryAddress" -a ! -z "$InitiatorName" ] ; then
+	ipconfig $ipinterface
+	echo updating iscsi config
+	echo "Continuous=no" >> /etc/iscsi.conf
+	echo "ImmediateData=no" >> /etc/iscsi.conf
+	echo "$DiscoveryAddress" >> /etc/iscsi.conf
+	echo "$InitiatorName" >> /etc/initiatorname.iscsi
+	echo "Starting iSCSI"
+	iscsid
+	sleep 5
+fi
+
+#
+# create all remaining device nodes
+echo -n "creating device nodes ."
+/sbin/udevstart
+echo -n .
+
+# workaround chicken/egg bug in mdadm and raidautorun
+# they do the ioctl on the not yet existing device node...
+for i in 0 1 2 3 4 5 6 7 8 9 \
+	10 11 12 13 14 15 16 17 18 19 \
+	20 21 22 23 24 25 26 27 28 29 \
+	30 31 \
+; do
+mknod -m 660 /dev/md$i b 9 $i
+done
+mknod -m 400 /dev/isdninfo c 45 255
+echo .
+
+if [ -x /load_md.sh ] ; then
+	PATH=$PATH /load_md.sh
+fi
+
 failed=0
 case "$root" in
-	iscsi)
-		ipconfig $ipinterface
-		echo updating iscsi config
-		echo "Continuous=no" >> /etc/iscsi.conf
-		echo "ImmediateData=no" >> /etc/iscsi.conf
-		echo "$target" >> /etc/iscsi.conf
-		echo "$initiatorname" >> /etc/initiatorname.iscsi
-		echo "Starting iSCSI"
-		iscsid
-		sleep 5
-		echo "mount $FSTYPE $mountopt $root /root"
-		if [ ! -b "$root" ] ; then echo "$root missing ... "; sleep 1 ; fi
-		sleep 1
-		mount $FSTYPE $mountopt "$root" /root || failed=1
-	;;
 	/dev/nfs|*:/*)
 	echo "root looks like nfs ..."
 	ipconfig $ipinterface

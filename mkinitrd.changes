@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 27 16:47:40 CEST 2004 - olh@suse.de
+
+- mkinitramfs: fix iscsi root, move udevstart (#34258 - LTC6040)
+
+-------------------------------------------------------------------
 Thu Oct 21 10:04:24 CEST 2004 - hare@suse.de
 
 - Fix syntax errors on failure (#47441)
