@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.116 $
+# $Revision: 1.117 $
 
 #
 # Print usage and exit
@@ -721,10 +721,10 @@ s390_check_lvm2() {
     local devname
     
     # Check whether the LVM is on zfcp or DASD
-    vgname=`lvdisplay -c $1 | cut -d : -f 2`
+    vgname=$(lvdisplay -c $1 | cut -d : -f 2)
 
     if [ "$vgname" ]; then
-	for devname in `pvdisplay -c | grep $vgname | cut -d : -f 1`; do
+	for devname in $(pvdisplay -c | grep $vgname | cut -d : -f 1); do
 	    case "$devname" in
 		*/dasd*)
 		    s390_enable_dasd=1
@@ -1322,19 +1322,30 @@ mkinitrd_kernel() {
 	|# Fallback root device number
 	|rootdevn=$rootdevn
 	|
-	|set -- \$(cat /proc/cmdline)
-	|while [ \$# -gt 1 ]; do
-	|    case \$1 in
+	|for o in \$(cat /proc/cmdline); do
+	|    case \$o in
 	|    root=*)
-	|	set -- \$(IFS== ; echo \$1)
+	|	set -- \$(IFS== ; echo \$o)
 	|	rootdev=\$2
 	|	rootdev_cmdline=1
-	|	break ;;
+	|	;;
 	|    esac
-	|    shift
 	|done
 	|if [ -z "\$rootdev" ]; then
 	|    rootdev=$rootdev
+	|else
+	|    # lilo strips off the /dev/prefix from device names!
+	|    case \$rootdev in
+	|	/dev/*)
+	|	    ;;
+	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
+	|	    ;;
+	|	*:*)
+	|	    ;;
+	|	*)
+	|	    rootdev=/dev/\$rootdev
+	|	    ;;
+	|    esac
 	|fi
 	EOF
 
@@ -1585,12 +1596,12 @@ mkinitrd_kernel() {
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvmtab.d
 	|vgscan
-	|for o in \`cat /proc/cmdline\` ; do
+	|for o in \$(cat /proc/cmdline); do
 	|  case \$o in
 	|    root=/dev/*)
-	|	set -- \`IFS=/ ; echo \$o\`
+	|	set -- \$(IFS=/ ; echo \$o)
 	|	vg_root=\$3
-	|	break ;;
+	|	;;
 	|  esac
 	|done
 	|if [ -z "\$vg_root" ]; then
@@ -1626,12 +1637,12 @@ mkinitrd_kernel() {
 	fi
 	cat_linuxrc <<-EOF
 	|vgscan
-	|for o in \`cat /proc/cmdline\` ; do
+	|for o in \$(cat /proc/cmdline); do
 	|  case \$o in
 	|    root=/dev/*)
-	|       set -- \`IFS=/ ; echo \$o\`
+	|       set -- \$(IFS=/ ; echo \$o)
 	|       vg_root=\$3
-	|       break ;;
+	|       ;;
 	|  esac
 	|done
 	|if [ -z "\$vg_root" ]; then
