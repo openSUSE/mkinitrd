@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.17 2004/07/28 16:15:36 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.18 2004/08/22 18:14:24 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -70,7 +70,6 @@ fi
 #
 # sh
 #
-debug=
 init=
 root=
 rootfstype=
@@ -114,9 +113,6 @@ for i in $cmdline ; do
 		ro)
 			readwrite=false
 			readonly=true
-			;;
-		debug)
-			#debug=true
 			;;
 	esac
 done
