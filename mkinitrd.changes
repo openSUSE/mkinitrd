@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  3 20:57:02 CEST 2004 - olh@suse.de
+
+- mkinitramfs: copy the /tmp/net-*.conf files to /dev/nfsroot/ 
+
+-------------------------------------------------------------------
 Fri Sep  3 20:53:47 CEST 2004 - olh@suse.de
 
 - mkinitramfs: set the hostname from dhcp reply

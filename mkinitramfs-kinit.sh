@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.25 2004/09/03 18:54:11 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.26 2004/09/03 18:58:06 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -195,7 +195,9 @@ case "$root" in
 	;;
 	/dev/nfs|*:/*)
 	echo "root looks like nfs ..."
+	mkdir -p /dev/nfsroot/
 	ipconfig $ipinterface
+	cp -av /tmp/net-*.conf /dev/nfsroot/
 	case "$root" in
 		*:/*)
 		nfsserver="$root"

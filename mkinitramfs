@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.46 2004/08/21 14:18:36 olh Exp $
+# $Id: mkinitramfs,v 1.47 2004/09/03 18:58:06 olh Exp $
 
 #
 # Print usage and exit
@@ -598,6 +598,7 @@ mkinitrd_kernel () {
     cp_bin /bin/mknod $tmp_mnt/bin/mknod
     cp_bin /bin/chmod $tmp_mnt/bin/chmod
     cp_bin /bin/rm $tmp_mnt/bin/rm
+    cp_bin /bin/cp $tmp_mnt/bin/cp
     if [ -d /etc/sysconfig/hardware ] ; then
 	mkdir -p $tmp_mnt/etc/sysconfig
 	cp -a /etc/hotplug $tmp_mnt/etc
