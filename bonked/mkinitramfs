@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.38 2004/05/29 22:18:55 olh Exp $
+# $Id: mkinitramfs,v 1.39 2004/05/31 18:19:11 olh Exp $
 
 #
 # Print usage and exit
@@ -440,7 +440,13 @@ resolve_modules () {
 	module=${module#.ko}  # strip trailing ".ko" just in case.
 
 	    local with_modprobe_conf
-	    if [ -e /etc/modprobe.conf ]; then
+	    if [ -e $boot_dir/etc/modprobe.conf ]; then
+		with_modprobe_conf="-C $boot_dir/etc/modprobe.conf"
+		if [ "$print_modprobeconf" = 1 ]; then
+		echo "Using $boot_dir/etc/modprobe.conf" >&2
+		print_modprobeconf=0
+		fi
+	    elif [ -e /etc/modprobe.conf ]; then
 		with_modprobe_conf="-C /etc/modprobe.conf"
 	    fi
 	    module_list=$( \
@@ -1045,6 +1051,8 @@ fi
 ###################################################################
 
 exit_code=0
+# does not work very well due to all the subshells...
+print_modprobeconf=1
 
 initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
@@ -1071,6 +1079,7 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
 	ln -s "${initrd_image#$boot_dir/}" /$boot_dir/initrd
     fi
     cleanup
+    print_modprobeconf=1
 done
 
 
