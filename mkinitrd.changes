@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Sun Jun 20 20:07:19 CEST 2004 - agruen@suse.de
+
+- #42250: Fix race when using lvm2 / device mapper / evms root
+  file system in combination with udev: Need to wait for udev to
+  create /dev/mapper/control.
+- The udev helper scripts use /lib/klibc/bin/sh as their shell, so
+  leave the shell where it comes from, and make /bin/sh a symlink
+  to that location.
+- Add initrd=trace kernel command line option: turns on command
+  tracing in linuxrc start-up script (set -x).
+
+-------------------------------------------------------------------
 Fri Jun 18 03:41:19 CEST 2004 - agruen@suse.de
 
 - #42171: Always create an initrd. Not having one may create all
