@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 21 10:04:24 CEST 2004 - hare@suse.de
+
+- Fix syntax errors on failure (#47441)
+
+-------------------------------------------------------------------
 Mon Oct 18 21:07:47 CEST 2004 - olh@suse.de
 
 - fix syntax error in mkinitramfs-kinit.sh, in nfsroot path
