@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.26 2004/05/21 21:21:01 olh Exp $
+# $Id: mkinitramfs,v 1.27 2004/05/21 21:22:35 olh Exp $
 
 #
 # Print usage and exit
@@ -49,7 +49,6 @@ usage() {
           -b boot_dir      Boot directory. Defaults to /boot.
 	  -s size          Add splash animation and bootscreen to initrd.
 	  -t tmp_dir       Temporary directory. Defaults to /var/tmp.
-	  -D interface     Run dhcp on the specified interface.
 	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
 	  		   Description Table) to initrd. This replaces the
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
@@ -132,7 +131,7 @@ s390)
     ;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:St:D:V:a: a ; do
+while getopts :hk:i:m:b:d:o:s:St:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -148,8 +147,6 @@ while getopts :hk:i:m:b:d:o:s:St:D:V:a: a ; do
 		s)  echo "-s requires image size(s)"
 		    ;;
 		t)  echo "-t requires tmp dir parameter"
-		    ;;
-		D)  echo "-D requires dhcp interface parameter"
 		    ;;
 		V)  echo "-V requires an executable to run in initramfs"
 		    ;;
@@ -173,9 +170,6 @@ while getopts :hk:i:m:b:d:o:s:St:D:V:a: a ; do
 	s)  splash=$OPTARG
 	    ;;
 	t)  tmp_dir=$OPTARG
-	    ;;
-	D)  dhcp_interface=$OPTARG
-	    dhcp_interface=${dhcp_interface#/dev/}
 	    ;;
 	a)  acpi_dsdt="$OPTARG"
 	    ;;
@@ -629,12 +623,6 @@ mkinitrd_kernel () {
 	echo "Including DM/LVM2 support"
 	mkdir -p $tmp_mnt/etc/lvmtab.d
 	cp_bin /sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
-    fi
-
-    if [ -n "$dhcp_interface" ] ; then
-	echo " Using dhcp on $dhcp_interface"
-	mkdir -p $tmp_mnt/var/lib/dhcpcd
-	mkdir -p $tmp_mnt/var/run
     fi
 
     if has_module jfs ; then
