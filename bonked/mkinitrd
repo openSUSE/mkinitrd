@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.20 $
+# $Revision: 1.21 $
 
 #
 # Print usage and exit
@@ -439,6 +439,23 @@ shared_object_files () {
 	$DO_CHROOT $LDD "${@#$root_dir}" \
 	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:' -e 's:^/::'
     ) )
+    
+    # Evil hack: On some systems we have generic as well as optimized
+    # libraries, but the optimized libraries may not work with all
+    # kernel versions (e.g., the NPTL glibc libraries don't work with
+    # a 2.4 kernel). Use the generic versions of the libraries in the
+    # initrd (and guess the name).
+    local n optimized
+    for ((n=0; $n<${#initrd_libs[@]}; n++)); do
+	lib="${initrd_libs[$n]}"
+	optimized="$(echo "$lib" | sed -e 's:.*/\([^/]\+/\)[^/]\+$:\1:')"
+	lib="${lib/$optimized/}"
+	if [ "${optimized:0:3}" != "lib" -a -f "$lib" ]; then
+	    #echo "[Using $lib instead of ${initrd_libs[$n]}]" >&2
+	    initrd_libs[$n]="${lib/$optimized/}"
+	fi
+    done
+    
     for lib in "${initrd_libs[@]}"; do
 	while [ -L "$root_dir/$lib" ]; do
 	    echo $lib
@@ -715,6 +732,8 @@ mkinitrd_kernel () {
 	    cp -a $root_dir/$rootdev $tmp_mnt/${rootdev%/*}
 	fi
     fi
+
+    # DEBUG: cp_bin /bin/ls $tmp_mnt/bin
 
     echo -ne "Shared libs:\t"
     # Only check those binaries against dynamic libraries that were
