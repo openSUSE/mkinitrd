@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.161 $
+# $Revision: 1.162 $
 
 #
 # Print usage and exit
@@ -68,7 +68,7 @@ usage() {
 EOM
     exit
 }
-EOM
+
 # Readlink is not present on some older distributions: emulate it.
 readlink() {
     local path=$1 ll
