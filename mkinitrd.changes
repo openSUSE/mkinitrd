@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 10 18:31:40 CET 2005 - ro@suse.de
+
+- typo fix "rootfstype" -> "$rootfstype" 
+
+-------------------------------------------------------------------
 Thu Mar 10 14:25:15 CET 2005 - hare@suse.de
 
 - Fixed dynamic /dev generation.

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.185 $
+# $Revision: 1.186 $
 
 #
 # Print usage and exit
@@ -2360,7 +2360,7 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|# check filesystem if possible
-	|if [ -n "rootfstype" -a -x /bin/fsck.${rootfstype} ]; then
+	|if [ -n "$rootfstype" -a -x /bin/fsck.${rootfstype} ]; then
 	|    # fsck is unhappy without it
 	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
 	|    fsck -t $rootfstype -a $rootdev
@@ -2488,7 +2488,7 @@ mkinitrd_kernel() {
 	|ROOTFS_BLKDEV="$rootdev"
 	|export ROOTFS_BLKDEV
 	|
-	|ROOTFS_REALDEV="/lib/klibc/dev/$rootdev"
+	|ROOTFS_REALDEV="/lib/klibc/$rootdev"
 	|export ROOTFS_REALDEV
 	|
 	|# The point of no return!
