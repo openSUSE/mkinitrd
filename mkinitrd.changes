@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 18 03:41:19 CEST 2004 - agruen@suse.de
+
+- #42171: Always create an initrd. Not having one may create all
+  sorts of problems: Bad boot configurations, udev device
+  discovery will be missing, and maybe more.
+
+-------------------------------------------------------------------
 Fri Jun 18 02:55:26 CEST 2004 - agruen@suse.de
 
 - With multiple root= kernel command line options, the last one is

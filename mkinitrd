@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.117 $
+# $Revision: 1.118 $
 
 #
 # Print usage and exit
@@ -2184,18 +2184,6 @@ if [ "$arch" = s390 ]; then
 	s390_dasd_proc
 	s390_zfcp_proc
     fi
-fi
-
-# check if an initrd is needed at all.
-#
-# on s390 the initrd is always needed as long as we don't set the
-# initrd flag in /etc/zipl.conf with YaST.
-if [ -z "$modules" -a -z "$root_lvm" -a -z "$root_dm" -a -z "$root_evms" -a \
-     -z "$use_pivot_root" -a \
-     -z "$splashsizes" -a "$arch" != s390 -a -z "$use_selinux" ]; then
-    ( cd $boot_dir
-      rm -f $initrd_images )
-    error 0 "No initrd required"
 fi
 
 ###################################################################
