@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.35 2004/05/26 13:54:02 agruen Exp $
+# $Id: mkinitramfs,v 1.36 2004/05/29 21:26:18 olh Exp $
 
 #
 # Print usage and exit
@@ -87,22 +87,22 @@ default_kernel_images () {
 
 	kernel_images=""
 	initrd_images=""
-	for kernel_image in $(ls /boot \
+	for kernel_image in $(ls $boot_dir \
 		| sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
 
 		# Note that we cannot check the RPM database here -- this
 		# script is itself called from within the binary kernel
 		# packages, and rpm does not allow recursive calls.
 
-		[ -L "/boot/$kernel_image" ] && continue
+		[ -L "$boot_dir/$kernel_image" ] && continue
 		kernel_version=$(/sbin/get_kernel_version \
-				 /boot/$kernel_image 2> /dev/null)
+				 $boot_dir/$kernel_image 2> /dev/null)
 		initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
 		if [ "$kernel_image" != "$initrd_image" -a \
 		     -n "$kernel_version" -a \
 		     -d "/lib/modules/$kernel_version" ]; then
-			kernel_images="$kernel_images /boot/$kernel_image"
-			initrd_images="$initrd_images /boot/$initrd_image"
+			kernel_images="$kernel_images $boot_dir/$kernel_image"
+			initrd_images="$initrd_images $boot_dir/$initrd_image"
 		fi
 	done
 }

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat May 29 23:25:31 CEST 2004 - olh@suse.de
+
+- mkinitramfs: use -b dir in default_kernel_images()
+
+-------------------------------------------------------------------
 Sat May 29 23:19:29 CEST 2004 - olh@suse.de
 
 - mkinitramfs-kinit.sh:
