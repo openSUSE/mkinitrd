@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.59 $
+# $Revision: 1.60 $
 
 #
 # Print usage and exit
@@ -1006,7 +1006,7 @@ mkinitrd_kernel () {
 		;;
 	    */scsi_mod*)
 		# We may have SCSI parameters on the kernel command line,
-7		# but because scsi_mod is a module, those would be ignored.
+		# but because scsi_mod is a module, those would be ignored.
 		# Hack around this by scanning /proc/cmdline in linuxrc.
 		params="\$extra_scsi_params${params:+ $params}"
 
