@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.158 $
+# $Revision: 1.159 $
 
 #
 # Print usage and exit
@@ -2137,6 +2137,12 @@ mkinitrd_kernel() {
 	|mount $opt $rootdev /root || die 1
 	|
 	|# Look for an init binary on the root filesystem
+	|if [ -n "$init" ] ; then
+	|    if [ ! -f "/root$init" ]; then
+	|        init=
+	|    fi
+	|fi
+	|
 	|if [ -z "$init" ] ; then
 	|    for i in /sbin/init /etc/init /bin/init /bin/sh ; do
 	|        if [ ! -f "/root$i" ] ; then continue ; fi
