@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.31 2004/05/22 21:03:59 olh Exp $
+# $Id: mkinitramfs,v 1.32 2004/05/22 21:29:44 olh Exp $
 
 #
 # Print usage and exit
@@ -610,7 +610,7 @@ mkinitrd_kernel () {
     fi
 
     if [ ! -z "$vendor_init_script" ] ; then
-	echo "Using $vendor_script as custom script"
+	echo "Using $vendor_init_script as custom script"
 	cp_bin $vendor_init_script $vendor_script
     fi
 
