@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.5 2005/01/31 11:47:15 hare Exp $
+.\"$Id: mkinitrd.8,v 1.6 2005/02/07 08:23:38 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -39,6 +39,9 @@ Add splash animation and bootscreen to initrd.
 .TP
 \fB-D interface\fR
 Run dhcp on the specified interface.
+.TP
+\fB-I interface\fR
+Configure the specified interface statically.
 .TP
 \fB-a acpi_dsdt\fR
 Attach compiled ACPI DSDT (Differentiated System Description Table)
