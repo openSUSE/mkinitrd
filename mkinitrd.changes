@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 19 01:14:29 CEST 2004 - garloff@suse.de
+
+- Remove iSCSI TODO comments.
+- BLIST_NOREPORTLUN has changed its value in the kernel.
+
+-------------------------------------------------------------------
 Thu May 13 14:55:44 CEST 2004 - hare@suse.de
 
 - new-kernel-pkg: Only call zipl on S/390 if corresponding
