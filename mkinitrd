@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.159 $
+# $Revision: 1.160 $
 
 #
 # Print usage and exit
@@ -55,6 +55,7 @@ usage() {
 	  -s size          Add splash animation and bootscreen to initrd.
 	  -t tmp_dir       Temporary directory. Defaults to /var/tmp.
 	  -D interface     Run dhcp on the specified interface.
+	  -I interface     Configure the specified interface statically.
 	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
 	  		   Description Table) to initrd. This replaces the
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
@@ -67,7 +68,7 @@ usage() {
 EOM
     exit
 }
-
+EOM
 # Readlink is not present on some older distributions: emulate it.
 readlink() {
     local path=$1 ll
@@ -155,7 +156,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hgrk:i:m:b:d:o:s:Sut:D:V:a: a ; do
+while getopts :hgrk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -173,6 +174,8 @@ while getopts :hgrk:i:m:b:d:o:s:Sut:D:V:a: a ; do
 		t)  echo "-t requires tmp dir parameter"
 		    ;;
 		D)  echo "-D requires dhcp interface parameter"
+		    ;;
+		I)  echo "-I requires network interface parameter"
 		    ;;
 		a)  echo "-a requires a DSDT parameter"
 		    ;;
@@ -205,6 +208,11 @@ while getopts :hgrk:i:m:b:d:o:s:Sut:D:V:a: a ; do
 	    interface=${interface#/dev/}
 	    use_dhcp=1
 	    use_pivot_root=1
+	    ;;
+ 	I)  interface=$OPTARG
+ 	    interface=${interface#/dev/}
+ 	    use_ipconfig=1
+  	    use_pivot_root=1
 	    ;;
 	a)  acpi_dsdt="$OPTARG"
 	    ;;
@@ -664,6 +672,46 @@ devnumber() {
     set -- $(ls -lL $1)
     mkdevn ${5%,} $6
 }
+
+# Get the interface information for ipconfig
+get_ip_config() {
+    local iface
+    local iplink
+    local iproute
+
+    iface=$1
+    iplink=$(ifconfig $iface | grep "inet ")
+
+    set -- $iplink
+    if [ "$1" == "inet" ]; then
+	shift
+
+	while [ "$1" ]; do
+	    case "$1" in
+		addr:*)
+		    ipaddr=${1#addr:}
+		    ;;
+		Bcast:*)
+		    bcast=${1#Bcast:}
+		    ;;
+		P-t-P:*)
+		    srvaddr=${1#P-t-P:}
+		    ;;
+		Mask:*)
+		    netmask=${1#Mask:}
+		    ;;
+	    esac
+	    shift
+	done
+    fi
+    iproute=$(route -n | grep $iface | grep UG)
+    if [ $? -eq 0 ]; then
+	set -- $iproute
+	gwaddr=$2
+    fi
+    hostname=$(hostname)
+    echo "$ipaddr:$srvaddr:$gwaddr:$netmask:$hostname:$iface:none"
+}  
 
 ###################################################################
 #
@@ -1125,6 +1173,18 @@ mkinitrd_kernel() {
 	fi
     done
 
+    if [ -n "$use_pivot_root" ] ; then
+	features=(${features[@]} pivot-root)
+	cp_bin /sbin/pivot_root $tmp_mnt/bin
+	cp_bin /bin/cat $tmp_mnt/bin
+	echo "#! $shebang" > $tmp_mnt/bin/init
+	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
+	chmod 755 $tmp_mnt/bin/init
+	mkdir -p $tmp_mnt/mnt
+	use_udev=
+	need_mount=1
+    fi
+
     if [ -n "$use_udev" ] ; then
 	features=(${features[@]} udev)
 	if [ -z "$use_glibc" ] ; then
@@ -1203,15 +1263,6 @@ mkinitrd_kernel() {
 	need_raidautorun=1
     fi
 
-    if [ -n "$use_pivot_root" ] ; then
-	features=(${features[@]} pivot-root)
-	cp_bin /sbin/pivot_root $tmp_mnt/bin
-	echo "#! $shebang" > $tmp_mnt/bin/init
-	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
-	chmod 755 $tmp_mnt/bin/init
-	mkdir -p $tmp_mnt/mnt
-    fi
-
     if [ -n "$use_dhcp" ] ; then
 	features=(${features[@]} dhcp\($interface\))
 	cp_bin /sbin/dhcpcd $tmp_mnt/bin
@@ -1221,6 +1272,12 @@ mkinitrd_kernel() {
 	need_mount=1
     fi
 
+    if [ -n "$use_ipconfig" ] ; then
+	features=(${features[@]} static\($interface\))
+	cp_bin $root_dir/lib/klibc/bin/ipconfig $tmp_mnt/bin
+	need_mount=1
+    fi
+  
     if has_module jfs ; then
 	features=(${features[@]} fsck.jfs)
 	cp_bin /sbin/fsck $tmp_mnt/bin
@@ -1677,6 +1734,26 @@ mkinitrd_kernel() {
 	|    fi
 	|    echo 'hosts: dns' > /etc/nsswitch.conf
 	|  fi
+	|fi
+	EOF
+    fi
+
+    if [ -n "$use_ipconfig" ]; then
+	ipinterface=$(get_ip_config $interface)
+	cat_linuxrc <<-EOF
+	|# configure interface
+	|for o in \$(cat /proc/cmdline); do
+	|  case \$o in
+	|    ip=*)
+	|      ifspec=\${o#ip=};;
+	|  esac
+	|done
+	|if [ -z "\$ifspec" ]; then
+	|    # Fallback to configured interface
+	|    ifspec=$ipinterface
+	|fi
+	|if [ -n "\$ifspec" ]; then
+	|  ipconfig \$ifspec
 	|fi
 	EOF
     fi
