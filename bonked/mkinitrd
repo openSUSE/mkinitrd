@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.77 $
+# $Revision: 1.78 $
 
 #
 # Print usage and exit
@@ -686,7 +686,7 @@ mkinitrd_kernel () {
 
     kernel_version=$(/sbin/get_kernel_version $root_dir$kernel_image)
 
-    echo -e "Kernel version:\t$kernel_version ($HOSTTYPE)"
+    echo -e "Kernel version:\t$kernel_version"
     echo -e "Kernel image:\t$root_dir$kernel_image"
     echo -e "Initrd image:\t$root_dir$initrd_image"
 
@@ -777,7 +777,7 @@ mkinitrd_kernel () {
 	need_mount=1
     fi
 
-    if [ -n "s390_zfcp_disks" ]; then
+    if [ -n "$s390_zfcp_disks" ]; then
 	cp_bin $root_dir/sbin/zfcp_host_configure $tmp_mnt/sbin
 	cp_bin $root_dir/sbin/zfcp_disk_configure $tmp_mnt/sbin
     fi
