@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.126 $
+# $Revision: 1.127 $
 
 #
 # Print usage and exit
@@ -134,6 +134,7 @@ use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
 use_selinux=
+mkinit_type="rd"
 
 # architecture dependend changes:
 arch=$(uname -m)
@@ -146,7 +147,7 @@ s390)
     ;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
+while getopts :hrk:i:m:b:d:o:s:St:D:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -196,11 +197,15 @@ while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
 	    ;;
 	S)  use_selinux=1
 	    ;;
+	r)  mkinit_type="ramfs"
+	    ;;
 	h)  usage
 	    ;;
     esac
 done
 shift $(expr $OPTIND - 1)
+
+mkinit_name="mkinit$mkinit_type"
 
 if [ -n "$1" ]; then
     root_dir=${1%/}  # strip trailing slash
@@ -331,7 +336,7 @@ esac
 
 PATH=/sbin:/usr/sbin:$PATH
 
-work_dir=$(mktemp -qd $tmp_dir/mkinitrd.XXXXXX)
+work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
 if [ $? -ne 0 ]; then
 	echo "$0: Can't create temp dir, exiting." >&2
 	exit 1
@@ -345,20 +350,22 @@ umount_proc() {
 }
 
 cleanup() {
-    [ "$is_mounted" ] && umount $tmp_mnt
-    is_mounted=
-    [ "$is_mounted_small" ] && umount $tmp_mnt_small
-    is_mounted_small=
-    rm -f $tmp_initrd $tmp_initrd.gz $tmp_msg tmp_initrd_small \
-	  $tmp_initrd_small.gz
-    [ -d "$tmp_mnt" ] && rmdir $tmp_mnt
-    [ -d "$tmp_mnt_small" ] && rmdir $tmp_mnt_small
+    if [ "$mkinit_type" = "rd" ]; then
+	[ "$is_mounted" ] && umount $tmp_mnt
+	is_mounted=
+	[ "$is_mounted_small" ] && umount $tmp_mnt_small
+	is_mounted_small=
+	rm -f $tmp_msg tmp_initrd_small $tmp_initrd_small.gz
+	[ -d "$tmp_mnt" ] && rmdir $tmp_mnt
+	[ -d "$tmp_mnt_small" ] && rmdir $tmp_mnt_small
+    fi
+    rm -f $tmp_initrd $tmp_initrd.gz
     initrd_bins=()
 }
 
 cleanup_finish() {
     umount_proc
-    [ -d "$work_dir" ] && rmdir $work_dir
+    [ -d "$work_dir" ] && rm -rf $work_dir
 }
 
 handle_terminate() {
@@ -613,10 +620,17 @@ attach_dsdt() {
     	oops 2 "ACPI DSDT $acpi_dsdt does not seem to be in binary form." \
 	       "Will not attach this to $initrd_image."
     else
-	{   echo -ne "INITRDDSDT123DSDT123\0"
-	    cat "$acpi_dsdt"
-	    echo -ne "INITRDDSDT321DSDT321\0"
-	} >> $initrd_image
+	if [ "$mkinit_type" = "rd" ] ; then
+	    {   echo -ne "INITRDDSDT123DSDT123\0"
+		cat "$acpi_dsdt"
+		echo -ne "INITRDDSDT321DSDT321\0"
+	    } >> $initrd_image
+	else
+	    {   echo -ne "INITRDDSDT123DSDT123\0"
+		cat "$acpi_dsdt"
+		echo -ne "INITRDDSDT321DSDT321\0"
+	    } > $tmp_mnt/acpidsdt
+	fi
 	echo -e "ACPI DSDT:\t$acpi_dsdt"
     fi
 }
@@ -899,8 +913,10 @@ s390_zfcp_sysfs() {
 		fi
 	    fi
 	done
-	add_module sd_mod
-	add_module zfcp
+	if [ "$fcp_disk_hba" ]; then
+	    add_module sd_mod
+	    add_module zfcp
+	fi
     fi
 
 }
@@ -1000,7 +1016,11 @@ mkinitrd_kernel() {
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
     tmp_msg=$work_dir/msg$$
-    linuxrc=$tmp_mnt/linuxrc
+    if [ "$mkinit_type" = "rd" ]; then
+	linuxrc=$tmp_mnt/linuxrc
+    else
+	linuxrc=$tmp_mnt/init
+    fi
 
     if ! [ -f "$root_dir$kernel_image" ] ; then
 	echo "No kernel image $root_dir$kernel_image found" >&2
@@ -1021,36 +1041,45 @@ mkinitrd_kernel() {
 
     # create an empty initrd
     mkdir $tmp_mnt || error 1 "could not create temporary directory"
-    dd if=/dev/zero of=$tmp_initrd bs=1k count=$image_blocks 2>/dev/null
-    mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd 2>/dev/null 1>&2
-    tune2fs -i 0 $tmp_initrd >/dev/null 2>&1
+    if [ "$mkinit_type" = "rd" ]; then
+	dd if=/dev/zero of=$tmp_initrd bs=1k count=$image_blocks 2>/dev/null
+	mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd 2>/dev/null 1>&2
+	tune2fs -i 0 $tmp_initrd >/dev/null 2>&1
 
-    # check for loop device
-    grep -q loop /proc/devices
-    if [ $? != 0 ] ; then
-	if [ -f /lib/loop.o ] ; then
-	    insmod /lib/loop.o
-	else
-	    modprobe loop
+        # check for loop device
+	grep -q loop /proc/devices
+	if [ $? != 0 ] ; then
+	    if [ -f /lib/loop.o ] ; then
+		insmod /lib/loop.o
+	    else
+		modprobe loop
+	    fi
 	fi
+        # mount it
+	if ! mount -t ext2 -oloop $tmp_initrd $tmp_mnt ; then
+	    error 3 "failed to mount image"
+	fi
+	is_mounted=1
+	rmdir $tmp_mnt/lost+found
     fi
-    # mount it
-    if ! mount -t ext2 -oloop $tmp_initrd $tmp_mnt ; then
-	error 3 "failed to mount image"
-    fi
-    is_mounted=1
     # fill the initrd
-    rmdir $tmp_mnt/lost+found
-    mkdir -p $tmp_mnt/{sbin,bin,dev}
-    initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
-			  dev/{console,md0})
-    case $arch in
-	s390*)
-	    ;;
-	*)  initrd_devices="$initrd_devices $(echo dev/{fb0,tty1,tty2})"
-	    ;;
-    esac
-    (cd ${root_dir:-/} ; cp -R --parents $initrd_devices $tmp_mnt )
+    mkdir -p $tmp_mnt/{sbin,bin,etc,dev}
+
+    if [ "$mkinit_type" = "rd" ]; then
+	initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
+	    dev/{console,md0})
+	case $arch in
+	    s390*)
+		;;
+	    *)  initrd_devices="$initrd_devices $(echo dev/{fb0,tty1,tty2})"
+		;;
+	esac
+	(cd ${root_dir:-/} ; cp -R --parents $initrd_devices $tmp_mnt )
+    else
+	mkdir -p $tmp_mnt/{proc,sys,tmp,root}
+	touch $tmp_mnt/etc/mtab
+    fi
+
     mkdir -p $tmp_mnt${initrd_shell%/*}
     cp_bin $initrd_shell $tmp_mnt$initrd_shell
     if [ $shebang != $initrd_shell ]; then
@@ -1085,7 +1114,6 @@ mkinitrd_kernel() {
 
     case "$kernel_version" in
     2.6*)
-	sysfs_root=1
 	use_udev=1
 	;;
     esac
@@ -1103,7 +1131,9 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$sysfs_root" ]; then
-	mkdir -p $tmp_mnt/sys
+	if [ ! -d $tmp_mnt/sys ]; then
+	    mkdir -p $tmp_mnt/sys
+	fi
 	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	need_mount=1
@@ -1111,6 +1141,9 @@ mkinitrd_kernel() {
 
     if [ -n "$s390_dasd_disks" ]; then
 	cp_bin $root_dir/sbin/dasd_configure $tmp_mnt/sbin
+	if [ -n "$use_udev" ]; then
+	    cp_bin $root_dir/sbin/dasdview $tmp_mnt/sbin
+	fi
     fi
 
     if [ -n "$s390_zfcp_disks" ]; then
@@ -1120,24 +1153,35 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_udev" ] ; then
-	mkdir -p $tmp_mnt/dev/shm
+	features=(${features[@]} udev)
+	if [ "$mkinit_type" = "rd" ] ; then
+	    mkdir -p $tmp_mnt/dev/shm
+	fi
 	mkdir -p $tmp_mnt/lib/klibc/bin
-	for klibc_bin in devnumber sed sleep ata_identify scsi_id dasdview \
+	for klibc_bin in devnumber sed sleep ata_identify scsi_id cat \
 			 umount; do
 	    if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
 		cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
 		    $tmp_mnt/lib/klibc/bin
-		ln -s /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+		if [ -e $tmp_mnt/bin/$klibc_bin ]; then
+		    rm -f $tmp_mnt/bin/$klibc_bin
+		fi
+		ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
 	    fi
 	done
-	for bin in mknod rm; do
+
+	cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
+
+	for bin in chmod mkdir mknod mount rm; do
 	    cp_bin $root_dir/bin/$bin $tmp_mnt/bin
 	done
 
-	cp_bin $root_dir/sbin/udev $tmp_mnt/sbin/udev
+	# This has to go ...
+	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
+
+	cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
 	cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
 	cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
-	cp_bin $root_dir/sbin/scsi_id $tmp_mnt/sbin
 	cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
 	mkdir -p $tmp_mnt/etc/udev
 	cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
@@ -1239,7 +1283,10 @@ mkinitrd_kernel() {
 	fi
     fi
 
-    # DEBUG: cp_bin /bin/ls $tmp_mnt/bin
+    if [ -n "$debug_mkinit" ]; then
+	features=(${features[@]} debug)
+	cp_bin /bin/ls $tmp_mnt/bin
+    fi
 
     echo -ne "Shared libs:\t"
     # Only check those binaries against dynamic libraries that were
@@ -1313,15 +1360,47 @@ mkinitrd_kernel() {
     chmod 755 $linuxrc
 
     # Note that the in-place documents must be indented with tabs, not spaces.
-
-    cat_linuxrc <<-EOF
+    if [ "$mkinit_type" = "rd" ]; then
+	cat_linuxrc <<-EOF
 	|#! $shebang
 	|
 	|export PATH=/sbin:/bin:/usr/bin
 	|
+	|die() {
+	|    umount -n /proc
+	|    umount -n /sys
+	|    umount /dev/shm
+	|    exit \$1
+	|}
+	|
 	|mount -n -tproc proc /proc
 	|mount -n -tsysfs sysfs /sys > /dev/null 2>&1
 	|mount -n -ttmpfs tmpfs /dev/shm
+	EOF
+    else
+	cat_linuxrc <<-EOF
+	|#! $shebang
+	|set -x
+	|export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/lib/klibc/bin
+	|
+	|die() {
+	|    umount /proc
+	|    umount /sys
+	|    umount /dev
+	|    exit \$1
+	|}
+	|
+	|exec < /dev/console > /dev/console 2>&1
+	|
+	|mount -n -t tmpfs -o 'size=3%' initramdevs /dev
+	|mkdir -p /dev/shm
+	|mkdir -p /dev/pts
+	|
+	|[ ! -f /proc/cpuinfo ] && mount -tproc proc /proc
+	|[ ! -d /sys/class ] && mount -tsysfs sysfs /sys
+	EOF
+    fi
+    cat_linuxrc <<-EOF
 	|
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
@@ -1330,13 +1409,6 @@ mkinitrd_kernel() {
 	|        ;;
 	|    esac
 	|done
-	|
-	|die() {
-	|    umount -n /proc
-	|    umount -n /sys
-	|    umount /dev/shm
-	|    exit \$1
-	|}
 	|
 	|# Fallback root device number
 	|rootdevn=$rootdevn
@@ -1823,9 +1895,7 @@ mkinitrd_kernel() {
 	|	fi
 	|}
 	|
-	|if udev_discover_root ; then
-	|    die 0
-	|else
+	|if ! udev_discover_root ; then
 	|    echo "not found -- device nodes:"
 	|    cd /dev
 	|    for dev in *; do
@@ -1835,7 +1905,7 @@ mkinitrd_kernel() {
 	|    done
 	|    echo "No root device found; exiting to /bin/sh"
 	|    cd /
-	|    /bin/sh
+	|    PATH=$PATH /bin/sh
 	|fi
 	EOF
     fi
@@ -2044,6 +2114,69 @@ mkinitrd_kernel() {
 	EOF
     fi
 
+    if [ "$mkinit_type" = "ramfs" ]; then
+	cat_linuxrc <<-'EOF'
+	|read_write=
+	|for o in $(cat /proc/cmdline); do
+	|   [ $o = rw ] && read_write=1
+	|done
+	|
+	|opt=-oro
+	|[ -n "$read_write" ] && opt=-orw
+	|[ -n "$dhcp_mode" ] && opt="${opt},nolock"
+	|
+	|# tell kernel root is /dev/ram0, prevents remount after initrd
+	|echo 256 > /proc/sys/kernel/real-root-dev
+	|# mount the actual root device below /root
+	|echo "Mounting root $rootdev"
+	|mount -n $opt $rootdev /root || die 1
+	|
+	|# Look for an init binary on the root filesystem
+	|if [ -z "$init" ] ; then
+	|    for i in /sbin/init /etc/init /bin/init /bin/sh ; do
+	|        if [ ! -f "/root$i" ] ; then continue ; fi
+	|        init="$i"
+	|        break
+	|    done
+	|fi
+	|
+	|if [ -z "$init" ] ; then
+	|    echo "No init found. Try passing init= optino to the kernel."
+	|    die 1
+	|fi
+	|
+	|mount -o bind /dev /root/dev
+	|chmod 755 /root/dev
+	|
+	|mknod /dev/fb0 c 29 0
+	|mknod /dev/fd1 c 29 1
+	|mknod /dev/ppp c 108 0
+	|
+	|# ready to leave
+	|cd /root
+	|umount /proc
+	|umount /sys
+	|
+	|INIT="$init"
+	|export INIT
+	|
+	|# The point of no return!
+	|for i in /*
+	|do
+	|    case "$i" in
+	|        /root|/dev|/run_init|/bin|/lib*)
+	|            continue;;
+	|	 *)
+	|            rm -rf $i
+	|	 ;;
+	|    esac
+	|done
+	|rm -rf /bin /lib*
+	|exec /run_init "$@" < "./dev/console" > "./dev/console" 2>&1
+	|echo huhu ...
+	EOF
+    fi
+
     if [ -n "$use_pivot_root" ] ; then
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
@@ -2089,38 +2222,39 @@ mkinitrd_kernel() {
 	|die 0
 	EOF
 
-    # Now create a second initrd with minimal size
+    if [ "$mkinit_type" = "rd" ]; then
+        # Create a second initrd with minimal size
 
-    #echo "Creating minimum size initrd image"
-    img_size=$(expr $(df -kP $tmp_mnt | sed '1d' | awk '{print $3}') + 2000)
-    mkdir $tmp_mnt_small
+	img_size=$(expr $(df -kP $tmp_mnt | sed '1d' | awk '{print $3}') + 2000)
+	mkdir $tmp_mnt_small
 
-    dd if=/dev/zero of=$tmp_initrd_small bs=1k count=$img_size 2>/dev/null
-    mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd_small \
-	2>/dev/null 1>&2
-    tune2fs -i 0 $tmp_initrd_small >/dev/null 2>&1
+	dd if=/dev/zero of=$tmp_initrd_small bs=1k count=$img_size 2>/dev/null
+	mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd_small \
+	    2>/dev/null 1>&2
+	tune2fs -i 0 $tmp_initrd_small >/dev/null 2>&1
 
-    if ! mount -t ext2 -oloop $tmp_initrd_small $tmp_mnt_small ; then
-	error 3 "failed to mount image"
-    fi
-    is_mounted_small=1
+	if ! mount -t ext2 -oloop $tmp_initrd_small $tmp_mnt_small ; then
+	    error 3 "failed to mount image"
+	fi
+	is_mounted_small=1
+	
+	rmdir $tmp_mnt_small/lost+found
+	cp -a $tmp_mnt/* $tmp_mnt_small \
+	    || error 6 "copy big image to small image failed"
+	chown -R 0:0 $tmp_mnt
 
-    rmdir $tmp_mnt_small/lost+found
-    cp -a $tmp_mnt/* $tmp_mnt_small \
-	|| error 6 "copy big image to small image failed"
-    chown -R 0:0 $tmp_mnt
+	umount $tmp_mnt_small
+	is_mounted_small=
 
-    umount $tmp_mnt_small
-    is_mounted_small=
+	umount $tmp_mnt
+	is_mounted=
 
-    umount $tmp_mnt
-    is_mounted=
+	gzip -9 $tmp_initrd_small
 
-    gzip -9 $tmp_initrd_small
-
-    if ! cp -f $tmp_initrd_small.gz $initrd_image ; then
-	oops 8 "Failed to install initrd"
-	return
+	if ! cp -f $tmp_initrd_small.gz $initrd_image ; then
+	    oops 8 "Failed to install initrd"
+	    return
+	fi
     fi
 
     [ ${#features[@]} -gt 0 ] \
@@ -2153,13 +2287,30 @@ mkinitrd_kernel() {
 		    echo "no image for resolution $size"
 		else
 		    echo "$THEME ($size)"
-		    $splash_bin -s -f $cfgname >> $initrd_image
+		    if [ "$mkinit_type" = "rd" ]; then
+			$splash_bin -s -f $cfgname >> $initrd_image
+		    else
+			$splash_bin -s -f $cfgname > $tmp_mnt/bootsplash
+		    fi
 		fi
 	    done
 	else
 	    echo "no theme selected"
 	fi
     fi
+    if [ "$mkinit_type" = "ramfs" ] ; then
+	pushd . > /dev/null 2>&1
+	cd $tmp_mnt
+	find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
+	popd > /dev/null 2>&1
+	if ! cp -f $tmp_initrd.gz $initrd_image ; then
+	    oops 8 "Failed to install initrd"
+	    rm -rf $tmp_mnt
+	    return
+	fi
+	rm -rf $tmp_mnt
+    fi
+
 }
 
 ###################################################################
