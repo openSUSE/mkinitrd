@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.68 $
+# $Revision: 1.69 $
 
 #
 # Print usage and exit
@@ -1101,7 +1101,7 @@ mkinitrd_kernel () {
 	|		    path=$(udevinfo -q path -n ${node})
 	|		    if test $? -eq 0; then
 	|		        echo " ok"
-	|			break;
+	|			break
 	|		    else
 	|		        path=
 	|		    fi
@@ -1119,7 +1119,7 @@ mkinitrd_kernel () {
 	|		    echo $dev_t > /proc/sys/kernel/real-root-dev
 	|		    return 0
 	|		fi
-	|	    elif [ -n "$root_dev_t" ]
+	|	    elif [ -n "$root_dev_t" ]; then
 	|		echo " not found, using fallback"
 	|		echo $root_dev_t > /proc/sys/kernel/real-root-dev
 	|	    else
