@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.11 $
+# $Revision: 1.12 $
 
 #
 # Print usage and exit
@@ -875,8 +875,11 @@ mkinitrd_kernel () {
 	|# scan for lvm devices
 	|mount -n -tproc none /proc
 	|createpartitiondevs
+	|#need space for lvm data
+	|mount -n -tshm none /etc
 	|vgscan
 	|vgchange -a y
+	|umount -n /etc
 	|# set the right root device if user specified a lvm root
 	|root=
 	|for o in \`cat /proc/cmdline\` ; do
