@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 24 09:06:10 CEST 2004 - hare@suse.de
+
+- add support for LVM2 as root filesystem for S/390.
+
+-------------------------------------------------------------------
 Sun May 23 02:27:09 CEST 2004 - olh@suse.de
 
 - mkinitramfs: fix parsing of nfsroot=

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.97 $
+# $Revision: 1.98 $
 
 #
 # Print usage and exit
@@ -758,18 +758,39 @@ you can save the current configuration with this command:
 s390_zfcp_sysfs() {
     local path
     local devn=$(devnumber $rootdev)
+    local enable_zfcp
 
-    for dir in /sys/block/*/*; do
-	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
-	    IFS=":" read major minor < $dir/dev
-	    if (($devn == $(mkdevn $major $minor) )); then
-		path=$dir
-		break;
-	    fi
+    if [ "$root_dm" ]; then
+	# Check whether the LVM is on zfcp
+	vgname=`lvdisplay -c $rootdev | cut -d : -f 2`
+
+	if [ "$vgname" ]; then
+	    for devname in `pvdisplay -c | grep $vgname | cut -d : -f 1`; do
+		case "$devname" in
+		    */sd*)
+			enable_zfcp=1
+			;;
+		    *)
+			;;
+		esac
+	    done
 	fi
-    done
+    else
+	for dir in /sys/block/*/*; do
+	    if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
+		IFS=":" read major minor < $dir/dev
+		if (($devn == $(mkdevn $major $minor) )); then
+		    path=$dir
+		    break;
+		fi
+	    fi
+	done
 
-    if [ "$path" ] && [ -d "$path/../device" ] && [ -e "$path/../device/scsi_level" ] ; then
+	if [ "$path" ] && [ -d "$path/../device" ] && [ -e "$path/../device/scsi_level" ] ; then
+	    enable_zfcp=1
+	fi
+    fi
+    if [ "$enable_zfcp" ] ; then
 	# Root is on SCSI, detect all SCSI devices
 	for dev_dir in /sys/class/scsi_device/*; do
 	    if [ -d "$dev_dir" ] && [ -e "$dev_dir/device" ]; then
@@ -797,53 +818,70 @@ s390_zfcp_sysfs() {
 
 s390_dasd_sysfs() {
     local devn=$(devnumber $rootdev)
+    local enable_dasd
 
-    for dir in /sys/block/*/*; do
-	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
-	    IFS=":" read major minor < $dir/dev
-	    if (($devn == $(mkdevn $major $minor) )); then
-		path=$dir
-		break;
-	    fi
-	fi
-    done
+    if [ "$root_dm" ]; then
+	# Check whether the LVM is on DASDs
+	vgname=`lvdisplay -c $rootdev | cut -d : -f 2`
 
-    if [ "$path" ] && [ -d ${path}/../device ]; then
-	if [ -r ${path}/../device/discipline ]; then
-	    # Root device is a dasd device, enable all dasd disks
-	    for dir in /sys/block/*; do
-		if [ -d "$dir" ] && [ -d ${dir}/device ]; then
-		    cd $dir
-		    cd $(readlink device)
-		    if [ -r ./discipline ]; then
-			read type < ./discipline
-		
-			case $type in
-			    ECKD)
-				add_module dasd_eckd_mod
-				use_diag=0
-				;;
-			    FBA)
-				add_module dasd_fba_mod
-				use_diag=0
-				;;
-			    DIAG)
-				add_module dasd_diag_mod
-				use_diag=1
-				;;
-			    *)
-				;;
-			esac
-			s390_dasd_disks="$s390_dasd_disks $(basename $PWD):$use_diag"
-		    fi
-		fi
+	if [ "$vgname" ]; then
+	    for devname in `pvdisplay -c | grep $vgname | cut -d : -f 1`; do
+		case "$devname" in
+		    */dasd*)
+			enable_dasd=1
+			;;
+		    *)
+			;;
+		esac
 	    done
-
 	fi
     else
-	error 1 "\
-Could not detect sysfs path for root device $rootdev.
-(Broken driver ?)"
+	for dir in /sys/block/*/*; do
+	    if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
+		IFS=":" read major minor < $dir/dev
+		if (($devn == $(mkdevn $major $minor) )); then
+		    path=$dir
+		    break;
+		fi
+	    fi
+	done
+	if [ "$path" ] && [ -d ${path}/../device ]; then
+	    if [ -r ${path}/../device/discipline ]; then
+		enable_dasd=1
+	    fi
+	fi
+    fi
+
+    if [ "$enable_dasd" ]; then
+	    # Root device is a dasd device, enable all dasd disks
+	for dir in /sys/block/*; do
+	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
+		cd $dir
+		cd $(readlink device)
+		if [ -r ./discipline ]; then
+		    read type < ./discipline
+		    
+		    case $type in
+			ECKD)
+			    add_module dasd_eckd_mod
+			    use_diag=0
+			    ;;
+			FBA)
+			    add_module dasd_fba_mod
+			    use_diag=0
+			    ;;
+			DIAG)
+			    add_module dasd_diag_mod
+			    use_diag=1
+			    ;;
+			*)
+			    ;;
+		    esac
+		    s390_dasd_disks="$s390_dasd_disks $(basename $PWD):$use_diag"
+		fi
+	    fi
+	done
+
     fi
 }
 
@@ -1039,13 +1077,15 @@ mkinitrd_kernel() {
     if [ -n "$root_dm" ] ; then
 	features=(${features[@]} dm/lvm2)
 	mkdir -p $tmp_mnt/etc/lvm
+	mkdir -p $tmp_mnt/var/lock/lvm
 	if [ -z "$use_udev" ]; then
 	    mkdir $tmp_mnt/dev/mapper
 	    cp -a $root_dir/dev/mapper/control $tmp_mnt/dev/mapper
 	    cp -a $root_dir/device-mapper $tmp_mnt/dev
 	fi
-	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm,devmap_mknod.sh} $tmp_mnt/sbin
-	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod} $tmp_mnt/bin
+	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
+	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod,ls} $tmp_mnt/bin
+	cp -a $root_dir/etc/lvm/lvm.conf $tmp_mnt/etc/lvm
 	need_mount=1
 	need_block_driver=1
     fi
@@ -1507,10 +1547,7 @@ mkinitrd_kernel() {
         vg_root=${vg_root%%/*}
 
 	cat_linuxrc <<-EOF
-	|#need space for lvm data
-	|mount -n -tramfs none /etc/lvm
-	|/sbin/devmap_mknod.sh
-	|vgscan --mknodes
+	|vgscan
 	|for o in \`cat /proc/cmdline\` ; do
 	|  case \$o in
 	|    root=/dev/*)
@@ -1524,7 +1561,6 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|vgchange -a y \$vg_root
-	|umount -n /etc/lvm
 	|# set the right root device if user specified a lvm root
 	|if [ "\$(block_driver "\$rootdev")" = device-mapper ]; then
 	|    case \$rootdev in
@@ -1605,7 +1641,9 @@ mkinitrd_kernel() {
 	|	    echo -n "$dev "
 	|	fi
 	|    done
+	|    echo "No root device found; exiting to /bin/sh"
 	|    cd /
+	|    /bin/sh
 	|fi
 	EOF
     fi
