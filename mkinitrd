@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.72 $
+# $Revision: 1.73 $
 
 #
 # Print usage and exit
@@ -947,13 +947,13 @@ mkinitrd_kernel () {
 	|}
 	|
 	|root_arg() {
-	|   set -- $(cat /proc/cmdline)
-	|   while [ $# -gt 1 ]; do
-	|	case $1 in
+	|   set -- \$(cat /proc/cmdline)
+	|   while [ \$# -gt 1 ]; do
+	|	case \$1 in
 	|	root=*)
 	|	    IFS==
-	|	    set -- $1
-	|	    echo $2
+	|	    set -- \$1
+	|	    echo \$2
 	|	    return 0 ;;
 	|	esac
 	|	shift
@@ -1249,13 +1249,13 @@ mkinitrd_kernel () {
     fi
 
     if has_module iscsi ; then
-	cat_linuxrc <<-EOF
+	cat_linuxrc <<-'EOF'
 	|for o in $(cat /proc/cmdline); do
 	|  case $o in
 	|    DiscoveryAddress=*)
-	|      target="$o" ; iscsi_boot=true ;;
+	|      target="$o" ; iscsi_boot=1 ;;
 	|    InitiatorName=*)
-	|      initiatorname="$o" ; iscsi_boot=true ;;
+	|      initiatorname="$o" ; iscsi_boot=1 ;;
 	|  esac
 	|done
 	|# iscsi boot requires dhcp, regardless of root= format
