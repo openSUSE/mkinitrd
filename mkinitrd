@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.28 $
+# $Revision: 1.29 $
 
 #
 # Print usage and exit
@@ -279,8 +279,8 @@ fi
 # and /sbin/initrd.static outside the $root_dir?
 
 # maximum initrd size
-image_blocks=10000
-image_inodes=2000
+image_blocks=20480
+image_inodes=2048
 
 # handle splash screen
 [ "x$splash" = xoff ] && splash=
