@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.17 2004/04/20 20:00:31 olh Exp $
+# $Id: mkinitramfs,v 1.18 2004/04/24 22:02:04 olh Exp $
 
 #
 # Print usage and exit
@@ -393,6 +393,21 @@ do_chroot() {
 
 }
 
+find_rootfstype() {
+	local a b c d fs
+	fs=
+	while read a b c d; do
+		case "$b" in
+			/)
+			fs=$c
+			;;
+			*)
+			;;
+		esac
+	done < /proc/self/mounts
+	echo $fs
+}
+
 # Resolve dynamic library dependencies. Returns a list of symbolic links
 # to shared objects and shared object files for the binaries in $*. The
 # binaries must be relative to $root_dir.
@@ -482,9 +497,12 @@ resolve_modules () {
 		# and were modularized later. They will be missing in older
 		# kernels; ignore error messages.
 	    	;;
-	    xfs_dmapi|xfs_support)  # gone in 2.4.20
-		# These modules do no longer exist. Do not produce an error
-		# message, but warn that they should be removed manually.
+	    ext2|ext3|reiserfs|jfs|xfs)
+		# they are there or not
+		;;
+	    xfs_support)  # gone in 2.4.20
+		# This module does no longer exist. Do not produce an error
+		# message, but warn that it should be removed manually.
     		echo -n "Warning: Module $module no longer exists, and" \
 		     "should be removed " >&2
 	        if [ -e $root_dir/etc/sysconfig/kernel ]; then
@@ -652,8 +670,8 @@ mkinitrd_kernel () {
 
     if has_module jfs ; then
 	echo "Including JFS recovery support"
-	cp_bin $root_dir/sbin/fsck $tmp_mnt/bin
-	cp_bin $root_dir/sbin/fsck.jfs $tmp_mnt/bin
+	cp_bin $root_dir/sbin/fsck $tmp_mnt/sbin
+	cp_bin $root_dir/sbin/fsck.jfs $tmp_mnt/sbin
     fi
 
 	mkdir -p $tmp_mnt/{etc,proc,mnt}
@@ -838,9 +856,10 @@ mkinitrd_kernel () {
     chmod 0755 $tmp_mnt/sbin/*
 
 
-    pushd .
+    pushd . > /dev/null 2>&1
     cd $tmp_mnt
     find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
+    popd > /dev/null 2>&1
     if ! cp -f $tmp_initrd.gz $initrd_image ; then
 	oops 8 "Failed to install initrd"
 	return
@@ -890,29 +909,7 @@ if [ ! -r /proc/mounts ]; then
   mount -t proc proc $mounted_proc
 fi
 
-if [ -z "$rootdev" ] ; then
-  # no rootdev specified, get current root from /etc/fstab
-  while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
-    if [ "$fstab_mountpoint" = "/" ]; then
-      rootdev="$fstab_device"
-      rootfstype="$fstab_type"
-      break
-    fi
-  done < <( sed -e '/^[ 	]*#/d' < $root_dir/etc/fstab)
-else
-  # get type from /etc/fstab or /proc/mounts (actually not needed)
-  x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
-       | grep -E "$rootdev[[:space:]]" | tail -n 1)
-  rootfstype=$(echo $x1 | cut -f 3 -d " ")
-fi
-
-if [ -z "$dhcp_interface" ]; then
-    [ -z "$rootdev" ] \
-	&& error 1 "No '/' mountpoint specified in $root_dir/etc/fstab"
-else
-    rootdev=
-    rootfstype=nfs
-fi
+rootfstype=`find_rootfstype`
 
 root_lvm=
 root_md=
@@ -1044,8 +1041,6 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 
 ###################################################################
 
-#echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
-
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
     if [ -e $root_dir/etc/sysconfig/kernel ]; then
@@ -1056,6 +1051,8 @@ if [ -z "$modules_set" ]; then
 	modules="$INITRD_MODULES"
     fi
 fi
+
+modules="$modules $rootfstype"
 
 ###################################################################
 # add modules required by features
