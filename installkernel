@@ -5,6 +5,11 @@
 # May 21, 2003 - agruen@suse.de
 # * Adapted for SuSE and cleaned up.
 #
+# This file is kept in the following CVS repository:
+#
+# $Source: /suse/yast2/cvsroot/mkinitrd/installkernel,v $
+# $Revision: 1.4 $
+#
 
 : ${INSTALL_PATH:=/boot}
 KERNEL_VERSION=$1

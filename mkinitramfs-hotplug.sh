@@ -1,5 +1,7 @@
 #!/bin/sh
-# $Id: mkinitramfs-hotplug.sh,v 1.1 2004/07/16 10:08:39 hare Exp $
+#
+# /sbin/hotplug.sh
+# $Id: mkinitramfs-hotplug.sh,v 1.2 2004/08/02 09:01:17 hare Exp $
 #
 # Simple hotplug script for initramfs
 # Records all events if requested and starts up udev

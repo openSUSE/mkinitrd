@@ -1,5 +1,6 @@
 #
 # Makefile for mkinitrd CVS
+# $Id: Makefile,v 1.3 2004/08/02 09:01:17 hare Exp $
 #
 
 EXPORT_DIR = /tmp/cvs-checkouts
