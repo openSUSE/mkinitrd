@@ -22,7 +22,7 @@
 
 # This file is kept in the following CVS repository:
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.4 $
+# $Revision: 1.5 $
 
 #
 # Print usage and exit
@@ -1276,12 +1276,6 @@ if [ -z "$modules" -a -z "$root_lvm" -a -z "$use_pivot_root" -a \
       rm -f $initrd_images )
     error 0 "No initrd required"
 fi
-
-###################################################################
-# expand module dependencies
-
-# FIXME agruen: Is this really needed?
-has_module zfcp && add_module sd_mod
 
 ###################################################################
 
