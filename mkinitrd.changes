@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat May 29 23:36:31 CEST 2004 - olh@suse.de
+
+- mkinitramfs: remove <() process substitution,
+  doesnt work without proc. use 'here document' instead
+
+-------------------------------------------------------------------
 Sat May 29 23:25:31 CEST 2004 - olh@suse.de
 
 - mkinitramfs: use -b dir in default_kernel_images()
