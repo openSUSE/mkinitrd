@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  3 20:53:47 CEST 2004 - olh@suse.de
+
+- mkinitramfs: set the hostname from dhcp reply
+
+-------------------------------------------------------------------
 Fri Sep  3 20:51:28 CEST 2004 - olh@suse.de
 
 - mkinitramfs: ipconfig writes a /tmp/net-$interface.conf

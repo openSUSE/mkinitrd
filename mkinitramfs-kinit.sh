@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.24 2004/09/03 18:52:37 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.25 2004/09/03 18:54:11 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -207,6 +207,10 @@ case "$root" in
 	done
 	if [ -z "$nfsserver" ] ; then
 		nfsserver="$ROOTSERVER:$ROOTPATH"
+	fi
+	if [ ! -z "$HOSTNAME" ] ; then
+		echo "setting hostname to $HOSTNAME"
+		echo "$HOSTNAME" > /proc/sys/kernel/hostname
 	fi
 	echo "nfsmount $nfsoptions $nfsserver"
 	nfsmount $nfsoptions $nfsserver /root || failed=1
