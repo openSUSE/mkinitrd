@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/Attic/mkinitramfs,v $
-# $Revision: 1.7 $
+# $Revision: 1.8 $
 
 #
 # Print usage and exit
@@ -748,7 +748,7 @@ mkinitrd_kernel () {
 			;;
     esac
     if [ -n "$have_scsi" -a -z "$have_sd" ]; then
-	modules="sd_mod $modules"
+	modules="sd_mod sr_mod $modules"
 	# Re-evaluate module dependencies
 	resolved_modules="$(resolve_modules $kernel_version $modules)"
     fi
