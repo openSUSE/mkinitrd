@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.6 $
+# $Revision: 1.7 $
 
 #
 # Print usage and exit
@@ -331,56 +331,56 @@ is_mounted=
 is_mounted_small=
 
 umount_proc() {
-  [ "$mounted_proc" ] && umount $mounted_proc
-  mounted_proc=
+    [ "$mounted_proc" ] && umount $mounted_proc
+    mounted_proc=
 }
 
 cleanup () {
-  [ "$is_mounted" ] && umount $tmp_mnt
-  is_mounted=
-  [ "$is_mounted_small" ] && umount $tmp_mnt_small
-  is_mounted_small=
-  rm -f $tmp_initrd $tmp_initrd.gz $tmp_msg tmp_initrd_small \
-        $tmp_initrd_small.gz
-  [ -d "$tmp_mnt" ] && rmdir $tmp_mnt
-  [ -d "$tmp_mnt_small" ] && rmdir $tmp_mnt_small
+    [ "$is_mounted" ] && umount $tmp_mnt
+    is_mounted=
+    [ "$is_mounted_small" ] && umount $tmp_mnt_small
+    is_mounted_small=
+    rm -f $tmp_initrd $tmp_initrd.gz $tmp_msg tmp_initrd_small \
+	  $tmp_initrd_small.gz
+    [ -d "$tmp_mnt" ] && rmdir $tmp_mnt
+    [ -d "$tmp_mnt_small" ] && rmdir $tmp_mnt_small
 }
 
 cleanup_finish () {
-  umount_proc
-  [ -d "$work_dir" ] && rmdir $work_dir
+    umount_proc
+    [ -d "$work_dir" ] && rmdir $work_dir
 }
 
 enable_module () {
-  modules="$modules $1"
-  echo "
+    modules="$modules $1"
+    echo "
 Note: If you want to add $2 support for later mkinitrd
 calls where possibly no $2 is found, add $1
 to INITRD_MODULES in /etc/sysconfig/kernel"
 }
 
 handle_terminate () {
-  echo "(received signal)
+    echo "(received signal)
 
 Interrupted, cleaning up." >&2
-  cleanup
-  cleanup_finish
-  exit 255
+    cleanup
+    cleanup_finish
+    exit 255
 }
 
 trap handle_terminate 1 2 3 15
 
 error () {
-  echo "$2" >&2
-  cleanup
-  cleanup_finish
-  exit $1
+    echo "$2" >&2
+    cleanup
+    cleanup_finish
+    exit $1
 }
 
 oops () {
-  exit_code=$1
-  shift
-  echo "$@" >&2
+    exit_code=$1
+    shift
+    echo "$@" >&2
 }
 
 # Check if module $1 is listed in $modules.
@@ -507,9 +507,11 @@ resolve_modules () {
 	esac
 	if [ -z "$module_list" ]; then
 	    case $module in
-	    scsi_mod|cd_mod)
-		# These modules may not exist. Ignore errors.
-		;;
+	    scsi_mod|sd_mod|md)  # modularized in 2.4.21
+		# These modules were previously compiled into the kernel,
+		# and were modularized later. They will be missing in older
+		# kernels; ignore error messages.
+	    	;;
 	    *)
 		oops 7 "Cannot determine dependencies of module $module." \
 		       "Is modules.dep up to date?"
@@ -546,9 +548,10 @@ attach_dsdt () {
     local initrd_image=$1
 
     if [ -z "$acpi_dsdt" ]; then
-	[ -f "$root_dir/etc/sysconfig/kernel" ] \
-	&& . $root_dir/etc/sysconfig/kernel
-	acpi_dsdt="$ACPI_DSDT"
+	if [ -f "$root_dir/etc/sysconfig/kernel" ]; then
+	    . $root_dir/etc/sysconfig/kernel
+	    acpi_dsdt="$ACPI_DSDT"
+	fi
     fi
     if [ -z "$acpi_dsdt" ]; then
 	return
@@ -1056,27 +1059,29 @@ mkinitrd_kernel () {
 	return
     fi
 
-    if [ -n "$splash" -a -x /sbin/splash.bin ] ; then
-      test -f /etc/sysconfig/bootsplash && . /etc/sysconfig/bootsplash
-      bootsplash_picture_dir="$root_dir/etc/bootsplash/themes/$THEME"
+    if [ -n "$splash" -a -x /sbin/splash.bin ]; then
+	if [ -f /etc/sysconfig/bootsplash ]; then
+	    . /etc/sysconfig/bootsplash
+	fi
+	bootsplash_picture_dir="$root_dir/etc/bootsplash/themes/$THEME"
 
-      echo "Checking for bootsplash"
-      if [ -d $bootsplash_picture_dir -o -L $bootsplash_picture_dir ]; then
-        for size in ${splash//,/ }; do
-	  bootsplash_picture="$bootsplash_picture_dir/images/bootsplash-$size.jpg"
-	  cfgname="$bootsplash_picture_dir/config/bootsplash-$size.cfg"
-	  if [ ! -r $cfgname ] ; then
-	    echo " - Bootsplash disabled for resolution $size"
-	  elif [ ! -r $bootsplash_picture ] ; then
-	    echo " - No picture for resolution $size"
-	  else
-	    echo " - Bootsplash picture from theme $THEME ($size)"
-	    /sbin/splash.bin -s -f $cfgname >> $initrd_image
-	  fi
-        done
-      else
-        echo " - No bootsplash theme selected"
-      fi
+	echo -ne "Bootsplash:\t"
+	if [ -d $bootsplash_picture_dir -o -L $bootsplash_picture_dir ]; then
+	    for size in ${splash//,/ }; do
+		bootsplash_picture="$bootsplash_picture_dir/images/bootsplash-$size.jpg"
+		cfgname="$bootsplash_picture_dir/config/bootsplash-$size.cfg"
+		if [ ! -r $cfgname ] ; then
+		    echo "disabled for resolution $size"
+		elif [ ! -r $bootsplash_picture ] ; then
+		    echo "no image for resolution $size"
+		else
+		    echo "$THEME ($size)"
+		    /sbin/splash.bin -s -f $cfgname >> $initrd_image
+		fi
+	    done
+	else
+	    echo "no theme selected"
+	fi
     fi
 }
 
@@ -1255,10 +1260,13 @@ echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
-    [ -f "$root_dir/etc/sysconfig/kernel" ] \
-    && . $root_dir/etc/sysconfig/kernel
-
-    modules="$INITRD_MODULES"
+    if [ -e $root_dir/etc/sysconfig/kernel ]; then
+	. $root_dir/etc/sysconfig/kernel
+	modules="$INITRD_MODULES"
+    elif [ -e $root_dir/etc/rc.config ]; then
+	. $root_dir/etc/sysconfig/kernel
+	modules="$INITRD_MODULES"
+    fi
 fi
 
 ###################################################################
@@ -1312,8 +1320,9 @@ done
 
 cleanup_finish
 
-[ -e $root_dir/etc/sysconfig/bootloader ] \
-&& . $root_dir/etc/sysconfig/bootloader
+if [ -e $root_dir/etc/sysconfig/bootloader ]; then
+    . $root_dir/etc/sysconfig/bootloader
+fi
 case $LOADER_TYPE in
   lilo)
     echo "
