@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.38 $
+# $Revision: 1.39 $
 
 #
 # Print usage and exit
@@ -1353,7 +1353,8 @@ you can save the current configuration with this command:
 
 s390_dasd() {
     if [ -f $root_dir/etc/zipl.conf ]; then
-	if grep -q '^[[:space:]]*parameters=' $root_dir/etc/zipl.conf; then
+	if grep -q '^[[:space:]]*parameters[[:space:]]*=' \
+		$root_dir/etc/zipl.conf; then
 	    zipl_conf_with_dasd=1
 	fi
     fi
