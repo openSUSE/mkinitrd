@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.91 $
+# $Revision: 1.92 $
 
 #
 # Print usage and exit
@@ -290,7 +290,7 @@ fi
 # and /sbin/initrd.static outside the $root_dir?
 
 # maximum initrd size
-image_blocks=20480
+image_blocks=40960
 image_inodes=2048
 
 # handle splash screen
@@ -1051,8 +1051,7 @@ mkinitrd_kernel() {
 	need_block_driver=1
     fi
 
-    if has_any_module raid0 raid1 raid5 linear multipath \
-       || [ $(pvscan 2>/dev/null | grep "/dev/md[0-9]" | wc -l) -gt 0 ]; then
+    if has_any_module raid0 raid1 raid5 linear multipath; then
 	cp_bin $root_dir/sbin/raidautorun $tmp_mnt/sbin
 	need_raidautorun=1
     fi
