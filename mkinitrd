@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.101 $
+# $Revision: 1.102 $
 
 #
 # Print usage and exit
@@ -1026,7 +1026,13 @@ mkinitrd_kernel() {
     esac
 
     if has_module iscsi ; then
-	cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
+	if test -x $root_dir/usr/sbin/iscsid; then
+	    cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
+	elif test -x $root_dir/sbin/iscsid; then
+	    cp_bin $root_dir/sbin/iscsid $tmp_mnt/sbin/iscsid
+	else
+	    echo -e "iSCSI error:\tcan't find iscsid"
+	fi
 	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
 	need_mount=1
     fi
