@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov  8 16:43:52 CET 2004 - agruen@suse.de
+
+- Recognize the sysrq={yes|1} kernel command-line option for
+  switching on sysrq earlier during boot-up.
+
+-------------------------------------------------------------------
 Thu Nov  4 09:12:54 CET 2004 - hare@suse.de
 
 - mkinitrd: reset timeout if udev db has been changed (#47700)
