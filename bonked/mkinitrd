@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.99 $
+# $Revision: 1.100 $
 
 #
 # Print usage and exit
@@ -1079,9 +1079,7 @@ mkinitrd_kernel() {
 	mkdir -p $tmp_mnt/etc/lvm
 	mkdir -p $tmp_mnt/var/lock/lvm
 	if [ -z "$use_udev" ]; then
-	    mkdir $tmp_mnt/dev/mapper
-	    cp -a $root_dir/dev/mapper/control $tmp_mnt/dev/mapper
-	    cp -a $root_dir/device-mapper $tmp_mnt/dev
+	    cp_bin $root_dir/sbin/devmap_mknod.sh $tmp_mnt/sbin
 	fi
 	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod,ls} $tmp_mnt/bin
@@ -1093,9 +1091,7 @@ mkinitrd_kernel() {
     if [ -n "$root_evms" ] ; then
 	features=(${features[@]} dm/evms2)
 	if [ -z "$use_udev" ]; then
-	    mkdir $tmp_mnt/dev/mapper
-	    cp -a $root_dir/dev/mapper/control $tmp_mnt/dev/mapper
-	    cp -a $root_dir/device-mapper $tmp_mnt/dev
+	    cp_bin $root_dir/sbin/devmap_mknod.sh $tmp_mnt/sbin
 	fi
 	cp_bin $root_dir/sbin/evms_activate $tmp_mnt/sbin
 	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod} $tmp_mnt/bin
@@ -1546,6 +1542,12 @@ mkinitrd_kernel() {
         local vg_root=${rootdev#/dev/}
         vg_root=${vg_root%%/*}
 
+	if [ -z "$use_udev" ]; then
+	    cat_linuxrc <<-'EOF'
+	|# create device mapper control device nodes
+	|/sbin/devmap_mknod.sh
+	EOF
+	fi
 	cat_linuxrc <<-EOF
 	|vgscan
 	|for o in \`cat /proc/cmdline\` ; do
@@ -1576,8 +1578,13 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$root_evms" ] ; then
-	cat_linuxrc <<-EOF
+	if [ -z "$use_udev" ]; then
+	    cat_linuxrc <<-'EOF'
+	|# create device mapper control device nodes
 	|/sbin/devmap_mknod.sh
+	EOF
+	fi
+	cat_linuxrc <<-EOF
 	|/sbin/evms_activate
 	|# set the right root device if user specified a lvm root
 	|if [ "\$(block_driver "\$rootdev")" = device-mapper ]; then
