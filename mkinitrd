@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.47 $
+# $Revision: 1.48 $
 
 #
 # Print usage and exit
@@ -285,35 +285,37 @@ image_blocks=20480
 image_inodes=2048
 
 # handle splash screen
-[ "x$splash" = xoff ] && splash=
-if [ "x$splash" = xauto ] ; then
-    splash=
-    vgascan=/dev/null
+case "$splash" in
+off)
+    splashsizes= ;;
+auto)
+    splashsizes=
+    bootconf=/dev/null
     [ -f $root_dir/etc/lilo.conf ] \
-	&& vgascan="$vgascan $root_dir/etc/lilo.conf"
+	&& bootconf="$bootconf $root_dir/etc/lilo.conf"
     [ -f $root_dir/boot/grub/menu.lst ] \
-	&& vgascan="$vgascan $root_dir/boot/grub/menu.lst"
-    for vga in $(cat $vgascan \
-	        | sed -ne '/^[ \t]*#/d' \
-		      -e 's/^.*[ \t]*vga[ \t]*=[ \t]*\(0[xX][0-9a-fA-F]\+\|[0-9]\+\).*$/\1/p') ; do
+	&& bootconf="$bootconf $root_dir/boot/grub/menu.lst"
+    for vga in $(sed -e '/^[ \t]*#/d' -e 's/ \+/\n/g' $bootconf \
+	    	 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
+		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
 	splashsize=
-	case $vga in
-	    785|786|0x311|0x312|0x0311|0x0312) splashsize=640x480   ;;
-	    788|789|0x314|0x315|0x0314|0x0315) splashsize=800x600   ;;
-	    791|792|0x317|0x318|0x0317|0x0318) splashsize=1024x768  ;;
-	    794|0x31a|0x31A|0x031a)     splashsize=1280x1024 ;;
-	    795|0x31b|0x31B|0x031b)     splashsize=1280x1024 ;;
-	    *)
-	    	vgahex=$(printf 0x%04x "$[$vga]")
-		splashsize=$(hwinfo debug=0 -all +bios.vbe \
-			    | sed -ne 's/^.*Mode '$vgahex': \([^ ][^ ]*\) .*$/\1/p' 2>/dev/null)
-		;;
+	case $[$vga] in  # $[...] : Convert 0xFOO to decimal
+	    785|786) splashsize=640x480   ;;
+	    788|789) splashsize=800x600   ;;
+	    791|792) splashsize=1024x768  ;;
+	    794)     splashsize=1280x1024 ;;
+	    795)     splashsize=1280x1024 ;;
+	    *)	     vgahex=$(printf 0x%04x "$[$vga]")
+		     splashsize=$(hwinfo debug=0 -all +bios.vbe | sed -ne \
+				   's/^.*Mode '$vgahex': \([^ ]\+\) .*$/\1/p' \
+				  2>/dev/null) ;;
 	esac
-	[ -n "$splashsize" -a "x${splash/$splashsize/}" = "x$splash" ] \
-	    && splash="$splash,$splashsize"
-    done
-    splash=${splash#,}
-fi
+	[ -n "$splashsize" -a "${splashsizes/$splashsize/}" = "$splashsizes" ] \
+	    && splashsizes="$splashsizes $splashsize"
+    done ;;
+*)
+    splashsizes=$splash ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # should be nothing to change below...
@@ -1270,7 +1272,7 @@ mkinitrd_kernel () {
     splash_bin=
     [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
     [ -x /bin/splash ] && splash_bin=/bin/splash
-    if [ -n "$splash" -a -n "$splash_bin" ]; then
+    if [ -n "$splashsizes" -a -n "$splash_bin" ]; then
 	if [ -f /etc/sysconfig/bootsplash ]; then
 	    . /etc/sysconfig/bootsplash
 	fi
@@ -1285,7 +1287,7 @@ mkinitrd_kernel () {
 	echo -ne "Bootsplash:\t"
 	if [ -n "$themes_dir" -a \
 	     -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
-	    for size in ${splash//,/ }; do
+	    for size in $splashsizes; do
 		bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
 		cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
 		if [ ! -r $cfgname ] ; then
@@ -1524,7 +1526,7 @@ fi
 # initrd flag in /etc/zipl.conf with YaST.
 if [ -z "$modules" -a -z "$root_lvm" -a -z "$root_dm" -a \
      -z "$use_pivot_root" -a \
-     -z "$splash" -a "$arch" != s390 -a -z "$use_selinux" ]; then
+     -z "$splashsizes" -a "$arch" != s390 -a -z "$use_selinux" ]; then
     ( cd $boot_dir
       rm -f $initrd_images )
     error 0 "No initrd required"
