@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.48 $
+# $Revision: 1.49 $
 
 #
 # Print usage and exit
@@ -702,7 +702,7 @@ mkinitrd_kernel () {
     esac
 
     if has_module iscsi ; then
-	cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/usr/sbin/iscsid
+	cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
 	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
 	nead_mount=1
     fi
