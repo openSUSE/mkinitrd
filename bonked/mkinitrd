@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.94 $
+# $Revision: 1.95 $
 
 #
 # Print usage and exit
@@ -1458,7 +1458,7 @@ mkinitrd_kernel() {
 	|  case \$o in
 	|    root=/dev/*)
 	|	set -- \`IFS=/ ; echo \$o\`
-	|	vg_root=\$2
+	|	vg_root=\$3
 	|	break ;;
 	|  esac
 	|done
@@ -1496,7 +1496,7 @@ mkinitrd_kernel() {
 	|  case \$o in
 	|    root=/dev/*)
 	|       set -- \`IFS=/ ; echo \$o\`
-	|       vg_root=\$2
+	|       vg_root=\$3
 	|       break ;;
 	|  esac
 	|done
