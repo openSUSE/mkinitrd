@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.107 $
+# $Revision: 1.108 $
 
 #
 # Print usage and exit
@@ -1503,7 +1503,7 @@ mkinitrd_kernel() {
 
     if [ -n "$s390_dasd_disks" ]; then
 	# We only need to activate DASDs manually if it
-	# is not done via the kernel commandline
+	# is not done via the kernel command line
 	echo -e -n "DASDs:\t\t"
 	cat_linuxrc <<-EOF
 	|if test -z "\$dasd_params"; then
@@ -1563,7 +1563,7 @@ mkinitrd_kernel() {
 	if [ -z "$s390_zfcp_disks" -a -z "$s390_dasd_disks" ]; then
 	    echo ""
 	    echo "WARNING: No boot devices found."
-	    echo "Make sure to add 'dasd=<dasd-range>' to the kernel commandline"
+	    echo "Make sure to add 'dasd=<dasd-range>' to the kernel command line"
 	fi
     fi
 
@@ -2251,7 +2251,7 @@ You may now have to update the elilo boot loader configuration."
   *)
     if [ -f "$root_dir/etc/zipl.conf" ]; then
 	echo "
-initrd updated, zipl needs to update the IPL record before IPL!"
+initrd updated, you have to update the IPL record before IPL using zipl now."
     else
 	echo "
 You may now have to update your boot loader configuration."
