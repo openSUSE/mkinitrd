@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.141 $
+# $Revision: 1.142 $
 
 #
 # Print usage and exit
@@ -36,7 +36,7 @@ usage() {
 	modules, a file system module for the root file system, or
 	a network interface driver module for dhcp.
 
-        mkinitrd [options] [root_dir]
+        mkinitrd [options]
 
         options:
           -h               This Text.
@@ -50,10 +50,10 @@ usage() {
                            INITRD_MODULES variable in /etc/sysconfig/kernel.
           -b boot_dir      Boot directory. Defaults to /boot.
           -d root_device   Root device. Defaults to the device from which
-                           the root_dir is mounted. Overrides the rootdev
-                           enviroment variable if set.
+                           / is mounted. Overrides the rootdev enviroment
+			   variable if set.
 	  -s size          Add splash animation and bootscreen to initrd.
-	  -t tmp_dir       Temporary directory. Defaults to $root_dir/var/tmp.
+	  -t tmp_dir       Temporary directory. Defaults to /var/tmp.
 	  -D interface     Run dhcp on the specified interface.
 	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
 	  		   Description Table) to initrd. This replaces the
@@ -62,8 +62,6 @@ usage() {
           -r               Use initramfs instead of initrd.
           -g               Use glibc instead of klibc binaries.
 	  -S               Load policy file for SELinux if exist.
-        root_dir:          The directory the root partition is mounted on.
-                           Defaults to "/".
 EOM
     exit
 }
@@ -100,20 +98,20 @@ default_kernel_images() {
 
 	kernel_images=""
 	initrd_images=""
-	for kernel_image in $(ls $root_dir/boot \
+	for kernel_image in $(ls /boot \
 		| sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
 
 		# Note that we cannot check the RPM database here -- this
 		# script is itself called from within the binary kernel
 		# packages, and rpm does not allow recursive calls.
 
-		[ -L "$root_dir/boot/$kernel_image" ] && continue
+		[ -L "/boot/$kernel_image" ] && continue
 		kernel_version=$(/sbin/get_kernel_version \
-				 $root_dir/boot/$kernel_image 2> /dev/null)
+				 /boot/$kernel_image 2> /dev/null)
 		initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
 		if [ "$kernel_image" != "$initrd_image" -a \
 		     -n "$kernel_version" -a \
-		     -d "$root_dir/lib/modules/$kernel_version" ]; then
+		     -d "/lib/modules/$kernel_version" ]; then
 			kernel_images="$kernel_images /boot/$kernel_image"
 			initrd_images="$initrd_images /boot/$initrd_image"
 		fi
@@ -229,26 +227,15 @@ if [ ! -d "$boot_dir" ]; then
     exit 1
 fi
 
-# FIXME agruen: tmp_dir is the full, absolute path to a temporary directory
-# that must not be a tmpfs file system. This was not consistently used in
-# the previous version of mkinitrd.
-
 if [ -n "$tmp_dir" ]; then
     tmp_dir="/${tmp_dir#/}"  # make sure it is an absolute path
 else
-    tmp_dir=$root_dir/var/tmp
+    tmp_dir=/var/tmp
 fi
 if [ ! -d "$tmp_dir" ]; then
     echo "$tmp_dir is not a directory" >&2
     exit 1
 fi
-
-# FIXME agruen: tmp_dir defaults to $root_dir/var/tmp. Not very nice
-# to write into a directory of another installation without explicitly
-# being asked to.
-#
-# If tmp_dir is unspecified, find a non-tmpfs temporary directory:
-# /var/tmp, $root_dir/var/tmp, /tmp, $root_dir/tmp, etc.
 
 # Check if the -k and -i settings are valid.
 if [ $(set -- $kernel_images ; echo $#) -ne \
@@ -264,11 +251,11 @@ fi
 
 
 # Check which shell and insmod binaries to use in initrd.
-[ -x $root_dir/bin/ash ] \
-    && initrd_shell_dynamic=$root_dir/bin/ash
+[ -x /bin/ash ] \
+    && initrd_shell_dynamic=/bin/ash
 if [ -n "$use_static_binaries" ]; then
-    if [ -x $root_dir/bin/ash.static ]; then
-	initrd_shell=$root_dir/bin/ash.static
+    if [ -x /bin/ash.static ]; then
+	initrd_shell=/bin/ash.static
     else
 	initrd_shell=/bin/ash.static
     fi
@@ -276,28 +263,21 @@ else
     initrd_shell=$initrd_shell_dynamic
 fi
 # The shell-bang line to use inside initrd.
-shebang=${initrd_shell#$root_dir}
+shebang=$initrd_shell
 shebang=${shebang%.static}
 
-if [ -z "$use_glibc" -a -x $root_dir/lib/klibc/bin/sh ]; then
-    initrd_shell="$root_dir/lib/klibc/bin/sh"
+if [ -z "$use_glibc" -a -x /lib/klibc/bin/sh ]; then
+    initrd_shell="/lib/klibc/bin/sh"
     shebang="/bin/sh"
 fi
 
-[ -x $root_dir/sbin/insmod ] \
-    && initrd_insmod_dynamic=$root_dir/sbin/insmod
+[ -x /sbin/insmod ] \
+    && initrd_insmod_dynamic=/sbin/insmod
 if [ -n "$use_static_binaries" ]; then
-    if [ -x $root_dir/sbin/insmod.static ]; then
-	initrd_insmod=$root_dir/sbin/insmod.static
-    else
-	initrd_insmod=/sbin/insmod.static
-    fi
+    initrd_insmod=/sbin/insmod.static
 else
     initrd_insmod=$initrd_insmod_dynamic
 fi
-
-# FIXME agruen: Is is really necessary to fall back to /bin/ash.static
-# and /sbin/initrd.static outside the $root_dir?
 
 # maximum initrd size
 image_blocks=40960
@@ -310,10 +290,10 @@ off)
 auto)
     splashsizes=
     bootconf=/dev/null
-    [ -f $root_dir/etc/lilo.conf ] \
-	&& bootconf="$bootconf $root_dir/etc/lilo.conf"
-    [ -f $root_dir/boot/grub/menu.lst ] \
-	&& bootconf="$bootconf $root_dir/boot/grub/menu.lst"
+    [ -f /etc/lilo.conf ] \
+	&& bootconf="$bootconf /etc/lilo.conf"
+    [ -f /boot/grub/menu.lst ] \
+	&& bootconf="$bootconf /boot/grub/menu.lst"
     for vga in $(sed -e '/^[ \t]*#/d' $bootconf \
 	    	 | sed -ne 's/^.*vga[ \t]*=[ \t]*\([^ \t]*\).*/\1/p' \
 		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
@@ -434,34 +414,18 @@ cp_bin() {
    done
 }
 
-do_chroot() {
-    local CHROOT
-    if [ -n "$root_dir" ]; then
-	CHROOT=/usr/bin/chroot
-	if [ ! -x $CHROOT ]; then
-	    error 2 "I need $CHROOT."
-	else
-	    $CHROOT "$root_dir" "$@"
-	fi
-    else
-	"$@"
-    fi
-
-}
-
 # Resolve dynamic library dependencies. Returns a list of symbolic links
-# to shared objects and shared object files for the binaries in $*. The
-# binaries must be relative to $root_dir.
+# to shared objects and shared object files for the binaries in $*.
 shared_object_files() {
     local LDD CHROOT initrd_libs lib_files lib_links lib link
 
     LDD=/usr/bin/ldd
-    if [ ! -x $root_dir$LDD ]; then
-	error 2 "I need $root_dir$LDD."
+    if [ ! -x $LDD ]; then
+	error 2 "I need $LDD."
     fi
 
     initrd_libs=( $(
-	do_chroot $LDD "${@#$root_dir}" \
+	$LDD "$@" \
 	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:'
     ) )
 
@@ -496,9 +460,9 @@ shared_object_files() {
 	    continue ;;
 	esac
 
-	while [ -L "$root_dir/$lib" ]; do
+	while [ -L "/$lib" ]; do
 	    echo $lib
-	    link="$(readlink "$root_dir/$lib")"
+	    link="$(readlink "/$lib")"
 	    if [ x"${link:0:1}" == x"/" ]; then
 	        lib=${link#/}
 	    else
@@ -511,7 +475,7 @@ shared_object_files() {
 }
 
 # Resolve module dependencies and parameters. Returns a list of modules and
-# their parameters. The module names returned are relative to $root_dir.
+# their parameters.
 resolve_modules() {
     local kernel_version=$1 module
     shift
@@ -520,11 +484,10 @@ resolve_modules() {
 	local with_modprobe_conf
 	module=${module#.o}  # strip trailing ".o" just in case.
 	module=${module#.ko}  # strip trailing ".ko" just in case.
-	if [ -e $root_dir/etc/modprobe.conf ]; then
+	if [ -e /etc/modprobe.conf ]; then
 	    with_modprobe_conf="-C /etc/modprobe.conf"
 	fi
-	module_list=$( do_chroot \
-	    /sbin/modprobe $with_modprobe_conf \
+	module_list=$(/sbin/modprobe $with_modprobe_conf \
 	    --set-version $kernel_version \
 	    --show-depends $module 2> /dev/null \
 	    | sed -ne 's:.*insmod /\?::p' )
@@ -562,8 +525,8 @@ attach_dsdt() {
     local initrd_image=$1
 
     if [ -z "$acpi_dsdt" ]; then
-	if [ -f "$root_dir/etc/sysconfig/kernel" ]; then
-	    . $root_dir/etc/sysconfig/kernel
+	if [ -f /etc/sysconfig/kernel ]; then
+	    . /etc/sysconfig/kernel
 	    acpi_dsdt="$ACPI_DSDT"
 	fi
     fi
@@ -890,13 +853,13 @@ s390_dasd_sysfs() {
 s390_dasd_proc() {
     local zipl_conf_with_dasd dasd_module
 
-    if [ -f $root_dir/etc/zipl.conf ] \
+    if [ -f /etc/zipl.conf ] \
        && grep -q '^[[:space:]]*parameters[[:space:]]*=' \
-	    $root_dir/etc/zipl.conf; then
+	    /etc/zipl.conf; then
 	    zipl_conf_with_dasd=1
     fi
 
-    if do_chroot modprobe -c \
+    if modprobe -c \
        | grep -q '^[[:space:]]*options[[:space:]]\+dasd_mod' ; then
 	dasd_module=1
     fi
@@ -951,19 +914,19 @@ mkinitrd_kernel() {
 	linuxrc=$tmp_mnt/init
     fi
 
-    if ! [ -f "$root_dir$kernel_image" ] ; then
-	echo "No kernel image $root_dir$kernel_image found" >&2
+    if ! [ -f "$kernel_image" ] ; then
+	echo "No kernel image $kernel_image found" >&2
 	return
     fi
 
-    kernel_version=$(/sbin/get_kernel_version $root_dir$kernel_image)
+    kernel_version=$(/sbin/get_kernel_version $kernel_image)
 
     #echo -e "Kernel version:\t$kernel_version"
-    echo -e "Kernel image:\t$root_dir$kernel_image"
-    echo -e "Initrd image:\t$root_dir$initrd_image"
+    echo -e "Kernel image:\t$kernel_image"
+    echo -e "Initrd image:\t$initrd_image"
 
-    if [ ! -d "$root_dir/lib/modules/$kernel_version/misc" -a \
-	 ! -d "$root_dir/lib/modules/$kernel_version/kernel" ]; then
+    if [ ! -d "/lib/modules/$kernel_version/misc" -a \
+	 ! -d "/lib/modules/$kernel_version/kernel" ]; then
 	oops 2 "No modules found for kernel $kernel_version"
         return
     fi
@@ -1020,47 +983,41 @@ mkinitrd_kernel() {
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
 
-    # If exists, copy also insmod.static.old, it is created by modutils for
-    # 2.5.47+ kernels and it is needed by these to work with older kernels.
-    if [ -r $initrd_insmod.old ] ; then
-      cp_bin $initrd_insmod.old $tmp_mnt/sbin/insmod.old 2>/dev/null
-    fi
-
     # SELinux: Binary policy file and load_policy utility for loading it.
     if [ -n "$use_selinux" ] ; then
-	if [ -f $root_dir/etc/security/selinux/policy.15 -a \
-	     -f $root_dir/usr/sbin/load_policy ] ; then
+	if [ -f /etc/security/selinux/policy.15 -a \
+	     -f /usr/sbin/load_policy ] ; then
 	   echo -e "SELinux policy:\tadded"
 	   mkdir -p $tmp_mnt/selinux
 	   mkdir -p $tmp_mnt/etc/security/selinux
-	   cp -p $root_dir/etc/security/selinux/policy.15 \
+	   cp -p /etc/security/selinux/policy.15 \
 	       $tmp_mnt/etc/security/selinux
-	   cp_bin $root_dir/usr/sbin/load_policy $tmp_mnt/sbin/load_policy
+	   cp_bin /usr/sbin/load_policy $tmp_mnt/sbin/load_policy
 	else
 	   echo -e "SELinux policy:\tnot found"
 	fi
     fi
 
     if has_module iscsi ; then
-	if test -x $root_dir/usr/sbin/iscsid; then
-	    cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
-	elif test -x $root_dir/sbin/iscsid; then
-	    cp_bin $root_dir/sbin/iscsid $tmp_mnt/sbin/iscsid
+	if test -x /usr/sbin/iscsid; then
+	    cp_bin /usr/sbin/iscsid $tmp_mnt/sbin/iscsid
+	elif test -x /sbin/iscsid; then
+	    cp_bin /sbin/iscsid $tmp_mnt/sbin/iscsid
 	else
 	    echo -e "iSCSI error:\tcan't find iscsid"
 	fi
-	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
+	cp_bin /bin/usleep $tmp_mnt/bin/usleep
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
-	cp_bin $root_dir/sbin/dasd_configure $tmp_mnt/sbin
-	cp_bin $root_dir/sbin/dasdview $tmp_mnt/sbin
+	cp_bin /sbin/dasd_configure $tmp_mnt/sbin
+	cp_bin /sbin/dasdview $tmp_mnt/sbin
     fi
 
     if [ -n "$s390_zfcp_disks" ]; then
-	cp_bin $root_dir/sbin/zfcp_host_configure $tmp_mnt/sbin
-	cp_bin $root_dir/sbin/zfcp_disk_configure $tmp_mnt/sbin
-	cp_bin $root_dir/bin/sed $tmp_mnt/bin
+	cp_bin /sbin/zfcp_host_configure $tmp_mnt/sbin
+	cp_bin /sbin/zfcp_disk_configure $tmp_mnt/sbin
+	cp_bin /bin/sed $tmp_mnt/bin
     fi
 
     features=(${features[@]} udev)
@@ -1078,39 +1035,39 @@ mkinitrd_kernel() {
 	mkdir -p $tmp_mnt/lib/klibc/bin
 	for klibc_bin in devnumber sed sleep ata_identify scsi_id \
 	    cat ln umount; do
-	  if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
-	      cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
+	  if [ -e /lib/klibc/bin/$klibc_bin ]; then
+	      cp_bin /lib/klibc/bin/$klibc_bin \
 		  $tmp_mnt/lib/klibc/bin
 	      if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
 		  ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
 	      fi
 	  fi
 	done
-	cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
+	cp_bin /lib/klibc/bin/run_init $tmp_mnt/run_init
     else
 	for glibc_bin in sed sleep ln umount; do
-	    cp_bin $root_dir/bin/$glibc_bin $tmp_mnt/bin
+	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
 	done
-	cp_bin $root_dir/sbin/scsi_id $tmp_mnt/bin
-	cp_bin $root_dir/sbin/ata_identify $tmp_mnt/bin
-        # this must be a static binry because /lib is already gone when it runs
-	cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
+	cp_bin /sbin/scsi_id $tmp_mnt/bin
+	cp_bin /sbin/ata_identify $tmp_mnt/bin
+	# this must be a static binry because /lib is already gone when it runs
+	cp_bin /lib/klibc/bin/run_init $tmp_mnt/run_init
     fi
 
     # cat might not be present as klibc binary
     if [ ! -e $tmp_mnt/bin/cat ] ; then
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
+	cp_bin /bin/cat $tmp_mnt/bin
     fi
 
     # copy common utilities
     for bin in chmod mkdir mknod mount rm; do
-	cp_bin $root_dir/bin/$bin $tmp_mnt/bin
+	cp_bin /bin/$bin $tmp_mnt/bin
     done
     # Create a dummy /etc/mtab for mount
     echo -n > $tmp_mnt/etc/mtab
     
-    if [ -x $root_dir/lib/mkinitrd/hotplug.sh ] ; then
-	cp_bin $root_dir/lib/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
+    if [ -x /lib/mkinitrd/hotplug.sh ] ; then
+	cp_bin /lib/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
     fi
 
     # all dev nodes belong to root, according to udev.permissions
@@ -1120,9 +1077,11 @@ mkinitrd_kernel() {
     getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
     (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
     
-    if [ -d $root_dir/lib64 ]; then
+    # FIXME: only include this if glibc is used !!!
+
+    if [ -d /lib64 ]; then
 	mkdir $tmp_mnt/lib64
-	for nss_lib in $root_dir/lib64/libnss_files*; do
+	for nss_lib in /lib64/libnss_files*; do
 	    if [ -f "$nss_lib" ]; then
 		cp_bin $nss_lib $tmp_mnt/lib64
 	    fi
@@ -1130,31 +1089,31 @@ mkinitrd_kernel() {
     fi
 
     mkdir $tmp_mnt/lib
-    for nss_lib in $root_dir/lib/libnss_files*; do
+    for nss_lib in /lib/libnss_files*; do
 	if [ -f "$nss_lib" ]; then
 	    cp_bin $nss_lib $tmp_mnt/lib
 	fi
     done
 
     if [ -z "$use_glibc" ] ; then
-	cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
-	cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
-	cp_bin $root_dir/sbin/udevstart.static $tmp_mnt/sbin/udevstart
+	cp_bin /sbin/udev.static $tmp_mnt/sbin/udev
+	cp_bin /sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
+	cp_bin /sbin/udevstart.static $tmp_mnt/sbin/udevstart
     else
-	cp_bin $root_dir/sbin/udev $tmp_mnt/sbin/udev
-	cp_bin $root_dir/usr/bin/udevinfo $tmp_mnt/sbin/udevinfo
-	cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
+	cp_bin /sbin/udev $tmp_mnt/sbin/udev
+	cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/udevinfo
+	cp_bin /sbin/udevstart $tmp_mnt/sbin/udevstart
     fi
-    cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
+    cp_bin /sbin/udev.*.sh $tmp_mnt/sbin
     mkdir -p $tmp_mnt/etc/udev
-    cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
+    cp -a /etc/udev/* $tmp_mnt/etc/udev
 
     if [ "$mkinit_type" = "ramfs" ] ; then
 	mkdir -p $tmp_mnt/events
 	if [ -z "$use_glibc" ] ; then
-	    cp_bin $root_dir/lib/klibc/bin/hotplugeventrecorder $tmp_mnt/sbin
+	    cp_bin /lib/klibc/bin/hotplugeventrecorder $tmp_mnt/sbin
 	else
-	    cp_bin $root_dir/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	    cp_bin /sbin/hotplugeventrecorder $tmp_mnt/sbin
 	fi
 	(cd $tmp_mnt/sbin; ln -s hotplugeventrecorder hotplug)
     fi
@@ -1163,7 +1122,7 @@ mkinitrd_kernel() {
     if [ -n "$root_lvm" ] ; then
 	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
-	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
+	cp_bin /sbin/{vgscan,vgchange} $tmp_mnt/sbin
 	need_block_driver=1
     fi
 
@@ -1171,35 +1130,35 @@ mkinitrd_kernel() {
 	features=(${features[@]} dm/lvm2)
 	mkdir -p $tmp_mnt/etc/lvm
 	mkdir -p $tmp_mnt/var/lock/lvm
-	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
-	cp_bin $root_dir/bin/{sed,mkdir,mknod,ls} $tmp_mnt/bin
-	cp -a $root_dir/etc/lvm/lvm.conf $tmp_mnt/etc/lvm
+	cp_bin /sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
+	cp_bin /bin/{sed,mkdir,mknod,ls} $tmp_mnt/bin
+	cp -a /etc/lvm/lvm.conf $tmp_mnt/etc/lvm
 	need_block_driver=1
     fi
 
     if [ -n "$root_evms" ] ; then
 	features=(${features[@]} dm/evms2)
-	cp_bin $root_dir/sbin/{evms_activate,dmsetup} $tmp_mnt/sbin
-	cp_bin $root_dir/bin/{sed,mkdir,mknod,rm} $tmp_mnt/bin
-	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
+	cp_bin /sbin/{evms_activate,dmsetup} $tmp_mnt/sbin
+	cp_bin /bin/{sed,mkdir,mknod,rm} $tmp_mnt/bin
+	cp_bin /usr/bin/expr $tmp_mnt/bin
 	mkdir -p $tmp_mnt/mnt
-	cp -a $root_dir/etc/evms.conf $tmp_mnt/etc
+	cp -a /etc/evms.conf $tmp_mnt/etc
 	mkdir -p $tmp_mnt/lib/evms
-	SD=$(ls -A $root_dir/lib/evms | tail -n 1)
+	SD=$(ls -A /lib/evms | tail -n 1)
 	(cd $tmp_mnt/lib/evms && mkdir -p $SD)
-	cp_bin $root_dir/lib/evms/$SD/* $tmp_mnt/lib/evms/$SD
+	cp_bin /lib/evms/$SD/* $tmp_mnt/lib/evms/$SD
 	rm -f $tmp_mnt/lib/evms/*/*{ext2,jfs,ogfs,reiser,swap,xfs}*so
 	need_block_driver=1
     fi
 
     if has_any_module raid0 raid1 raid5 linear multipath; then
-	cp_bin $root_dir/sbin/raidautorun $tmp_mnt/sbin
+	cp_bin /sbin/raidautorun $tmp_mnt/sbin
 	need_raidautorun=1
     fi
 
     if [ -n "$use_pivot_root" ] ; then
 	features=(${features[@]} pivot-root)
-	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
+	cp_bin /sbin/pivot_root $tmp_mnt/bin
 	echo "#! $shebang" > $tmp_mnt/bin/init
 	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
 	chmod 755 $tmp_mnt/bin/init
@@ -1208,16 +1167,16 @@ mkinitrd_kernel() {
 
     if [ -n "$dhcp_interface" ] ; then
 	echo " Using dhcp on $dhcp_interface"
-	cp_bin $root_dir/sbin/dhcpcd $tmp_mnt/bin
-	cp_bin $root_dir/bin/kill $tmp_mnt/bin
+	cp_bin /sbin/dhcpcd $tmp_mnt/bin
+	cp_bin /bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
 	mkdir -p $tmp_mnt/var/run
     fi
 
     if has_module jfs ; then
 	features=(${features[@]} fsck.jfs)
-	cp_bin $root_dir/sbin/fsck $tmp_mnt/bin
-	cp_bin $root_dir/sbin/fsck.jfs $tmp_mnt/bin
+	cp_bin /sbin/fsck $tmp_mnt/bin
+	cp_bin /sbin/fsck.jfs $tmp_mnt/bin
     fi
 
     if [ -n "$debug_mkinit" ]; then
@@ -1226,21 +1185,9 @@ mkinitrd_kernel() {
     fi
 
     echo -ne "Shared libs:\t"
-    # Only check those binaries against dynamic libraries that were
-    # taken from the root_dir: We don't want to go into library
-    # hell by adding libraries in different versions!
-    bin_files=$(
-	for bin in "${initrd_bins[@]}" ; do
-	    case $bin in
-	        ($root_dir*)
-		    echo "${bin#$root_dir}"
-		    ;;
-	    esac
-	done )
-
     # Copy all required shared libraries and the symlinks that
     # refer to them.
-    lib_files=$(shared_object_files $bin_files)
+    lib_files=$(shared_object_files "${initrd_bins[@]}")
     if [ -n "$lib_files" ]; then
 	for lib in $lib_files; do
 	    [ -L $root_dir/$lib ] || echo -n "$lib "
