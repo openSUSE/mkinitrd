@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.154 $
+# $Revision: 1.155 $
 
 #
 # Print usage and exit
@@ -549,7 +549,7 @@ attach_dsdt() {
     fi
     if ! grep -q "DSDT" "$acpi_dsdt" ; then
 	oops 2 "File $acpi_dsdt is not a valid ACPI DSDT. Ignoring."
-    elif grep -qE 'DefinitionBlock|char|dsl|aml' "$acpi_dsdt" ; then
+    elif grep -qE 'DefinitionBlock' "$acpi_dsdt" ; then
     	oops 2 "ACPI DSDT $acpi_dsdt does not seem to be in binary form." \
 	       "Will not attach this to $initrd_image."
     else
