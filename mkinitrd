@@ -3,7 +3,7 @@
 # mkinitrd - create the inital ramdisk images
 # usage: see below usage() or call with -h
 #
-# Copyright (C) 1999-2003 SuSE Linux AG, Nuernberg, Germany
+# Copyright (C) 1999-2004 SuSE Linux AG, Nuernberg, Germany
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.37 $
+# $Revision: 1.38 $
 
 #
 # Print usage and exit
@@ -70,8 +70,12 @@ EOM
 readlink() {
     local path=$1 ll
 
-    ll="$(LC_ALL=C ls -l "$path" 2>&1)"
-    echo "${ll/* -> }"
+    if [ -L "$path" ]; then
+	ll="$(LC_ALL=C ls -l "$path" 2> /dev/null)"
+	echo "${ll/* -> }"
+    else
+	return 1
+    fi
 }
 
 default_kernel_images () {
@@ -1422,7 +1426,8 @@ fi
 #
 # on s390 the initrd is always needed as long as we don't set the
 # initrd flag in /etc/zipl.conf with YaST.
-if [ -z "$modules" -a -z "$root_lvm" -a -z "$root_dm" -a -z "$use_pivot_root" -a \
+if [ -z "$modules" -a -z "$root_lvm" -a -z "$root_dm" -a \
+     -z "$use_pivot_root" -a \
      -z "$splash" -a "$arch" != s390 -a -z "$use_selinux" ]; then
     ( cd $boot_dir
       rm -f $initrd_images )
@@ -1452,8 +1457,7 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     # Hack: Previous kernels have had a symlink vmlinuz -> vmlinuz-$VERSION,
     # but initrd was a plain file. Try to detect that case, and replace
     # old initrd files with symlinks.
-    if [ -L $root_dir/$boot_dir/vmlinuz -a \
-	 "$(readlink $root_dir/$boot_dir/vmlinuz)" == \
+    if [ "$(readlink $root_dir/$boot_dir/vmlinuz)" == \
 	 "${kernel_image#$boot_dir/}" ]; then
 	rm -f $root_dir/$boot_dir/initrd
 	ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
@@ -1484,7 +1488,8 @@ You may now have to update the elilo boot loader configuration."
     ;;
   *)
     if [ -f "$root_dir/etc/zipl.conf" ]; then
-	echo -e "\ninitrd updated, zipl needs to update the IPL record before IPL!"
+	echo "
+initrd updated, zipl needs to update the IPL record before IPL!"
     else
 	echo "
 You may now have to update your boot loader configuration."
