@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.69 $
+# $Revision: 1.70 $
 
 #
 # Print usage and exit
@@ -767,7 +767,7 @@ mkinitrd_kernel () {
     if has_module iscsi ; then
 	cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
 	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
-	nead_mount=1
+	need_mount=1
     fi
 
     if [ -n "$sysfs_root" ]; then
@@ -945,6 +945,21 @@ mkinitrd_kernel () {
 	|	umount -n /sys
 	|	exit \$1
 	|}
+	|
+	|root_arg() {
+	|   set -- $(cat /proc/cmdline)
+	|   while [ $# -gt 1 ]; do
+	|	case $1 in
+	|	root=*)
+	|	    IFS==
+	|	    set -- $1
+	|	    echo $2
+	|	    return 0 ;;
+	|	esac
+	|	shift
+	|   done
+	|   return 1
+	|}
 	EOF
 
     # Start udev if necessary
@@ -1065,14 +1080,8 @@ mkinitrd_kernel () {
 	|vgchange -a y
 	|umount -n /etc/lvmtab.d
 	|# set the right root device if user specified a lvm root
-	|root=
-	|for o in $(cat /proc/cmdline) ; do
-	|  case $o in
-	|    root=*) root=$(IFS== ; set -- $o ; echo $2) ;;
-	|  esac
-	|done
-	|if test -n "$root"; then
-	|  devn=$(devnumber $root 2> /dev/null)
+	|if test -n "$(root_arg)"; then
+	|  devn=$(devnumber $(root_arg) 2> /dev/null)
 	|  if test "$devn" -ge 14848 -a "$devn" -lt 15104 ; then
 	|    echo $devn > /proc/sys/kernel/real-root-dev
 	|  fi
@@ -1205,23 +1214,20 @@ mkinitrd_kernel () {
 	EOF
     fi
 
+    # FIXME: Should we test for $(root_arg) = "" below, too?
+
     if [ -n "$dhcp_interface" ] ; then
 	cat_linuxrc <<-'EOF'
-	|root=
-	|dhcp_mode=1
-	|for o in $(cat /proc/cmdline) ; do
-	|  case $o in
-	|    root=/dev/nfs) root="$o" ;;
-	|    root=*:/*)	    root="$o" ;;  # machine:/path (nfs)
-	|    root=*)	    root="$o" ; dhcp_mode= ;;
-	|  esac
-	|done
+	|case $(root_arg) in
+	|/dev/nfs|*:/*)
+	|   dhcp_mode=1 ;;
+	|esac
 	EOF
     fi
 
     if has_module iscsi ; then
 	cat_linuxrc <<-EOF
-	|for o in $(cat /proc/cmdline) ; do
+	|for o in $(cat /proc/cmdline); do
 	|  case $o in
 	|    DiscoveryAddress=*)
 	|      target="$o" ; iscsi_boot=true ;;
@@ -1231,7 +1237,7 @@ mkinitrd_kernel () {
 	|done
 	|# iscsi boot requires dhcp, regardless of root= format
 	|if test -n "$iscsi_boot" ; then
-	|  dhcp_mode=
+	|  dhcp_mode=1
 	|fi
 	EOF
     fi
@@ -1240,7 +1246,6 @@ mkinitrd_kernel () {
 	cat_linuxrc <<-EOF
 	|# run dhcp
 	|if test -n "\$dhcp_mode" ; then
-	|  rootdev=
 	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
 	|  # portmap
 	|  echo "running dhcpcd on interface $dhcp_interface"
@@ -1289,34 +1294,35 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    if [ -n "$dhcp_interface" ] ; then
+    if [ -n "$dhcp_interface" ]; then
 	cat_linuxrc <<-'EOF'
-	|if test -z "$root" ; then
-	|  if test -z "$ROOTPATH" ; then
-	|    echo "no root= kernel option given and no rootpath" \
-	|         "set by the dhcp server."
-	|    echo 256 > /proc/sys/kernel/real-root-dev
-	|    die 0
-	|  fi
-	|  case $ROOTPATH in
+	|if [ -z "$(root_arg)" ]; then
+	|  case "$ROOTPATH" in
+	|    "") ;;
 	|    *:*)
-	|      rootdev="$ROOTPATH"
-	|      ;;
+	|	rootdev="$ROOTPATH" ;;
 	|    *)
-	|      if test -n "$DHCPSIADDR" ; then
-	|        rootdev="$DHCPSIADDR:$ROOTPATH"
-	|      elif test -n "$DHCPSNAME" ; then
-	|        rootdev="$DHCPSNAME:$ROOTPATH"
-	|      else
-	|        echo "no root= kernel option given and no root" \
-	|             "server set by the dhcp server."
-	|        echo 256 > /proc/sys/kernel/real-root-dev
-	|        die 0
-	|      fi
-	|  esac
+	|	if test -n "$DHCPSIADDR" ; then
+	|	    rootdev="$DHCPSIADDR:$ROOTPATH"
+	|	elif test -n "$DHCPSNAME" ; then
+	|	    rootdev="$DHCPSNAME:$ROOTPATH"
+	|	fi ;;
+	|   esac
+	|   if [ -z "$rootdev" ]; then
+	|	echo "no local root= kernel option given and no root" \
+	|	     "server set by the dhcp server."
+	|	echo 256 > /proc/sys/kernel/real-root-dev
+	|	die 0
+	|   fi
 	|fi
 	EOF
     fi
+
+    cat_linuxrc <<-EOF
+	|if [ -z "\$rootdev" ]; then
+	|   rootdev=\$(root_arg) || rootdev="$rootdev"
+	|fi
+	EOF
 
     if has_module jfs && [ -n "$rootdev" ] ; then
 	cat_linuxrc <<-'EOF'
@@ -1339,54 +1345,45 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$use_pivot_root" ] ; then
-	cat_linuxrc <<-EOF
-	|# mount root with pivot_root call
-	|opt="-oro"
-	|test -n "\$dhcp_mode" && opt=-oro,nolock
-	|test -z "\$dhcp_mode" && rootdev="$rootdev"
-	|root=
-	|nopivot=
-	|for o in \$(cat /proc/cmdline) ; do
-	|  test "\$o" = rw && opt=
-	|  test "\$o" = rw -a -n "\$dhcp_mode" && opt=-onolock
-	|  case \$o in
-	|    root=ROOT=*) root="\$o" ;;
-	|    root=LABEL=*) root="\$o" ;;
-	|    root=*) root="\$o" ; nopivot=1 ;;
-	|  esac
-	|done
-	|if test -n "\$nopivot" -a -z "\$dhcp_mode" ; then
-	|  die 0
-	|fi
+	cat_linuxrc <<-'EOF'
+	|case "$rootdev" in
+	|ROOT=*|LABEL=*)
+	|   pivotroot=1 ;;
+	|*)
+	|   pivotroot=$dhcp_mode ;;
+	|esac
 	|
-	|if test -n "\$root" ; then
-	|  rootdev=$(IFS== ; set -- \$root ; echo \$2)
-	|fi
+	|if [ -n "$pivotroot" ]; then
+	|   read_write=
+	|   for o in $(cat /proc/cmdline); do
+	|	[ $o = rw ] && read_write=1
+	|   done
 	|
-	|# tell kernel root is /dev/ram0, prevents remount after initrd
-	|echo 256 > /proc/sys/kernel/real-root-dev
-	|# mount the actual root device below /mnt
-	|echo "Mounting root \$rootdev"
-	|mount -n \$opt \$rootdev /mnt || die 1
-	|# do pivot-root call
-	|cd /mnt
-	|exec <dev/console >dev/console 2>&1
-	|if test -d initrd ; then
-	|   exec pivot_root . initrd
-	|elif test -d mnt ; then
-	|   pivot_root . mnt
-	|   exec /bin/umount -n /mnt
-	|else
-	|   pivot_root . tmp
-	|   exec /bin/umount -n /tmp
+	|   opt=-oro
+	|   [ -n "$read_write" ] && opt=-orw
+	|   [ -n "$dhcp_mode" ] && opt="${opt},nolock"
+	|
+	|   # tell kernel root is /dev/ram0, prevents remount after initrd
+	|   echo 256 > /proc/sys/kernel/real-root-dev
+	|   # mount the actual root device below /mnt
+	|   echo "Mounting root $rootdev"
+	|   mount -n $opt $rootdev /mnt || die 1
+	|
+	|   # do pivot-root call
+	|   cd /mnt
+	|   exec <dev/console >dev/console 2>&1
+	|   if test -d initrd ; then
+	|	exec pivot_root . initrd
+	|   elif test -d mnt ; then
+	|	pivot_root . mnt
+	|	exec /bin/umount -n /mnt
+	|   else
+	|	pivot_root . tmp
+	|	exec /bin/umount -n /tmp
+	|   fi
 	|fi
 	EOF
     fi
-
-	
-    cat_linuxrc <<-EOF
-	|die 0
-	EOF
 
     # Now create a second initrd with minimal size
 
