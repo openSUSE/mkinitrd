@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.45 2004/08/21 14:14:10 olh Exp $
+# $Id: mkinitramfs,v 1.46 2004/08/21 14:18:36 olh Exp $
 
 #
 # Print usage and exit
@@ -55,7 +55,7 @@ usage() {
                            variable in /etc/sysconfig/kernel.
                            (currently broken)
           -S               Load policy file for SELinux if exist.
-          -V               Vendor specific script to run in initrams
+          -V               Vendor specific script to run in initramfs
 EOM
     exit
 }

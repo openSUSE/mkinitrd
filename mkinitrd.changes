@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Aug 21 16:18:09 CEST 2004 - olh@suse.de
+
+- mkinitramfs: fix typo in help text output
+
+-------------------------------------------------------------------
 Sat Aug 21 16:13:36 CEST 2004 - olh@suse.de
 
 - mkinitramfs: check if lilo.conf is readable to avoid warning
