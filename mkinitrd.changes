@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Jun  5 21:18:29 CEST 2004 - olh@suse.de
+
+- mkinitramfs: create 32 mdN nodes, create isdninfo,
+  remove sleep 3 in nfsmount
+
+-------------------------------------------------------------------
 Wed Jun  2 18:00:29 CEST 2004 - bk@suse.de
 
 - mkinitrd: write commandline as command line in warning (#41542)

@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.15 2004/05/31 18:31:06 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.16 2004/06/05 19:19:22 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -47,15 +47,21 @@ if [ -x /load_modules.sh ] ; then
 fi
 #
 # create all remaining device nodes
-echo -n "creating device nodes .."
+echo -n "creating device nodes ."
 /sbin/udevstart
-echo .
+echo -n .
 
 # workaround chicken/egg bug in mdadm and raidautorun
 # they do the ioctl on the not yet existing device node...
-mknod -m 660 /dev/md0 b 9 0
-mknod -m 660 /dev/md1 b 9 1
-mknod -m 660 /dev/md2 b 9 2
+for i in 0 1 2 3 4 5 6 7 8 9 \
+	10 11 12 13 14 15 16 17 18 19 \
+	20 21 22 23 24 25 26 27 28 29 \
+	30 31 \
+; do
+mknod -m 660 /dev/md$i b 9 $i
+done
+mknod -m 400 /dev/isdninfo c 45 255
+echo .
 
 if [ -x /load_md.sh ] ; then
 	PATH=$PATH /load_md.sh
@@ -70,7 +76,6 @@ root=
 rootfstype=
 read cmdline < /proc/cmdline
 for i in $cmdline ; do
-	oifs="$IFS"
 	opt=
 	case "$i" in
 		init=*) 
@@ -114,7 +119,6 @@ for i in $cmdline ; do
 			#debug=true
 			;;
 	esac
-	IFS="$oifs"
 done
 
 if [ -z "$readonly" ] ; then
@@ -194,7 +198,6 @@ case "$root" in
 		nfsserver="$ROOTSERVER:$ROOTPATH"
 	fi
 	echo "nfsmount $nfsoptions $nfsserver"
-	sleep 3
 	nfsmount $nfsoptions $nfsserver /root || failed=1
 	;;
 	*:*)
