@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Aug 21 16:13:36 CEST 2004 - olh@suse.de
+
+- mkinitramfs: check if lilo.conf is readable to avoid warning
+
+-------------------------------------------------------------------
 Fri Aug 20 11:22:24 CEST 2004 - olh@suse.de
 
 - mkinitrd: /run_init must be s static binary because /lib is 

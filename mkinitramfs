@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.44 2004/07/28 16:19:11 olh Exp $
+# $Id: mkinitramfs,v 1.45 2004/08/21 14:14:10 olh Exp $
 
 #
 # Print usage and exit
@@ -239,7 +239,7 @@ off)
 auto)
     splashsizes=
     bootconf=/dev/null
-    [ -f /etc/lilo.conf ] \
+    [ -r /etc/lilo.conf ] \
 	&& bootconf="$bootconf /etc/lilo.conf"
     [ -f /boot/grub/menu.lst ] \
 	&& bootconf="$bootconf /boot/grub/menu.lst"
