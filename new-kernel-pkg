@@ -22,7 +22,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/new-kernel-pkg,v $
-# $Revision: 1.2 $
+# $Revision: 1.3 $
 
 
 update_zipl_conf() {
@@ -120,7 +120,11 @@ case "$LOADER_LOCATION" in
 esac
 
 case "$LOADER_TYPE" in
-    lilo|elilo)
+    lilo)
+	# perl-Bootloader did run lilo for us (this is i386 / x86_64).
+	;;
+    elilo)
+	# We're on ia64.
 	echo "Running $LOADER_TYPE..."
 	out=$($LOADER_TYPE 2>&1) || {
 	  echo "$LOADER_TYPE failed to write the boot record for your system."
@@ -132,7 +136,7 @@ case "$LOADER_TYPE" in
 	} >&2
 	;;
     grub)
-	echo "Using $LOADER_TYPE, re-install of bootloader not required."
+	# We don't need to do anything for Grub.
 	;;
     s390)
 	ZIPL_CONF=/etc/zipl.conf

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.186 $
+# $Revision: 1.187 $
 
 #
 # Print usage and exit
@@ -505,8 +505,8 @@ resolve_modules() {
 
     for module in "$@"; do
 	local with_modprobe_conf
-	module=${module#.o}  # strip trailing ".o" just in case.
-	module=${module#.ko}  # strip trailing ".ko" just in case.
+	module=${module%.o}  # strip trailing ".o" just in case.
+	module=${module%.ko}  # strip trailing ".ko" just in case.
 	if [ -e /etc/modprobe.conf ]; then
 	    with_modprobe_conf="-C /etc/modprobe.conf"
 	fi

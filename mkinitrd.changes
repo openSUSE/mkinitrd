@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 11 12:53:23 CET 2005 - agruen@suse.de
+
+- Fix stripping .o and .ko extensions from module names.
+
+-------------------------------------------------------------------
 Thu Mar 10 18:31:40 CET 2005 - ro@suse.de
 
 - typo fix "rootfstype" -> "$rootfstype" 

@@ -8,7 +8,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/installkernel,v $
-# $Revision: 1.6 $
+# $Revision: 1.7 $
 #
 
 : ${INSTALL_PATH:=/boot}
@@ -83,10 +83,13 @@ else
 fi
 
 #
-# Kick boot loader
+# Update boot loader
 #
-if [ -x /sbin/new-kernel-pkg ]; then
-    /sbin/new-kernel-pkg $KERNEL_VERSION
-else
-    echo "Please add kernel $KERNEL_VERSION to the boot manager now."
+if [ -x /sbin/update-bootloader ]; then
+    opt_initrd=
+    [ -e /boot/initrd-$KERNEL_VERSION ] \
+	&& opt_initrd="--initrd /boot/initrd-$KERNEL_VERSION"
+    /sbin/update-bootloader --image /boot/$BOOTFILE-$KERNEL_VERSION \
+	$opt_initrd --add
 fi
+/sbin/new-kernel-pkg $KERNEL_VERSION
