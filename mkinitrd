@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.195 $
+# $Revision: 1.196 $
 
 #
 # Print usage and exit
@@ -1708,18 +1708,19 @@ mkinitrd_kernel() {
 		# set to empty entirely so as not to confuse the dasd module.
 		#
 		# This checks whether the dasd parameter is present
-		cat_linuxrc <<-'EOF'
+		cat_linuxrc <<-EOF
 		|# check for DASD parameter in /proc/cmdline
-		|for p in $(cat /proc/cmdline) ; do
-		|  case $p in
+		|for p in \$(cat /proc/cmdline) ; do
+		|  case \$p in
 		|    dasd=*)
-		|      dasd_params="$p"
+		|      dasd_params="\$p"
 		|      ;;
 		|  esac
 		|done
+		|mp="/$module\${dasd_params:+ dasd=\"\$dasd_params\"}"
+		|echo "Loading \${mp#/lib/modules/$kernel_version/}"	
+		|insmod \$mp
 		EOF
-		# Add the intermediate parameter to the modules
-		params="\$dasd_params"
 		;;
 	    */ide?core.*)
 		# This checks whether an ide= parameter is present
