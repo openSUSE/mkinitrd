@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.43.4.2 2004/10/19 10:42:22 agruen Exp $
+# $Id: mkinitramfs,v 1.43.4.3 2004/10/28 12:55:07 olh Exp $
 
 #
 # Print usage and exit
@@ -576,6 +576,7 @@ mkinitrd_kernel () {
     # fill the initrd
     mkdir    $tmp_mnt/{sbin,bin,etc}
     mkdir -p $tmp_mnt/lib/klibc/bin
+    mkdir -p $tmp_mnt/var/run
     echo -n > $tmp_mnt/etc/mtab
     # all dev nodes belong to root, according to udev.permissions
     # but some may be owned by a group other than root
