@@ -1,7 +1,19 @@
 -------------------------------------------------------------------
+Wed Dec  8 12:01:57 CET 2004 - agruen@suse.de
+
+- Add module_upgrade to the file list.
+
+-------------------------------------------------------------------
 Thu Dec  2 13:03:46 CET 2004 - hare@suse.de
 
 - Fix startup of RAID1 for S/390 (#48639).
+
+-------------------------------------------------------------------
+Tue Nov 30 16:49:42 CET 2004 - agruen@suse.de
+
+- module_upgrade: Add script for renaming modules in all system
+  config files. This is invoked from the kernel post-install
+  script (#47755).
 
 -------------------------------------------------------------------
 Mon Nov 22 12:44:29 CET 2004 - hare@suse.de

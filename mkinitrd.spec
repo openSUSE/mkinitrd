@@ -1,7 +1,7 @@
 #
 # spec file for package mkinitrd (Version 1.0)
 #
-# Copyright (c) 2004 SUSE LINUX AG, Nuernberg, Germany.
+# Copyright (c) 2004 SUSE LINUX Products GmbH, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
@@ -30,6 +30,7 @@ Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
 Source10:     mkinitramfs
 Source11:     mkinitramfs-kinit.sh
+Source20:     module_upgrade
 #
 # Missing: man page for mkinitrd etc.
 #
@@ -62,7 +63,7 @@ Authors:
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/sbin
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
-cp %SOURCE0 %SOURCE1 %SOURCE2 $RPM_BUILD_ROOT/sbin/
+cp %SOURCE0 %SOURCE1 %SOURCE2 %SOURCE20 $RPM_BUILD_ROOT/sbin/
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 cp %SOURCE3 $RPM_BUILD_ROOT/%{_mandir}/man8
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd
@@ -79,6 +80,7 @@ cp -p %{S:10} $RPM_BUILD_ROOT/sbin/mkinitramfs
 /sbin/mk_initrd
 /sbin/installkernel
 /sbin/new-kernel-pkg
+/sbin/module_upgrade
 %{_mandir}/man8/mkinitrd.8.gz
 /lib/mkinitrd
 %ifnarch ppc ppc64

@@ -1,0 +1,145 @@
+#! /usr/bin/perl -w
+
+#  module_upgrade
+#
+#  Scan all system configuration files that refer to kernel modules and
+#  replace occurrences of old module names with their new name.
+#
+#  This script is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License version 2 as
+#  published by the Free Software Foundation.
+#
+#  Copyright by Andreas Gruenbacher <agruen@suse.de>, December 2004
+
+use Getopt::Long;
+use FileHandle;
+use strict;
+
+my $verbose = 0;  # Verbose output?
+my $rename = {};  # The list of modules that are renamed
+
+if (!GetOptions("rename=s%" => $rename,
+		"verbose" => \$verbose)) {
+    die "SYNOPSIS: $0 {--rename old=new} ...\n";
+}
+
+# Apply FUNC to each line of file FILENAME. If FUNC modifies any of the
+# lines, write back the result into FILE.
+#
+sub update_file($$) {
+    my ($func, $filename) = @_;
+    print "Checking file $filename...\n"
+	if $verbose;
+    my $fh = new FileHandle("< $filename")
+	or die "$filename: $!\n";
+
+    local $/ = undef;
+    my @before = split /\n/, <$fh>;
+    my @after = @before;
+
+    map { &$func($_) } @after;
+
+    if ((join "\n", @before) ne (join "\n", @after)) {
+	print "Updating file $filename...\n"
+	    if $verbose;
+	my $fh = new FileHandle("> $filename")
+	    or die "Writing to $filename: $!\n";
+	print $fh join "\n", @after;
+    }
+}
+
+# A line in a Shell-style script. The followng forms are recognized:
+#   variable="value", variable='value', variable=value
+#
+sub script($$$) {
+    my ($subst, $variables);
+    ($subst, $variables, $_) = @_;
+
+    if (
+	/^\s*([^=\s]+)\s*=\s*(")((?:[^"]|\\.)*)"/ ||
+	/^\s*([^=\s]+)\s*=\s*(')([^']*)'/ ||
+	/^\s*([^=\s]+)\s*=\s*()(\S+)/
+    ) {
+	foreach my $v (@$variables) {
+	    if ($1 eq $v) {
+		$_ = "$v=$2" . (join " ", map {
+			exists $subst->{$_} ? $subst->{$_} : $_
+		    } split /\s+/, $3 ) . "$2";
+		}
+	}
+    }
+}
+
+# The /etc/sysconfig/kernel script, basically
+#
+sub linuxrc_script($) {
+    return script $rename, ['INITRD_MODULES', 'MODULES_LOADED_ON_BOOT'], $_;
+}
+
+# An interface config file below /etc/sysconfig/network/
+#
+sub ifcfg_script($) {
+    return script $rename, ['MODULE'], $_;
+}
+
+# A file sourced by modprobe (/etc/modprobe.conf and friends).
+sub modprobe_conf($) {
+    if (/^(\s*alias\s+\S+\s+)(\S+)(.*)/
+	&& exists $rename->{$2}) {
+	$_ = "$1$rename->{$2}$3";
+    } elsif (/^(\s*(?:options|install|remove)\s+)(\S+)(.*)/
+	     && exists $rename->{$2}) {
+	$_ = "$1$rename->{$2}$3";
+    }
+}
+
+my $errors = 0;
+
+# Update all modprobe.conf files
+eval {
+    update_file \&modprobe_conf, '/etc/modprobe.conf';
+};
+if ($@) {
+    warn $@;
+    $errors++;
+}
+
+eval {
+    update_file \&modprobe_conf, '/etc/modprobe.conf.local';
+};
+if ($@) {
+    warn $@;
+    $errors++;
+}
+
+for my $conf (</etc/modprobe.d/*>) {
+    eval {
+	update_file \&modprobe_conf, $conf;
+    };
+    if ($@) {
+	warn $@;
+	$errors++;
+    }
+}
+
+# Update sysconfig
+eval {
+    update_file \&linuxrc_script, '/etc/sysconfig/kernel';
+};
+if ($@) {
+    warn $@;
+    $errors++;
+}
+
+# Update all ifcfg files
+for my $ifcfg (</etc/sysconfig/network/ifcfg-*>) {
+    eval {
+	update_file \&ifcfg_script, $ifcfg;
+    };
+    if ($@) {
+	warn $@;
+	$errors++;
+    }
+}
+
+exit $errors ? 1 : 0;
