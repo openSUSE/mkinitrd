@@ -1,0 +1,1136 @@
+#! /bin/bash
+
+# mkinitrd - create an initramfs cpio archive, 
+# useable with kernel 2.6 and newer
+# usage: see below usage() or call with -h
+#
+# Copyright (C) 1999-2004 SuSE Linux AG, Nuernberg, Germany
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+# USA.
+
+# This file is kept in the following CVS repository:
+#
+# $Source: /suse/yast2/cvsroot/mkinitrd/Attic/mkinitramfs,v $
+# $Revision: 1.1 $
+
+#
+# Print usage and exit
+#
+usage() {
+    cat<<EOM
+	Create compressed initramfs images that contain all kernel modules
+	needed in the early boot process, before the root file system
+	becomes available. This usually includes SCSI and/or RAID
+	modules, a file system module for the root file system, or
+	a network interface driver module for dhcp.
+
+        mkinitrd [options] [root_dir]
+
+        options:
+          -h               This Text.
+          -k "kernel list" List of kernel images for which initrd files
+                           are created. Defaults to all kernels found
+			   in /boot.
+          -i "initrd list" List of file names for the initrd; position
+	  		   have match to "kernel list". Defaults to all
+			   all kernels found in /boot.
+          -m "module list" Modules to include in initrd. Defaults to the
+                           INITRD_MODULES variable in /etc/sysconfig/kernel.
+          -b boot_dir      Boot directory. Defaults to /boot.
+	  -s size          Add splash animation and bootscreen to initrd.
+	  -t tmp_dir       Temporary directory. Defaults to $root_dir/var/tmp.
+	  -D interface     Run dhcp on the specified interface.
+	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
+	  		   Description Table) to initrd. This replaces the
+			   DSDT of the BIOS. Defaults to the ACPI_DSDT
+			   variable in /etc/sysconfig/kernel.
+	  -S               Load policy file for SELinux if exist.
+        root_dir:          The directory the root partition is mounted on.
+                           Defaults to "/".
+EOM
+    exit
+}
+
+# Readlink is not present on some older distributions: emulate it.
+readlink() {
+    local path=$1 ll
+
+    if [ -L "$path" ]; then
+	ll="$(LC_ALL=C ls -l "$path" 2> /dev/null)"
+	echo "${ll/* -> }"
+    else
+	return 1
+    fi
+}
+
+default_kernel_images () {
+	local regex kernel_image kernel_version version_version initrd_image
+	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
+
+	case "$arch" in
+		s390*)	regex='image'
+			;;
+		ppc)	regex='vmlinux'
+			;;
+		*)	regex='vmlinuz'
+			;;
+	esac
+
+	kernel_images=""
+	initrd_images=""
+	for kernel_image in $(ls $root_dir/boot \
+		| sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
+
+		# Note that we cannot check the RPM database here -- this
+		# script is itself called from within the binary kernel
+		# packages, and rpm does not allow recursive calls.
+
+		[ -L "$root_dir/boot/$kernel_image" ] && continue
+		kernel_version=$(/sbin/get_kernel_version \
+				 $root_dir/boot/$kernel_image 2> /dev/null)
+		initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
+		if [ "$kernel_image" != "$initrd_image" -a \
+		     -n "$kernel_version" -a \
+		     -d "$root_dir/lib/modules/$kernel_version" ]; then
+			kernel_images="$kernel_images /boot/$kernel_image"
+			initrd_images="$initrd_images /boot/$initrd_image"
+		fi
+	done
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# general configurable parameters
+
+kernel_images=
+initrd_images=
+modules=
+modules_set=
+boot_dir=
+splash="auto"
+use_pivot_root=1
+use_static_binaries=1
+acpi_dsdt=
+use_selinux=
+
+# architecture dependend changes:
+arch=$(uname -m)
+arch=${arch/ppc64/ppc}
+arch=${arch/s390x/s390}
+
+case $arch in
+s390)
+    splash=off
+    ;;
+esac
+
+while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
+    case $a in
+	\:|\?)	case $OPTARG in
+		k)  echo "-k requires kernel list parameter"
+		    ;;
+		i)  echo "-i requires initrd list parameter"
+		    ;;
+		m)  echo "-m requires module list parameter"
+		    ;;
+		b)  echo "-b requires boot dir parameter"
+		    ;;
+		d)  echo "-d requires root device parameter"
+		    ;;
+		s)  echo "-s requires image size(s)"
+		    ;;
+		t)  echo "-t requires tmp dir parameter"
+		    ;;
+		D)  echo "-D requires dhcp interface parameter"
+		    ;;
+		a)  echo "-a requires a DSDT parameter"
+		    ;;
+		*)  echo "Unknown option: -$OPTARG"
+		    echo "Try mkinitrd -h"
+		    ;;
+	    esac
+	    exit 1
+	    ;;
+	k)  kernel_images=$OPTARG
+	    ;;
+	i)  initrd_images=$OPTARG
+	    ;;
+	m)  modules=$OPTARG
+	    modules_set=1
+	    ;;
+	b)  boot_dir=$OPTARG
+	    ;;
+	s)  splash=$OPTARG
+	    ;;
+	t)  tmp_dir=$OPTARG
+	    ;;
+	D)  dhcp_interface=$OPTARG
+	    dhcp_interface=${dhcp_interface#/dev/}
+	    use_pivot_root=1
+	    ;;
+	a)  acpi_dsdt="$OPTARG"
+	    ;;
+	S)  use_selinux=1
+	    ;;
+	h)  usage
+	    ;;
+    esac
+done
+shift $(expr $OPTIND - 1)
+
+if [ -n "$1" ]; then
+    root_dir=${1%/}  # strip trailing slash
+else
+    root_dir=
+fi
+
+if [ -n "$boot_dir" ]; then
+    boot_dir="${boot_dir#/}"
+    boot_dir="/${boot_dir%/}"
+else
+    boot_dir="/boot"
+fi
+if [ ! -d "$boot_dir" ]; then
+    echo "$boot_dir is not a directory" >&2
+    exit 1
+fi
+
+# FIXME agruen: tmp_dir is the full, absolute path to a temporary directory
+# that must not be a tmpfs file system. This was not consistently used in
+# the previous version of mkinitrd.
+
+if [ -n "$tmp_dir" ]; then
+    tmp_dir="/${tmp_dir#/}"  # make sure it is an absolute path
+else
+    tmp_dir=$root_dir/var/tmp
+fi
+if [ ! -d "$tmp_dir" ]; then
+    echo "$tmp_dir is not a directory" >&2
+    exit 1
+fi
+
+# FIXME agruen: tmp_dir defaults to $root_dir/var/tmp. Not very nice
+# to write into a directory of another installation without explicitly
+# being asked to.
+#
+# If tmp_dir is unspecified, find a non-tmpfs temporary directory:
+# /var/tmp, $root_dir/var/tmp, /tmp, $root_dir/tmp, etc.
+
+# Check if the -k and -i settings are valid.
+if [ $(set -- $kernel_images ; echo $#) -ne \
+     $(set -- $initrd_images ; echo $#) ]; then
+    echo "You have to specify -k and -i, or none of both. The -k" \
+         "and -i options must each contain the same number of items." >&2
+    exit 1
+fi
+
+if [ -z "$kernel_images" -o -z "$initrd_images" ]; then
+    default_kernel_images
+fi
+
+
+# The shell-bang line to use inside initrd.
+shebang=/bin/sh
+
+[ -x $root_dir/sbin/insmod ] \
+    && initrd_insmod_dynamic=$root_dir/sbin/insmod
+if [ -n "$use_static_binaries" ]; then
+    if [ -x $root_dir/sbin/insmod.static ]; then
+	initrd_insmod=$root_dir/sbin/insmod.static
+    else
+	initrd_insmod=/sbin/insmod.static
+    fi
+else
+    initrd_insmod=$initrd_insmod_dynamic
+fi
+
+
+# maximum initrd size
+image_blocks=20480
+image_inodes=2048
+
+# handle splash screen
+case "$splash" in
+off)
+    splashsizes= ;;
+auto)
+    splashsizes=
+    bootconf=/dev/null
+    [ -f $root_dir/etc/lilo.conf ] \
+	&& bootconf="$bootconf $root_dir/etc/lilo.conf"
+    [ -f $root_dir/boot/grub/menu.lst ] \
+	&& bootconf="$bootconf $root_dir/boot/grub/menu.lst"
+    for vga in $(sed -e '/^[ \t]*#/d' -e 's/ \+/\n/g' $bootconf \
+	    	 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
+		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
+	splashsize=
+	case $[$vga] in  # $[...] : Convert 0xFOO to decimal
+	    785|786) splashsize=640x480   ;;
+	    788|789) splashsize=800x600   ;;
+	    791|792) splashsize=1024x768  ;;
+	    794)     splashsize=1280x1024 ;;
+	    795)     splashsize=1280x1024 ;;
+	    *)	     vgahex=$(printf 0x%04x "$[$vga]")
+		     splashsize=$(hwinfo debug=0 -all +bios.vbe | sed -ne \
+				   's/^.*Mode '$vgahex': \([^ ]\+\) .*$/\1/p' \
+				  2>/dev/null) ;;
+	esac
+	[ -n "$splashsize" -a "${splashsizes/$splashsize/}" = "$splashsizes" ] \
+	    && splashsizes="$splashsizes $splashsize"
+    done ;;
+*)
+    splashsizes=$splash ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# should be nothing to change below...
+
+PATH=/sbin:/usr/sbin:$PATH
+
+work_dir=$(mktemp -qd $tmp_dir/mkinitrd.XXXXXX)
+if [ $? -ne 0 ]; then
+	echo "$0: Can't create temp dir, exiting." >&2
+	exit 1
+fi
+is_mounted=
+is_mounted_small=
+
+umount_proc() {
+    [ "$mounted_proc" ] && umount $mounted_proc
+    mounted_proc=
+}
+
+cleanup () {
+    rm -f $tmp_initrd $tmp_initrd.gz
+}
+
+cleanup_finish () {
+    umount_proc
+    [ -d "$work_dir" ] && rmdir $work_dir
+}
+
+handle_terminate () {
+    echo "(received signal)
+
+Interrupted, cleaning up." >&2
+    cleanup
+    cleanup_finish
+    exit 255
+}
+
+trap handle_terminate 1 2 3 15
+
+error () {
+    echo "$2" >&2
+    cleanup
+    cleanup_finish
+    exit $1
+}
+
+oops () {
+    exit_code=$1
+    shift
+    echo "$@" >&2
+}
+
+# Check if module $1 is listed in $modules.
+has_module () {
+    case " $modules " in
+	*" $1 "*)   return 0 ;;
+    esac
+    return 1
+}
+
+# Check if any of the modules in $* are listed in $modules.
+has_any_module () {
+    local module
+    for module in "$@"; do
+	has_module "$module" && return 0
+    done
+}
+
+# Add module $1 at the end of the module list.
+add_module () {
+    local module
+    for module in "$@"; do
+	has_module "$module" || modules="$modules $module"
+    done
+}
+
+# Install a binary file
+cp_bin () {
+    cp -a "$@"
+
+    # Remember the binaries installed. We need the list for checking
+    # for dynamic libraries.
+    while [ $# -gt 1 ]; do
+	initrd_bins[${#initrd_bins[@]}]=$1
+	shift
+   done
+}
+
+do_chroot() {
+    local CHROOT
+    if [ -n "$root_dir" ]; then
+	CHROOT=/usr/bin/chroot
+	if [ ! -x $CHROOT ]; then
+	    error 2 "I need $CHROOT."
+	else
+	    $CHROOT "$@"
+	fi
+    else
+	"$@"
+    fi
+
+}
+
+# Resolve dynamic library dependencies. Returns a list of symbolic links
+# to shared objects and shared object files for the binaries in $*. The
+# binaries must be relative to $root_dir.
+shared_object_files () {
+    local LDD CHROOT initrd_libs lib_files lib_links lib link
+
+    LDD=/usr/bin/ldd
+    if [ ! -x $root_dir$LDD ]; then
+	error 2 "I need $root_dir$LDD."
+    fi
+
+    initrd_libs=( $(
+	do_chroot $LDD "${@#$root_dir}" \
+	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:'
+    ) )
+
+    # Evil hack: On some systems we have generic as well as optimized
+    # libraries, but the optimized libraries may not work with all
+    # kernel versions (e.g., the NPTL glibc libraries don't work with
+    # a 2.4 kernel). Use the generic versions of the libraries in the
+    # initrd (and guess the name).
+    local n optimized
+    for ((n=0; $n<${#initrd_libs[@]}; n++)); do
+	lib=${initrd_libs[$n]}
+	optimized="$(echo "$lib" | sed -e 's:.*/\([^/]\+/\)[^/]\+$:\1:')"
+	lib=${lib/$optimized/}
+	if [ "${optimized:0:3}" != "lib" -a -f "$lib" ]; then
+	    #echo "[Using $lib instead of ${initrd_libs[$n]}]" >&2
+	    initrd_libs[$n]="${lib/$optimized/}"
+	fi
+    done
+
+    for lib in "${initrd_libs[@]}"; do
+	case "$lib" in
+	linux-gate*)
+	    # This library is mapped into the process by the kernel
+	    # for vsyscalls (i.e., syscalls that don't need a user/
+	    # kernel address space transition) in 2.6 kernels.
+	    continue ;;
+	/*)
+	    lib="${lib:1}" ;;
+	*)
+	    # Library could not be found.
+	    oops 7 "Dynamic library $lib not found"
+	    continue ;;
+	esac
+
+	while [ -L "$root_dir/$lib" ]; do
+	    echo $lib
+	    link="$(readlink "$root_dir/$lib")"
+	    if [ x"${link:0:1}" == x"/" ]; then
+	        lib=${link#/}
+	    else
+	        lib="${lib%/*}/$link"
+	    fi
+	done
+	echo $lib
+    done \
+    | sort -u
+}
+
+# Resolve module dependencies and parameters. Returns a list of modules and
+# their parameters. The module names returned are relative to $root_dir.
+resolve_modules () {
+    local kernel_version=$1 module
+    shift
+
+    for module in "$@"; do
+	module=${module#.o}  # strip trailing ".o" just in case.
+	module=${module#.ko}  # strip trailing ".ko" just in case.
+
+	    local with_modprobe_conf
+	    if [ -e $root_dir/etc/modprobe.conf ]; then
+		with_modprobe_conf="-C /etc/modprobe.conf"
+	    fi
+	    module_list=$( do_chroot \
+	       /sbin/modprobe $with_modprobe_conf \
+			      --set-version $kernel_version \
+			      --show-depends $module 2> /dev/null \
+	       | sed -ne 's:.*insmod /\?::p' )
+
+	if [ -z "$module_list" ]; then
+	    case $module in
+	    scsi_mod|sd_mod|md)  # modularized in 2.4.21
+		# These modules were previously compiled into the kernel,
+		# and were modularized later. They will be missing in older
+		# kernels; ignore error messages.
+	    	;;
+	    xfs_dmapi|xfs_support)  # gone in 2.4.20
+		# These modules do no longer exist. Do not produce an error
+		# message, but warn that they should be removed manually.
+    		echo -n "Warning: Module $module no longer exists, and" \
+		     "should be removed " >&2
+	        if [ -e $root_dir/etc/sysconfig/kernel ]; then
+		    echo "from /etc/sysconfig/kernel." >&2
+	        elif [ -e $root_dir/etc/rc.config ]; then
+		    echo "from /etc/rc.config." >&2
+		else
+		    echo "." >&2
+		fi
+		;;
+	    *)
+		oops 7 "Cannot determine dependencies of module $module." \
+		       "Is modules.dep up to date?"
+		;;
+	    esac
+	fi
+	echo "$module_list"
+    done \
+    | awk ' # filter duplicates: we must not reorder modules here!
+	$1 in seen  { next }
+		    { seen[$1]=1
+		      print
+		    }
+    '
+    rm -f $temp
+}
+
+# Test if file $1 is smaller than file $2 (kilobyte granularity)
+smaller_file () {
+    local size1=$(ls -l "$1" |awk '{print $5}')
+    local size2=$(ls -l "$2" |awk '{print $5}')
+    [ $size1 -lt $size2 ]
+}
+
+# Cat from stdin to load_modules, removing leading whitespace up to pipe symbol.
+# Note that here documents can only be indented with tabs, not with spaces.
+cat_load_modules () {
+    sed 's/^[ \t]*|//' >> $load_modules
+    echo >> $load_modules
+}
+cat_load_md () {
+    sed 's/^[ \t]*|//' >> $load_md
+    echo >> $load_md
+}
+
+# Attach ACPI DSDT if necessary.
+attach_dsdt () {
+    local initrd_image=$1
+
+    if [ -z "$acpi_dsdt" ]; then
+	if [ -f "$root_dir/etc/sysconfig/kernel" ]; then
+	    . $root_dir/etc/sysconfig/kernel
+	    acpi_dsdt="$ACPI_DSDT"
+	fi
+    fi
+    if [ -z "$acpi_dsdt" ]; then
+	return
+    fi
+    if [ ! -f "$acpi_dsdt" ]; then
+	oops 2 "ACPI DSDT $acpi_dsdt does not exist."
+	return
+    fi
+    if ! grep -q "DSDT" "$acpi_dsdt" ; then
+	oops 2 "File $acpi_dsdt is not a valid ACPI DSDT. Ignoring."
+    elif grep -qE 'DefinitionBlock|char|dsl|aml' "$acpi_dsdt" ; then
+    	oops 2 "ACPI DSDT $acpi_dsdt does not seem to be in binary form." \
+	       "Will not attach this to $initrd_image."
+    else
+	{   echo -ne "INITRDDSDT123DSDT123\0"
+	    cat "$acpi_dsdt"
+	    echo -ne "INITRDDSDT321DSDT321\0"
+	} >> $initrd_image
+	echo -e "ACPI DSDT:\t$acpi_dsdt"
+    fi
+}
+
+# Create the initrd image $2 for kernel $1 (both are absolute path names).
+mkinitrd_kernel () {
+    local kernel_image=$1 initrd_image=$2
+    local kernel_version need_mount sysfs_root
+
+    tmp_mnt=$work_dir/mnt
+    tmp_initrd=$work_dir/initramfs
+    load_modules=$tmp_mnt/load_modules.sh
+    load_md=$tmp_mnt/load_md.sh
+
+    if ! [ -f "$root_dir$kernel_image" ] ; then
+	echo "No kernel image $root_dir$kernel_image found" >&2
+	return
+    fi
+
+    kernel_version=$(/sbin/get_kernel_version $root_dir$kernel_image)
+
+    echo -e "Kernel version:\t$kernel_version ($HOSTTYPE)"
+    echo -e "Kernel image:\t$root_dir$kernel_image"
+    echo -e "Initrd image:\t$root_dir$initrd_image"
+
+    if [ ! -d "$root_dir/lib/modules/$kernel_version/misc" -a \
+	 ! -d "$root_dir/lib/modules/$kernel_version/kernel" ]; then
+	oops 2 "No modules found for kernel $kernel_version"
+        return
+    fi
+
+    # create an empty initrd
+    mkdir $tmp_mnt || error 1 "could not create temporary directory"
+    # fill the initrd
+    mkdir    $tmp_mnt/{sbin,bin,etc}
+    mkdir -p $tmp_mnt/lib/klibc/bin
+    echo -n > $tmp_mnt/etc/mtab
+    cp -a /lib/klibc/bin/* $tmp_mnt/lib/klibc/bin
+    cp -a /etc/udev $tmp_mnt/etc
+    cp -a /sbin/udev.static $tmp_mnt/sbin/udev
+    cp -a /sbin/udevstart $tmp_mnt/sbin/udevstart
+    cp -a /sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
+    cp -a /sbin/udev.*.sh $tmp_mnt/sbin/
+    cp -a /lib/klibc/bin/sh $tmp_mnt$shebang
+    cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
+	|| error 5 "no static insmod"
+
+    # If exists, copy also insmod.static.old, it is created by modutils for
+    # 2.5.47+ kernels and it is needed by these to work with older kernels.
+    if [ -r $initrd_insmod.old ] ; then
+      cp_bin $initrd_insmod.old $tmp_mnt/sbin/insmod.old 2>/dev/null
+    fi
+
+   # SELinux: Binary policy file and load_policy utility for loading it.
+   if [ -n "$use_selinux" ] ; then
+	if [ -f $root_dir/etc/security/selinux/policy.15 -a \
+	     -f $root_dir/usr/sbin/load_policy ] ; then
+	   echo -e "SELinux policy:\tadded"
+	   mkdir -p $tmp_mnt/selinux
+	   mkdir -p $tmp_mnt/etc/security/selinux
+	   cp -p $root_dir/etc/security/selinux/policy.15 \
+	       $tmp_mnt/etc/security/selinux
+	   cp_bin $root_dir/usr/sbin/load_policy $tmp_mnt/sbin/load_policy
+	else
+	   echo -e "SELinux policy:\tnot found"
+	fi
+    fi
+
+    if has_module iscsi ; then
+	cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
+    fi
+
+    if [ -n "$root_lvm" ] ; then
+	echo "Including LVM support"
+	mkdir -p $tmp_mnt/etc/lvmtab.d
+	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
+    fi
+
+    if [ -n "$root_dm" ] ; then
+	echo "Including DM/LVM2 support"
+	mkdir -p $tmp_mnt/etc/lvmtab.d
+	cp -a $root_dir/dev/mapper  $tmp_mnt/dev
+	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
+    fi
+
+    if [ -n "$dhcp_interface" ] ; then
+	echo " Using dhcp on $dhcp_interface"
+	mkdir -p $tmp_mnt/var/lib/dhcpcd
+	mkdir -p $tmp_mnt/var/run
+    fi
+
+    if has_module jfs ; then
+	echo "Including JFS recovery support"
+	cp_bin $root_dir/sbin/fsck $tmp_mnt/bin
+	cp_bin $root_dir/sbin/fsck.jfs $tmp_mnt/bin
+    fi
+
+	mkdir -p $tmp_mnt/{etc,proc,mnt}
+	echo 'none /proc proc defaults 0 0' > $tmp_mnt/etc/fstab
+	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
+
+    echo -ne "Shared libs:\t"
+    # Only check those binaries against dynamic libraries that were
+    # taken from the root_dir: We don't want to go into library
+    # hell by adding libraries in different versions!
+    bin_files=$(
+	for bin in "${initrd_bins[@]}" ; do
+	    case $bin in
+	        ($root_dir*)
+		    echo "${bin#$root_dir}"
+		    ;;
+	    esac
+	done )
+
+    # Copy all required shared libraries and the symlinks that
+    # refer to them.
+    lib_files=$(shared_object_files $bin_files)
+    if [ -n "$lib_files" ]; then
+	for lib in $lib_files; do
+	    [ -L $root_dir/$lib ] || echo -n "$lib "
+	    ( cd ${root_dir:-/} ; cp -dp --parents $lib $tmp_mnt )
+	done
+	echo
+    else
+	echo "none"
+    fi
+
+    if [ -n "$lib_files" -a -n "$initrd_insmod_dynamic" ]; then
+	# If we have already have all dynamic libraries that
+	# $initrd_insmod_dynamic is using, and if $initrd_insmod_dynamic
+	# is smaller than $initrd_insmod, we can save a little space
+	# by using the dynamic version. The benefit is marginal, though.
+
+	if smaller_file $initrd_insmod_dynamic $initrd_insmod ; then
+	    for lib in $(shared_object_files $initrd_insmod_dynamic); do
+		case $lib_files in
+		    *$lib*) ;;
+		    *)	initrd_insmod_dynamic=
+		    	break ;;
+		esac
+	    done
+	    if [ -n "$initrd_insmod_dynamic" ]; then
+		#echo " - Using dynamically linked /sbin/insmod"
+		cp_bin $initrd_insmod_dynamic $tmp_mnt/sbin/insmod
+	    fi
+	fi
+    fi
+
+    # Note that the in-place documents must be indented with tabs, not spaces.
+
+    echo -n > $load_modules
+    chmod 755 $load_modules
+
+    cat_load_modules <<-EOF
+	|#! $shebang
+	EOF
+
+    if [ -n "$root_lvm" -o -n "$root_dm" ] ; then
+    echo -n > $load_md
+    chmod 755 $load_md
+    cat_load_md <<-EOF
+	|#! $shebang
+	EOF
+    fi
+
+
+    resolved_modules="$(resolve_modules $kernel_version $modules)"
+
+    # If a SCSI module is loaded, we will have a dependency on scsi_mod
+    # for kernels which don't have this built in. In that case, assume
+    # that the root file system is on a SCSI device, and also include
+    # sd_mod.
+    local have_scsi have_sd
+    case "$resolved_modules" in
+	*/scsi_mod.*)   have_scsi=1
+			;;
+    esac
+    case "$resolved_modules" in
+	*/sd_mod.*)	have_sd=1
+			;;
+    esac
+    if [ -n "$have_scsi" -a -z "$have_sd" ]; then
+	modules="sd_mod $modules"
+	# Re-evaluate module dependencies
+	resolved_modules="$(resolve_modules $kernel_version $modules)"
+    fi
+
+    # Copy the modules to the initrd
+    echo -ne "Modules:\t"
+    initrd_is_using_modules=
+    while read module params ; do
+	[ -z "$module" ] && continue
+	echo -n "${module#lib/modules/$kernel_version/} "
+	if [ ! -r $root_dir/$module ]; then
+	    oops 9 "Module $module not found."
+	    continue
+	fi
+	if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
+	    oops 6 "Failed to add module $module. Initrd too small?"
+	    return
+	fi
+
+	case "$module" in
+	    */dasd_mod.*)
+		# kernel cmdline dasd parameter is placed into the environment.
+		# all we need to do is to have it evaluated at insmod time....:
+		params="dasd=\$dasd"
+		;;
+	    */zfcp.*)
+		# FIXME hare: Check against 2.6 whether configuration is
+		# still the same ...
+		if [ "$zfcp_param" ]; then
+			params="map=\"$zfcp_param\""
+		fi
+		;;
+	    */scsi_mod*)
+		# We may have SCSI parameters on the kernel command line,
+		# but because scsi_mod is a module, those would be ignored.
+		# Hack around this by scanning /proc/cmdline in load_modules.
+		params="\$extra_scsi_params${params:+ $params}"
+
+		cat_load_modules <<-EOF
+		|# check for SCSI parameters in /proc/cmdline
+		|read cmdline < /proc/cmdline
+		|for p in $cmdline ; do
+		|  case $p in
+		|    scsi*|*_scsi_*|llun_blklst=*|max_report_luns=*)
+		|      extra_scsi_params="$extra_scsi_params $p"
+		|      ;;
+		|  esac
+		|done
+		EOF
+	esac
+
+	mp="/$module${params:+ $params}"
+	cat_load_modules <<-EOF
+	|echo "Loading ${mp#/lib/modules/$kernel_version/}"
+	|insmod $mp
+	EOF
+	initrd_is_using_modules=1
+    done < <(echo "$resolved_modules")
+    echo
+
+    if [ -z "$initrd_is_using_modules" ]; then
+	echo "none"
+    fi
+
+    if has_any_module raid0 raid1 raid5 linear multipath ; then
+	echo "Including raidautorun"
+	cat_load_md <<-EOF
+	|echo "raidautorun ..."
+	|raidautorun
+	|echo "done..."
+	|exit 0
+	EOF
+    fi
+
+    if [ -n "$root_lvm" -o -n "$root_dm" ] ; then
+	# need dummy entry so fsck doesn't complain
+	cat_load_md <<-EOF
+	|# scan for lvm devices
+	|#need space for lvm data
+	|mount -n -t tmpfs none /etc/lvmtab.d
+	|vgscan
+	|vgchange -a y
+	|umount -n /etc/lvmtab.d
+	EOF
+    fi
+
+    cp -pfv /lib/mkinitrd/kinit.sh $tmp_mnt/init
+    ln -sfv ../init $tmp_mnt/sbin/init
+
+    pushd .
+    cd $tmp_mnt
+    find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
+    if ! cp -f $tmp_initrd.gz $initrd_image ; then
+	oops 8 "Failed to install initrd"
+	return
+    fi
+
+    splash_bin=
+    [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
+    [ -x /bin/splash ] && splash_bin=/bin/splash
+    if [ -n "$splashsizes" -a -n "$splash_bin" ]; then
+	if [ -f /etc/sysconfig/bootsplash ]; then
+	    . /etc/sysconfig/bootsplash
+	fi
+
+	themes_dir=
+	if [ -d "$root_dir/etc/bootsplash/themes" ]; then
+	    themes_dir="$root_dir/etc/bootsplash/themes"
+	elif [ -d "$root_dir/usr/share/splash/themes" ]; then
+	    themes_dir="$root_dir/usr/share/splash/themes"
+	fi
+
+	echo -ne "Bootsplash:\t"
+	if [ -n "$themes_dir" -a \
+	     -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
+	    for size in $splashsizes; do
+		bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
+		cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
+		if [ ! -r $cfgname ] ; then
+		    echo "disabled for resolution $size"
+		elif [ ! -r $bootsplash_picture ] ; then
+		    echo "no image for resolution $size"
+		else
+		    echo "$THEME ($size)"
+		    $splash_bin -s -f $cfgname >> $initrd_image
+		fi
+	    done
+	else
+	    echo "no theme selected"
+	fi
+    fi
+}
+
+###################################################################
+
+mounted_proc=
+if [ ! -r /proc/mounts ]; then
+  mounted_proc=/proc
+  mount -t proc proc $mounted_proc
+fi
+
+if [ -z "$rootdev" ] ; then
+  # no rootdev specified, get current root from /etc/fstab
+  while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
+    if [ "$fstab_mountpoint" = "/" ]; then
+      rootdev="$fstab_device"
+      rootfstype="$fstab_type"
+      break
+    fi
+  done < <( sed -e '/^[ 	]*#/d' < $root_dir/etc/fstab)
+else
+  # get type from /etc/fstab or /proc/mounts (actually not needed)
+  x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
+       | grep -E "$rootdev[[:space:]]" | tail -n 1)
+  rootfstype=$(echo $x1 | cut -f 3 -d " ")
+fi
+
+if [ -z "$dhcp_interface" ]; then
+    [ -z "$rootdev" ] \
+	&& error 1 "No '/' mountpoint specified in $root_dir/etc/fstab"
+else
+    rootdev=
+    rootfstype=nfs
+fi
+
+root_lvm=
+root_dm=
+major=`stat --format='%D' /`
+major="${major%??}"
+# check if the root device is an lvm device
+if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
+# check if the root device is an dm/lvm2 device
+if [ "$major" = "fe" ] ; then root_dm=1 ; fi
+
+s390_zfcp_proc() {
+   zfcp_param=
+   if [ ! -s $root_dir/etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
+   then
+	fcpconf=$(cat /proc/scsi/zfcp/map)
+	if [ -n "$fcpconf" ]; then
+	    echo "$fcpconf" > $root_dir/etc/zfcp.conf
+	    chmod 644 $root_dir/etc/zfcp.conf
+	fi
+   fi
+   if [ -s $root_dir/etc/zfcp.conf ]; then
+	add_module zfcp
+
+	zfcp_param=$(sed -e 's,#.*,,' -e '/^[[:blank:]]*$/d' \
+		     $root_dir/etc/zfcp.conf)
+
+	if [ -z "$zfcp_param" ]; then
+	    zfcp_param=$(modprobe -v -n zfcp|sed -n '/map=/s/.*zfcp.o //p')
+	fi
+
+	if [ -z "$zfcp_param" ]; then
+	    error 1 "\
+zfcp module loaded but root_dir/etc/zfcp.conf empty.
+don't know how to configure zfcp in initrd.
+
+you can save the current configuration with this command:
+
+    cat /proc/scsi/zfcp/map >> root_dir/etc/zfcp.conf
+"
+	fi
+    fi
+}
+
+s390_dasd_sysfs() {
+    local dev_major dev_minor dev path
+
+    dev=`stat -c "%D" /`
+    dev_major="${dev%??}"
+    dev_minor="${dev:${#dev}-2:2}"
+    dev_major=$((0x$dev_major))
+    dev_minor=$((0x$dev_minor))
+
+    path=
+    for dir in /sys/block/*/*; do
+	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
+	    read dev < $dir/dev
+	    if [ "$dev" = "$dev_major:$dev_minor" ] ; then
+		path=$dir
+		break;
+	    fi
+	fi
+    done
+
+    if [ "$path" ] && [ -d ${path}/../device ]; then
+	if [ -r ${path}/../device/discipline ]; then
+	    read type < ${path}/../device/discipline
+
+	    case $type in
+		ECKD)
+		    add_module dasd_eckd_mod
+		    ;;
+		FBA)
+		    add_module dasd_fba_mod
+		    ;;
+		DIAG)
+		    add_module dasd_diag_mod
+		    ;;
+		*)
+		    ;;
+	    esac
+	else
+	    echo "root device $dev_major:$dev_minor is not a dasd device."
+	fi
+    else
+	error 1 "\
+Could not detect sysfs path for root device $dev_major:$dev_minor
+(Broken driver ?)"
+    fi
+}
+
+s390_dasd_proc() {
+    local zipl_conf_with_dasd dasd_module
+
+    if [ -f $root_dir/etc/zipl.conf ] \
+       && grep -q '^[[:space:]]*parameters[[:space:]]*=' \
+	    $root_dir/etc/zipl.conf; then
+	    zipl_conf_with_dasd=1
+    fi
+
+    if do_chroot modprobe -c \
+       | grep -q '^[[:space:]]*options[[:space:]]\+dasd_mod' ; then
+	dasd_module=1
+    fi
+
+    if grep -q -e "^dasd" /proc/modules \
+       || [ -n "$zipl_conf_with_dasd" ] \
+       || [ -n "$dasd_module" ] \
+       || has_module dasd_mod ; then
+
+	if [ ! "$zipl_conf_with_dasd" -a ! "$dasd_module" ]; then
+	    error 1 "\
+The dasd module is required, but no dasd configuration was found in
+root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
+	fi
+
+	if grep -q ECKD /proc/dasd/devices ; then
+	    add_module dasd_eckd_mod
+	fi
+
+	if grep -q FBA  /proc/dasd/devices ; then
+	    add_module dasd_fba_mod
+	fi
+
+	if grep -q DIAG /proc/dasd/devices ; then
+	    add_module dasd_diag_mod
+	fi
+    fi
+}
+
+###################################################################
+
+#echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
+
+if [ -z "$modules_set" ]; then
+    # get INITRD_MODULES from system configuration
+    if [ -e $root_dir/etc/sysconfig/kernel ]; then
+	. $root_dir/etc/sysconfig/kernel
+	modules="$INITRD_MODULES"
+    elif [ -e $root_dir/etc/rc.config ]; then
+	. $root_dir/etc/sysconfig/kernel
+	modules="$INITRD_MODULES"
+    fi
+fi
+
+###################################################################
+# add modules required by features
+if [ -n "$root_lvm" ] ; then
+    add_module lvm-mod
+fi
+
+if [ -n "$root_dm" ] ; then
+    add_module dm-mod
+fi
+
+if [ "$arch" = s390 ]; then
+    # Check if zfcp or dasd modules need to be added automatically:
+    if [ -d /sys/block ]; then
+	s390_dasd_sysfs
+    else
+	s390_dasd_proc
+	s390_zfcp_proc
+    fi
+fi
+
+###################################################################
+
+exit_code=0
+
+initrd_images=( $initrd_images )
+kernel_images=( $kernel_images )
+
+echo -e "Module list:\t$modules"
+for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
+    kernel_image=${kernel_images[$i]}
+    [ ${kernel_image:0:1} != '/' ] \
+    	&& kernel_image=$boot_dir/$kernel_image
+
+    initrd_image=${initrd_images[$i]}
+    [ ${initrd_image:0:1} != '/' ] \
+    	&& initrd_image=$boot_dir/$initrd_image
+
+    mkinitrd_kernel $kernel_image $initrd_image
+    attach_dsdt $initrd_image
+
+    # Hack: Previous kernels have had a symlink from the binary kernel
+    # image (vmlinuz, etc.) to image-$VERSION, but initrd was a plain file.
+    # Try to detect that case, and replace old initrd files with symlinks.
+    if [ "$(readlink ${kernel_image%%-*})" = \
+	 "${kernel_image#$boot_dir/}" ]; then
+	rm -f $root_dir/$boot_dir/initrd
+	ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
+    fi
+    cleanup
+done
+
+
+cleanup_finish
+
+if [ -e $root_dir/etc/sysconfig/bootloader ]; then
+    . $root_dir/etc/sysconfig/bootloader
+fi
+case $LOADER_TYPE in
+  lilo)
+    echo "
+Run lilo now to update the boot loader configuration."
+    ;;
+  elilo)
+    if [ -x /sbin/elilo ]; then
+      /sbin/elilo
+    else
+      echo "
+You may now have to update the elilo boot loader configuration."
+    fi
+    ;;
+  grub)
+    ;;
+  *)
+    if [ -f "$root_dir/etc/zipl.conf" ]; then
+	echo "
+initrd updated, zipl needs to update the IPL record before IPL!"
+    else
+	echo "
+You may now have to update your boot loader configuration."
+    fi
+    ;;
+esac
+
+exit $exit_code
