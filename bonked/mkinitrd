@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.46 $
+# $Revision: 1.47 $
 
 #
 # Print usage and exit
@@ -699,6 +699,12 @@ mkinitrd_kernel () {
 	;;
     esac
 
+    if has_module iscsi ; then
+	cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/usr/sbin/iscsid
+	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
+	nead_mount=1
+    fi
+
     if [ -n "$sysfs_root" ]; then
 	mkdir -p $tmp_mnt/sys
 	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
@@ -848,7 +854,17 @@ mkinitrd_kernel () {
 	|#! $shebang
 	|
 	|export PATH=/sbin:/bin:/usr/bin
+	|
+	|mount -n -tproc proc /proc
+	|mount -n -tsysfs sysfs /sys > /dev/null 2>&1
+	|
+	|die() {
+	|	umount -n /proc
+	|	umount -n /sys
+	|	exit $1
+	|}
 	EOF
+
 
     resolved_modules="$(resolve_modules $kernel_version $modules)"
 
@@ -907,7 +923,6 @@ mkinitrd_kernel () {
 
 		cat_linuxrc <<-'EOF'
 		|# check for SCSI parameters in /proc/cmdline
-		|mount -n -tproc none /proc
 		|for p in $(cat /proc/cmdline) ; do
 		|  case $p in
 		|    scsi*|*_scsi_*|llun_blklst=*|max_report_luns=*)
@@ -915,7 +930,6 @@ mkinitrd_kernel () {
 		|      ;;
 		|  esac
 		|done
-		|umount -n /proc
 		EOF
 	esac
 
@@ -945,7 +959,6 @@ mkinitrd_kernel () {
 	# need dummy entry so fsck doesn't complain
 	cat_linuxrc <<-'EOF'
 	|# scan for lvm devices
-	|mount -n -tproc none /proc
 	|createpartitiondevs
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvmtab.d
@@ -966,7 +979,6 @@ mkinitrd_kernel () {
 	|    echo $rootdevn > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
-	|umount -n /proc
 	EOF
     fi
 
@@ -1007,48 +1019,67 @@ mkinitrd_kernel () {
 	|	sysfs_set_root_dir /sys/block $root
 	|}
 	|
-	|mount -n -tproc none /proc
-        |mount -n -tsysfs sysfs /sys > /dev/null 2>&1
-	|for item in $(cat /proc/cmdline); do
-	|	set -- $(IFS=/ ; echo $item)
-	|	test "$1" = root= -a "$2" = dev || continue
-	|	shift 2
-	|	# FIXME: there are a lot more exceptions below...
-	|	case $1 in
-	|		cciss)	# /dev/cciss/c0d0p1  ==>
-	|			#   /sys/block/cciss!c0d0/cciss!c0d0p1
-	|			sysfs_set_root $1!$2 ;;
-	|		*)	# /dev/hdXn  ==>  /sys/block/hdX/hdXn
-	|			sysfs_set_root $1 ;;
-	|	esac
-	|done
-        |umount -n /sys
-	|umount -n /proc
+	|discover_root() {
+	|	for item in $(cat /proc/cmdline); do
+	|		set -- $(IFS=/ ; echo $item)
+	|		test "$1" = root= -a "$2" = dev || continue
+	|		shift 2
+	|		# FIXME: there are a lot more exceptions below...
+	|		case $1 in
+	|			cciss)	# /dev/cciss/c0d0p1  ==>
+	|				#   /sys/block/cciss!c0d0/cciss!c0d0p1
+	|				sysfs_set_root $1!$2 ;;
+	|			*)	# /dev/hdXn  ==>  /sys/block/hdX/hdXn
+	|				sysfs_set_root $1 ;;
+	|		esac
+	|	done
+	|}
+	|
+	|discover_root
 	EOF
     fi
 
     if [ -n "$use_pivot_root" ] ; then
 	cat_linuxrc <<-EOF
 	|# create missing devices
-	|mount -n -tproc none /proc
 	|createpartitiondevs
-	|umount -n /proc
+	EOF
+    fi
+
+    if [ -n "$dhcp_interface" ] ; then
+	cat_linuxrc <<-'EOF'
+	|root=
+	|dhcp_mode=1
+	|for o in $(cat /proc/cmdline) ; do
+	|  case $o in
+	|    root=*:/*) root="$o" ;;  # machine:/path (nfs)
+	|    root=*) root="$o" ; dhcp_mode= ;;
+	|  esac
+	|done
+	EOF
+    fi
+
+    if has_module iscsi ; then
+	cat_linuxrc <<-EOF
+	|for o in $(cat /proc/cmdline) ; do
+	|  case $o in
+	|    DiscoveryAddress=*)
+	|      target="$o" ; iscsi_boot=true ;;
+	|    InitiatorName=*)
+	|      initiatorname="$o" ; iscsi_boot=true ;;
+	|  esac
+	|done
+	|# iscsi boot requires dhcp, regardless of root= format
+	|if test -n "$iscsi_boot" ; then
+	|  dhcp_mode=
+	|fi
 	EOF
     fi
 
     if [ -n "$dhcp_interface" ] ; then
 	cat_linuxrc <<-EOF
-	|mount -n -tproc none /proc
-	|root=
-	|for o in \$(cat /proc/cmdline) ; do
-	|  case \$o in
-	|    root=*:*) root="\$o" ;;
-	|    root=*) root="\$o" ; no_dhcp=true ;;
-	|  esac
-	|done
 	|# run dhcp
-	|if test -z "\$no_dhcp" ; then
-	|  dhcp_mode=1
+	|if test -n "\$dhcp_mode" ; then
 	|  rootdev=
 	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
 	|  # portmap
@@ -1057,7 +1088,7 @@ mkinitrd_kernel () {
 	|  test -s /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info || {
 	|    echo "no response from dhcp server."
 	|    echo 256 > /proc/sys/kernel/real-root-dev
-	|    exit 0
+	|    die 0
 	|  }
 	|  . /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info
 	|  kill -9 \$(cat /var/run/dhcpcd-$dhcp_interface.pid)
@@ -1073,12 +1104,39 @@ mkinitrd_kernel () {
 	|    echo 'hosts: dns' > /etc/nsswitch.conf
 	|  fi
 	|fi
+	EOF
+    fi
+
+    if has_module iscsi ; then
+	cat_linuxrc <<-'EOF'
+	|if test -n "$iscsi_boot" ; then
+	|  echo "Continuous=no" >> /etc/iscsi.conf
+	|  echo "ImmediateData=no" >> /etc/iscsi.conf
+	|  echo "$target" >> /etc/iscsi.conf
+	|  echo "$initiatorname" >> /etc/initiatorname.iscsi
+	|
+	|  echo "Starting iSCSI"
+	|  iscsid
+	|  usleep 5000000
+	|
+	|  # need to redo-this setting up the root dev now that the disk is present
+	|  discover_root
+	|  createpartitiondevs
+	|
+	|  # clear dhcp_mode so it looks like we're disk booted...
+	|  dhcp_mode=
+	|fi
+	EOF
+    fi
+
+    if [ -n "$dhcp_interface" ] ; then
+	cat_linuxrc <<-EOF
 	|if test -z "\$root" ; then
 	|  if test -z "\$ROOTPATH" ; then
 	|    echo "no root= kernel option given and no rootpath" \
 	|         "set by the dhcp server."
 	|    echo 256 > /proc/sys/kernel/real-root-dev
-	|    exit 0
+	|    die 0
 	|  fi
 	|  case \$ROOTPATH in
 	|    *:*)
@@ -1093,20 +1151,17 @@ mkinitrd_kernel () {
 	|        echo "no root= kernel option given and no root" \
 	|             "server set by the dhcp server."
 	|        echo 256 > /proc/sys/kernel/real-root-dev
-	|        exit 0
+	|        die 0
 	|      fi
 	|  esac
 	|fi
-	|umount -n /proc
 	EOF
     fi
 
     if has_module jfs && [ -n "$rootdev" ] ; then
-	cat_linuxrc <<-EOF
+	cat_linuxrc <<-'EOF'
 	|# check filesystem if it is of type jfs
-	|mount -n -tproc none /proc
-	|test -z "\$dhcp_mode" && fsck -t jfs "$rootdev"
-	|umount -n /proc
+	|test -z "$dhcp_mode" && fsck -t jfs "$rootdev"
 	EOF
     fi
 
@@ -1131,7 +1186,6 @@ mkinitrd_kernel () {
 	|test -z "\$dhcp_mode" && rootdev="$rootdev"
 	|root=
 	|nopivot=
-	|mount -n -tproc none /proc
 	|# bug in some kernels, need cat
 	|for o in \$(cat /proc/cmdline) ; do
 	|  test "\$o" = rw && opt=
@@ -1143,8 +1197,7 @@ mkinitrd_kernel () {
 	|  esac
 	|done
 	|if test -n "\$nopivot" -a -z "\$dhcp_mode" ; then
-	|  umount -n /proc
-	|  exit 0
+	|  die 0
 	|fi
 	|
 	|if test -n "\$root" ; then
@@ -1160,8 +1213,7 @@ mkinitrd_kernel () {
 	|echo 256 > /proc/sys/kernel/real-root-dev
 	|# mount the actual root device below /mnt
 	|echo "Mounting root \$rootdev"
-	|mount -n \$opt \$rootdev /mnt || exit 1
-	|umount -n /proc
+	|mount -n \$opt \$rootdev /mnt || die 1
 	|# do pivot-root call
 	|cd /mnt
 	|exec <dev/console >dev/console 2>&1
@@ -1177,6 +1229,9 @@ mkinitrd_kernel () {
 	EOF
     fi
 
+    cat_linuxrc <<-EOF
+	|die 0
+	EOF
 
     # Now create a second initrd with minimal size
 
