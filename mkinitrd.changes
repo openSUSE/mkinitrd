@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun  8 13:16:02 CEST 2004 - hare@suse.de
+
+- Use IFS in a subshell to avoid errors.
+
+-------------------------------------------------------------------
 Tue Jun  8 12:38:08 CEST 2004 - agruen@suse.de
 
 - #41765: Reset IFS to original value in one place.
