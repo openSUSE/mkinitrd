@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.176 $
+# $Revision: 1.177 $
 
 #
 # Print usage and exit
@@ -716,6 +716,12 @@ devmajor() {
     echo $(( $devn % 4096 ))
 }
 
+# Extract the minor part from a device number
+devminor() {
+    local devn=$1
+    echo $(( $devn % 256 )) 
+}
+
 block_driver() {
     local devn block major driver
     case "$1" in
@@ -1188,8 +1194,8 @@ mkinitrd_kernel() {
     
     if [ -z "$use_glibc" ] ; then
 	mkdir -p $tmp_mnt/lib/klibc/bin
-	for klibc_bin in devnumber sed sleep ata_identify scsi_id \
-	    cat ln umount udev_volume_id; do
+	for klibc_bin in chroot devnumber sed sleep ata_identify scsi_id \
+	    cat ln mount umount udev_volume_id; do
 	  if [ -e /lib/klibc/bin/$klibc_bin ]; then
 	      cp_bin /lib/klibc/bin/$klibc_bin \
 		  $tmp_mnt/lib/klibc/bin
@@ -1200,7 +1206,7 @@ mkinitrd_kernel() {
 	done
 	cp_bin /lib/klibc/bin/run_init $tmp_mnt/run_init
     else
-	for glibc_bin in sed sleep ln umount; do
+	for glibc_bin in sed sleep ln mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
 	done
 	cp_bin /sbin/scsi_id $tmp_mnt/bin
@@ -1216,7 +1222,7 @@ mkinitrd_kernel() {
     fi
 
     # copy common utilities
-    for bin in chmod mkdir mknod mount rm; do
+    for bin in chmod mkdir mknod rm; do
 	cp_bin /bin/$bin $tmp_mnt/bin
     done
     
@@ -1557,6 +1563,8 @@ mkinitrd_kernel() {
 	echo >> $linuxrc
 	type devmajor | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
+	type devminor | sed -e '1d' >> $linuxrc
+	echo >> $linuxrc
 	type block_driver | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
     fi
@@ -1572,6 +1580,12 @@ mkinitrd_kernel() {
 	|fi
 	|echo "Creating devices"
 	|/sbin/udevstart
+	|
+	|# workaround chicken/egg bug in mdadm and raidautorun
+	|# they do the ioctl on the not yet existing device node...
+	|for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 ; do
+	|  mknod -m 660 /dev/md\$i b 9 \$i
+	|done
 	|
 	EOF
 
@@ -1889,6 +1903,149 @@ mkinitrd_kernel() {
 	EOF
     fi
 
+    if [ -n "$root_dm" -o -n "$root_evms" ]; then
+	cat_linuxrc <<-'EOF'
+	|echo -n "Waiting for /dev/mapper/control to appear: "
+	|for i in 1 2 3 4 5; do
+	|    [ -e /dev/mapper/control ] && break
+	|    sleep 1
+	|    echo -n "."
+	|done
+	|if [ -e /dev/mapper/control ]; then
+	|    echo " ok"
+	|else
+	|    echo " failed"
+	|fi
+	EOF
+    fi
+
+    if [ -n "$use_udev" ] ; then
+	cat_linuxrc <<-'EOF'
+	|# Waiting for a device to appear
+	|# device node will be created by udev
+	|udev_wait_for_device() {
+	|    local root
+	|    local retval=1
+	|    local timeout=$udev_timeout
+	|    root=$1
+	|    if [ -n "$root" ]; then
+	|	echo -n "Waiting for device /dev/$root to appear: "
+	|	while [ $timeout -gt 0 ]; do
+	|	    if [ -e /dev/$root ]; then
+	|		if [ $? -eq 0 ]; then
+	|		    echo " ok"
+	|		    retval=0
+	|		    break;
+	|		fi
+	|	    fi
+	|	    sleep 1
+	|	    echo -n "."
+	|	    timeout=$(( $timeout - 1 ))
+	|	done
+	|    fi
+	|    return $retval;
+	|}
+	|
+	|# Reads the major:minor pair from a sysfs path
+	|# and converts it into a devno
+	|udev_read_devn() {
+	|    local dev;
+	|    local devn;
+	|
+	|    if [ -z "$1" ]; then
+	|	echo ""
+	|	return
+	|    fi
+	|
+	|    dev=/sys$1/dev
+	|    if [ -f $dev ]; then
+	|	local major minor devn
+	|	IFS=":" read major minor < $dev
+	|	devn=$(mkdevn $major $minor)
+	|	echo "$devn $major $minor"
+	|    else
+	|	echo ""
+	|    fi
+	|}
+	|
+	|udev_discover_resume() {
+	|    local resume
+	|    # Waits for the resume device to appear
+	|    if [ -n "$resume_mode" ]; then
+	|	resume=${resumedev#/dev/}
+	|	if udev_wait_for_device $resume; then
+	|	    path=$(udevinfo -q path -n $resume)
+	|	    set -- $(udev_read_devn $path)
+	|	    if [ -n "$1" ]; then
+	|		devn=$1
+	|		major=$2
+	|		minor=$3
+	|		echo "$major:$minor" > /sys/power/resume
+	|		devn=
+	|	    fi
+	|	    path=
+	|	else
+	|	    echo "resume device $resumedev not found (ignoring)"
+	|       fi
+	|    fi
+	|}
+	|
+	|udev_discover_root() {
+	|    local root
+	|    case "$rootdev" in
+	|	/dev/nfs) root= ;;
+	|	/dev/*)	root=${rootdev#/dev/} ;;
+	|    esac
+	|    if [ -z "$root" ]; then
+	|	return 0
+	|    fi
+	|    if udev_wait_for_device $root; then
+	|	path=$(udevinfo -q path -n $root)
+	|	if [ $? -eq 0 -a -n "$path" ]; then
+	|	    set -- $(udev_read_devn $path)
+	|	    if [ -n "$1" ]; then
+	|	        devn=$1
+	|	        major=$2
+	|	        minor=$3
+	|	    fi
+	|	else
+	|	    # Try major:minor number of the device node
+	|	    devn=$(devnumber $rootdev)
+	|	    major=$(devmajor $devn)
+	|	    minor=$(devminor $devn)
+	|	fi
+	|    fi
+	|    if [ -n "$devn" ]; then
+	|	echo "rootfs: $entry major=$major minor=$minor" \
+	|	    "devn=$devn"
+	|	echo $devn > /proc/sys/kernel/real-root-dev
+	|	return 0
+	|    else
+	|	return 1
+	|    fi
+	|}
+	|
+	|# Default timeout is 5 seconds
+	|udev_timeout=5
+	|# Override timeout from commandline
+	|for o in $(cat /proc/cmdline); do
+	|    case $o in
+	|    udev_timeout=*)
+	|	set -- $(IFS== ; echo $o)
+	|	udev_timeout=$2
+	|	;;
+	|    esac
+	|done
+	|
+	|# wait for the resume device
+	|# Hack alert: we need this as a trigger
+	|# for LVM/DM devices; otherwise the detection
+	|# mechanism will run before and disks are initialised.
+	|udev_discover_resume
+	|
+	EOF
+    fi
+
     if [ -n "$need_raidautorun" ]; then
 	features=(${features[@]} raidautorun)
 	cat_linuxrc <<-EOF
@@ -1921,33 +2078,6 @@ mkinitrd_kernel() {
 	|
 	|vgchange -a y \$vg_root
 	|umount /etc/lvmtab.d
-	|# set the right root device if user specified a lvm root
-	|if [ "$(block_driver "\$rootdev")" = lvm ]; then
-	|    case \$rootdev in
-	|    /dev/*)
-	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
-	|    *)
-	|	# hex number or major:minor pair
-	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
-	|    esac
-	|    die 0
-	|fi
-	EOF
-    fi
-
-    if [ -n "$root_dm" -o -n "$root_evms" ]; then
-	cat_linuxrc <<-'EOF'
-	|echo -n "Waiting for /dev/mapper/control to appear: "
-	|for i in 1 2 3 4 5; do
-	|    [ -e /dev/mapper/control ] && break
-	|    sleep 1
-	|    echo -n "."
-	|done
-	|if [ -e /dev/mapper/control ]; then
-	|    echo " ok"
-	|else
-	|    echo " failed"
-	|fi
 	EOF
     fi
 
@@ -1970,29 +2100,11 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|vgchange -a y \$vg_root
-	|# set the right root device if user specified a lvm root
-	|if [ "\$(block_driver "\$rootdev")" = device-mapper ]; then
-	|    case \$rootdev in
-	|    /dev/*)
-	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
-	|    *)
-	|	# hex number or major:minor pair
-	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
-	|    esac
-	|    die 0
-	|fi
 	EOF
     fi
 
     if [ -n "$root_evms" ] ; then
 	cat_linuxrc <<-EOF
-	|# Extract the minor part from a device number
-	|devminor() 
-	|    {
-	|    local devn=\$1
-	|    expr '(' \$devn % 256 ')' 
-	|    }
-	|
 	|fix_evms_root_node()
 	|    {
 	|    CURDEV=\$(devnumber \$2)
@@ -2070,113 +2182,6 @@ mkinitrd_kernel() {
 
     if [ -n "$use_udev" ] ; then
 	cat_linuxrc <<-'EOF'
-	|# Waiting for a device to appear
-	|# device node will be created by udev
-	|udev_wait_for_device() {
-	|    local root
-	|    local retval=1
-	|    local timeout=$udev_timeout
-	|    root=$1
-	|    if [ -n "$root" ]; then
-	|	echo -n "Waiting for device /dev/$root to appear: "
-	|	while [ $timeout -gt 0 ]; do
-	|	    if [ -e /dev/$root ]; then
-	|		if [ $? -eq 0 ]; then
-	|		    echo " ok"
-	|		    retval=0
-	|		    break;
-	|		fi
-	|	    fi
-	|	    sleep 1
-	|	    echo -n "."
-	|	    timeout=$(( $timeout - 1 ))
-	|	done
-	|    fi
-	|    return $retval;
-	|}
-	|
-	|# Reads the major:minor pair from a sysfs path
-	|# and converts it into a devno
-	|udev_read_devn() {
-	|    local dev;
-	|    local devn;
-	|
-	|    if [ -z "$1" ]; then
-	|	echo ""
-	|	return
-	|    fi
-	|
-	|    dev=/sys$1/dev
-	|    if [ -f $dev ]; then
-	|	local major minor devn
-	|	IFS=":" read major minor < $dev
-	|	devn=$(mkdevn $major $minor)
-	|	echo "$devn $major $minor"
-	|    else
-	|	echo ""
-	|    fi
-	|}
-	|
-	|udev_discover_root() {
-	|    local root
-	|    case "$rootdev" in
-	|	/dev/nfs) root= ;;
-	|	/dev/*)	root=${rootdev#/dev/} ;;
-	|    esac
-	|    # Waits for the resume device to appear
-	|    if [ -n "$resume_mode" ]; then
-	|	resume=${resumedev#/dev/}
-	|	if udev_wait_for_device $resume; then
-	|	    path=$(udevinfo -q path -n $resume)
-	|	    set -- $(udev_read_devn $path)
-	|	    if [ -n "$1" ]; then
-	|		devn=$1
-	|		major=$2
-	|		minor=$3
-	|		echo "$major:$minor" > /sys/power/resume
-	|		devn=
-	|	    fi
-	|	    path=
-	|	else
-	|	    echo " not found (ignoring)"
-	|	fi
-	|    fi
-	|    if [ -z "$root" ]; then
-	|	return 0
-	|    fi
-	|    if udev_wait_for_device $root; then
-	|	path=$(udevinfo -q path -n $root)
-	|	set -- $(udev_read_devn $path)
-	|	if [ -n "$1" ]; then
-	|	    devn=$1
-	|	    major=$2
-	|	    minor=$3
-	|	else
-	|	    echo " not found"
-	|	fi
-	|    fi
-	|    if [ -n "$devn" ]; then
-	|	echo "rootfs: $entry major=$major minor=$minor" \
-	|	    "devn=$devn"
-	|	echo $devn > /proc/sys/kernel/real-root-dev
-	|	return 0
-	|    else
-	|	return 1
-	|    fi
-	|}
-	|
-	|# Default timeout is 5 seconds
-	|udev_timeout=5
-	|# Override timeout from commandline
-	|for o in $(cat /proc/cmdline); do
-	|    case $o in
-	|    udev_timeout=*)
-	|	set -- $(IFS== ; echo $o)
-	|	udev_timeout=$2
-	|	;;
-	|    esac
-	|done
-	|
 	|if ! udev_discover_root ; then
 	|    echo "not found -- device nodes:"
 	|    cd /dev
@@ -2323,9 +2328,6 @@ mkinitrd_kernel() {
 	|    die 1
 	|fi
 	|
-	|mount -o bind /dev /root/dev
-	|chmod 755 /root/dev
-	|
 	|# Create framebuffer devices
 	|if [ -f /proc/fb ]; then
 	|    cat /proc/fb | while read fbnum fbtype; do
@@ -2351,6 +2353,11 @@ mkinitrd_kernel() {
 	|        if [ -f "$ev" ]; then cat $ev > /dev/events/$ev ; fi
 	|    done
 	|fi
+	|
+	|# merry-go-round with /dev
+	|/bin/mount -o move /dev /root/mnt
+	|(/bin/chroot /root /bin/mount --bind /mnt /dev)
+	|umount /root/mnt
 	|
 	|# Reset hotplug
 	|echo "/sbin/hotplug" > /proc/sys/kernel/hotplug
