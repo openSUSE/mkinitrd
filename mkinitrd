@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.118 $
+# $Revision: 1.119 $
 
 #
 # Print usage and exit
@@ -1313,10 +1313,18 @@ mkinitrd_kernel() {
 	|mount -n -tproc proc /proc
 	|mount -n -tsysfs sysfs /sys > /dev/null 2>&1
 	|
+	|for o in $(cat /proc/cmdline); do
+	|    case $o in
+	|    linuxrc-trace)
+	|        set -x
+	|        ;;
+	|    esac
+	|done
+	|
 	|die() {
-	|	umount -n /proc
-	|	umount -n /sys
-	|	exit \$1
+	|    umount -n /proc
+	|    umount -n /sys
+	|    exit \$1
 	|}
 	|
 	|# Fallback root device number
@@ -1624,17 +1632,33 @@ mkinitrd_kernel() {
 	EOF
     fi
 
+    if [ -n "$root_dm" -o -n "$root_evms" ]; then
+	if [ -z "$use_udev" ]; then
+	    cat_linuxrc <<-'EOF'
+		|# create device mapper control device nodes
+		|/sbin/devmap_mknod.sh
+		EOF
+	else
+	    cat_linuxrc <<-'EOF'
+		|echo -n "Waiting for /dev/mapper/control to appear: "
+		|for i in 1 2 3 4 5; do
+		|    [ -e /dev/mapper/control ] && break
+		|    sleep 1
+		|    echo -n "."
+		|done
+		|if [ -e /dev/mapper/control ]; then
+		|    echo " ok"
+		|else
+		|    echo " failed"
+		|fi
+		EOF
+	fi
+    fi
+
     if [ -n "$root_dm" ] ; then
 	# Name of the volume containing the root filesystem
         local vg_root=${rootdev#/dev/}
         vg_root=${vg_root%%/*}
-
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-	|# create device mapper control device nodes
-	|/sbin/devmap_mknod.sh
-	EOF
-	fi
 	cat_linuxrc <<-EOF
 	|vgscan
 	|for o in \$(cat /proc/cmdline); do
@@ -1665,12 +1689,6 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$root_evms" ] ; then
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-	|# create device mapper control device nodes
-	|/sbin/devmap_mknod.sh
-	EOF
-	fi
 	cat_linuxrc <<-EOF
 	|/sbin/evms_activate
 	|# set the right root device if user specified a lvm root
