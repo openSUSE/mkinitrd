@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.71 $
+# $Revision: 1.72 $
 
 #
 # Print usage and exit
@@ -626,7 +626,7 @@ check_ide_modules () {
     local modules_dir=$1 ide_modules
 
     # Check for PCI bus
-    if test ! -d /proc/bus/pci; then
+    if [ ! -d /proc/bus/pci ]; then
         # Not found, no error
         return
     fi
@@ -1080,9 +1080,9 @@ mkinitrd_kernel () {
 	|vgchange -a y
 	|umount -n /etc/lvmtab.d
 	|# set the right root device if user specified a lvm root
-	|if test -n "$(root_arg)"; then
+	|if [ -n "$(root_arg)" ]; then
 	|  devn=$(devnumber $(root_arg) 2> /dev/null)
-	|  if test "$devn" -ge 14848 -a "$devn" -lt 15104 ; then
+	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
 	|    echo $devn > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
@@ -1101,9 +1101,9 @@ mkinitrd_kernel () {
 	|vgchange -a y
 	|umount -n /etc/lvm
 	|# set the right root device if user specified a lvm root
-	|if test -n "$(root_arg)"; then
+	|if [ -n "$(root_arg)" ]; then
 	|  devn=$(devnumber $(root_arg) 2> /dev/null)
-	|  if test "$devn" -ge 14848 -a "$devn" -lt 15104 ; then
+	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
 	|    echo $devn > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
@@ -1124,12 +1124,12 @@ mkinitrd_kernel () {
 	|		  *)		continue ;;
 	|		esac
 	|	done
-	|	if test -n "$node" ; then
+	|	if [ -n "$node" ]; then
 	|	    echo -n "Waiting for device /dev/$node to appear: "
 	|	    for i in 1 2 3 4 5; do
-	|		if test -e /dev/$node; then
+	|		if [ -e /dev/$node ]; then
 	|		    path=$(udevinfo -q path -n ${node})
-	|		    if test $? -eq 0; then
+	|		    if [ $? -eq 0 ]; then
 	|		        echo " ok"
 	|			break
 	|		    else
@@ -1139,9 +1139,9 @@ mkinitrd_kernel () {
 	|		sleep 1
 	|		echo -n "."
 	|	    done
-	|	    if test -n "$path"; then
+	|	    if [ -n "$path" ]; then
 	|	        dev=/sys$path/dev
-	|		if test -f $dev; then
+	|		if [ -f $dev ]; then
 	|		    local major minor dev_t
 	|		    IFS=":" read major minor < $dev
 	|		    dev_t=$(expr $major '*' 256 + $minor)
@@ -1161,10 +1161,14 @@ mkinitrd_kernel () {
 	|}
 	|
 	|udev_discover_root || {
-        |    echo "device nodes:"
-        |    cd /dev
-        |    for dev in *; do if test -e $dev; then echo $dev;fi ; done
-        |    cd /
+	|    echo "device nodes:"
+	|    cd /dev
+	|    for dev in *; do
+	|	if [ -e $dev ]; then
+	|	    echo $dev
+	|	fi
+	|    done
+	|    cd /
 	|}
 	EOF
     fi
@@ -1183,11 +1187,11 @@ mkinitrd_kernel () {
 	|	local entry name dir=$1 search=$2
 	|
 	|	for entry in $dir/*; do
-	|	  test -L $entry && continue
-	|	  test -d $entry || continue
+	|	  [ -L $entry ] && continue
+	|	  [ -d $entry ] || continue
 	|
 	|	  name=$(sh_basename $entry)
-	|	  if test -f $entry/dev -a $name = $search; then
+	|	  if [ -f $entry/dev -a $name = $search ]; then
 	|		local major minor dev_t
 	|		IFS=: read major minor < $entry/dev
 	|		dev_t=$(expr $major '*' 256 + $minor)
@@ -1235,12 +1239,10 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    # FIXME: Should we test for $(root_arg) = "" below, too?
-
     if [ -n "$dhcp_interface" ] ; then
 	cat_linuxrc <<-'EOF'
 	|case $(root_arg) in
-	|/dev/nfs|*:/*)
+	|/dev/nfs|*:/*|"")
 	|   dhcp_mode=1 ;;
 	|esac
 	EOF
@@ -1257,7 +1259,7 @@ mkinitrd_kernel () {
 	|  esac
 	|done
 	|# iscsi boot requires dhcp, regardless of root= format
-	|if test -n "$iscsi_boot" ; then
+	|if [ -n "$iscsi_boot" ]; then
 	|  dhcp_mode=1
 	|fi
 	EOF
@@ -1266,27 +1268,28 @@ mkinitrd_kernel () {
     if [ -n "$dhcp_interface" ] ; then
 	cat_linuxrc <<-EOF
 	|# run dhcp
-	|if test -n "\$dhcp_mode" ; then
+	|if [ -n "\$dhcp_mode" ]; then
 	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
 	|  # portmap
 	|  echo "running dhcpcd on interface $dhcp_interface"
 	|  dhcpcd -R -Y -N -t 100000000 $dhcp_interface
-	|  test -s /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info || {
+	|  [ -s /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info ] || {
 	|    echo "no response from dhcp server."
 	|    echo 256 > /proc/sys/kernel/real-root-dev
 	|    die 0
 	|  }
 	|  . /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info
 	|  kill -9 \$(cat /var/run/dhcpcd-$dhcp_interface.pid)
-	|  if test -n "\$DNS" ; then
+	|  if [ -n "\$DNS" ]; then
 	|    oifs="\$IFS"
 	|    IFS=","
 	|    for ns in \$DNS ; do
 	|      echo "nameserver \$ns" >> /etc/resolv.conf
 	|    done
 	|    IFS="\$oifs"
-	|    test -n "\$DOMAIN" \\
-	|      && echo "search \$DOMAIN" >> /etc/resolv.conf
+	|    if [ -n "\$DOMAIN" ]; then
+	|	echo "search \$DOMAIN" >> /etc/resolv.conf
+	|    fi
 	|    echo 'hosts: dns' > /etc/nsswitch.conf
 	|  fi
 	|fi
@@ -1295,7 +1298,7 @@ mkinitrd_kernel () {
 
     if has_module iscsi ; then
 	cat_linuxrc <<-'EOF'
-	|if test -n "$iscsi_boot" ; then
+	|if [ -n "$iscsi_boot" ]; then
 	|  echo "Continuous=no" >> /etc/iscsi.conf
 	|  echo "ImmediateData=no" >> /etc/iscsi.conf
 	|  echo "$target" >> /etc/iscsi.conf
@@ -1323,9 +1326,9 @@ mkinitrd_kernel () {
 	|    *:*)
 	|	rootdev="$ROOTPATH" ;;
 	|    *)
-	|	if test -n "$DHCPSIADDR" ; then
+	|	if [ -n "$DHCPSIADDR" ]; then
 	|	    rootdev="$DHCPSIADDR:$ROOTPATH"
-	|	elif test -n "$DHCPSNAME" ; then
+	|	elif [ -n "$DHCPSNAME" ]; then
 	|	    rootdev="$DHCPSNAME:$ROOTPATH"
 	|	fi ;;
 	|   esac
@@ -1348,7 +1351,7 @@ mkinitrd_kernel () {
     if has_module jfs && [ -n "$rootdev" ] ; then
 	cat_linuxrc <<-'EOF'
 	|# check filesystem if it is of type jfs
-	|test -z "$dhcp_mode" && fsck -t jfs "$rootdev"
+	|[ -z "$dhcp_mode" ] && fsck -t jfs "$rootdev"
 	EOF
     fi
 
@@ -1393,9 +1396,9 @@ mkinitrd_kernel () {
 	|   # do pivot-root call
 	|   cd /mnt
 	|   exec <dev/console >dev/console 2>&1
-	|   if test -d initrd ; then
+	|   if [ -d initrd ]; then
 	|	exec pivot_root . initrd
-	|   elif test -d mnt ; then
+	|   elif [ -d mnt ]; then
 	|	pivot_root . mnt
 	|	exec /bin/umount -n /mnt
 	|   else
