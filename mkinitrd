@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.24 $
+# $Revision: 1.25 $
 
 #
 # Print usage and exit
@@ -863,10 +863,7 @@ mkinitrd_kernel () {
 		params='dasd=$dasd'
 		;;
 	    */zfcp.o)
-		if [ "$params" ]; then
-			echo "(using zfcp params from modules.conf)"
-		echo
-			echo "(using zfcp params from zfcp.conf)"
+		if [ "$zfcp_param" ]; then
 			params="map=\"$zfcp_param\""
 		fi
 		;;
@@ -1249,6 +1246,10 @@ s390_zfcp() {
 
 	zfcp_param=$(sed -e 's,#.*,,' -e '/^[[:blank:]]*$/d' \
 		     $root_dir/etc/zfcp.conf)
+
+	if [ -z "$zfcp_param" ]; then
+	    zfcp_param=`modprobe -v -n zfcp|sed -n '/map=/s/.*zfcp.o //p'`
+	fi
 
 	if [ -z "$zfcp_param" ]; then
 	    error 1 "\
