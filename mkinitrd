@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.112 $
+# $Revision: 1.113 $
 
 #
 # Print usage and exit
@@ -1513,9 +1513,7 @@ mkinitrd_kernel() {
 	EOF
 	s390_dasd_disk_num=0
 	for disk in $s390_dasd_disks; do
-	    saved_IFS="$IFS"
-	    IFS=":"
-	    set -- $disk
+	    set -- $(IFS=":"; echo $disk)
 	    if [ "$2" -eq 0 ]; then
 		echo -n " $1(ECKD)"
 	    else
@@ -1526,7 +1524,6 @@ mkinitrd_kernel() {
 	|    /sbin/dasd_configure $1 1 $2
 	EOF
 	    s390_dasd_disk_num=$(expr $s390_dasd_disk_num + 1)
-	    IFS="$saved_IFS"
 	done
 	echo ""
 	cat_linuxrc <<-EOF
@@ -1550,10 +1547,7 @@ mkinitrd_kernel() {
 	s390_zfcp_disk_num=0
 	for disk in $s390_zfcp_disks; do
 	    s390_zfcp_disk_num=$(expr $s390_zfcp_disk_num + 1)
-	    saved_IFS="$IFS"
-	    IFS=":"
-	    set -- $disk
-	    IFS="$saved_IFS"
+	    set -- $(IFS=":"; echo $disk)
 	    echo -e "\t\t$1:$2:$3"
 	    cat_linuxrc <<-EOF
 	|echo "Activating zfcp disk $1:$2:$3"
