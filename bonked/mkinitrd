@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.16 $
+# $Revision: 1.17 $
 
 #
 # Print usage and exit
@@ -657,15 +657,15 @@ mkinitrd_kernel () {
 
     case "$kernel_version" in
     2.6*)
-	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	sysfs_root=1
-	need_mount=1
 	;;
     esac
 
     if [ -n "$sysfs_root" ]; then
 	mkdir -p $tmp_mnt/sys
+	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
+	cp_bin $root_dir/bin/cat $tmp_mnt/bin
+	need_mount=1
     fi
     
     if [ -n "$root_lvm" ] ; then
