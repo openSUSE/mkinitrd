@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 28 15:21:28 CEST 2004 - hare@suse.de
+
+- #42958: /sbin/MAKEDEV must be linked into /dev if
+  existing.
+
+-------------------------------------------------------------------
 Wed Jul 28 10:39:51 CEST 2004 - hare@suse.de
 
 - #43352: dasdview was not copied into the initrd;
