@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitramfs,v $
-# $Revision: 1.3 $
+# $Revision: 1.4 $
 
 #
 # Print usage and exit
@@ -598,7 +598,7 @@ mkinitrd_kernel () {
     echo -n > $tmp_mnt/etc/mtab
     cp -a /lib/klibc/bin/* $tmp_mnt/lib/klibc/bin
     cp -a /etc/udev $tmp_mnt/etc
-    cp -a /sbin/udev.static $tmp_mnt/sbin/udev
+    cp -a /sbin/udev $tmp_mnt/sbin/udev
     cp -a /sbin/udevstart $tmp_mnt/sbin/udevstart
     cp -a /sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
     cp -a /sbin/udev.*.sh $tmp_mnt/sbin/
