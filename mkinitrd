@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.127 $
+# $Revision: 1.128 $
 
 #
 # Print usage and exit
@@ -1176,6 +1176,10 @@ mkinitrd_kernel() {
 	    cp_bin $root_dir/bin/$bin $tmp_mnt/bin
 	done
 
+	if [ -x $root_dir/lib/mkinitrd/hotplug.sh ] ; then
+	    cp_bin $root_dir/lib/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
+	fi
+
 	# This has to go ...
 	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
 
@@ -1185,6 +1189,11 @@ mkinitrd_kernel() {
 	cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
 	mkdir -p $tmp_mnt/etc/udev
 	cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
+	if [ "$mkinit_type" = "ramfs" ] ; then
+	    mkdir -p $tmp_mnt/events
+	    cp_bin $root_dir/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	    (cd $tmp_mnt/sbin; ln -s hotplugeventrecorder hotplug)
+	fi
 	need_block_driver=1
     fi
 
@@ -1457,11 +1466,14 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-EOF
 	|
 	|echo "Starting udev"
-	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
+	|if [ -x /sbin/hotplug.sh ]; then
+	|    echo "/sbin/hotplug.sh" > /proc/sys/kernel/hotplug
+	|else
+	|    echo "/sbin/udev" > /proc/sys/kernel/hotplug
+	|fi
 	|echo "Creating devices"
-	|UDEVSTART_ON_BOOT=1
-	|export UDEVSTART_ON_BOOT
 	|/sbin/udevstart
+	|
 	EOF
     fi
 
@@ -2121,8 +2133,8 @@ mkinitrd_kernel() {
 	|   [ $o = rw ] && read_write=1
 	|done
 	|
-	|opt=-oro
-	|[ -n "$read_write" ] && opt=-orw
+	|opt="-o ro"
+	|[ -n "$read_write" ] && opt="-o rw"
 	|[ -n "$dhcp_mode" ] && opt="${opt},nolock"
 	|
 	|# tell kernel root is /dev/ram0, prevents remount after initrd
@@ -2148,9 +2160,25 @@ mkinitrd_kernel() {
 	|mount -o bind /dev /root/dev
 	|chmod 755 /root/dev
 	|
-	|mknod /dev/fb0 c 29 0
-	|mknod /dev/fd1 c 29 1
-	|mknod /dev/ppp c 108 0
+	|# Create framebuffer devices
+	|if [ -f /proc/fb ]; then
+	|    cat /proc/fd | while read fbnum fbtype; do
+	|        if [ $(($fbnum < 32)) ] ; then
+	|            mknod /dev/fb$fbnum c 29 $fbnum
+	|        fi
+	|    done
+	|fi
+	|
+	|ln -s /proc/self/fd /dev/fd
+	|
+	|# Save all events
+	|if [ ! -d /dev/events ]; then
+	|    mkdir /dev/events
+	|    cd /events
+	|    for ev in *; do
+	|        if [ -f "$ev" ]; then cat $ev > /dev/events/$ev ; fi
+	|    done
+	|fi
 	|
 	|# ready to leave
 	|cd /root
