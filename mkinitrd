@@ -21,8 +21,9 @@
 # USA.
 
 # This file is kept in the following CVS repository:
+#
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.5 $
+# $Revision: 1.6 $
 
 #
 # Print usage and exit
