@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.2 $
+# $Revision: 1.124.2.3 $
 
 #
 # Print usage and exit
@@ -654,9 +654,15 @@ check_ide_modules() {
 	fi
     done < <(/sbin/lspci -n)
     if [ "$ide_modules" ]; then
-	add_module ide-disk
-	add_module ide-floppy
-	add_module ide-cd
+	if grep -q ide_disk ${modules_dir}/modules.dep; then
+	    add_module ide-disk
+	fi
+	if grep -q ide_floppy ${modules_dir}/modules.dep; then
+	    add_module ide-floppy
+	fi
+	if grep -q ide_cd ${modules_dir}/modules.dep; then
+	    add_module ide-cd
+	fi
 	echo
     fi
 
