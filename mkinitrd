@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.179 $
+# $Revision: 1.180 $
 
 #
 # Print usage and exit
@@ -615,6 +615,10 @@ check_ide_modules_hwinfo() {
 	# Skip ahci module from hwinfo output
 	if [ "$hwinfo_module" != "ahci" ]; then
 	    ide_modules="$ide_modules $hwinfo_module"
+	fi
+	# Always add ahci prior to ata_piix
+	if [ "$hwinfo_module" == "ata_piix" ]; then
+	    ide_modules="$ide_modules ahci $hwinfo_module"
 	fi
     done < <(hwinfo --kernel-version $kernel_version \
 	            --db "pci ${pci_id_vendor:+vendor=$pci_id_vendor} 
