@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.181 $
+# $Revision: 1.182 $
 
 #
 # Print usage and exit
@@ -1539,17 +1539,25 @@ mkinitrd_kernel() {
 	|	/dev/*)
 	|	    ;;
 	|	LABEL=*)
+	|	    label=\${rootdev#LABEL=}
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"\*\", PROGRAM="/bin/udev_volume_id -l %N", RESULT=\"\$label\", "SYMLINK=\"root\"" > /etc/udev/rules.d/01-label.rules
+	|	    rootdev=/dev/root
+	|	    ;;
+	|	UUID=*)
+	|	    uuid=\${rootdev#UUID=}
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"\*\", PROGRAM="/bin/udev_volume_id -u %N", RESULT=\"\$uuid\", "SYMLINK=\"root\"" > /etc/udev/rules.d/02-label.rules
+	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x0\$rootdev >> 8))
 	|	    min=\$((0x0\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/00-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdevn=\$maj:\$min
 	|	    rootdev=/dev/root ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x\$rootdev >> 8))
 	|	    min=\$((0x\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/00-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdevn=\$maj:\$min
 	|	    rootdev=/dev/root ;;
 	|	*:*)
@@ -1960,6 +1968,7 @@ mkinitrd_kernel() {
 	|	    fi
 	|	    sleep 1
 	|	    echo -n "."
+	|	    [ -n "$vg_root" ] && vgchange -a y $vg_root
 	|	    timeout=$(( $timeout - 1 ))
 	|	done
 	|    fi
@@ -2059,9 +2068,6 @@ mkinitrd_kernel() {
 	|done
 	|
 	|# wait for the resume device
-	|# Hack alert: we need this as a trigger
-	|# for LVM/DM devices; otherwise the detection
-	|# mechanism will run before and disks are initialised.
 	|udev_discover_resume
 	|
 	EOF
