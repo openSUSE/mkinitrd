@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.32 $
+# $Revision: 1.33 $
 
 #
 # Print usage and exit
@@ -1452,15 +1452,21 @@ case $LOADER_TYPE in
     echo "
 Run lilo now to update the boot loader configuration."
     ;;
-  grub | elilo)
+  elilo)
+    if [ -x /sbin/elilo ]; then
+      /sbin/elilo
+    else
+      echo "
+You may now have to update the elilo boot loader configuration."
+    fi
+  grub)
     ;;
   *)
     if [ -f "$root_dir/etc/zipl.conf" ]; then
 	echo -e "\ninitrd updated, zipl needs to update the IPL record before IPL!"
     else
 	echo "
-You may be using the lilo boot loader. If this is the case, \
-run lilo now to update its configuration."
+You may now have to update your boot loader configuration."
     fi
     ;;
 esac
