@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.63 $
+# $Revision: 1.64 $
 
 #
 # Print usage and exit
@@ -783,11 +783,11 @@ mkinitrd_kernel () {
 	else
 	    cp_bin $root_dir/bin/sleep $tmp_mnt/bin
 	fi
-	cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
+	cp_bin $root_dir/sbin/udev $tmp_mnt/sbin/udev
 	cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
 	cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
 	cp_bin $root_dir/sbin/scsi_id $tmp_mnt/sbin
-	cp_bin $root_dir/sbin/udev.get_unique_hardware_path.sh $tmp_mnt/sbin
+	cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
 	mkdir -p $tmp_mnt/etc/udev
 	cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
     fi
@@ -948,30 +948,13 @@ mkinitrd_kernel () {
     # Start udev if necessary
     if [ -n "$use_udev" ]; then
 	cat_linuxrc <<-EOF
+	|
+	|root_dev_t=$root_dev_t
+	|
 	|echo "Starting udev"
 	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
 	|echo "Creating devices"
-	|cd /sys
-	|ACTION="add"
-	|export ACTION
-	|UDEV_NO_SLEEP=1
-	|export UDEV_NO_SLEEP
-	|for dir in block/*; do
-	|    case \$dir in
-	|        block/loop*)
-	|        ;;
-	|        *)
-	|        for dev in \$dir/dev \$dir/*/dev; do
-	|            if test -f \$dev; then
-	|                DEVPATH="/\${dev#dev}"
-	|                export DEVPATH
-	|                echo "\$DEVPATH"
-	|                /sbin/udev block
-	|            fi
-	|        done
-	|        ;;
-	|     esac
-	|done
+	|/sbin/udevstart
 	EOF
     fi
 
@@ -1096,6 +1079,7 @@ mkinitrd_kernel () {
 
     if [ -n "$use_udev" ]; then
 	sysfs_root=
+	echo -e "Udev:\t\tUsing root=$root_dev_t as fallback"
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
 	|	local node
@@ -1131,7 +1115,8 @@ mkinitrd_kernel () {
 	|		    return 0
 	|		fi
 	|	    else
-	|		echo " not found."
+	|		echo " not found, using fallback"
+	|		echo $root_dev_t > /proc/sys/kernel/real-root-dev
 	|		return 1
 	|	    fi
 	|	fi
@@ -1517,21 +1502,22 @@ case "$rootdev" in
 		      | sed -e 's/  *//g')
 	[ -z "$realrootdev" ] \
 	    && error 1 "Could not expand $rootdev to real device"
+	root_dev_t=$(stat -c "%t%02T" $root_dir/$realrootdev)
+	;;
+    *)
+	root_dev_t=$(stat -c "%t%02T" $root_dir/$rootdev)
 	;;
 esac
 
 # check if the root device is an lvm device
 root_lvm=
-if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
-    major=$(echo "ibase=16;$(stat -L --format='%t' "$realrootdev" | tr '[:lower:]' '[:upper:]')"|bc)
-    [ "$major" -eq 58 ] && root_lvm=1
-fi
-
-# check if the root device is an dm/lvm2 device
 root_dm=
 if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
     major=$(echo "ibase=16;$(stat -L --format='%t' "$realrootdev" | tr '[:lower:]' '[:upper:]')"|bc)
+    [ "$major" -eq 58 ] && root_lvm=1
     [ "$major" -eq 254 ] && root_dm=1
+
+    root_dev_t=$(echo "ibase=16;$(stat -L --format='%t%02T' "$realrootdev" | tr '[:lower:]' '[:upper:]')"|bc)
 fi
 
 s390_zfcp_proc() {
