@@ -1,8 +1,0 @@
-#
-# Links for mount-by-label or -by-uuid
-#
-SUBSYSTEM="block", SYSFS{start}="*", PROGRAM="/lib/klibc/bin/udev_volume_id -fu %N", SYMLINK="disk/by-uuid/%c"
-KERNEL="dm-[0-9]*", PROGRAM="/lib/klibc/bin/udev_volume_id -u %N", SYMLINK="disk/by-uuid/%c"
-SUBSYSTEM="block", SYSFS{start}="*", PROGRAM="/lib/klibc/bin/udev_volume_id -fl %N", SYMLINK="disk/by-label/%c"
-KERNEL="dm-[0-9]*", PROGRAM="/lib/klibc/bin/udev_volume_id -l %N", SYMLINK="disk/by-label/%c"
-
