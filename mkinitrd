@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.133 $
+# $Revision: 1.134 $
 
 #
 # Print usage and exit
@@ -1065,8 +1065,8 @@ mkinitrd_kernel() {
 	mkdir -p $tmp_mnt/dev/shm
     fi
     mkdir -p $tmp_mnt/lib/klibc/bin
-    for klibc_bin in devnumber sed sleep ata_identify scsi_id cat \
-	umount; do
+    for klibc_bin in devnumber sed sleep ata_identify scsi_id \
+	cat ln umount; do
       if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
 	  cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
 	      $tmp_mnt/lib/klibc/bin
@@ -2033,6 +2033,9 @@ mkinitrd_kernel() {
 	|        if [ -f "$ev" ]; then cat $ev > /dev/events/$ev ; fi
 	|    done
 	|fi
+	|
+	|# Reset hotplug
+	|echo "/sbin/hotplug" > /proc/sys/kernel/hotplug
 	|
 	|# ready to leave
 	|cd /root
