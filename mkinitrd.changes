@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov 22 12:44:29 CET 2004 - hare@suse.de
+
+- Fix scanning for new PCI-IDs to also allow invalid entries (#36084)
+
+-------------------------------------------------------------------
 Fri Nov 19 13:16:22 CET 2004 - hare@suse.de
 
 - Add support for new PCI-IDs for existing drivers (#36084)
