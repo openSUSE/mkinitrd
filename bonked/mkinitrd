@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.93 $
+# $Revision: 1.94 $
 
 #
 # Print usage and exit
@@ -315,7 +315,7 @@ auto)
 	    794)     splashsize=1280x1024 ;;
 	    795)     splashsize=1280x1024 ;;
 	    *)	     vgahex=$(printf 0x%04x "$(($vga))")
-		     splashsize=$(hwinfo debug=0 -all +bios.vbe | sed -ne \
+		     splashsize=$(hwinfo --framebuffer | sed -ne \
 				   's/^.*Mode '$vgahex': \([^ ]\+\) .*$/\1/p' \
 				  2>/dev/null) ;;
 	esac

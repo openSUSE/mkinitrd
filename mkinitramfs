@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.20 2004/05/03 15:36:04 olh Exp $
+# $Id: mkinitramfs,v 1.21 2004/05/05 10:35:19 agruen Exp $
 
 #
 # Print usage and exit
@@ -280,7 +280,7 @@ auto)
 	    794)     splashsize=1280x1024 ;;
 	    795)     splashsize=1280x1024 ;;
 	    *)	     vgahex=$(printf 0x%04x "$[$vga]")
-		     splashsize=$(hwinfo debug=0 -all +bios.vbe | sed -ne \
+		     splashsize=$(hwinfo --framebuffer | sed -ne \
 				   's/^.*Mode '$vgahex': \([^ ]\+\) .*$/\1/p' \
 				  2>/dev/null) ;;
 	esac
