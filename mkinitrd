@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.151 $
+# $Revision: 1.152 $
 
 #
 # Print usage and exit
@@ -1285,8 +1285,11 @@ mkinitrd_kernel() {
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
 	|    initrd=trace)
-	|        set -x
-	|        ;;
+	|	set -x
+	|	;;
+	|    sysrq=yes|sysrq=1)
+	|	echo 1 > /proc/sys/kernel/sysrq
+	|	;;
 	|    esac
 	|done
 	|

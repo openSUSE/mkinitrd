@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov  8 16:43:52 CET 2004 - agruen@suse.de
+
+- Recognize the sysrq={yes|1} kernel command-line option for
+  switching on sysrq earlier during boot-up.
+
+-------------------------------------------------------------------
 Mon Nov  8 16:02:17 CET 2004 - olh@suse.de
 
 - mkinitramfs: Fix ldd output parsing
