@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 21 15:35:52 CET 2005 - hare@suse.de
+
+- Make root device discovery by udev optional again as it
+  breaks nfs-root.
+- Fix module enabling for modularized IDE subsystem.
+
+-------------------------------------------------------------------
 Thu Jan 20 10:47:54 CET 2005 - hare@suse.de
 
 - Rearrange dhcp sections to make nfs-root work again.

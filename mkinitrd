@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.153 $
+# $Revision: 1.154 $
 
 #
 # Print usage and exit
@@ -61,6 +61,7 @@ usage() {
 			   variable in /etc/sysconfig/kernel.
           -r               Use initramfs instead of initrd.
           -g               Use glibc instead of klibc binaries.
+          -u               Do not use udev for root device discovery.
 	  -S               Load policy file for SELinux if exist.
 EOM
     exit
@@ -137,6 +138,7 @@ use_static_binaries=1
 acpi_dsdt=
 use_selinux=
 use_glibc=
+use_udev=1
 mkinit_type="rd"
 
 case $0 in
@@ -152,7 +154,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hgrk:i:m:b:d:o:s:St:D:a: a ; do
+while getopts :hgrk:i:m:b:d:o:s:Sut:D:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -196,8 +198,9 @@ while getopts :hgrk:i:m:b:d:o:s:St:D:a: a ; do
 	    ;;
 	t)  tmp_dir=$OPTARG
 	    ;;
-	D)  dhcp_interface=$OPTARG
-	    dhcp_interface=${dhcp_interface#/dev/}
+	D)  interface=$OPTARG
+	    interface=${interface#/dev/}
+	    use_dhcp=1
 	    use_pivot_root=1
 	    ;;
 	a)  acpi_dsdt="$OPTARG"
@@ -205,6 +208,9 @@ while getopts :hgrk:i:m:b:d:o:s:St:D:a: a ; do
 	S)  use_selinux=1
 	    ;;
 	r)  mkinit_type="ramfs"
+	    ;;
+	u)  sysfs_root=1
+	    use_udev=
 	    ;;
 	h)  usage
 	    ;;
@@ -588,13 +594,13 @@ check_ide_modules() {
 	fi
     done < <(/sbin/lspci -n)
     if [ "$ide_modules" ]; then
-	if grep -q ide_disk ${modules_dir}/modules.dep; then
+	if grep -q ide-disk ${modules_dir}/modules.dep; then
 	    add_module ide-disk
 	fi
-	if grep -q ide_floppy ${modules_dir}/modules.dep; then
+	if grep -q ide-floppy ${modules_dir}/modules.dep; then
 	    add_module ide-floppy
 	fi
-	if grep -q ide_cd ${modules_dir}/modules.dep; then
+	if grep -q ide-cd ${modules_dir}/modules.dep; then
 	    add_module ide-cd
 	fi
 	echo
@@ -965,8 +971,14 @@ mkinitrd_kernel() {
     echo -n > $tmp_mnt/etc/mtab
 
     if [ "$mkinit_type" = "rd" ]; then
-	initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
-	    dev/{console,md0})
+	initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,console})
+	# These device might not have been created by udev
+	for dev in ram ramdisk md0; do
+	    if [ -f dev/$dev ]; then
+		initrd_devices="$initrd_devices $(echo dev/$dev)"
+	    fi
+	done
+
 	case "$(uname -m)" in
 	    s390|s390x)
 		;;
@@ -1028,8 +1040,6 @@ mkinitrd_kernel() {
 	cp_bin /sbin/zfcp_disk_configure $tmp_mnt/sbin
 	cp_bin /bin/sed $tmp_mnt/bin
     fi
-
-    features=(${features[@]} udev)
 
     if [ "$use_glibc" ] ; then
 	features=(${features[@]} glibc)
@@ -1103,32 +1113,35 @@ mkinitrd_kernel() {
 	fi
     done
 
-    if [ -z "$use_glibc" ] ; then
-	cp_bin /sbin/udev.static $tmp_mnt/sbin/
-	cp_bin /sbin/udevinfo.static $tmp_mnt/sbin/
-	if [ ! -L /sbin/udevstart.static ] ; then
-	    cp_bin /sbin/udevstart.static $tmp_mnt/sbin/
-	fi
-	ln -s udev.static $tmp_mnt/sbin/udev
-	ln -s udevinfo.static $tmp_mnt/sbin/udevinfo
-	if [ ! -L /sbin/udevstart.static ] ; then
-	    ln -s udevstart.static $tmp_mnt/sbin/udevstart
+    if [ -n "$use_udev" ] ; then
+	features=(${features[@]} udev)
+	if [ -z "$use_glibc" ] ; then
+	    cp_bin /sbin/udev.static $tmp_mnt/sbin/
+	    cp_bin /sbin/udevinfo.static $tmp_mnt/sbin/
+	    if [ ! -L /sbin/udevstart.static ] ; then
+		cp_bin /sbin/udevstart.static $tmp_mnt/sbin/
+	    fi
+	    ln -s udev.static $tmp_mnt/sbin/udev
+	    ln -s udevinfo.static $tmp_mnt/sbin/udevinfo
+	    if [ ! -L /sbin/udevstart.static ] ; then
+		ln -s udevstart.static $tmp_mnt/sbin/udevstart
+	    else
+		ln -s udev.static $tmp_mnt/sbin/udevstart
+	    fi
 	else
-	    ln -s udev.static $tmp_mnt/sbin/udevstart
+	    cp_bin /sbin/udev $tmp_mnt/sbin/
+	    cp_bin /sbin/udevinfo $tmp_mnt/sbin/
+	    if [ ! -L /sbin/udevstart ] ; then
+		cp_bin /sbin/udevstart $tmp_mnt/sbin/
+	    else
+		ln -s udev $tmp_mnt/sbin/udevstart
+	    fi
+	    
 	fi
-    else
-	cp_bin /sbin/udev $tmp_mnt/sbin/
-	cp_bin /sbin/udevinfo $tmp_mnt/sbin/
-	if [ ! -L /sbin/udevstart ] ; then
-	    cp_bin /sbin/udevstart $tmp_mnt/sbin/
-	else
-	    ln -s udev $tmp_mnt/sbin/udevstart
-	fi
-	
+	cp_bin /sbin/udev.*.sh $tmp_mnt/sbin
+	mkdir -p $tmp_mnt/etc/udev
+	cp -a /etc/udev/* $tmp_mnt/etc/udev
     fi
-    cp_bin /sbin/udev.*.sh $tmp_mnt/sbin
-    mkdir -p $tmp_mnt/etc/udev
-    cp -a /etc/udev/* $tmp_mnt/etc/udev
 
     if [ "$mkinit_type" = "ramfs" ] ; then
 	mkdir -p $tmp_mnt/events
@@ -1187,14 +1200,13 @@ mkinitrd_kernel() {
 	mkdir -p $tmp_mnt/mnt
     fi
 
-    if [ -n "$dhcp_interface" ] ; then
-	features=(${features[@]} dhcp\($dhcp_interface\))
+    if [ -n "$use_dhcp" ] ; then
+	features=(${features[@]} dhcp\($interface\))
 	cp_bin /sbin/dhcpcd $tmp_mnt/bin
 	cp_bin /bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
 	mkdir -p $tmp_mnt/var/run
 	need_mount=1
-	use_dhcp=1
     fi
 
     if has_module jfs ; then
@@ -1601,15 +1613,15 @@ mkinitrd_kernel() {
 	|if [ -n "\$dhcp_mode" ]; then
 	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
 	|  # portmap
-	|  echo "running dhcpcd on interface $dhcp_interface"
-	|  dhcpcd -R -Y -N -t 100000000 $dhcp_interface
-	|  [ -s /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info ] || {
+	|  echo "running dhcpcd on interface $interface"
+	|  dhcpcd -R -Y -N -t 100000000 $interface
+	|  [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] || {
 	|    echo "no response from dhcp server."
 	|    echo 256 > /proc/sys/kernel/real-root-dev
 	|    die 0
 	|  }
-	|  . /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info
-	|  kill -9 \$(cat /var/run/dhcpcd-$dhcp_interface.pid)
+	|  . /var/lib/dhcpcd/dhcpcd-$interface.info
+	|  kill -9 \$(cat /var/run/dhcpcd-$interface.pid)
 	|  if [ -n "\$DNS" ]; then
 	|    oifs="\$IFS"
 	|    IFS=","
@@ -1646,7 +1658,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$use_dhcp" ]; then
+    if [ "$rootfstype" = "nfs" ]; then
 	cat_linuxrc <<-'EOF'
 	|if [ -z "$rootdev_cmdline" ]; then
 	|  case "$ROOTPATH" in
@@ -1849,7 +1861,8 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    cat_linuxrc <<-'EOF'
+    if [ -n "$use_udev" ] ; then
+	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
 	|	local root
 	|	case "$rootdev" in
@@ -1900,6 +1913,7 @@ mkinitrd_kernel() {
 	|    PATH=$PATH /bin/sh
 	|fi
 	EOF
+    fi
 
     if [ -n "$sysfs_root" ]; then
 	cat_linuxrc <<-'EOF'
@@ -2247,6 +2261,7 @@ if [ -z "$use_dhcp" ]; then
 else
     rootdev=
     rootfstype=nfs
+    use_udev=
 fi
 
 realrootdev="$rootdev"
