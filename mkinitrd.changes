@@ -5,6 +5,27 @@ Thu May 13 14:55:44 CEST 2004 - hare@suse.de
   configuration file exists.
 
 -------------------------------------------------------------------
+Tue May 11 11:24:00 CEST 2004 - agruen@suse.de
+
+- Install Kerntypes in /sbin/installkernel instead of in the
+  kernel makefiles: installkernel knows about /boot.
+
+-------------------------------------------------------------------
+Sun May  9 18:34:20 CEST 2004 - olh@suse.de
+
+- mkinitramfs: guess if root is on lvm
+  remove root_dir support. doesnt work as user because chroot
+  is required, and root can chroot anyway
+  doesnt need any hacks, just write a /bootsplash file (#39902)
+
+-------------------------------------------------------------------
+Wed May  5 17:55:38 CEST 2004 - agruen@suse.de
+
+- #39824: Fix bootsplash for non-standard resolutions.
+- #39893: Remove working directory and its contents.
+- Fix for lvm root with grub.
+
+-------------------------------------------------------------------
 Mon May  3 11:00:21 CEST 2004 - hare@suse.de
 
 - new-kernel-pkg: Fixed embarrasing bug in call to zipl 
