@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.35 $
+# $Revision: 1.36 $
 
 #
 # Print usage and exit
@@ -79,9 +79,7 @@ default_kernel_images () {
 	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
 	case "$arch" in
-		s390*)	kernel_images=/boot/kernel/image
-			initrd_images=/boot/initrd
-			return
+		s390*)	regex='image'
 			;;
 		ppc)	regex='vmlinu[xz]\(64\)\?'
 			;;
@@ -95,7 +93,7 @@ default_kernel_images () {
 		| sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
 
 		# Note that we cannot check the RPM database here -- this
-		# script is itelf called from within the binary kernel
+		# script is itself called from within the binary kernel
 		# packages, and rpm does not allow recursive calls.
 
 		[ -L "$root_dir/boot/$kernel_image" ] && continue
