@@ -23,13 +23,13 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.180 $
+# $Revision: 1.181 $
 
 #
 # Print usage and exit
 #
 usage() {
-    cat<<EOM
+    cat<<EOF
 	Create initial ramdisk images that contain all kernel modules
 	needed in the early boot process, before the root file system
 	becomes available. This usually includes SCSI and/or RAID
@@ -65,7 +65,7 @@ usage() {
           -u               Do not use udev for root device discovery.
 	  -S               Load policy file for SELinux if exist.
 	  -V script        Vendor specific script to run in linuxrc.
-EOM
+EOF
     exit
 }
 
@@ -612,13 +612,12 @@ check_ide_modules_hwinfo() {
     pci_subid_device=$5
 
     while read hwinfo_module; do
-	# Skip ahci module from hwinfo output
-	if [ "$hwinfo_module" != "ahci" ]; then
-	    ide_modules="$ide_modules $hwinfo_module"
-	fi
-	# Always add ahci prior to ata_piix
 	if [ "$hwinfo_module" == "ata_piix" ]; then
+	    # Always add ahci prior to ata_piix
 	    ide_modules="$ide_modules ahci $hwinfo_module"
+	elif [ "$hwinfo_module" != "ahci" ]; then
+	    # Skip ahci module from hwinfo output
+	    ide_modules="$ide_modules $hwinfo_module"
 	fi
     done < <(hwinfo --kernel-version $kernel_version \
 	            --db "pci ${pci_id_vendor:+vendor=$pci_id_vendor} 
@@ -686,7 +685,12 @@ check_ide_modules() {
 
     if [ "$ide_modules" ]; then
 	for module in $ide_modules; do
-	    add_module $module
+	    # Only add ahci module if ata_piix is not loaded already
+	    if [ "$module" == "ahci" ]; then
+		has_module ata_piix || add_module $module
+	    else
+		add_module $module
+	    fi
 	done
 	if grep -q ide-disk ${modules_dir}/modules.dep; then
 	    add_module ide-disk
