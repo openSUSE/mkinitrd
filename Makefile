@@ -16,8 +16,7 @@ ex: dirs
 	rm -f $(EXPORT_DIR)/$(PKG)/Makefile
 
 dirs: $(EXPORT_DIR)
-	cd $(EXPORT_DIR)
-	rm -rf $(PKG)
+	rm -rf $(EXPORT_DIR)/$(PKG)
 
 $(EXPORT_DIR):
 	mkdir -p $(EXPORT_DIR)

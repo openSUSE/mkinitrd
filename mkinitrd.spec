@@ -1,5 +1,5 @@
 #
-# spec file for package mkinitrd (Version 1.0)
+# spec file for package mkinitrd (Version 1.1)
 #
 # Copyright (c) 2004 SUSE LINUX AG, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine
@@ -20,8 +20,8 @@ Provides:     aaa_base:/sbin/mk_initrd
 Requires:     coreutils ash modutils util-linux grep e2fsprogs tar gzip sed gawk cpio udev
 # bootsplash required only if creating splash initrd's.
 Autoreqprov:  on
-Version:      1.0
-Release:      217
+Version:      1.1
+Release:      0
 Summary:      Creates an initial ramdisk image for preloading modules
 BuildRoot:    %{_tmppath}/%{name}-%{version}-build
 Source:       mkinitrd
@@ -45,7 +45,7 @@ In other words, generic kernels can be built without drivers for any
 SCSI adapters which load the SCSI driver as a module.  Since the kernel
 needs to read those modules, but in this case it isn't able to address
 the SCSI adapter, an initial ramdisk is used.  The initial ramdisk is
-loaded by the operating system loader (normally LILO) and is available
+loaded by the operating system loader (e.g. LILO) and is available
 to the kernel as soon as the ramdisk is loaded.  The ramdisk loads the
 proper SCSI adapter and allows the kernel to mount the root filesystem.
 
