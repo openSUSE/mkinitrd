@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 20 11:22:24 CEST 2004 - olh@suse.de
+
+- mkinitrd: /run_init must be s static binary because /lib is 
+            already gone when it runs, take the klibc version
+
+-------------------------------------------------------------------
 Fri Aug 20 11:18:41 CEST 2004 - olh@suse.de
 
 - mkinitrd: udevinfo.static is in /sbin again

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.140 $
+# $Revision: 1.141 $
 
 #
 # Print usage and exit
@@ -1093,7 +1093,8 @@ mkinitrd_kernel() {
 	done
 	cp_bin $root_dir/sbin/scsi_id $tmp_mnt/bin
 	cp_bin $root_dir/sbin/ata_identify $tmp_mnt/bin
-	cp_bin $root_dir/sbin/run_init $tmp_mnt/run_init
+        # this must be a static binry because /lib is already gone when it runs
+	cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
     fi
 
     # cat might not be present as klibc binary
