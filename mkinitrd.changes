@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  9 14:50:46 CEST 2004 - agruen@suse.de
+
+- Create missing /dev/shm directory.
+
+-------------------------------------------------------------------
 Fri Sep  3 20:59:08 CEST 2004 - olh@suse.de
 
 - mkinitramfs: bind mount /etc/mtab to /proc/1/mounts

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.143 $
+# $Revision: 1.144 $
 
 #
 # Print usage and exit
@@ -1028,8 +1028,8 @@ mkinitrd_kernel() {
     fi
     if [ "$mkinit_type" != "rd" ] ; then
 	features=(${features[@]} initramfs)
-	mkdir -p $tmp_mnt/dev/shm
     fi
+    mkdir -p $tmp_mnt/dev/shm
     
     if [ -z "$use_glibc" ] ; then
 	mkdir -p $tmp_mnt/lib/klibc/bin
@@ -1277,7 +1277,6 @@ mkinitrd_kernel() {
 	|exec < /dev/console > /dev/console 2>&1
 	|
 	|mount -n -t tmpfs -o 'size=3%' initramdevs /dev
-	|mkdir -p /dev/shm
 	|mkdir -p /dev/pts
 	|
 	|[ ! -f /proc/cpuinfo ] && mount -tproc proc /proc
