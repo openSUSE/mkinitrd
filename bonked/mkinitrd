@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.106 $
+# $Revision: 1.107 $
 
 #
 # Print usage and exit
@@ -981,6 +981,12 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 	if grep -q DIAG /proc/dasd/devices ; then
 	    add_module dasd_diag_mod
 	fi
+    else
+	# /proc not mounted or somesuch. Enable all dasd modules
+	add_module dasd_mod
+	add_module dasd_eckd_mod
+	add_module dasd_fba_mod
+	add_module dasd_diag_mod
     fi
 }
 
@@ -1551,6 +1557,14 @@ mkinitrd_kernel() {
 	|/sbin/zfcp_disk_configure $1 $2 $3 1
 	EOF
 	done
+    fi
+
+    if [ "$arch" = s390 ]; then
+	if [ -z "$s390_zfcp_disks" -a -z "$s390_dasd_disks" ]; then
+	    echo ""
+	    echo "WARNING: No boot devices found."
+	    echo "Make sure to add 'dasd=<dasd-range>' to the kernel commandline"
+	fi
     fi
 
     if [ -n "$need_raidautorun" ]; then

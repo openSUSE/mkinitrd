@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun  2 16:31:10 CEST 2004 - hare@suse.de
+
+- mkinitrd: Emit warning if no disks are found (#41542).
+
+-------------------------------------------------------------------
 Wed Jun  2 12:50:43 CEST 2004 - hare@suse.de
 
 - mkinitrd: Always activate all disks (#41484).
