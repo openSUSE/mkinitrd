@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.79 $
+# $Revision: 1.80 $
 
 #
 # Print usage and exit
@@ -91,6 +91,11 @@ default_kernel_images () {
 		*)	regex='vmlinuz'
 			;;
 	esac
+
+	# user mode linux
+	if grep -q UML /proc/cpuinfo; then
+		regex='linux'
+	fi
 
 	kernel_images=""
 	initrd_images=""
@@ -669,10 +674,31 @@ check_ide_modules () {
     fi
 }
 
+devnumber() {
+    ls -l -L $1 | awk '{printf $5 * 256 + $6}'
+}
+
+# NOTE: The block_driver function is reused inside the initrd,
+#       so keep it compatible with ash !!!
+#
+block_driver() {
+    local devn=$(devnumber $1 2> /dev/null) block major driver
+    [ -z "$devn" ] && return 1
+    while read major driver; do
+	[ "$major" = Block ] && block=1  # in block device section
+	[ -z "$driver" -o -z "$block" ] && continue
+	if [ $(expr $devn / 256 = $major) = 1 ]; then
+	    echo $driver
+	    return 0
+	fi
+    done < /proc/devices
+    return 1
+}
+
 # Create the initrd image $2 for kernel $1 (both are absolute path names).
 mkinitrd_kernel () {
     local kernel_image=$1 initrd_image=$2
-    local kernel_version need_mount sysfs_root
+    local kernel_version need_mount sysfs_root need_block_driver
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
@@ -805,6 +831,7 @@ mkinitrd_kernel () {
 	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	need_mount=1
+	need_block_driver=1
     fi
 
     if [ -n "$root_dm" ] ; then
@@ -818,6 +845,7 @@ mkinitrd_kernel () {
 	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm,devmap_mknod.sh} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod} $tmp_mnt/bin
 	need_mount=1
+	need_block_driver=1
     fi
 
     if [ -n "$use_pivot_root" ] ; then
@@ -971,6 +999,11 @@ mkinitrd_kernel () {
 	|   return 1
 	|}
 	EOF
+
+    if [ -n "$need_block_driver" ]; then
+	# Transfer the the block_driver function into the initrd
+	type block_driver | sed -e '1d' >> $linuxrc
+    fi
 
     # Start udev if necessary
     if [ -n "$use_udev" ]; then
@@ -1177,10 +1210,10 @@ mkinitrd_kernel () {
 	|vgchange -a y
 	|umount -n /etc/lvmtab.d
 	|# set the right root device if user specified a lvm root
-	|if [ -n "$(root_arg)" ]; then
-	|  devn=$(devnumber $(root_arg) 2> /dev/null)
-	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
-	|    echo $devn > /proc/sys/kernel/real-root-dev
+	|root=$(root_arg)
+	|if [ -n "$root" ]; then
+	|  if [ "$(block_driver $root)" = lvm ]; then
+	|    echo $(devnumber $root) > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
 	EOF
@@ -1197,10 +1230,10 @@ mkinitrd_kernel () {
 	|vgchange -a y
 	|umount -n /etc/lvm
 	|# set the right root device if user specified a lvm root
-	|if [ -n "$(root_arg)" ]; then
-	|  devn=$(devnumber $(root_arg) 2> /dev/null)
-	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
-	|    echo $devn > /proc/sys/kernel/real-root-dev
+	|root=$(root_arg)
+	|if [ -n "$root" ]; then
+	|  if [ "$(block_driver $root)" = dm ]; then
+	|    echo $(devnumber $root) > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
 	EOF
@@ -1507,10 +1540,6 @@ mkinitrd_kernel () {
     fi
 }
 
-hex_dev_number() {
-    ls -l -L $1 | awk '{printf "%02x%02x\n", $5, $6}'
-}
-
 ###################################################################
 
 # working directories
@@ -1564,12 +1593,10 @@ esac
 root_lvm=
 root_dm=
 if [ -n "$realrootdev" -a -b "$root_dir/$realrootdev" ] ; then
-    dev_hex=$(hex_dev_number $root_dir/$realrootdev)
-    root_dev_t=$((0x$dev_hex))
+    root_dev_t=$(devnumber $root_dir/$realrootdev)
 
-    (( 0x${dev_hex:0:2} ==  58 )) && root_lvm=1
-    DMDEV=`sed -n "/device-mapper/s/ .*//p" </proc/devices`
-    (( 0x${dev_hex:0:2} == "${DMDEV:-0}" )) && root_dm=1
+    [ "$(block_driver "$root_dir/$realrootdev")" = lvm ] && root_lvm=1
+    [ "$(block_driver "$root_dir/$realrootdev")" = dm ] && root_dm=1
 fi
 
 ###################################################################
@@ -1615,13 +1642,12 @@ you can save the current configuration with this command:
 # behaviour during booting.
 s390_zfcp_sysfs() {
     local path
-    local dev_hex=$(hex_dev_number $rootdev)
+    local devn=$(devnumber $rootdev)
 
     for dir in /sys/block/*/*; do
 	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
 	    IFS=":" read tmp_major tmp_minor < $dir/dev
-	    if (($tmp_major == 0x${dev_hex:0:2} &&
-		 $tmp_minor == 0x${dev_hex:2:2})); then
+	    if (($devn == $tmp_major * 256 + $tmp_minor)); then
 		path=$dir
 		break;
 	    fi
@@ -1657,13 +1683,12 @@ s390_zfcp_sysfs() {
 }
 
 s390_dasd_sysfs() {
-    local dev_hex=$(hex_dev_number $rootdev)
+    local devn=$(devnumber $rootdev)
 
     for dir in /sys/block/*/*; do
 	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
 	    IFS=":" read tmp_major tmp_minor < $dir/dev
-	    if (($tmp_major == 0x${dev_hex:0:2} &&
-		 $tmp_minor == 0x${dev_hex:2:2})); then
+	    if (($devn == $tmp_major * 256 + $tmp_minor)); then
 		path=$dir
 		break;
 	    fi
