@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.49 2004/10/28 12:53:37 olh Exp $
+# $Id: mkinitramfs,v 1.50 2004/11/08 15:02:41 olh Exp $
 
 #
 # Print usage and exit
@@ -380,7 +380,7 @@ shared_object_files () {
 
     initrd_libs=( $(
 	$LDD "$@" \
-	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:'
+	| sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p'
     ) )
 
     # Evil hack: On some systems we have generic as well as optimized

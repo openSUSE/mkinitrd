@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov  8 16:02:17 CET 2004 - olh@suse.de
+
+- mkinitramfs: Fix ldd output parsing
+
+-------------------------------------------------------------------
 Thu Oct 28 14:53:06 CEST 2004 - olh@suse.de
 
 - mkinitramfs: create /var/run (#34258 - LTC6040)
