@@ -5,6 +5,11 @@ Wed May 19 01:14:29 CEST 2004 - garloff@suse.de
 - BLIST_NOREPORTLUN has changed its value in the kernel.
 
 -------------------------------------------------------------------
+Thu May 13 18:07:54 CEST 2004 - fehr@suse.de
+
+- add support for EVMS volume as root filesystem
+
+-------------------------------------------------------------------
 Thu May 13 14:55:44 CEST 2004 - hare@suse.de
 
 - new-kernel-pkg: Only call zipl on S/390 if corresponding
