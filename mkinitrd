@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.3 $
+# $Revision: 1.124.2.4 $
 
 #
 # Print usage and exit
@@ -905,7 +905,7 @@ s390_zfcp_sysfs() {
 		fi
 	    fi
 	done
-	if [ "$fcp_disk_hba" ]; then
+	if [ "$s390_zfcp_hbas" ]; then
 	    add_module sd_mod
 	    add_module zfcp
 	fi
