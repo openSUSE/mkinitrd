@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Wed Jun  2 18:00:29 CEST 2004 - bk@suse.de
 
-- mkinitrd: spelling fix in warning and zipl message update(#41542)
+- mkinitrd: write commandline as command line in warning (#41542)
 
 -------------------------------------------------------------------
 Wed Jun  2 16:31:10 CEST 2004 - hare@suse.de
