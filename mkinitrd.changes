@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Aug 22 20:47:27 CEST 2004 - olh@suse.de
+
+- mkinitramfs: if nfsroot= is given, force root=/dev/nfs
+
+-------------------------------------------------------------------
 Sun Aug 22 20:37:14 CEST 2004 - olh@suse.de
 
 - mkinitramfs: rearrange the kinit.sh code, mount /dev earlier,

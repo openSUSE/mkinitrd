@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.20 2004/08/22 18:42:27 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.21 2004/08/22 18:47:52 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -106,9 +106,7 @@ for i in $cmdline ; do
 			nfsroot="`echo $i | sed -e 's@^nfsroot=@@'`"
 			nfsoptions="`echo $i | sed -e 's@\(^[^,]\+,\)\(.*\)@-o \2@p;d'`"
 			nfsserver="`echo $nfsroot | sed -e 's@\(^[^:]\+:[^,]\+\)\(,.*\)\?@\1@p;d'`"
-			if [ -z "$root" ] ; then
-				root=/dev/nfs
-			fi
+			root=/dev/nfs
 			;;
 		# iscsi
 		DiscoveryAddress=*)
