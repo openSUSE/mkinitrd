@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.41 $
+# $Revision: 1.42 $
 
 #
 # Print usage and exit
@@ -991,7 +991,7 @@ mkinitrd_kernel () {
 	|	  if test -f $entry/dev -a $name = $search; then
 	|		local major minor dev_t
 	|		IFS=: read major minor < $entry/dev
-	|		dev_t=$(expr $major * 256 + $minor)
+	|		dev_t=$(expr $major '*' 256 + $minor)
 	|		echo "rootfs: $entry major=$major minor=$minor dev_t=$dev_t"
 	|		echo $dev_t > /proc/sys/kernel/real-root-dev
 	|		return
