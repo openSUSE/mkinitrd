@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.4 $
+# $Revision: 1.124.2.5 $
 
 #
 # Print usage and exit
@@ -1345,7 +1345,7 @@ mkinitrd_kernel() {
 	|die() {
 	|    umount -n /proc
 	|    umount -n /sys
-	|    umount /dev/shm
+	|    umount -n /dev/shm
 	|    exit \$1
 	|}
 	|
@@ -1772,7 +1772,7 @@ mkinitrd_kernel() {
 	|mkdir -p /mnt
 	|mount -n -oro /dev/evms/lvm/system/ROOT /mnt
 	|FSTAB_ITEMS=\$(get_fstab_entries /mnt/etc/fstab)
-	|umount /mnt
+	|umount -n /mnt
 	|dmsetup remove_all
 	|create_evms_save_table wrzlbrnft \$FSTAB_ITEMS
 	|/sbin/evms_activate
@@ -1785,7 +1785,7 @@ mkinitrd_kernel() {
 	|	mount -n -oro /dev/evms/lvm/system/ROOT /mnt
 	|	fix_evms_root_node /mnt /dev/evms/lvm/system/ROOT
 	|	remove_evms_fstab \$FSTAB_ITEMS
-	|	umount /mnt
+	|	umount -n /mnt
 	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
 	|    *)
 	|	# hex number or major:minor pair
@@ -2047,7 +2047,7 @@ mkinitrd_kernel() {
 	|echo -n "Loading SELinux policy	"
 	|if mount -n -t selinuxfs none /selinux >/dev/null 2>/dev/null ; then
 	|  /sbin/load_policy /etc/security/selinux/policy.15
-	|  umount /selinux
+	|  umount -n /selinux
 	|  echo "successful"
 	|else
 	|  echo "skipped"
