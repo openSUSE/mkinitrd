@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 28 10:39:51 CEST 2004 - hare@suse.de
+
+- #43352: dasdview was not copied into the initrd;
+  scsi modules were copied with no SCSI device present on S/390,
+  and a symlink to sed were created with sed already present.
+
+-------------------------------------------------------------------
 Thu Jul  1 23:49:40 CEST 2004 - agruen@suse.de
 
 - #42696: Lilo passes the root device number as three to four-digit

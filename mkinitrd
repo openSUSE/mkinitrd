@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.1 $
+# $Revision: 1.124.2.2 $
 
 #
 # Print usage and exit
@@ -899,8 +899,10 @@ s390_zfcp_sysfs() {
 		fi
 	    fi
 	done
-	add_module sd_mod
-	add_module zfcp
+	if [ "$fcp_disk_hba" ]; then
+	    add_module sd_mod
+	    add_module zfcp
+	fi
     fi
 
 }
@@ -1111,6 +1113,7 @@ mkinitrd_kernel() {
 
     if [ -n "$s390_dasd_disks" ]; then
 	cp_bin $root_dir/sbin/dasd_configure $tmp_mnt/sbin
+	cp_bin $root_dir/sbin/dasdview $tmp_mnt/sbin
     fi
 
     if [ -n "$s390_zfcp_disks" ]; then
@@ -1122,12 +1125,14 @@ mkinitrd_kernel() {
     if [ -n "$use_udev" ] ; then
 	mkdir -p $tmp_mnt/dev/shm
 	mkdir -p $tmp_mnt/lib/klibc/bin
-	for klibc_bin in devnumber sed sleep ata_identify scsi_id dasdview \
+	for klibc_bin in devnumber sed sleep ata_identify scsi_id \
 			 umount; do
 	    if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
 		cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
 		    $tmp_mnt/lib/klibc/bin
-		ln -s /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+		if [ ! -x $tmp_mnt/bin/$klibc_bin ]; then
+		    ln -s /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+		fi
 	    fi
 	done
 	for bin in mknod rm; do
