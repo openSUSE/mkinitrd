@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.36 $
+# $Revision: 1.37 $
 
 #
 # Print usage and exit
@@ -291,7 +291,7 @@ if [ "x$splash" = xauto ] ; then
 	&& vgascan="$vgascan $root_dir/boot/grub/menu.lst"
     for vga in `cat $vgascan \
 	        | sed -ne '/^[ \t]*#/d' \
-		      -e 's/^.*[ \t]*vga[ \t]*=[ \t]*\([0-9]\+\|0[xX][0-9a-fA-F]\+\).*$/\1/p'` ; do
+		      -e 's/^.*[ \t]*vga[ \t]*=[ \t]*\(0[xX][0-9a-fA-F]\+\|[0-9]\+\).*$/\1/p'` ; do
 	splashsize=
 	case $vga in
 	    785|786|0x311|0x312|0x0311|0x0312) splashsize=640x480   ;;
@@ -724,6 +724,15 @@ mkinitrd_kernel () {
 	need_mount=1
     fi
 
+    if [ -n "$root_dm" ] ; then
+	echo "Including DM/LVM2 support"
+	mkdir -p $tmp_mnt/etc/lvmtab.d
+	cp -a $root_dir/dev/mapper  $tmp_mnt/dev
+	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
+	cp_bin $root_dir/bin/cat $tmp_mnt/bin
+	need_mount=1
+    fi
+
     if [ -n "$use_pivot_root" ] ; then
 	echo "Including pivot root support"
 	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
@@ -941,14 +950,14 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    if [ -n "$root_lvm" ] ; then
+    if [ -n "$root_lvm" -o -n "$root_dm" ] ; then
 	# need dummy entry so fsck doesn't complain
 	cat_linuxrc <<-EOF
 	|# scan for lvm devices
 	|mount -n -tproc none /proc
 	|createpartitiondevs
 	|#need space for lvm data
-	|mount -n -tshm none /etc/lvmtab.d
+	|mount -n -tramfs none /etc/lvmtab.d
 	|vgscan
 	|vgchange -a y
 	|umount -n /etc/lvmtab.d
@@ -1294,9 +1303,15 @@ esac
 # check if the root device is an lvm device
 root_lvm=
 if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
-    major=$(ls -l "$realrootdev" \
-	    | sed -e "s/.* \\([0-9]\+\\), *[0-9]\+.*/\\1/")
+    major=$(echo "ibase=16;`stat -L --format='%t' "$realrootdev" | tr [:lower:] [:upper:]`"|bc)
     [ "$major" -eq 58 ] && root_lvm=1
+fi
+
+# check if the root device is an dm/lvm2 device
+root_dm=
+if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
+    major=$(echo "ibase=16;`stat -L --format='%t' "$realrootdev" | tr [:lower:] [:upper:]`"|bc)
+    [ "$major" -eq 254 ] && root_dm=1
 fi
 
 s390_zfcp() {
@@ -1393,6 +1408,10 @@ if [ -n "$root_lvm" ] ; then
     add_module lvm-mod
 fi
 
+if [ -n "$root_dm" ] ; then
+    add_module dm-mod
+fi
+
 if [ "$arch" = s390 ]; then
     # Check if zfcp or dasd modules need to be added automatically:
     s390_zfcp
@@ -1403,7 +1422,7 @@ fi
 #
 # on s390 the initrd is always needed as long as we don't set the
 # initrd flag in /etc/zipl.conf with YaST.
-if [ -z "$modules" -a -z "$root_lvm" -a -z "$use_pivot_root" -a \
+if [ -z "$modules" -a -z "$root_lvm" -a -z "$root_dm" -a -z "$use_pivot_root" -a \
      -z "$splash" -a "$arch" != s390 -a -z "$use_selinux" ]; then
     ( cd $boot_dir
       rm -f $initrd_images )
