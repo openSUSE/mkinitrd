@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.29 2004/05/22 20:46:33 olh Exp $
+# $Id: mkinitramfs,v 1.30 2004/05/22 21:03:31 olh Exp $
 
 #
 # Print usage and exit
@@ -582,10 +582,10 @@ mkinitrd_kernel () {
     cp_bin /bin/chmod $tmp_mnt/bin/chmod
     cp_bin /bin/rm $tmp_mnt/bin/rm
     if [ -d /etc/sysconfig/hardware ] ; then
-    mkdir -p $tmp_mnt/etc/sysconfig
-    cp -a /etc/hotplug $tmp_mnt/etc
-    cp -a /etc/sysconfig/hardware $tmp_mnt/etc/sysconfig
-    cp -a /sbin/hotplug $tmp_mnt/sbin
+	mkdir -p $tmp_mnt/etc/sysconfig
+	cp -a /etc/hotplug $tmp_mnt/etc
+	cp -a /etc/sysconfig/hardware $tmp_mnt/etc/sysconfig
+	cp -a /sbin/hotplug $tmp_mnt/sbin
     fi
 
     # If exists, copy also insmod.static.old, it is created by modutils for
