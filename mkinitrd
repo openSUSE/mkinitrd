@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.57 $
+# $Revision: 1.58 $
 
 #
 # Print usage and exit
@@ -60,6 +60,7 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
 	  -S               Load policy file for SELinux if exist.
+	  -u               Disable the use of udev
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
 EOM
@@ -129,6 +130,7 @@ use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
 use_selinux=
+use_udev=1
 
 # architecture dependend changes:
 arch=$(uname -m)
@@ -141,7 +143,7 @@ s390)
     ;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
+while getopts :hk:i:m:b:d:o:s:St:D:a:u a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -190,6 +192,8 @@ while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
 	a)  acpi_dsdt="$OPTARG"
 	    ;;
 	S)  use_selinux=1
+	    ;;
+	u)  use_udev=
 	    ;;
 	h)  usage
 	    ;;
@@ -264,6 +268,13 @@ fi
 # The shell-bang line to use inside initrd.
 shebang=${initrd_shell#$root_dir}
 shebang=${shebang%.static}
+if [ -n "$use_udev" ]; then
+    if [ -x /lib/klibc/bin/sh ]; then
+	shebang="/bin/ash"
+	initrd_shell="/lib/klibc/bin/sh"
+	initrd_shell_dynamic=
+    fi
+fi
 
 [ -x $root_dir/sbin/insmod ] \
     && initrd_insmod_dynamic=$root_dir/sbin/insmod
@@ -610,6 +621,54 @@ attach_dsdt () {
     fi
 }
 
+# Check for IDE module
+check_ide_modules () {
+    local modules_dir=$1 ide_modules
+
+    # Check for PCI bus
+    if test ! -d /proc/bus/pci; then
+        # Not found, no error
+        return
+    fi
+
+    pcimap_file="${modules_dir}/modules.pcimap"
+
+    if [ ! -f "$pcimap_file" ] ; then
+	echo "No modules.pcimap file found" >&2
+	return
+    fi
+
+    echo -e -n "IDE modules:\t"
+
+    while read pci_id none class_id dev_id rev_id; do
+	saved_IFS="$IFS"
+	IFS=":"
+	set -- $dev_id
+	vendor_id=$1
+	device_id=$2
+	IFS="$saved_IFS"
+	if [ "$class_id" == "0101:" ] ; then
+	    pci_vendor_id=$(printf "0x%08x" $((0x$vendor_id)))
+	    pci_device_id=$(printf "0x%08x" $((0x$device_id)))
+	    line=$(grep "$pci_vendor_id $pci_device_id" $pcimap_file)
+	    if [ "$line" ]; then
+		set -- $line
+		add_module $1
+		ide_modules="$ide_modules $1"
+		echo -n "$1 "
+	    fi
+	fi
+    done < <(/sbin/lspci -n)
+    if [ "$ide_modules" ]; then
+	add_module ide-disk
+	add_module ide-floppy
+	add_module ide-cd
+	echo
+    else
+	echo "none"
+    fi
+}
+
 # Create the initrd image $2 for kernel $1 (both are absolute path names).
 mkinitrd_kernel () {
     local kernel_image=$1 initrd_image=$2
@@ -698,6 +757,10 @@ mkinitrd_kernel () {
     case "$kernel_version" in
     2.6*)
 	sysfs_root=1
+	use_udev=1
+	;;
+    *)
+	use_udev=
 	;;
     esac
 
@@ -712,6 +775,20 @@ mkinitrd_kernel () {
 	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	need_mount=1
+    fi
+
+    if [ -n "$use_udev" ] ; then
+	if [ -x $root_dir/lib/klibc/bin/sleep ]; then
+	    cp_bin $root_dir/lib/klibc/bin/sleep $tmp_mnt/bin
+	else
+	    cp_bin $root_dir/bin/sleep $tmp_mnt/bin
+	fi
+	cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
+	cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
+	cp_bin $root_dir/sbin/scsi_id $tmp_mnt/sbin
+	cp_bin $root_dir/sbin/udev.get_unique_hardware_path.sh $tmp_mnt/sbin
+	mkdir -p $tmp_mnt/etc/udev
+	cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
     fi
 
     if [ -n "$root_lvm" ] ; then
@@ -867,6 +944,16 @@ mkinitrd_kernel () {
 	|}
 	EOF
 
+    # Start udev if necessary
+    if [ -n "$use_udev" ]; then
+	cat_linuxrc <<-EOF
+	|echo "Starting udev"
+	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
+	EOF
+    fi
+
+    # Check for IDE modules
+    check_ide_modules $root_dir/lib/modules/$kernel_version
 
     resolved_modules="$(resolve_modules $kernel_version $modules)"
 
@@ -919,7 +1006,7 @@ mkinitrd_kernel () {
 		;;
 	    */scsi_mod*)
 		# We may have SCSI parameters on the kernel command line,
-		# but because scsi_mod is a module, those would be ignored.
+7		# but because scsi_mod is a module, those would be ignored.
 		# Hack around this by scanning /proc/cmdline in linuxrc.
 		params="\$extra_scsi_params${params:+ $params}"
 
@@ -983,6 +1070,60 @@ mkinitrd_kernel () {
 	|fi
 	EOF
     fi
+
+    if [ -n "$use_udev" ]; then
+	sysfs_root=
+	cat_linuxrc <<-'EOF'
+	|udev_discover_root() {
+	|	echo -n "Kernel cmdline: "
+	|	while read item; do
+	|		echo -n "$item "
+	|		case $item in
+	|		  root=/dev/*)	node=$(expr substr $item 11 99) ;;
+	|		  *)		continue ;;
+	|		esac
+	|	done < /proc/cmdline
+	|	echo
+	|	if test -n "$node" ; then
+	|	    echo -n "Waiting for device $node to appear: "
+	|	    for i in 1 2 3 4 5; do
+	|		if test -e /dev/$node; then
+	|		    path=$(udevinfo -q path -n ${node})
+	|		    if test $? -eq 0; then
+	|		        echo " ok"
+	|			break;
+	|		    else
+	|		        path=
+	|		    fi
+	|		fi
+	|		sleep 1
+	|		echo -n "."
+	|	    done
+	|	    if test -n "$path"; then
+	|	        dev=/sys${path}/dev
+	|		if test -f ${dev}; then
+	|		    local major minor dev_t
+	|		    IFS=":" read major minor < $dev
+	|		    dev_t=$(expr $major '*' 256 + $minor)
+	|		    echo "rootfs: $entry major=$major minor=$minor dev_t=$dev_t"
+	|		    echo $dev_t > /proc/sys/kernel/real-root-dev
+	|		    return
+	|		fi
+	|	    else
+	|		echo " not found."
+	|	    fi
+	|	fi
+	|
+	|}
+	|
+	|udev_discover_root
+        |echo "device nodes:"
+        |cd /dev
+        |for dev in *; do if test -e $dev; then echo $dev;fi ; done
+        |cd /
+	EOF
+    fi
+
 
     if [ -n "$sysfs_root" ]; then
 	cat_linuxrc <<-'EOF'
@@ -1232,6 +1373,7 @@ mkinitrd_kernel () {
 	EOF
     fi
 
+	
     cat_linuxrc <<-EOF
 	|die 0
 	EOF
@@ -1540,8 +1682,10 @@ exit_code=0
 initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
 
-echo -e "Module list:\t$modules"
+boot_modules="$modules"
+echo -e "Module list:\t$boot_modules"
 for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
+    modules="$boot_modules"
     kernel_image=${kernel_images[$i]}
     [ ${kernel_image:0:1} != '/' ] \
     	&& kernel_image=$boot_dir/$kernel_image
