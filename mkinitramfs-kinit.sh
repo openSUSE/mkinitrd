@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.16 2004/06/05 19:19:22 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.17 2004/07/28 16:15:36 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -291,6 +291,9 @@ fi
 mount -o bind "$udev_root" "/root$udev_root"
 chmod 0755 "/root$udev_root"
 ln -s /proc/self/fd "/root$udev_root/fd"
+if [ -x /root/sbin/MAKEDEV ] ; then
+	ln -s /sbin/MAKEDEV "/root$udev_root/MAKEDEV"
+fi
 mknod /dev/fb0 c 29 0
 mknod /dev/fb1 c 29 1
 mknod /dev/ppp c 108 0
