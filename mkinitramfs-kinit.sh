@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.21 2004/08/22 18:47:52 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.22 2004/08/22 20:42:00 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -16,29 +16,27 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin:/lib/klibc/bin
 echo " running ($$:$#) $0" "$@"
 #
 . /etc/udev/udev.conf
-mkdir -p "$udev_root"
+for i in "$udev_root" /proc /sys /tmp /root ; do 
+	if [ ! -d "$i" ] ; then mkdir "$i" ; fi
+done
 # allow bind mount, to not lose events
 mount -t tmpfs -o size=3% initramdevs "$udev_root"
 mkdir "$udev_root/shm"
 mkdir "$udev_root/pts"
-
-for i in /proc /sys /tmp /root ; do 
-	if [ ! -d "$i" ] ; then mkdir "$i" ; fi
-done
+chmod 0755 "$udev_root"
 
 if [ ! -f /proc/cpuinfo ] ; then mount -t proc proc /proc ; fi
 if [ ! -d /sys/class ] ; then mount -t sysfs sysfs /sys ; fi
+ln -s /proc/self/fd "$udev_root/fd"
 
 # create all mem devices, ash cant live without /dev/null
 for i in \
 /sys/class/mem/*/dev \
 ; do
 	if [ ! -f $i ] ; then continue ; fi
-	echo -n "."
 	DEVPATH=${i##/sys}
 	UDEV_NO_SLEEP=yes ACTION=add DEVPATH=${DEVPATH%/dev} /sbin/udev mem
 done
-echo
 
 if [ ! -x /sbin/hotplug ] ; then
 rm -f /sbin/hotplug
@@ -279,7 +277,7 @@ fi
 #
 # look for an init binary on the root filesystem
 if [ -z "$init" ] ; then
-	echo "looking for init ..."
+	echo -n "looking for init ... "
 	for i in /sbin/init /etc/init /bin/init /bin/sh ; do
 		if [ ! -f "/root$i" ] ; then continue ; fi
 		init="$i"
@@ -294,9 +292,7 @@ if [ -z "$init" ] ; then
 	exit 42
 fi
 
-mount -o bind "$udev_root" "/root$udev_root"
-chmod 0755 "/root$udev_root"
-ln -s /proc/self/fd "/root$udev_root/fd"
+/lib/klibc/bin/mount -o move "$udev_root" "/root$udev_root"
 if [ -x /root/sbin/MAKEDEV ] ; then
 	ln -s /sbin/MAKEDEV "/root$udev_root/MAKEDEV"
 fi
@@ -311,7 +307,7 @@ fi
 INIT="$init"
 export INIT
 if [ "$debug" = "true" ] ; then
-echo starting shell because debug was found in /proc/cmdline
+echo starting shell because debug=true was found in /proc/cmdline
 PATH=$PATH sh
 fi
 #

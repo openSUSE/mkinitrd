@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun Aug 22 22:41:17 CEST 2004 - olh@suse.de
+
+- mkinitramfs: move mount $udev_root to avoid duplicate entries
+  in /proc/self/mounts
+
+-------------------------------------------------------------------
 Sun Aug 22 20:47:27 CEST 2004 - olh@suse.de
 
 - mkinitramfs: if nfsroot= is given, force root=/dev/nfs
