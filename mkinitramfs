@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/Attic/mkinitramfs,v $
-# $Revision: 1.14 $
+# $Revision: 1.15 $
 
 #
 # Print usage and exit
@@ -811,6 +811,7 @@ mkinitrd_kernel () {
 
     if has_any_module raid0 raid1 raid5 linear multipath ; then
 	echo "Including raidautorun"
+	cp_bin /sbin/raidautorun $tmp_mnt/sbin/raidautorun
 	cat_load_md <<-EOF
 	|echo "raidautorun ..."
 	|raidautorun
