@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.9 $
+# $Revision: 1.10 $
 
 #
 # Print usage and exit
@@ -79,7 +79,7 @@ EOM
 readlink() {
     local path=$1 ll
 
-    ll="$(LC_ALL=C ls -l "$path")"
+    ll="$(LC_ALL=C ls -l "$path" 2>&1)"
     echo "${ll/* -> }"
 }
 
