@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.25 2004/05/06 20:54:08 olh Exp $
+# $Id: mkinitramfs,v 1.26 2004/05/21 21:21:01 olh Exp $
 
 #
 # Print usage and exit
@@ -55,6 +55,7 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
 	  -S               Load policy file for SELinux if exist.
+	  -V               Vendor specific script to run in initrams
 EOM
     exit
 }
@@ -118,6 +119,7 @@ splash="auto"
 use_static_binaries=1
 acpi_dsdt=
 use_selinux=
+vendor_init_script=
 
 # architecture dependend changes:
 arch=$(uname -m)
@@ -130,7 +132,7 @@ s390)
     ;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
+while getopts :hk:i:m:b:d:o:s:St:D:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -148,6 +150,8 @@ while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
 		t)  echo "-t requires tmp dir parameter"
 		    ;;
 		D)  echo "-D requires dhcp interface parameter"
+		    ;;
+		V)  echo "-V requires an executable to run in initramfs"
 		    ;;
 		a)  echo "-a requires a DSDT parameter"
 		    ;;
@@ -176,6 +180,8 @@ while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
 	a)  acpi_dsdt="$OPTARG"
 	    ;;
 	S)  use_selinux=1
+	    ;;
+	V)  vendor_init_script="$OPTARG"
 	    ;;
 	h)  usage
 	    ;;
@@ -545,6 +551,7 @@ mkinitrd_kernel () {
     tmp_initrd=$work_dir/initramfs
     load_modules=$tmp_mnt/load_modules.sh
     load_md=$tmp_mnt/load_md.sh
+    vendor_script=$tmp_mnt/vendor_init.sh
 
     if ! [ -f "$kernel_image" ] ; then
 	echo "No kernel image $kernel_image found" >&2
@@ -607,6 +614,11 @@ mkinitrd_kernel () {
 	else
 	   echo -e "SELinux policy:\tnot found"
 	fi
+    fi
+
+    if [ ! -z "$vendor_init_script" ] ; then
+	echo "Using $vendor_script as custom script"
+	cp_bin $vendor_init_script $vendor_script
     fi
 
     if has_module iscsi ; then

@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.8 2004/05/03 15:39:07 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.9 2004/05/21 21:21:01 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -300,6 +300,10 @@ mknod /dev/ppp c 108 0
 # debugging aid
 if [ -x /root/sbin/hotplug-beta -a -f /proc/sys/kernel/hotplug ] ; then
 	echo /sbin/hotplug-beta > /proc/sys/kernel/hotplug
+fi
+#
+if [ -x /vendor_init.sh ] ; then
+	/vendor_init.sh
 fi
 
 # ready to leave
