@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.31 $
+# $Revision: 1.32 $
 
 #
 # Print usage and exit
@@ -654,16 +654,18 @@ mkinitrd_kernel () {
     mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd 2>/dev/null 1>&2
     tune2fs -i 0 $tmp_initrd >/dev/null 2>&1
 
-    # mount it
-    if ! mount -t ext2 -oloop $tmp_initrd $tmp_mnt ; then
+    # check for loop device
+    grep -q loop /proc/devices
+    if [ $? != 0 ] ; then
 	if [ -f /lib/loop.o ] ; then
 	    insmod /lib/loop.o
-	    if ! mount -t ext2 -oloop $tmp_initrd $tmp_mnt ; then
-		error 3 "failed to mount image"
-	    fi
 	else
-	    error 3 "failed to mount image"
-    	fi
+	    modprobe loop
+	fi
+    fi
+    # mount it
+    if ! mount -t ext2 -oloop $tmp_initrd $tmp_mnt ; then
+	error 3 "failed to mount image"
     fi
     is_mounted=1
     # fill the initrd
@@ -759,6 +761,9 @@ mkinitrd_kernel () {
     if [ -n "$need_mount" ] ; then
 	mkdir -p $tmp_mnt/{etc,proc,mnt}
 	echo 'none /proc proc defaults 0 0' > $tmp_mnt/etc/fstab
+	if [ "$sysfs_root" ] ; then
+	    echo 'sysfs /sys sysfs defaults 0 0' > $tmp_mnt/etc/fstab
+	fi
 	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
 	if [ -z "$use_pivot_root" -a -b "$root_dir/$rootdev" ] ; then
 	    mkdir -p $tmp_mnt/${rootdev%/*}
@@ -882,18 +887,21 @@ mkinitrd_kernel () {
 	    return
 	fi
 
+	echo "Modules params: $params"
 	case "$module" in
-	    */dasd_mod.o)
+	    */dasd_mod.*)
 		# kernel cmdline dasd parameter is placed into the environment.
-		# all we need to to have it evaluated at insmod time....:
-		params='dasd=$dasd'
+		# all we need to do is to have it evaluated at insmod time....:
+		params="dasd=\$dasd"
 		;;
-	    */zfcp.o)
+	    */zfcp.*)
+		# FIXME hare: Check against 2.6 whether configuration is
+		# still the same ...
 		if [ "$zfcp_param" ]; then
 			params="map=\"$zfcp_param\""
 		fi
 		;;
-	*/scsi_mod*)
+	    */scsi_mod*)
 		# We may have SCSI parameters on the kernel command line,
 		# but because scsi_mod is a module, those would be ignored.
 		# Hack around this by scanning /proc/cmdline in linuxrc.
@@ -998,24 +1006,20 @@ mkinitrd_kernel () {
 	|}
 	|
 	|sysfs_set_root () {
-	|	local mount=0 root="$1"
+	|	local root="$1"
 	|
-	|	test -d /sys/block		|| mount=1
-	|	if test "$mount" = "1"; then
-	|		mount -n -t sysfs sysfs /sys > /dev/null 2>&1 \
-	|			|| return
-	|	fi
 	|	sysfs_set_root_dir /sys/block $root
-	|	test "$mount" = "1"		&&  umount -n /sys
 	|}
 	|
 	|mount -n -tproc none /proc
+        |mount -n -tsysfs sysfs /sys > /dev/null 2>&1
 	|for item in $(cat /proc/cmdline); do
 	|	case "$item" in
 	|		root=/dev/*)
 	|			sysfs_set_root `expr substr $item 11 99` ;;
 	|	esac
 	|done
+        |umount -n /sys
 	|umount -n /proc
 	EOF
     fi
