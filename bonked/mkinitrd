@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.55 $
+# $Revision: 1.56 $
 
 #
 # Print usage and exit
@@ -1359,14 +1359,14 @@ esac
 # check if the root device is an lvm device
 root_lvm=
 if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
-    major=$(echo "ibase=16;$(stat -L --format='%t' "$realrootdev" | tr [:lower:] [:upper:])"|bc)
+    major=$(echo "ibase=16;$(stat -L --format='%t' "$realrootdev" | tr '[:lower:]' '[:upper:]')"|bc)
     [ "$major" -eq 58 ] && root_lvm=1
 fi
 
 # check if the root device is an dm/lvm2 device
 root_dm=
 if [ -n "$realrootdev" -a -b "$realrootdev" ] ; then
-    major=$(echo "ibase=16;$(stat -L --format='%t' "$realrootdev" | tr [:lower:] [:upper:])"|bc)
+    major=$(echo "ibase=16;$(stat -L --format='%t' "$realrootdev" | tr '[:lower:]' '[:upper:]')"|bc)
     [ "$major" -eq 254 ] && root_dm=1
 fi
 
