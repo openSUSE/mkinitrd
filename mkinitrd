@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.138 $
+# $Revision: 1.139 $
 
 #
 # Print usage and exit
@@ -60,6 +60,7 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
           -r               Use initramfs instead of initrd.
+          -g               Use glibc instead of klibc binaries.
 	  -S               Load policy file for SELinux if exist.
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
@@ -135,6 +136,7 @@ use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
 use_selinux=
+use_glibc=
 mkinit_type="rd"
 
 # architecture dependend changes:
@@ -148,7 +150,7 @@ s390)
     ;;
 esac
 
-while getopts :hrk:i:m:b:d:o:s:St:D:a: a ; do
+while getopts :hgrk:i:m:b:d:o:s:St:D:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -174,6 +176,8 @@ while getopts :hrk:i:m:b:d:o:s:St:D:a: a ; do
 		    ;;
 	    esac
 	    exit 1
+	    ;;
+	g)  use_glibc=1
 	    ;;
 	k)  kernel_images=$OPTARG
 	    ;;
@@ -275,8 +279,8 @@ fi
 shebang=${initrd_shell#$root_dir}
 shebang=${shebang%.static}
 
-if [ -x /lib/klibc/bin/sh ]; then
-    initrd_shell="/lib/klibc/bin/sh"
+if [ -z "$use_glibc" -a -x $root_dir/lib/klibc/bin/sh ]; then
+    initrd_shell="$root_dir/lib/klibc/bin/sh"
     shebang="/bin/sh"
 fi
 
@@ -1060,23 +1064,37 @@ mkinitrd_kernel() {
     fi
 
     features=(${features[@]} udev)
-    if [ "$mkinit_type" = "rd" ] ; then
+    if [ "$use_glibc" ] ; then
+	features=(${features[@]} glibc)
+    else
+	features=(${features[@]} klibc)
+    fi
+    if [ "$mkinit_type" != "rd" ] ; then
 	features=(${features[@]} initramfs)
 	mkdir -p $tmp_mnt/dev/shm
     fi
-    mkdir -p $tmp_mnt/lib/klibc/bin
-    for klibc_bin in devnumber sed sleep ata_identify scsi_id \
-	cat ln umount; do
-      if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
-	  cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
-	      $tmp_mnt/lib/klibc/bin
-	  if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
-	      ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+    
+    if [ -z "$use_glibc" ] ; then
+	mkdir -p $tmp_mnt/lib/klibc/bin
+	for klibc_bin in devnumber sed sleep ata_identify scsi_id \
+	    cat ln umount; do
+	  if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
+	      cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
+		  $tmp_mnt/lib/klibc/bin
+	      if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
+		  ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+	      fi
 	  fi
-      fi
-    done
-
-    cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
+	done
+	cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
+    else
+	for glibc_bin in sed sleep ln umount; do
+	    cp_bin $root_dir/bin/$glibc_bin $tmp_mnt/bin
+	done
+	cp_bin $root_dir/sbin/scsi_id $tmp_mnt/bin
+	cp_bin $root_dir/sbin/ata_identify $tmp_mnt/bin
+	cp_bin $root_dir/sbin/run_init $tmp_mnt/run_init
+    fi
 
     # cat might not be present as klibc binary
     if [ ! -e $tmp_mnt/bin/cat ] ; then
@@ -1100,18 +1118,43 @@ mkinitrd_kernel() {
     echo 'root::0:0:::' > $tmp_mnt/etc/passwd
     getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
     (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
-    cp_bin /lib/libnss_files* $tmp_mnt/lib/
+    
+    if [ -d $root_dir/lib64 ]; then
+	mkdir $tmp_mnt/lib64
+	for nss_lib in $root_dir/lib64/libnss_files*; do
+	    if [ -f "$nss_lib" ]; then
+		cp_bin $nss_lib $tmp_mnt/lib64
+	    fi
+	done
+    fi
 
-    cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
-    cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
-    cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
+    mkdir $tmp_mnt/lib
+    for nss_lib in $root_dir/lib/libnss_files*; do
+	if [ -f "$nss_lib" ]; then
+	    cp_bin $nss_lib $tmp_mnt/lib
+	fi
+    done
+
+    if [ -z "$use_glibc" ] ; then
+	cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
+	cp_bin $root_dir/usr/bin/udevinfo.static $tmp_mnt/sbin/udevinfo
+	cp_bin $root_dir/sbin/udevstart.static $tmp_mnt/sbin/udevstart
+    else
+	cp_bin $root_dir/sbin/udev $tmp_mnt/sbin/udev
+	cp_bin $root_dir/usr/bin/udevinfo $tmp_mnt/sbin/udevinfo
+	cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
+    fi
     cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
     mkdir -p $tmp_mnt/etc/udev
     cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
 
     if [ "$mkinit_type" = "ramfs" ] ; then
 	mkdir -p $tmp_mnt/events
-	cp_bin $root_dir/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	if [ -z "$use_glibc" ] ; then
+	    cp_bin $root_dir/lib/klibc/bin/hotplugeventrecorder $tmp_mnt/sbin
+	else
+	    cp_bin $root_dir/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	fi
 	(cd $tmp_mnt/sbin; ln -s hotplugeventrecorder hotplug)
     fi
     need_block_driver=1
@@ -2018,7 +2061,7 @@ mkinitrd_kernel() {
 	|
 	|# These links are required by devices.txt
 	|ln -s /proc/self/fd /dev/fd
-	|(cd /dev; ln -s stdin fd/0; ln -s stdout fd/1; ln -s stderr fd/2)
+	|# (cd /dev; ln -s stdin fd/0; ln -s stdout fd/1; ln -s stderr fd/2)
 	|
 	|
 	|# Save all events
