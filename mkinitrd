@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.73 $
+# $Revision: 1.74 $
 
 #
 # Print usage and exit
@@ -1095,7 +1095,6 @@ mkinitrd_kernel () {
 	|createpartitiondevs
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvm
-	|modprobe dm-mod
 	|/sbin/devmap_mknod.sh
 	|vgscan
 	|vgchange -a y
