@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.19 2004/04/26 15:00:44 agruen Exp $
+# $Id: mkinitramfs,v 1.20 2004/05/03 15:36:04 olh Exp $
 
 #
 # Print usage and exit
@@ -862,6 +862,7 @@ mkinitrd_kernel () {
     popd > /dev/null 2>&1
     if ! cp -f $tmp_initrd.gz $initrd_image ; then
 	oops 8 "Failed to install initrd"
+	rm -rf $tmp_mnt
 	return
     fi
 
@@ -899,6 +900,7 @@ mkinitrd_kernel () {
 	    echo "no theme selected"
 	fi
     fi
+    rm -rf $tmp_mnt
 }
 
 ###################################################################
