@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.23 $
+# $Revision: 1.24 $
 
 #
 # Print usage and exit
@@ -730,13 +730,6 @@ mkinitrd_kernel () {
 	need_mount=1
     fi
 
-    if has_module zfcp ; then
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
-	mkdir -p $tmp_mnt/etc
-	cp -a $root_dir/etc/zfcp.conf $tmp_mnt/etc/zfcp.conf
-	need_mount=1
-    fi
-
     if [ -n "$need_mount" ] ; then
 	mkdir -p $tmp_mnt/{etc,proc,mnt}
 	echo 'none /proc proc defaults 0 0' > $tmp_mnt/etc/fstab
@@ -870,14 +863,13 @@ mkinitrd_kernel () {
 		params='dasd=$dasd'
 		;;
 	    */zfcp.o)
-		params="map=\"$zfcp_param\""
-		;;
-	    *)
-		if [ -z "$params" ]; then
-		    modparms=`grep "^[      ]*options \<$i\>" \
-			"$root_dir"/etc/modules.conf`
-		    params="${modparms#* * }"
+		if [ "$params" ]; then
+			echo "(using zfcp params from modules.conf)"
+		echo
+			echo "(using zfcp params from zfcp.conf)"
+			params="map=\"$zfcp_param\""
 		fi
+		;;
 	esac
 
 	mp="/$module${params:+ $params}"
@@ -1255,7 +1247,7 @@ s390_zfcp() {
    if [ -s $root_dir/etc/zfcp.conf ]; then
 	add_module zfcp
 
-	zfcp_param=$(sed -e 's,#.*,,' -e '/^[[:blank:]]*$/d'
+	zfcp_param=$(sed -e 's,#.*,,' -e '/^[[:blank:]]*$/d' \
 		     $root_dir/etc/zfcp.conf)
 
 	if [ -z "$zfcp_param" ]; then
