@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 24 12:15:36 CEST 2004 - hare@suse.de
+
+- load dm-snapshot additionally to dm-mod it is needed for some
+  configurations (#41022)
+
+-------------------------------------------------------------------
 Mon May 24 09:06:10 CEST 2004 - hare@suse.de
 
 - add support for LVM2 as root filesystem for S/390.

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.98 $
+# $Revision: 1.99 $
 
 #
 # Print usage and exit
@@ -2060,6 +2060,7 @@ fi
 
 if [ -n "$root_dm" -o -n "$root_evms" ] ; then
     add_module dm-mod
+    add_module dm-snapshot
 fi
 
 if [ -n "$dhcp_interface" ]; then
