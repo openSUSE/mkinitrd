@@ -7,6 +7,11 @@ Initial update for SL9.2
 - Enabled udev as default for all modes.
 
 -------------------------------------------------------------------
+Mon Aug  2 08:37:53 CEST 2004 - hare@suse.de
+
+- #43406: Fix modules loading error on SATA-only machines.
+
+-------------------------------------------------------------------
 Wed Jul 28 18:15:54 CEST 2004 - olh@suse.de
 
 - mkinitramfs: (#42940 - LTC9911)
@@ -20,12 +25,24 @@ Wed Jul 28 15:21:28 CEST 2004 - hare@suse.de
   existing.
 
 -------------------------------------------------------------------
+Wed Jul 28 10:39:51 CEST 2004 - hare@suse.de
+
+- #43352: dasdview was not copied into the initrd;
+  scsi modules were copied with no SCSI device present on S/390,
+  and a symlink to sed were created with sed already present.
+
+-------------------------------------------------------------------
 Thu Jul  1 23:49:40 CEST 2004 - agruen@suse.de
 
 - #42696: Lilo passes the root device number as three to four-digit
   hex number. Make mkinitrd recognize the dree-digit case
   correctly.
 
+-------------------------------------------------------------------
+Wed Jun 23 18:17:31 CEST 2004 - fehr@suse.de
+
+- Add code that makes root filesystem on EVMS possible (#41198)
+  
 -------------------------------------------------------------------
 Mon Jun 21 17:00:11 CEST 2004 - agruen@suse.de
 
