@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.80 $
+# $Revision: 1.81 $
 
 #
 # Print usage and exit
@@ -756,6 +756,9 @@ mkinitrd_kernel () {
     (cd ${root_dir:-/} ; cp -R --parents $initrd_devices $tmp_mnt )
     cp_bin $initrd_shell $tmp_mnt$shebang 2>/dev/null \
 	|| error 4 "no static shell"
+    if [ $shebang != /bin/sh ]; then
+	ln -s $shebang $tmp_mnt/bin/sh
+    fi
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
 
@@ -1232,7 +1235,7 @@ mkinitrd_kernel () {
 	|# set the right root device if user specified a lvm root
 	|root=$(root_arg)
 	|if [ -n "$root" ]; then
-	|  if [ "$(block_driver $root)" = dm ]; then
+	|  if [ "$(block_driver $root)" = device-mapper ]; then
 	|    echo $(devnumber $root) > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
@@ -1595,8 +1598,10 @@ root_dm=
 if [ -n "$realrootdev" -a -b "$root_dir/$realrootdev" ] ; then
     root_dev_t=$(devnumber $root_dir/$realrootdev)
 
-    [ "$(block_driver "$root_dir/$realrootdev")" = lvm ] && root_lvm=1
-    [ "$(block_driver "$root_dir/$realrootdev")" = dm ] && root_dm=1
+    [ "$(block_driver "$root_dir/$realrootdev")" = lvm ] \
+	&& root_lvm=1
+    [ "$(block_driver "$root_dir/$realrootdev")" = device-mapper ] \
+    	&& root_dm=1
 fi
 
 ###################################################################
