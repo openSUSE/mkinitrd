@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May 26 15:53:20 CEST 2004 - agruen@suse.de
+
+- #41225: vga mode parsing bug.
+
+-------------------------------------------------------------------
 Wed May 26 15:11:04 CEST 2004 - olh@suse.de
 
 - mkinitramfs: remove misleading error message. (#39625)

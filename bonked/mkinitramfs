@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.34 2004/05/26 13:11:36 olh Exp $
+# $Id: mkinitramfs,v 1.35 2004/05/26 13:54:02 agruen Exp $
 
 #
 # Print usage and exit
@@ -243,7 +243,7 @@ auto)
 	&& bootconf="$bootconf /etc/lilo.conf"
     [ -f /boot/grub/menu.lst ] \
 	&& bootconf="$bootconf /boot/grub/menu.lst"
-    for vga in $(sed -e '/^[ \t]*#/d' -e 's/ \+/\n/g' $bootconf \
+    for vga in $(sed -e '/^[ \t]*#/d' $bootconf \
 		 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
 		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
 	splashsize=
@@ -733,7 +733,7 @@ mkinitrd_kernel () {
 	    continue
 	fi
 	if ! ( cd / ; cp -p --parents $module $tmp_mnt ) ; then
-	    oops 6 "Failed to add module $module.?"
+	    oops 6 "Failed to add module $module."
 	    return
 	fi
 

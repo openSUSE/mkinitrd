@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.102 $
+# $Revision: 1.103 $
 
 #
 # Print usage and exit
@@ -304,7 +304,7 @@ auto)
 	&& bootconf="$bootconf $root_dir/etc/lilo.conf"
     [ -f $root_dir/boot/grub/menu.lst ] \
 	&& bootconf="$bootconf $root_dir/boot/grub/menu.lst"
-    for vga in $(sed -e '/^[ \t]*#/d' -e 's/ \+/\n/g' $bootconf \
+    for vga in $(sed -e '/^[ \t]*#/d' $bootconf \
 	    	 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
 		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
 	splashsize=
@@ -1330,7 +1330,7 @@ mkinitrd_kernel() {
 	    continue
 	fi
 	if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
-	    oops 6 "Failed to add module $module. Initrd too small?"
+	    oops 6 "Failed to add module $module."
 	    return
 	fi
 
