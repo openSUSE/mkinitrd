@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.64 $
+# $Revision: 1.65 $
 
 #
 # Print usage and exit
@@ -954,6 +954,8 @@ mkinitrd_kernel () {
 	|echo "Starting udev"
 	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
 	|echo "Creating devices"
+	|UDEVSTART_ON_BOOT=1
+	|export UDEVSTART_ON_BOOT
 	|/sbin/udevstart
 	EOF
     fi
