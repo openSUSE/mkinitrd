@@ -5,6 +5,11 @@ Tue Jan 18 13:56:22 CET 2005 - olh@suse.de
   on lvm on raid (#49909)
 
 -------------------------------------------------------------------
+Tue Jan 11 15:01:44 CET 2005 - agruen@suse.de
+
+- Fix mount by label (#49246).
+
+-------------------------------------------------------------------
 Thu Dec 16 14:56:14 CET 2004 - hare@suse.de
 
 - Always mount /sys if not mounted (#49320).
