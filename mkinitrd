@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.148 $
+# $Revision: 1.149 $
 
 #
 # Print usage and exit
@@ -79,43 +79,45 @@ readlink() {
 }
 
 default_kernel_images() {
-	local regex kernel_image kernel_version version_version initrd_image
-	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
+    local regex kernel_image kernel_version version_version initrd_image
+    local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
-	case "$arch" in
-		s390*)	regex='image'
-			;;
-		ppc)	regex='vmlinu[xz]\(64\)\?'
-			;;
-		*)	regex='vmlinuz'
-			;;
-	esac
+    case "$(uname -m)" in
+	s390|s390x)
+	    regex='image'
+	    ;;
+	ppc|ppc64)
+	    regex='vmlinux'
+	    ;;
+	*)  regex='vmlinuz'
+	    ;;
+    esac
 
-	# user mode linux
-	if grep -q UML /proc/cpuinfo; then
-		regex='linux'
+    # user mode linux
+    if grep -q UML /proc/cpuinfo; then
+	    regex='linux'
+    fi
+
+    kernel_images=""
+    initrd_images=""
+    for kernel_image in $(ls /boot \
+	    | sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
+
+	# Note that we cannot check the RPM database here -- this
+	# script is itself called from within the binary kernel
+	# packages, and rpm does not allow recursive calls.
+
+	[ -L "/boot/$kernel_image" ] && continue
+	kernel_version=$(/sbin/get_kernel_version \
+			 /boot/$kernel_image 2> /dev/null)
+	initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
+	if [ "$kernel_image" != "$initrd_image" -a \
+	     -n "$kernel_version" -a \
+	     -d "/lib/modules/$kernel_version" ]; then
+		kernel_images="$kernel_images /boot/$kernel_image"
+		initrd_images="$initrd_images /boot/$initrd_image"
 	fi
-
-	kernel_images=""
-	initrd_images=""
-	for kernel_image in $(ls /boot \
-		| sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
-
-		# Note that we cannot check the RPM database here -- this
-		# script is itself called from within the binary kernel
-		# packages, and rpm does not allow recursive calls.
-
-		[ -L "/boot/$kernel_image" ] && continue
-		kernel_version=$(/sbin/get_kernel_version \
-				 /boot/$kernel_image 2> /dev/null)
-		initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
-		if [ "$kernel_image" != "$initrd_image" -a \
-		     -n "$kernel_version" -a \
-		     -d "/lib/modules/$kernel_version" ]; then
-			kernel_images="$kernel_images /boot/$kernel_image"
-			initrd_images="$initrd_images /boot/$initrd_image"
-		fi
-	done
+    done
 }
 
 # You can specify the root device via the environment variable rootdev (e.g.
@@ -138,14 +140,10 @@ use_glibc=
 mkinit_type="rd"
 
 # architecture dependend changes:
-arch=$(uname -m)
-arch=${arch/ppc64/ppc}
-arch=${arch/s390x/s390}
-
-case $arch in
-s390)
-    splash=off
-    ;;
+case "$(uname -m)" in
+    s390|s390x)
+	splash=off
+	;;
 esac
 
 while getopts :hgrk:i:m:b:d:o:s:St:D:a: a ; do
@@ -426,7 +424,7 @@ shared_object_files() {
 
     initrd_libs=( $(
 	$LDD "$@" \
-	| sed -n -e '/^\t/!d' -e 's:.* => ::' -e 's:\(/[^ ]*\).*:\1:p'
+	| sed -e 's:.* => ::' -e '/not found/d' -e 's:\([^ ]*\).*:\1:'
     ) )
 
     # Evil hack: On some systems we have generic as well as optimized
@@ -963,8 +961,8 @@ mkinitrd_kernel() {
     if [ "$mkinit_type" = "rd" ]; then
 	initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
 	    dev/{console,md0})
-	case $arch in
-	    s390*)
+	case "$(uname -m)" in
+	    s390|s390x)
 		;;
 	    *)  initrd_devices="$initrd_devices $(echo dev/{fb0,tty1,tty2})"
 		;;
@@ -1531,13 +1529,16 @@ mkinitrd_kernel() {
 	done
     fi
 
-    if [ "$arch" = s390 ]; then
-	if [ -z "$s390_zfcp_disks" -a -z "$s390_dasd_disks" ]; then
-	    echo ""
-	    echo "WARNING: No boot devices found."
-	    echo "Make sure to add 'dasd=<dasd-range>' to the kernel command line"
-	fi
-    fi
+    case "$(uname -m)" in
+	s390|s390x)
+	    if [ -z "$s390_zfcp_disks" -a -z "$s390_dasd_disks" ]; then
+		echo ""
+		echo "WARNING: No boot devices found."
+		echo "Make sure to add 'dasd=<dasd-range>' to" \
+		     "the kernel command line"
+	    fi
+	    ;;
+    esac
 
     if [ -n "$need_raidautorun" ]; then
 	features=(${features[@]} raidautorun)
@@ -2278,30 +2279,32 @@ if [ -n "$dhcp_interface" ]; then
     add_module af_packet
 fi
 
-if [ "$arch" = s390 ]; then
-    # Check if zfcp or dasd modules need to be added automatically:
-    if [ -d /sys/block ]; then
-	# Always enable all devices, hotplug is completely garbled
-	s390_enable_dasd=1
-	s390_enable_zfcp=1
-	# if [ "$root_evms" ]; then
-	#     s390_check_evms $rootdev
-	# elif [ "$root_dm" ]; then
-	#     s390_check_lvm2 $rootdev
-	# else
-	#     s390_check_dasd $rootdev
-	#     s390_check_zfcp $rootdev
-	# fi
-	# Activate devices
-	s390_dasd_sysfs
-	s390_zfcp_sysfs
-    else
-	echo ""
-	echo "WARNING: sysfs not mounted on /sys."
-	echo "Booting from zfcp will _not_ work."
-	s390_dasd_proc
-    fi
-fi
+case "$(uname -m)" in
+    s390|s390x)
+	# Check if zfcp or dasd modules need to be added automatically:
+	if [ -d /sys/block ]; then
+	    # Always enable all devices, hotplug is completely garbled
+	    s390_enable_dasd=1
+	    s390_enable_zfcp=1
+	    # if [ "$root_evms" ]; then
+	    #     s390_check_evms $rootdev
+	    # elif [ "$root_dm" ]; then
+	    #     s390_check_lvm2 $rootdev
+	    # else
+	    #     s390_check_dasd $rootdev
+	    #     s390_check_zfcp $rootdev
+	    # fi
+	    # Activate devices
+	    s390_dasd_sysfs
+	    s390_zfcp_sysfs
+	else
+	    echo ""
+	    echo "WARNING: sysfs not mounted on /sys."
+	    echo "Booting from zfcp will _not_ work."
+	    s390_dasd_proc
+	fi
+    ;;
+esac
 
 ###################################################################
 

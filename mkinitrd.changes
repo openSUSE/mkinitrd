@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 18 18:09:33 CEST 2004 - agruen@suse.de
+
+- Adapt the regexp for parsing the ldd output to recent changes.
+- Add missing s390 case to installkernel.
+- Clean up architecture tests. A few other cleanups.
+
+-------------------------------------------------------------------
 Sat Oct 16 11:46:19 CEST 2004 - olh@suse.de
 
 - use either vmlinux or vmlinuz in installkernel (#39427 - LTC7872)

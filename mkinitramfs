@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.47 2004/09/03 18:58:06 olh Exp $
+# $Id: mkinitramfs,v 1.48 2004/10/18 16:20:29 agruen Exp $
 
 #
 # Print usage and exit
@@ -73,38 +73,41 @@ readlink() {
 }
 
 default_kernel_images () {
-	local regex kernel_image kernel_version version_version initrd_image
-	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
+    local regex kernel_image kernel_version version_version initrd_image
+    local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
-	case "$arch" in
-		s390*)	regex='image'
-			;;
-		ppc)	regex='vmlinux'
-			;;
-		*)	regex='vmlinuz'
-			;;
-	esac
+    case "$(uname -m)" in
+	s390|s390x)
+	    regex='image'
+	    ;;
+	ppc|ppc64)
+	    regex='vmlinux'
+	    ;;
+	*)
+	    regex='vmlinuz'
+	    ;;
+    esac
 
-	kernel_images=""
-	initrd_images=""
-	for kernel_image in $(ls $boot_dir \
-		| sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
+    kernel_images=""
+    initrd_images=""
+    for kernel_image in $(ls $boot_dir \
+	    | sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
 
-		# Note that we cannot check the RPM database here -- this
-		# script is itself called from within the binary kernel
-		# packages, and rpm does not allow recursive calls.
+	    # Note that we cannot check the RPM database here -- this
+	    # script is itself called from within the binary kernel
+	    # packages, and rpm does not allow recursive calls.
 
-		[ -L "$boot_dir/$kernel_image" ] && continue
-		kernel_version=$(/sbin/get_kernel_version \
-				 $boot_dir/$kernel_image 2> /dev/null)
-		initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
-		if [ "$kernel_image" != "$initrd_image" -a \
-		     -n "$kernel_version" -a \
-		     -d "/lib/modules/$kernel_version" ]; then
-			kernel_images="$kernel_images $boot_dir/$kernel_image"
-			initrd_images="$initrd_images $boot_dir/$initrd_image"
-		fi
-	done
+	    [ -L "$boot_dir/$kernel_image" ] && continue
+	    kernel_version=$(/sbin/get_kernel_version \
+			     $boot_dir/$kernel_image 2> /dev/null)
+	    initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
+	    if [ "$kernel_image" != "$initrd_image" -a \
+		 -n "$kernel_version" -a \
+		 -d "/lib/modules/$kernel_version" ]; then
+		    kernel_images="$kernel_images $boot_dir/$kernel_image"
+		    initrd_images="$initrd_images $boot_dir/$initrd_image"
+	    fi
+    done
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -122,14 +125,10 @@ use_selinux=
 vendor_init_script=
 
 # architecture dependend changes:
-arch=$(uname -m)
-arch=${arch/ppc64/ppc}
-arch=${arch/s390x/s390}
-
-case $arch in
-s390)
-    splash=off
-    ;;
+case "$(uname -m)" in
+    s390|s390x)
+	splash=off
+	;;
 esac
 
 while getopts :hk:i:m:b:o:s:St:V:a: a ; do
@@ -352,21 +351,21 @@ cp_bin () {
 }
 
 find_rootfstype() {
-	if [ ! -f /proc/self/mounts ] ; then
-		return
-	fi
-	local a b c d fs
-	fs=
-	while read a b c d; do
-		case "$b" in
-			/)
-			fs=$c
-			;;
-			*)
-			;;
-		esac
-	done < /proc/self/mounts
-	echo $fs
+    if [ ! -f /proc/self/mounts ] ; then
+	return
+    fi
+    local a b c d fs
+    fs=
+    while read a b c d; do
+	case "$b" in
+	    /)
+		fs=$c
+		;;
+	    *)
+		;;
+	esac
+    done < /proc/self/mounts
+    echo $fs
 }
 
 # Resolve dynamic library dependencies. Returns a list of symbolic links
@@ -440,21 +439,21 @@ resolve_modules () {
 	module=${module#.o}  # strip trailing ".o" just in case.
 	module=${module#.ko}  # strip trailing ".ko" just in case.
 
-	    local with_modprobe_conf
-	    if [ -e $boot_dir/etc/modprobe.conf ]; then
-		with_modprobe_conf="-C $boot_dir/etc/modprobe.conf"
-		if [ "$print_modprobeconf" = 1 ]; then
-		echo "Using $boot_dir/etc/modprobe.conf" >&2
-		print_modprobeconf=0
-		fi
-	    elif [ -e /etc/modprobe.conf ]; then
-		with_modprobe_conf="-C /etc/modprobe.conf"
+	local with_modprobe_conf
+	if [ -e $boot_dir/etc/modprobe.conf ]; then
+	    with_modprobe_conf="-C $boot_dir/etc/modprobe.conf"
+	    if [ "$print_modprobeconf" = 1 ]; then
+	    echo "Using $boot_dir/etc/modprobe.conf" >&2
+	    print_modprobeconf=0
 	    fi
-	    module_list=$( \
-	       /sbin/modprobe $with_modprobe_conf \
-			      --set-version $kernel_version \
-			      --show-depends $module 2> /dev/null \
-	       | sed -ne 's:.*insmod /\?::p' )
+	elif [ -e /etc/modprobe.conf ]; then
+	    with_modprobe_conf="-C /etc/modprobe.conf"
+	fi
+	module_list=$( \
+	   /sbin/modprobe $with_modprobe_conf \
+			  --set-version $kernel_version \
+			  --show-depends $module 2> /dev/null \
+	   | sed -ne 's:.*insmod /\?::p' )
 
 	if [ -z "$module_list" ]; then
 	    case $module in
@@ -1051,15 +1050,17 @@ if [ -n "$root_md" ] ; then
     add_module dm-mod
 fi
 
-if [ "$arch" = s390 ]; then
-    # Check if zfcp or dasd modules need to be added automatically:
-    if [ -d /sys/block ]; then
-	s390_dasd_sysfs
-    else
-	s390_dasd_proc
-	s390_zfcp_proc
-    fi
-fi
+case "$(uname -m)" in
+    s390|s390x)
+	# Check if zfcp or dasd modules need to be added automatically:
+	if [ -d /sys/block ]; then
+	    s390_dasd_sysfs
+	else
+	    s390_dasd_proc
+	    s390_zfcp_proc
+	fi
+	;;
+esac
 
 ###################################################################
 
