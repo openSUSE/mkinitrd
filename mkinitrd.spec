@@ -28,9 +28,6 @@ Source:       mkinitrd
 Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
-Source10:     mkinitramfs
-Source11:     mkinitramfs-kinit.sh
-Source12:     mkinitramfs-hotplug.sh
 #
 # Missing: man page for mkinitrd etc.
 #
@@ -67,14 +64,6 @@ mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
 cp %SOURCE0 %SOURCE1 %SOURCE2 $RPM_BUILD_ROOT/sbin/
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 cp %SOURCE3 $RPM_BUILD_ROOT/%{_mandir}/man8
-mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd
-cp -p %{S:11} $RPM_BUILD_ROOT/lib/mkinitrd/kinit.sh
-cp -p %{S:12} $RPM_BUILD_ROOT/lib/mkinitrd/hotplug.sh
-%ifarch ppc ppc64
-cp -p %{S:10} $RPM_BUILD_ROOT/sbin/mkinitrd
-%else
-cp -p %{S:10} $RPM_BUILD_ROOT/sbin/mkinitramfs
-%endif
 
 %files
 %defattr(755,root,root)
@@ -83,9 +72,5 @@ cp -p %{S:10} $RPM_BUILD_ROOT/sbin/mkinitramfs
 /sbin/installkernel
 /sbin/new-kernel-pkg
 %{_mandir}/man8/mkinitrd.8.gz
-/lib/mkinitrd
-%ifnarch ppc ppc64
-/sbin/mkinitramfs
-%endif
 
 %changelog -n mkinitrd

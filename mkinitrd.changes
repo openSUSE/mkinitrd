@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Dec 12 23:18:15 CET 2004 - olh@suse.de
+
+- drop mkinitramfs
+
+-------------------------------------------------------------------
 Mon Nov  8 16:43:52 CET 2004 - agruen@suse.de
 
 - Recognize the sysrq={yes|1} kernel command-line option for
