@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 18 21:07:47 CEST 2004 - olh@suse.de
+
+- fix syntax error in mkinitramfs-kinit.sh, in nfsroot path
+
+-------------------------------------------------------------------
 Mon Oct 18 18:09:33 CEST 2004 - agruen@suse.de
 
 - Adapt the regexp for parsing the ldd output to recent changes.

@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.27 2004/09/03 18:59:38 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.28 2004/10/18 19:08:15 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -201,6 +201,7 @@ case "$root" in
 	case "$root" in
 		*:/*)
 		nfsserver="$root"
+		;;
 	esac
 	for i in /tmp/net-*.conf ; do
 		if [ ! -f $i ] ; then continue ; fi
