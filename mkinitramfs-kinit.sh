@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.18 2004/08/22 18:14:24 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.19 2004/08/22 18:15:42 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -80,7 +80,6 @@ for i in $cmdline ; do
 		init=*) 
 			init="`echo $i | sed -e 's@^init=@@'`"
 			;;
-		ip=*:*) ipinterface=false;;
 		ip=*)
 			ipinterface="`echo $i | sed -e 's@^ip=@@'`"
 			;;
