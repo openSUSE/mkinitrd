@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.34 $
+# $Revision: 1.35 $
 
 #
 # Print usage and exit
@@ -878,6 +878,7 @@ mkinitrd_kernel () {
     initrd_is_using_modules=
     while read module params ; do
 	[ -z "$module" ] && continue
+	echo -n "${module#lib/modules/$kernel_version/} "
 	if [ ! -r $root_dir/$module ]; then
 	    oops 9 "Module $module not found."
 	    continue
@@ -887,7 +888,6 @@ mkinitrd_kernel () {
 	    return
 	fi
 
-	echo "Modules params: $params"
 	case "$module" in
 	    */dasd_mod.*)
 		# kernel cmdline dasd parameter is placed into the environment.
@@ -922,7 +922,6 @@ mkinitrd_kernel () {
 	esac
 
 	mp="/$module${params:+ $params}"
-	echo -n "${mp#/lib/modules/$kernel_version/} "
 	cat_linuxrc <<-EOF
 	|echo "Loading ${mp#/lib/modules/$kernel_version/}"
 	|insmod $mp
@@ -1463,6 +1462,7 @@ Run lilo now to update the boot loader configuration."
       echo "
 You may now have to update the elilo boot loader configuration."
     fi
+    ;;
   grub)
     ;;
   *)
