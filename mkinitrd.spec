@@ -30,7 +30,6 @@ Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
 Source4:      hotplug.sh
-Source5:      volume-label.rules
 
 %description
 Mkinitrd creates filesystem images for use as initial ramdisk (initrd)
@@ -63,7 +62,6 @@ mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
 cp %SOURCE0 %SOURCE1 %SOURCE2 $RPM_BUILD_ROOT/sbin/
 mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd
 cp %SOURCE4 $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
-cp %SOURCE5 $RPM_BUILD_ROOT/usr/share/mkinitrd/09-volume_label.rules
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 cp %SOURCE3 $RPM_BUILD_ROOT/%{_mandir}/man8
 

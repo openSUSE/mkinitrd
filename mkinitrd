@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.194 $
+# $Revision: 1.195 $
 
 #
 # Print usage and exit
@@ -1308,8 +1308,6 @@ mkinitrd_kernel() {
 	cp_bin /sbin/udev.*.sh $tmp_mnt/sbin
 	mkdir -p $tmp_mnt/etc/udev
 	cp -a /etc/udev/* $tmp_mnt/etc/udev
-	# Pull in any mkinitrd-specific rules
-	cp -a /usr/share/mkinitrd/*.rules $tmp_mnt/etc/udev/rules.d
     fi
 
     if [ "$mkinit_type" = "ramfs" ] ; then
@@ -2395,7 +2393,7 @@ mkinitrd_kernel() {
 	|if [ -z "$rootfstype" ]; then
 	|    rootfstype=$(/bin/udev_volume_id -t $rootdev)
 	|    [ $? -ne 0 ] && $rootfstype=
-	|    [ "$rootfstype" = "unknown volume type" ] && $rootfstype=
+	|    [ "$rootfstype" = "unknown" ] && $rootfstype=
 	|fi
 	|
 	|# check filesystem if possible
@@ -2603,6 +2601,7 @@ mkinitrd_kernel() {
     splash_bin=
     [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
     [ -x /bin/splash ] && splash_bin=/bin/splash
+    splash_image=
     if [ -n "$splashsizes" -a -n "$splash_bin" ]; then
 	if [ -f /etc/sysconfig/bootsplash ]; then
 	    . /etc/sysconfig/bootsplash
@@ -2626,10 +2625,11 @@ mkinitrd_kernel() {
 		elif [ ! -r $bootsplash_picture ] ; then
 		    echo "no image for resolution $size"
 		else
-		    echo "$THEME ($size)"
-		    splash_image="$cfgname"
+		    echo -n "${splash_image:+, }$THEME ($size)"
+		    splash_image="$splash_image $cfgname"
 		fi
 	    done
+	    echo
 	else
 	    echo "no theme selected"
 	fi
@@ -2669,15 +2669,14 @@ mkinitrd_kernel() {
 	    return
 	fi
 	
-	if [ -n "$splash_image" ]; then
-	    $splash_bin -s -f $splash_image >> $initrd_image
-	fi
-
+	for image in $splash_image; do
+	    $splash_bin -s -f $image >> $initrd_image
+	done
     else
 	# Include bootsplash image
-	if [ -n "$splash_image" ]; then
-	    $splash_bin -s -f $splash_image > $tmp_mnt/bootsplash
-	fi
+	for image in $splash_image; do
+	    $splash_bin -s -f $image >> $tmp_mnt/bootsplash
+	done
 
 	attach_dsdt
 

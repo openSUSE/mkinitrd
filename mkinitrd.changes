@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Mar 21 18:12:49 CET 2005 - agruen@suse.de
+
+- Back out unnecessary change "Include boot-time udev rules if
+  present (#74013)".
+- Fix check for "unknown volume type" result of udev.
+- Re-add support for multiple splash images in the same initrd
+  (mostly from Michael Schroeder <mls@suse.de>).
+
+-------------------------------------------------------------------
 Mon Mar 21 14:43:54 CET 2005 - hare@suse.de
 
 - Include boot-time udev rules if present (#74013).
