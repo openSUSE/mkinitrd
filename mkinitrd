@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.131 $
+# $Revision: 1.132 $
 
 #
 # Print usage and exit
@@ -1355,17 +1355,17 @@ mkinitrd_kernel() {
 
     # Start udev
     cat_linuxrc <<-EOF
-    |
-    |echo "Starting udev"
-    |if [ -x /sbin/hotplug.sh ]; then
-    |    echo "/sbin/hotplug.sh" > /proc/sys/kernel/hotplug
-    |else
-    |    echo "/sbin/udev" > /proc/sys/kernel/hotplug
-    |fi
-    |echo "Creating devices"
-    |/sbin/udevstart
-    |
-    EOF
+	|
+	|echo "Starting udev"
+	|if [ -x /sbin/hotplug.sh ]; then
+	|    echo "/sbin/hotplug.sh" > /proc/sys/kernel/hotplug
+	|else
+	|    echo "/sbin/udev" > /proc/sys/kernel/hotplug
+	|fi
+	|echo "Creating devices"
+	|/sbin/udevstart
+	|
+	EOF
 
     # Check for IDE modules
     check_ide_modules $root_dir/lib/modules/$kernel_version
@@ -1380,8 +1380,6 @@ mkinitrd_kernel() {
     case "$resolved_modules" in
 	*/scsi_mod.*)   have_scsi=1
 			;;
-    esac
-    case "$resolved_modules" in
 	*/sd_mod.*)	have_sd=1
 			;;
     esac
