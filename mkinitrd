@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.12 $
+# $Revision: 1.13 $
 
 #
 # Print usage and exit
@@ -876,10 +876,11 @@ mkinitrd_kernel () {
 	|mount -n -tproc none /proc
 	|createpartitiondevs
 	|#need space for lvm data
-	|mount -n -tshm none /etc
+	|mkdir -p /etc/lvmtab.d
+	|mount -n -tshm none /etc/lvmtab.d
 	|vgscan
 	|vgchange -a y
-	|umount -n /etc
+	|umount -n /etc/lvmtab.d
 	|# set the right root device if user specified a lvm root
 	|root=
 	|for o in \`cat /proc/cmdline\` ; do
