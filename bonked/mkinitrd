@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.13 $
+# $Revision: 1.14 $
 
 #
 # Print usage and exit
@@ -676,7 +676,7 @@ mkinitrd_kernel () {
     if [ -n "$dhcp_interface" ] ; then
 	echo " Using dhcp on $dhcp_interface"
 	cp_bin $root_dir/sbin/dhcpcd $tmp_mnt/bin
-	cp_bin $root_dir/usr/bin/kill $tmp_mnt/bin
+	cp_bin $root_dir/bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
 	mkdir -p $tmp_mnt/var/run
 	need_mount=1
