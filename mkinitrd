@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.183 $
+# $Revision: 1.184 $
 
 #
 # Print usage and exit
@@ -1474,10 +1474,11 @@ mkinitrd_kernel() {
 	|    exit \$1
 	|}
 	|
-	|exec < /lib/klibc/dev/console > /lib/klibc/dev/console 2>&1
+	|exec < /dev/console > /dev/console 2>&1
 	|
-	|#mount -t tmpfs -o 'size=5%' initramdevs /dev
-	|#mkdir -p /dev/pts
+	|devdir="/dev"
+	|mount -t tmpfs -o 'size=5%' initramfsdevs \$devdir
+	|mkdir -p \$devdir/pts
 	|
 	|[ ! -f /proc/cpuinfo ] && mount -tproc proc /proc
 	|[ ! -d /sys/class ] && mount -tsysfs sysfs /sys
@@ -2115,7 +2116,7 @@ mkinitrd_kernel() {
         local vg_root=${rootdev#/dev/}
         vg_root=${vg_root%%/*}
 	cat_linuxrc <<-EOF
-	|vgscan
+	|
 	|for o in \$(cat /proc/cmdline); do
 	|  case \$o in
 	|    root=/dev/*)
@@ -2128,7 +2129,6 @@ mkinitrd_kernel() {
 	|  vg_root=$vg_root
 	|fi
 	|
-	|vgchange -a y \$vg_root
 	EOF
     fi
 
@@ -2211,14 +2211,14 @@ mkinitrd_kernel() {
     if [ -n "$use_udev" ] ; then
 	cat_linuxrc <<-'EOF'
 	|if ! udev_discover_root ; then
-	|    echo "not found -- device nodes:"
-	|    cd /dev
-	|    for dev in *; do
-	|	if [ -e "$dev" ]; then
-	|	    echo -n "$dev "
-	|	fi
-	|    done
-	|    echo ""
+	|    echo "not found -- entering manual mode:"
+	|#    cd ${devdir}
+	|#    for dev in *; do
+	|#	if [ -e "$dev" ]; then
+	|#	    echo -n "$dev "
+	|#	fi
+	|#    done
+	|#    echo ""
 	|    echo "No root device found; exiting to /bin/sh"
 	|    cd /
 	|    PATH=$PATH PS1='$ ' /bin/sh
@@ -2365,22 +2365,29 @@ mkinitrd_kernel() {
 	|    die 1
 	|fi
 	|
-	|# Create framebuffer devices
-	|if [ -f /proc/fb ]; then
-	|    cat /proc/fb | while read fbnum fbtype; do
-	|        if [ $(($fbnum < 32)) ] ; then
-	|            [ -c /dev/fb$fbnum ] || mknod /dev/fb$fbnum c 29 $fbnum
-	|        fi
-	|    done
+	|# Setup dynamic device nodes directory
+	|dev_on_tmpfs=$(. /root/etc/sysconfig/hotplug; echo $HOTPLUG_DEV_ON_TMPFS)
+	|if [ "$dev_on_tmpfs" != "yes" ]; then
+	|    dev_on_tmpfs=
 	|fi
 	|
-	|# These links are required by devices.txt
-	|(cd /dev; ln -s /proc/self/fd fd)
-	|(cd /dev; ln -s fd/0 stdin; ln -s fd/1 stdout; ln -s fd/2 stderr)
+	|if [ -n "$dev_on_tmpfs" ]; then
+	|    # Create framebuffer devices
+	|    if [ -f /proc/fb ]; then
+	|        cat /proc/fb | while read fbnum fbtype; do
+	|            if [ $(($fbnum < 32)) ] ; then
+	|                [ -c /dev/fb$fbnum ] || mknod /dev/fb$fbnum c 29 $fbnum
+	|            fi
+	|        done
+	|    fi
 	|
+	|    # These links are required by devices.txt
+	|    (cd /dev; ln -s /proc/self/fd fd)
+	|    (cd /dev; ln -s fd/0 stdin; ln -s fd/1 stdout; ln -s fd/2 stderr)
 	|
-	|# ISDN requires /dev/isdninfo
-	|mknod /dev/isdninfo c 45 255
+	|    # ISDN requires /dev/isdninfo
+	|    mknod /dev/isdninfo c 45 255
+	|fi
 	|
 	|# Save all events
 	|if [ -d /root/lib/klibc/events ]; then
@@ -2391,11 +2398,11 @@ mkinitrd_kernel() {
 	|    done
 	|fi
 	|
-	|# merry-go-round with /dev
-	|#/bin/mount -o ro,remount none /dev
-	|#/bin/mount -o move /dev /root/mnt
-	|#(/bin/chroot /root /bin/mount --bind /mnt /dev)
-	|#umount /dev
+	|if [ -n "$dev_on_tmpfs" ] ; then
+	|    /bin/mount -o move /dev /root/dev
+	|else
+	|    /bin/mount -o move /dev /root/lib/klibc/dev
+	|fi
 	|
 	|# Reset hotplug
 	|echo "/sbin/hotplug" > /proc/sys/kernel/hotplug
@@ -2416,6 +2423,9 @@ mkinitrd_kernel() {
 	|# Export root fs information
 	|ROOTFS_BLKDEV="$rootdev"
 	|export ROOTFS_BLKDEV
+	|
+	|ROOTFS_REALDEV="/lib/klibc/dev/$rootdev"
+	|export ROOTFS_REALDEV
 	|
 	|# The point of no return!
 	|for i in /*
