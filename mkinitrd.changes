@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 28 18:15:54 CEST 2004 - olh@suse.de
+
+- mkinitramfs: (#42940 - LTC9911)
+  all dev nodes belong to root, according to udev.permissions
+  but some may be owned by a group other than root
+
+-------------------------------------------------------------------
 Wed Jul 28 15:21:28 CEST 2004 - hare@suse.de
 
 - #42958: /sbin/MAKEDEV must be linked into /dev if
