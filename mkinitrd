@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.171 $
+# $Revision: 1.172 $
 
 #
 # Print usage and exit
@@ -2323,7 +2323,7 @@ mkinitrd_kernel() {
 	|
 	|# Create framebuffer devices
 	|if [ -f /proc/fb ]; then
-	|    cat /proc/fd | while read fbnum fbtype; do
+	|    cat /proc/fb | while read fbnum fbtype; do
 	|        if [ $(($fbnum < 32)) ] ; then
 	|            mknod /dev/fb$fbnum c 29 $fbnum
 	|        fi
@@ -2332,7 +2332,7 @@ mkinitrd_kernel() {
 	|
 	|# These links are required by devices.txt
 	|(cd /dev; ln -s /proc/self/fd fd)
-	|# (cd /dev; ln -s stdin fd/0; ln -s stdout fd/1; ln -s stderr fd/2)
+	|(cd /dev; ln -s fd/0 stdin; ln -s fd/1 stdout; ln -s fd/2 stderr)
 	|
 	|
 	|# Save all events
