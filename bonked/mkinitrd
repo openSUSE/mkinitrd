@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.83 $
+# $Revision: 1.84 $
 
 #
 # Print usage and exit
@@ -410,7 +410,8 @@ add_module () {
 
 # Install a binary file
 cp_bin () {
-    cp -a "$@"
+    cp -a "$@" \
+    || exit_code=1
 
     # Remember the binaries installed. We need the list for checking
     # for dynamic libraries.
