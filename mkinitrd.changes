@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Aug  2 09:54:35 CEST 2004 - hare@suse.de
+
+Initial update for SL9.2
+- Added '-r' to mkinitrd to build initramfs instead of initrd.
+- Removed 2.4.X code.
+- Enabled udev as default for all modes.
+
+-------------------------------------------------------------------
 Wed Jul 28 18:15:54 CEST 2004 - olh@suse.de
 
 - mkinitramfs: (#42940 - LTC9911)
