@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.191 $
+# $Revision: 1.192 $
 
 #
 # Print usage and exit
@@ -1587,6 +1587,12 @@ mkinitrd_kernel() {
 	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdevn=\$maj:\$min
 	|	    rootdev=/dev/root ;;
+	|	0x[0-9a-fA-F][0-9a-fA-F]*)
+	|	    maj=\$((\$rootdev >> 8))
+	|	    min=\$((\$rootdev & 0xff))
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    rootdevn=\$maj:\$min
+	|	    rootdev=/dev/root ;;
 	|	*:*)
 	|	    rootfstype="nfs"
 	|	    ;;
@@ -2364,6 +2370,7 @@ mkinitrd_kernel() {
 	|if [ -z "$rootfstype" ]; then
 	|    rootfstype=$(/bin/udev_volume_id -t $rootdev)
 	|    [ $? -ne 0 ] && $rootfstype=
+	|    [ "$rootfstype" = "unknown" ] && $rootfstype=
 	|fi
 	|
 	|# check filesystem if possible

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 16 15:58:50 CET 2005 - hare@suse.de
+
+- Check for invalid fs-types
+- Add check for root=0xXXX type boot parameter.
+
+-------------------------------------------------------------------
 Mon Mar 14 16:53:18 CET 2005 - schwab@suse.de
 
 - Make emergency shell interactive.
