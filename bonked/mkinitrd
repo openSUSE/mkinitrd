@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.53 $
+# $Revision: 1.54 $
 
 #
 # Print usage and exit
@@ -1554,9 +1554,9 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     mkinitrd_kernel $kernel_image $initrd_image
     attach_dsdt $initrd_image
 
-    # Hack: Previous kernels have had a symlink from the binary kernel
-    # image (vmlinuz, etc.) to image-$VERSION, but initrd was a plain file.
-    # Try to detect that case, and replace old initrd files with symlinks.
+    # If the current $kernel_image has a symlink without "-<version>" (e.g.
+    # "vmlinuz") pointing to it, create an "initrd" symlink for the
+    # corresponding $initrd_image.
     if [ "$(readlink ${kernel_image%%-*})" = \
 	 "${kernel_image#$boot_dir/}" ]; then
 	rm -f $root_dir/$boot_dir/initrd
