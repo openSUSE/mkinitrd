@@ -1,7 +1,7 @@
 #! /bin/bash
 
-# mkinitrd - create an initramfs cpio archive, 
-# useable with kernel 2.6 and newer
+# mkinitramfs - create an initramfs cpio archive, 
+# useable with kernel 2.6.4 and newer
 # usage: see below usage() or call with -h
 #
 # Copyright (C) 1999-2004 SuSE Linux AG, Nuernberg, Germany
@@ -21,40 +21,41 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.27 2004/05/21 21:22:35 olh Exp $
+# $Id: mkinitramfs,v 1.28 2004/05/22 20:41:16 olh Exp $
 
 #
 # Print usage and exit
 #
 usage() {
     cat<<EOM
-	Create compressed initramfs images that contain all kernel modules
-	needed in the early boot process, before the root file system
-	becomes available. This usually includes SCSI and/or RAID
-	modules, a file system module for the root file system, or
-	a network interface driver module for dhcp.
+        Create compressed initramfs images that contain all kernel modules
+        needed in the early boot process, before the root file system
+        becomes available. This usually includes SCSI and/or RAID
+        modules, a file system module for the root file system, or
+        a network interface driver module for dhcp.
 
-	mkinitrd [options]
+        mkinitramfs [options]
 
-	options:
+        options:
           -h               This Text.
           -k "kernel list" List of kernel images for which initrd files
                            are created. Defaults to all kernels found
-			   in /boot.
+                           in /boot.
           -i "initrd list" List of file names for the initrd; position
-	  		   have match to "kernel list". Defaults to all
-			   all kernels found in /boot.
+                           have match to "kernel list". Defaults to all
+                           all kernels found in /boot.
           -m "module list" Modules to include in initrd. Defaults to the
                            INITRD_MODULES variable in /etc/sysconfig/kernel.
           -b boot_dir      Boot directory. Defaults to /boot.
-	  -s size          Add splash animation and bootscreen to initrd.
-	  -t tmp_dir       Temporary directory. Defaults to /var/tmp.
-	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
-	  		   Description Table) to initrd. This replaces the
-			   DSDT of the BIOS. Defaults to the ACPI_DSDT
-			   variable in /etc/sysconfig/kernel.
-	  -S               Load policy file for SELinux if exist.
-	  -V               Vendor specific script to run in initrams
+          -s size          Add splash animation and bootscreen to initrd.
+          -t tmp_dir       Temporary directory. Defaults to /var/tmp.
+          -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
+                           Description Table) to initrd. This replaces the
+                           DSDT of the BIOS. Defaults to the ACPI_DSDT
+                           variable in /etc/sysconfig/kernel.
+                           (currently broken)
+          -S               Load policy file for SELinux if exist.
+          -V               Vendor specific script to run in initrams
 EOM
     exit
 }
@@ -153,7 +154,7 @@ while getopts :hk:i:m:b:d:o:s:St:V:a: a ; do
 		a)  echo "-a requires a DSDT parameter"
 		    ;;
 		*)  echo "Unknown option: -$OPTARG"
-		    echo "Try mkinitrd -h"
+		    echo "Try mkinitramfs -h"
 		    ;;
 	    esac
 	    exit 1
@@ -245,7 +246,7 @@ auto)
     [ -f /boot/grub/menu.lst ] \
 	&& bootconf="$bootconf /boot/grub/menu.lst"
     for vga in $(sed -e '/^[ \t]*#/d' -e 's/ \+/\n/g' $bootconf \
-	    	 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
+		 | sed -ne 's/^vga[ \t]*=[ \t]*\(.*\)/\1/p' \
 		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
 	splashsize=
 	case $[$vga] in  # $[...] : Convert 0xFOO to decimal
@@ -271,7 +272,7 @@ esac
 
 PATH=/sbin:/usr/sbin:$PATH
 
-work_dir=$(mktemp -qd $tmp_dir/mkinitrd.XXXXXX)
+work_dir=$(mktemp -qd $tmp_dir/mkinitramfs.XXXXXX)
 if [ $? -ne 0 ]; then
 	echo "$0: Can't create temp dir, exiting." >&2
 	exit 1
@@ -453,18 +454,18 @@ resolve_modules () {
 		# These modules were previously compiled into the kernel,
 		# and were modularized later. They will be missing in older
 		# kernels; ignore error messages.
-	    	;;
+		;;
 	    ext2|ext3|reiserfs|jfs|xfs)
 		# they are there or not
 		;;
 	    xfs_support)  # gone in 2.4.20
 		# This module does no longer exist. Do not produce an error
 		# message, but warn that it should be removed manually.
-    		echo -n "Warning: Module $module no longer exists, and" \
+		echo -n "Warning: Module $module no longer exists, and" \
 		     "should be removed " >&2
-	        if [ -e /etc/sysconfig/kernel ]; then
+		if [ -e /etc/sysconfig/kernel ]; then
 		    echo "from /etc/sysconfig/kernel." >&2
-	        elif [ -e /etc/rc.config ]; then
+		elif [ -e /etc/rc.config ]; then
 		    echo "from /etc/rc.config." >&2
 		else
 		    echo "." >&2
@@ -525,7 +526,7 @@ attach_dsdt () {
     if ! grep -q "DSDT" "$acpi_dsdt" ; then
 	oops 2 "File $acpi_dsdt is not a valid ACPI DSDT. Ignoring."
     elif grep -qE 'DefinitionBlock|char|dsl|aml' "$acpi_dsdt" ; then
-    	oops 2 "ACPI DSDT $acpi_dsdt does not seem to be in binary form." \
+	oops 2 "ACPI DSDT $acpi_dsdt does not seem to be in binary form." \
 	       "Will not attach this to $initrd_image."
     else
 	{   echo -ne "INITRDDSDT123DSDT123\0"
