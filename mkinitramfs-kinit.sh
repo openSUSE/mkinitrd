@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.2 2004/03/09 20:45:27 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.3 2004/03/25 12:58:12 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -31,6 +31,8 @@ echo
 mkdir -p "$udev_root"
 # allow bind mount, to not lose events
 mount -t tmpfs -o size=3% initramdevs "$udev_root"
+mkdir "$udev_root/shm"
+mkdir "$udev_root/pts"
 
 for i in /proc /sys /tmp /root ; do 
 	if [ ! -d "$i" ] ; then mkdir "$i" ; fi
@@ -279,8 +281,6 @@ fi
 
 mount -o bind "$udev_root" "/root$udev_root"
 ln -s /proc/self/fd "/root$udev_root/fd"
-mkdir "/root$udev_root/shm"
-mkdir "/root$udev_root/pts"
 mknod /dev/fb0 c 29 0
 mknod /dev/fb1 c 29 1
 mknod /dev/ppp c 108 0
