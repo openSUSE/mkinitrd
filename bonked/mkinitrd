@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.15 $
+# $Revision: 1.16 $
 
 #
 # Print usage and exit
@@ -634,7 +634,7 @@ mkinitrd_kernel () {
     is_mounted=1
     # fill the initrd
     rmdir $tmp_mnt/lost+found
-    mkdir $tmp_mnt/{sbin,bin,dev}
+    mkdir -p $tmp_mnt/{sbin,bin,dev}
     initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
 			  dev/{console,md0})
     case $arch in
@@ -664,8 +664,13 @@ mkinitrd_kernel () {
 	;;
     esac
 
+    if [ -n "$sysfs_root" ]; then
+	mkdir -p $tmp_mnt/sys
+    fi
+    
     if [ -n "$root_lvm" ] ; then
 	echo "Including LVM support"
+	mkdir -p $tmp_mnt/etc/lvmtab.d
 	cp -a $root_dir/dev/lvm  $tmp_mnt/dev
 	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
@@ -701,13 +706,13 @@ mkinitrd_kernel () {
 
     if has_module zfcp ; then
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
-	mkdir $tmp_mnt/etc
+	mkdir -p $tmp_mnt/etc
 	cp -a $root_dir/etc/zfcp.conf $tmp_mnt/etc/zfcp.conf
 	need_mount=1
     fi
 
     if [ -n "$need_mount" ] ; then
-	mkdir -p $tmp_mnt/{etc,proc,sys,mnt}
+	mkdir -p $tmp_mnt/{etc,proc,mnt}
 	echo 'none /proc proc defaults 0 0' > $tmp_mnt/etc/fstab
 	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
 	if [ -z "$use_pivot_root" -a -b "$root_dir/$rootdev" ] ; then
@@ -886,7 +891,6 @@ mkinitrd_kernel () {
 	|mount -n -tproc none /proc
 	|createpartitiondevs
 	|#need space for lvm data
-	|mkdir -p /etc/lvmtab.d
 	|mount -n -tshm none /etc/lvmtab.d
 	|vgscan
 	|vgchange -a y
@@ -945,7 +949,6 @@ mkinitrd_kernel () {
 	|	local mount=0 root="$1"
 	|
 	|	test -d /sys/block		|| mount=1
-	|	test -d /sys			|| mkdir /sys
 	|	if test "$mount" = "1"; then
 	|		mount -t sysfs sysfs /sys > /dev/null 2>&1 \
 	|			|| return
