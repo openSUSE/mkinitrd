@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 21 14:30:17 CET 2005 - agruen@suse.de
+
+- Fix check_ide_modules_pcimap.
+
+-------------------------------------------------------------------
 Wed Feb 16 18:41:31 CET 2005 - agruen@suse.de
 
 - Change default to create an initramfs instead of an initrd.

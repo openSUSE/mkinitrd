@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.168 $
+# $Revision: 1.169 $
 
 #
 # Print usage and exit
@@ -582,8 +582,8 @@ check_ide_modules_pcimap() {
     vendor_id=$2
     device_id=$3
 	
-    pci_vendor_id=$(printf "0x%08x" $(($1)))
-    pci_device_id=$(printf "0x%08x" $(($2)))
+    pci_vendor_id=$(printf "0x%08x" $(($2)))
+    pci_device_id=$(printf "0x%08x" $(($3)))
     while read pcimap_module rest; do
 	if [ "$pcimap_module" == "ata_piix" ]; then
 	    add_module "ahci"
