@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.33 $
+# $Revision: 1.34 $
 
 #
 # Print usage and exit
@@ -88,7 +88,7 @@ default_kernel_images () {
 		*)	regex='vmlinuz'
 			;;
 	esac
-	
+
 	kernel_images=""
 	initrd_images=""
 	for kernel_image in $(ls $root_dir/boot \
@@ -428,7 +428,7 @@ shared_object_files () {
     if [ ! -x $root_dir$LDD ]; then
 	error 2 "I need $root_dir$LDD."
     fi
-    
+
     if [ -n "$root_dir" ]; then
 	CHROOT=/usr/bin/chroot
 	if [ ! -x $CHROOT ]; then
@@ -443,7 +443,7 @@ shared_object_files () {
 	$DO_CHROOT $LDD "${@#$root_dir}" \
 	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:'
     ) )
-    
+
     # Evil hack: On some systems we have generic as well as optimized
     # libraries, but the optimized libraries may not work with all
     # kernel versions (e.g., the NPTL glibc libraries don't work with
@@ -459,7 +459,7 @@ shared_object_files () {
 	    initrd_libs[$n]="${lib/$optimized/}"
 	fi
     done
-    
+
     for lib in "${initrd_libs[@]}"; do
 	case "$lib" in
 	linux-gate*)
@@ -716,7 +716,7 @@ mkinitrd_kernel () {
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	need_mount=1
     fi
-    
+
     if [ -n "$root_lvm" ] ; then
 	echo "Including LVM support"
 	mkdir -p $tmp_mnt/etc/lvmtab.d
@@ -819,7 +819,7 @@ mkinitrd_kernel () {
 	    fi
 	fi
     fi
-    
+
     if [ -n "$lib_files" -a -n "$initrd_insmod_dynamic" ]; then
 	# If we have already have all dynamic libraries that
 	# $initrd_insmod_dynamic is using, and if $initrd_insmod_dynamic
@@ -840,7 +840,7 @@ mkinitrd_kernel () {
 	    fi
 	fi
     fi
-    
+
     cat /dev/null > $linuxrc
     chmod 755 $linuxrc
 
@@ -1109,10 +1109,14 @@ mkinitrd_kernel () {
 
     if [ -n "$use_selinux" -a -d $tmp_mnt/selinux ]; then
 	cat_linuxrc <<-EOF
-	|echo "Loading policy"
-	|mount -n -t selinuxfs none /selinux
-	|/sbin/load_policy /etc/security/selinux/policy.15
-	|umount -n /selinux
+	|echo -n "Loading SELinux policy	"
+	|if mount -n -t selinuxfs none /selinux >/dev/null 2>/dev/null ; then
+	|  /sbin/load_policy /etc/security/selinux/policy.15
+	|  umount /selinux
+	|  echo "successful"
+	|else
+	|  echo "skipped"
+	|fi
 	EOF
     fi
 
