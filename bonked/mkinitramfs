@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.42 2004/06/08 23:25:21 agruen Exp $
+# $Id: mkinitramfs,v 1.43 2004/06/14 09:52:10 olh Exp $
 
 #
 # Print usage and exit
@@ -1012,7 +1012,7 @@ if [ -z "$modules_set" ]; then
 	modules="$INITRD_MODULES"
     fi
     if [ ! -r /proc/mounts ]; then
-	  mount -t proc proc $mounted_proc && mounted_proc=/proc
+	  mount -t proc proc /proc && mounted_proc=/proc
     fi
 
     rootfstype=`find_rootfstype`
