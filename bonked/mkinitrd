@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.49 $
+# $Revision: 1.50 $
 
 #
 # Print usage and exit
@@ -1023,9 +1023,11 @@ mkinitrd_kernel () {
 	|
 	|discover_root() {
 	|	for item in $(cat /proc/cmdline); do
+	|		case $item in
+	|		  root=/dev/*)	item=$(expr substr $item 11 99) ;;
+	|		  *)		continue ;;
+	|		esac 
 	|		set -- $(IFS=/ ; echo $item)
-	|		test "$1" = root= -a "$2" = dev || continue
-	|		shift 2
 	|		# FIXME: there are a lot more exceptions below...
 	|		case $1 in
 	|			cciss)	# /dev/cciss/c0d0p1  ==>
