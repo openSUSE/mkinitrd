@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.3 2004/03/25 12:58:12 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.4 2004/04/17 15:08:52 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -296,14 +296,29 @@ fi
 umount /proc
 umount /sys
 cd /root
-# FIXME XXX unlink all files in the initramfs
 
-# sh
 INIT="$init"
 export INIT
-if [ "$debug" = "true" ] ; then sh ; fi
+if [ "$debug" = "true" ] ; then
+echo starting shell because debug was found in /proc/cmdline
+sh
+fi
 #
-exec /lib/klibc/bin/run_init "$@" < "./$udev_root/console" > "./$udev_root/console" 2>&1
+# the point of no return!
+#
+for i in /*
+do
+	case "$i" in
+		/root|/dev|/run_init|/bin|/lib*)
+			continue;;
+		*)
+			rm -rf $i
+		;;
+	esac
+done
+rm -rf /bin /lib*
+#
+exec /run_init "$@" < "./$udev_root/console" > "./$udev_root/console" 2>&1
 echo huhu ....
 echo 42 > /proc/sys/kernel/panic
 exit 42

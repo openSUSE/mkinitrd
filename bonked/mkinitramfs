@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitramfs,v $
-# $Revision: 1.11 $
+# $Revision: 1.12 $
 
 #
 # Print usage and exit
@@ -603,7 +603,7 @@ mkinitrd_kernel () {
     cp -a /sbin/udevstart $tmp_mnt/sbin/udevstart
     cp -a /sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
     cp -a /sbin/udev.*.sh $tmp_mnt/sbin/
-    cp -a /lib/klibc/bin/sh $tmp_mnt$shebang
+    ln -sf /lib/klibc/bin/sh $tmp_mnt$shebang
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
     cp_bin /bin/mknod $tmp_mnt/bin/mknod
@@ -837,8 +837,9 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    cp -pfv /lib/mkinitrd/kinit.sh $tmp_mnt/init
-    ln -sfv ../init $tmp_mnt/sbin/init
+    cp -pf /lib/mkinitrd/kinit.sh $tmp_mnt/init
+    ln -sf ../init $tmp_mnt/sbin/init
+    mv $tmp_mnt/lib/klibc/bin/run_init $tmp_mnt/run_init
     # if we run as user, mount may get the suid bit
     # this gives the mount process the wrong permissions
     chmod 0755 $tmp_mnt/bin/*
