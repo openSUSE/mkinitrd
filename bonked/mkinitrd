@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.103 $
+# $Revision: 1.104 $
 
 #
 # Print usage and exit
@@ -718,6 +718,91 @@ devnumber() {
 #
 # S/390 specific procedures
 #
+s390_check_lvm2() {
+    local vgname
+    local devname
+    
+    # Check whether the LVM is on zfcp or DASD
+    vgname=`lvdisplay -c $rootdev | cut -d : -f 2`
+
+    if [ "$vgname" ]; then
+	for devname in `pvdisplay -c | grep $vgname | cut -d : -f 1`; do
+	    case "$devname" in
+		*/dasd*)
+		    enable_dasd=1
+		    ;;
+		*/sd*)
+		    enable_zfcp=1
+		    ;;
+		*)
+		    ;;
+	    esac
+	done
+    fi
+}
+
+s390_check_evms() {
+    local evms_cmd
+    local evms_reg
+    local evms_cont
+    local evms_seg
+    local evms_dsk
+
+    if [ ! -x /sbin/evms ]; then
+	return 1
+    fi
+
+    if [ -n "$rootdev" ]; then
+	evms_cmd="q:r,v=$rootdev"
+
+	while read a b c d; do
+	    if [ "$a" = "Region" -a "$b" = "Name:" ]; then
+		evms_reg="$evms_reg $c"
+	    fi
+	done < <( echo "$evms_cmd" | /sbin/evms -s )
+    fi
+
+    for reg in $evms_reg; do
+	evms_cmd="q:c,r=$reg"
+	
+	while read a b c d; do
+	    if [ "$a" = "Container" -a "$b" = "Name:" ]; then
+		evms_cont="$evms_cont $c"
+	    fi
+	done < <(echo "$evms_cmd" | /sbin/evms -s )
+    done
+    
+    for cont in $evms_cont; do
+	evms_cmd="q:s,c=$cont"
+	
+	while read a b c d; do
+	    if [ "$a" = "Segment" -a "$b" = "Name:" ]; then
+		evms_seg="$evms_seg $c"
+	    fi
+	done < <(echo "$evms_cmd" | /sbin/evms -s )
+    done
+
+    for seg in $evms_seg; do
+	evms_cmd="q:d,s=$seg"
+	while read a b c d; do
+	    if [ "$a" = "Logical" -a "$b" = "Disk" -a "$c" = "Name:" ]; then
+		evms_dsk="$evms_dsk $d"
+	    fi
+	done < <(echo "$evms_cmd" | /sbin/evms -s )
+    done
+
+    for dsk in $evms_dsk; do
+	case $dsk in
+	    dasd*)
+		enable_dasd=1;
+		;;
+	    sd*)
+		enable_zfcp=1
+		;;
+	esac
+    done
+}
+
 s390_zfcp_proc() {
    zfcp_param=
    if [ ! -s $root_dir/etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
@@ -760,21 +845,10 @@ s390_zfcp_sysfs() {
     local devn=$(devnumber $rootdev)
     local enable_zfcp
 
-    if [ "$root_dm" ]; then
-	# Check whether the LVM is on zfcp
-	vgname=`lvdisplay -c $rootdev | cut -d : -f 2`
-
-	if [ "$vgname" ]; then
-	    for devname in `pvdisplay -c | grep $vgname | cut -d : -f 1`; do
-		case "$devname" in
-		    */sd*)
-			enable_zfcp=1
-			;;
-		    *)
-			;;
-		esac
-	    done
-	fi
+    if [ "$root_evms" ]; then
+	s390_check_evms $rootdev
+    elif [ "$root_dm" ]; then
+	s390_check_lvm2 $rootdev
     else
 	for dir in /sys/block/*/*; do
 	    if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
@@ -820,21 +894,10 @@ s390_dasd_sysfs() {
     local devn=$(devnumber $rootdev)
     local enable_dasd
 
-    if [ "$root_dm" ]; then
-	# Check whether the LVM is on DASDs
-	vgname=`lvdisplay -c $rootdev | cut -d : -f 2`
-
-	if [ "$vgname" ]; then
-	    for devname in `pvdisplay -c | grep $vgname | cut -d : -f 1`; do
-		case "$devname" in
-		    */dasd*)
-			enable_dasd=1
-			;;
-		    *)
-			;;
-		esac
-	    done
-	fi
+    if [ "$root_evms" ]; then
+	s390_check_evms $rootdev
+    elif [ "$root_dm" ]; then
+	s390_check_lvm2 $rootdev
     else
 	for dir in /sys/block/*/*; do
 	    if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
@@ -853,7 +916,7 @@ s390_dasd_sysfs() {
     fi
 
     if [ "$enable_dasd" ]; then
-	    # Root device is a dasd device, enable all dasd disks
+	# Root device is on a dasd device, enable all dasd disks
 	for dir in /sys/block/*; do
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
 		cd $dir
