@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.30 2004/05/22 21:03:31 olh Exp $
+# $Id: mkinitramfs,v 1.31 2004/05/22 21:03:59 olh Exp $
 
 #
 # Print usage and exit
@@ -575,7 +575,7 @@ mkinitrd_kernel () {
     cp -a /sbin/udevstart $tmp_mnt/sbin/udevstart
     cp -a /sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
     cp -a /sbin/udev.*.sh $tmp_mnt/sbin/
-    ln -sf /lib/klibc/bin/sh $tmp_mnt$shebang
+    ln -sf ../lib/klibc/bin/sh $tmp_mnt$shebang
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
     cp_bin /bin/mknod $tmp_mnt/bin/mknod
