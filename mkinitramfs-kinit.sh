@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.1 2004/03/09 00:47:43 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.2 2004/03/09 20:45:27 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -281,6 +281,9 @@ mount -o bind "$udev_root" "/root$udev_root"
 ln -s /proc/self/fd "/root$udev_root/fd"
 mkdir "/root$udev_root/shm"
 mkdir "/root$udev_root/pts"
+mknod /dev/fb0 c 29 0
+mknod /dev/fb1 c 29 1
+mknod /dev/ppp c 108 0
 #
 # sh
 #
