@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.111 $
+# $Revision: 1.112 $
 
 #
 # Print usage and exit
@@ -353,6 +353,7 @@ cleanup() {
 	  $tmp_initrd_small.gz
     [ -d "$tmp_mnt" ] && rmdir $tmp_mnt
     [ -d "$tmp_mnt_small" ] && rmdir $tmp_mnt_small
+    initrd_bins=()
 }
 
 cleanup_finish() {
@@ -1552,6 +1553,7 @@ mkinitrd_kernel() {
 	    saved_IFS="$IFS"
 	    IFS=":"
 	    set -- $disk
+	    IFS="$saved_IFS"
 	    echo -e "\t\t$1:$2:$3"
 	    cat_linuxrc <<-EOF
 	|echo "Activating zfcp disk $1:$2:$3"

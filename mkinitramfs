@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.40 2004/06/01 22:11:25 olh Exp $
+# $Id: mkinitramfs,v 1.41 2004/06/08 10:36:56 agruen Exp $
 
 #
 # Print usage and exit
@@ -283,6 +283,7 @@ umount_proc() {
 
 cleanup () {
     rm -f $tmp_initrd $tmp_initrd.gz
+    initrd_bins=()
 }
 
 cleanup_finish () {
