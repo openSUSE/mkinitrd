@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.18 $
+# $Revision: 1.124.2.19 $
 
 #
 # Print usage and exit
@@ -1002,6 +1002,7 @@ mkinitrd_kernel() {
     local kernel_image=$1 initrd_image=$2
     local kernel_version need_mount sysfs_root use_udev need_block_driver
     local need_raidautorun
+    local need_raidstart
     local -a features
 
     tmp_mnt=$work_dir/mnt
@@ -1206,6 +1207,11 @@ mkinitrd_kernel() {
     if has_any_module raid0 raid1 raid5 linear multipath; then
 	cp_bin $root_dir/sbin/raidautorun $tmp_mnt/sbin
 	need_raidautorun=1
+	if [ -s "$root_dir/etc/raidtab" ]; then
+	    cp_bin $root_dir/sbin/raidstart $tmp_mnt/sbin
+	    cat $root_dir/etc/raidtab > $tmp_mnt/etc/raidtab
+	    need_raidstart=1
+	fi
     fi
 
     if [ -n "$use_pivot_root" ] ; then
@@ -1729,6 +1735,15 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-EOF
 	|echo "raidautorun ..."
 	|raidautorun
+	|echo "done..."
+	EOF
+    fi
+
+    if [ -n "$need_raidstart" ]; then
+	features=(${features[@]} raidstart)
+	cat_linuxrc <<-EOF
+	|echo "raidstart ..."
+	|raidstart --all
 	|echo "done..."
 	EOF
     fi
