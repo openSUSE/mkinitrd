@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec 16 14:56:14 CET 2004 - hare@suse.de
+
+- Always mount /sys if not mounted (#49320).
+
+-------------------------------------------------------------------
 Wed Dec  8 12:01:57 CET 2004 - agruen@suse.de
 
 - Add module_upgrade to the file list.

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.19 $
+# $Revision: 1.124.2.20 $
 
 #
 # Print usage and exit
@@ -342,6 +342,11 @@ umount_proc() {
     mounted_proc=
 }
 
+umount_sysfs() {
+    [ "$mounted_sysfs" ] && umount $mounted_sysfs
+    mounted_sysfs=
+}
+
 cleanup() {
     [ "$is_mounted" ] && umount $tmp_mnt
     is_mounted=
@@ -356,6 +361,7 @@ cleanup() {
 
 cleanup_finish() {
     umount_proc
+    umount_sysfs
     [ -d "$work_dir" ] && rmdir $work_dir
 }
 
@@ -920,7 +926,7 @@ s390_dasd_sysfs() {
 	# Root device is on a dasd device, enable all dasd disks
 	for dir in /sys/block/dasd? /sys/block/dasd?? /sys/block/dasd???; do
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
-		cd $dir
+		pushd $dir > /dev/null
 		cd $(readlink device)
 		if [ -r ./discipline ]; then
 		    read type < ./discipline
@@ -943,6 +949,7 @@ s390_dasd_sysfs() {
 		    esac
 		    s390_dasd_disks="$s390_dasd_disks $(basename $PWD):$use_diag"
 		fi
+		popd > /dev/null
 	    fi
 	done
 
@@ -2240,9 +2247,21 @@ tmp_initrd=$work_dir/initrd
 tmp_initrd_small=${tmp_initrd}_small
 
 mounted_proc=
+if [ ! -d /proc ]; then
+    mkdir /proc
+fi
 if [ ! -r /proc/mounts ]; then
   mounted_proc=/proc
   mount -t proc proc $mounted_proc
+fi
+
+mounted_sysfs=
+if [ ! -d /sys ]; then
+    mkdir /sys
+fi
+if [ ! -d /sys/class ]; then
+    mounted_sysfs=/sys
+    mount -t sysfs none $mounted_sysfs
 fi
 
 if [ -z "$rootdev" ] ; then
