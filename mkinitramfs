@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.43 2004/06/14 09:52:10 olh Exp $
+# $Id: mkinitramfs,v 1.44 2004/07/28 16:19:11 olh Exp $
 
 #
 # Print usage and exit
@@ -579,6 +579,13 @@ mkinitrd_kernel () {
     mkdir    $tmp_mnt/{sbin,bin,etc}
     mkdir -p $tmp_mnt/lib/klibc/bin
     echo -n > $tmp_mnt/etc/mtab
+    # all dev nodes belong to root, according to udev.permissions
+    # but some may be owned by a group other than root
+    # getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
+    echo 'root::0:0:::' > $tmp_mnt/etc/passwd
+    getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
+    (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
+    cp_bin /lib/libnss_files* $tmp_mnt/lib/
     cp -a /lib/klibc/bin/* $tmp_mnt/lib/klibc/bin
     cp -a /etc/udev $tmp_mnt/etc
     cp -a /sbin/udev $tmp_mnt/sbin/udev
