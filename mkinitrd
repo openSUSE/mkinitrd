@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.187 $
+# $Revision: 1.188 $
 
 #
 # Print usage and exit
@@ -207,12 +207,10 @@ while getopts :hgMRk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
 	D)  interface=$OPTARG
 	    interface=${interface#/dev/}
 	    use_dhcp=1
-	    use_pivot_root=1
 	    ;;
  	I)  interface=$OPTARG
  	    interface=${interface#/dev/}
  	    use_ipconfig=1
-  	    use_pivot_root=1
 	    ;;
 	a)  acpi_dsdt="$OPTARG"
 	    ;;
@@ -1208,7 +1206,7 @@ mkinitrd_kernel() {
     if [ -z "$use_glibc" ] ; then
 	mkdir -p $tmp_mnt/lib/klibc/bin
 	for klibc_bin in chroot devnumber sed sleep ata_identify scsi_id \
-	    cat ln mount umount udev_volume_id; do
+	    cat ln mount umount nfsmount udev_volume_id; do
 	  if [ -e /lib/klibc/bin/$klibc_bin ]; then
 	      cp_bin /lib/klibc/bin/$klibc_bin \
 		  $tmp_mnt/lib/klibc/bin
@@ -1225,8 +1223,10 @@ mkinitrd_kernel() {
 	cp_bin /sbin/scsi_id $tmp_mnt/bin
 	cp_bin /sbin/ata_identify $tmp_mnt/bin
 	cp_bin /sbin/udev_volume_id $tmp_mnt/bin
-	# this must be a static binry because /lib is already gone when it runs
+	# this must be a static binary because /lib is already gone when it runs
 	cp_bin /lib/klibc/bin/run_init $tmp_mnt/run_init
+	# always use the klibc binary as this doesn't need portmap
+	cp_bin /lib/klibc/bin/nfsmount $tmp_mnt/bin
     fi
 
     # cat might not be present as klibc binary
@@ -1993,9 +1993,11 @@ mkinitrd_kernel() {
 	|# device node will be created by udev
 	|udev_wait_for_device() {
 	|    local root
+	|    local vg
 	|    local retval=1
 	|    local timeout=$udev_timeout
 	|    root=$1
+	|    vg=$2
 	|    if [ -n "$root" ]; then
 	|	echo -n "Waiting for device /dev/$root to appear: "
 	|	while [ $timeout -gt 0 ]; do
@@ -2008,9 +2010,14 @@ mkinitrd_kernel() {
 	|	    fi
 	|	    sleep 1
 	|	    echo -n "."
-	|	    [ -n "$vg_root" ] && vgchange -a y $vg_root
+	|	    [ -n "$vg" ] && vgchange -a y $vg
 	|	    timeout=$(( $timeout - 1 ))
 	|	done
+	|    fi
+	|    # Rescan for LVM1
+	|    if [ -n "$vg" -a $retval -eq 1 ]; then
+	|        vgscan
+	|        vgchange -a y $vg
 	|    fi
 	|    return $retval;
 	|}
@@ -2069,7 +2076,7 @@ mkinitrd_kernel() {
 	|    if [ -z "$root" ]; then
 	|	return 0
 	|    fi
-	|    if udev_wait_for_device $root; then
+	|    if udev_wait_for_device $root $vg_root; then
 	|	path=$(udevinfo -q path -n $root)
 	|	if [ $? -eq 0 -a -n "$path" ]; then
 	|	    set -- $(udev_read_devn $path)
@@ -2407,8 +2414,11 @@ mkinitrd_kernel() {
 	|# mount the actual root device below /root
 	|echo "Mounting root $rootdev"
 	|[ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
-	|mount $opt $rootdev /root || die 1
-	|
+	|if [ "$rootfstype" = "nfs" ]; then
+	|    nfsmount $rootdev /root || die 1
+	|else
+	|    mount $opt $rootdev /root || die 1
+	|fi
 	|# Look for an init binary on the root filesystem
 	|if [ -n "$init" ] ; then
 	|    if [ ! -f "/root$init" ]; then
