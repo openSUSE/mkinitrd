@@ -32,13 +32,13 @@ fi
 #
 
 if [ -f $INSTALL_PATH/vmlinuz-$KERNEL_VERSION ]; then
-      mv $INSTALL_PATH/vmlinuz-$KERNEL_VERSION \
-              $INSTALL_PATH/vmlinuz-$KERNEL_VERSION.old;
+    mv $INSTALL_PATH/vmlinuz-$KERNEL_VERSION \
+	$INSTALL_PATH/vmlinuz-$KERNEL_VERSION.old;
 fi
 
 if [ -f $INSTALL_PATH/System.map-$KERNEL_VERSION ]; then
-      mv $INSTALL_PATH/System.map-$KERNEL_VERSION \
-              $INSTALL_PATH/System.map-$KERNEL_VERSION.old; 
+    mv $INSTALL_PATH/System.map-$KERNEL_VERSION \
+	$INSTALL_PATH/System.map-$KERNEL_VERSION.old; 
 fi
 
 #
@@ -48,6 +48,11 @@ fi
 cp -fp $BOOTIMAGE $INSTALL_PATH/vmlinuz-$KERNEL_VERSION
 cp -fp $MAPFILE $INSTALL_PATH/System.map-$KERNEL_VERSION
 ln -sf vmlinuz-$KERNEL_VERSION $INSTALL_PATH/vmlinuz
+
+KERNTYPES=$(dirname $MAPFILE)/init/kerntypes.o
+if [ -e $KERNTYPES ]; then
+    cp -fp $KERNTYPES $INSTALL_PATH/Kerntypes-$KERNEL_VERSION
+fi
 
 #
 # Generate initial ramdisk
