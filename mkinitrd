@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.190 $
+# $Revision: 1.191 $
 
 #
 # Print usage and exit
@@ -2281,7 +2281,7 @@ mkinitrd_kernel() {
 	|if ! udev_discover_root ; then
 	|    echo "not found -- exiting to /bin/sh"
 	|    cd /
-	|    PATH=$PATH PS1='$ ' /bin/sh
+	|    PATH=$PATH PS1='$ ' /bin/sh -i
 	|fi
 	EOF
     fi

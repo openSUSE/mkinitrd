@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 14 16:53:18 CET 2005 - schwab@suse.de
+
+- Make emergency shell interactive.
+
+-------------------------------------------------------------------
 Mon Mar 14 14:22:40 CET 2005 - hare@suse.de
 
 - Fix booting on SCSI machines.
