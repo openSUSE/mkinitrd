@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.32 2004/05/22 21:29:44 olh Exp $
+# $Id: mkinitramfs,v 1.33 2004/05/25 19:01:19 garloff Exp $
 
 #
 # Print usage and exit
@@ -615,7 +615,13 @@ mkinitrd_kernel () {
     fi
 
     if has_module iscsi ; then
-	cp_bin /usr/sbin/iscsid $tmp_mnt/sbin/iscsid
+	if test -x /usr/sbin/iscsid; then
+	    cp_bin /usr/sbin/iscsid $tmp_mnt/sbin/iscsid
+        elif test -x /sbin/iscsid; then
+	    cp_bin /sbin/iscsid $tmp_mnt/sbin/iscsid
+	else    
+	    echo -e "iSCSI error:\tcould not find iscsid"
+	fi
     fi
 
     if [ -n "$root_lvm" ] ; then
