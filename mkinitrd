@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.132 $
+# $Revision: 1.133 $
 
 #
 # Print usage and exit
@@ -1281,7 +1281,7 @@ mkinitrd_kernel() {
     else
 	cat_linuxrc <<-EOF
 	|#! $shebang
-	|set -x
+	|
 	|export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/lib/klibc/bin
 	|
 	|die() {
