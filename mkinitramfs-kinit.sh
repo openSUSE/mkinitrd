@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.23 2004/08/27 11:10:40 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.24 2004/09/03 18:52:37 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -200,8 +200,12 @@ case "$root" in
 		*:/*)
 		nfsserver="$root"
 	esac
+	for i in /tmp/net-*.conf ; do
+		if [ ! -f $i ] ; then continue ; fi
+		. $i
+		break
+	done
 	if [ -z "$nfsserver" ] ; then
-		. /tmp/net-"$ipinterface".conf
 		nfsserver="$ROOTSERVER:$ROOTPATH"
 	fi
 	echo "nfsmount $nfsoptions $nfsserver"

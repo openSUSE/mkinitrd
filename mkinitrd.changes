@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  3 20:51:28 CEST 2004 - olh@suse.de
+
+- mkinitramfs: ipconfig writes a /tmp/net-$interface.conf
+  source the first one found to fill enviroment with dhcp reply
+
+-------------------------------------------------------------------
 Fri Aug 27 13:09:42 CEST 2004 - olh@suse.de
 
 - mkinitramfs: create /dev/std{in,out,err} symlinks (#43338)
