@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.130 $
+# $Revision: 1.131 $
 
 #
 # Print usage and exit
@@ -513,65 +513,20 @@ resolve_modules() {
     shift
 
     for module in "$@"; do
+	local with_modprobe_conf
 	module=${module#.o}  # strip trailing ".o" just in case.
 	module=${module#.ko}  # strip trailing ".ko" just in case.
-	case $kernel_version in
-	2.4.*)
-	    # Really old systems don't have modprobe.old.
-	    local modprobe
-	    if [ -e $root_dir/sbin/modprobe.old ]; then
-	       modprobe=$root_dir/sbin/modprobe.old
-	    else
-	       modprobe=$root_dir/sbin/modprobe
-	    fi
-	    tmp_conf="$(mktemp $root_dir/tmp/mkinitrd.XXXXXX)"
-	    {   echo "depfile=/lib/modules/$kernel_version/modules.dep"
-		[ -f $root_dir/etc/modules.conf ] \
-		    && sed -e '/^[ \t]*depfile=/d' $root_dir/etc/modules.conf
-	    } > "$tmp_conf"
-	    module_list=$( do_chroot \
-	    	${modprobe#$root_dir} -C "${tmp_conf#$root_dir}" \
-				      -v -n $module 2> /dev/null \
-		| sed -ne 's:.*insmod /\?::p' )
-	    rm -f "$tmp_conf"
-	    ;;
-	*)
-	    local with_modprobe_conf
-	    if [ -e $root_dir/etc/modprobe.conf ]; then
-		with_modprobe_conf="-C /etc/modprobe.conf"
-	    fi
-	    module_list=$( do_chroot \
-	       /sbin/modprobe $with_modprobe_conf \
-			      --set-version $kernel_version \
-			      --show-depends $module 2> /dev/null \
-	       | sed -ne 's:.*insmod /\?::p' )
-	    ;;
-	esac
+	if [ -e $root_dir/etc/modprobe.conf ]; then
+	    with_modprobe_conf="-C /etc/modprobe.conf"
+	fi
+	module_list=$( do_chroot \
+	    /sbin/modprobe $with_modprobe_conf \
+	    --set-version $kernel_version \
+	    --show-depends $module 2> /dev/null \
+	    | sed -ne 's:.*insmod /\?::p' )
 	if [ -z "$module_list" ]; then
-	    case $module in
-	    scsi_mod|sd_mod|md)  # modularized in 2.4.21
-		# These modules were previously compiled into the kernel,
-		# and were modularized later. They will be missing in older
-		# kernels; ignore error messages.
-	    	;;
-	    xfs_dmapi|xfs_support)  # gone in 2.4.20
-		# These modules do no longer exist. Do not produce an error
-		# message, but warn that they should be removed manually.
-    		echo -n "Warning: Module $module no longer exists, and" \
-		     "should be removed " >&2
-	        if [ -e $root_dir/etc/sysconfig/kernel ]; then
-		    echo "from /etc/sysconfig/kernel." >&2
-	        elif [ -e $root_dir/etc/rc.config ]; then
-		    echo "from /etc/rc.config." >&2
-		else
-		    echo "." >&2
-		fi
-		;;
-	    *)
-		oops 7 "Cannot determine dependencies of module $module." \
-		       "Is modules.dep up to date?"
-		;;
-	    esac
+	    oops 7 "Cannot determine dependencies of module $module." \
+		"Is modules.dep up to date?"
 	fi
 	echo "$module_list"
     done \
@@ -845,39 +800,6 @@ s390_check_zfcp() {
     fi
 }
 
-s390_zfcp_proc() {
-   zfcp_param=
-   if [ ! -s $root_dir/etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
-   then
-	fcpconf=$(cat /proc/scsi/zfcp/map)
-	if [ -n "$fcpconf" ]; then
-	    echo "$fcpconf" > $root_dir/etc/zfcp.conf
-	    chmod 644 $root_dir/etc/zfcp.conf
-	fi
-   fi
-   if [ -s $root_dir/etc/zfcp.conf ]; then
-	add_module zfcp
-
-	zfcp_param=$(sed -e 's,#.*,,' -e '/^[[:blank:]]*$/d' \
-		     $root_dir/etc/zfcp.conf)
-
-	if [ -z "$zfcp_param" ]; then
-	    zfcp_param=$(modprobe -v -n zfcp|sed -n '/map=/s/.*zfcp.o //p')
-	fi
-
-	if [ -z "$zfcp_param" ]; then
-	    error 1 "\
-zfcp module loaded but root_dir/etc/zfcp.conf empty.
-don't know how to configure zfcp in initrd.
-
-you can save the current configuration with this command:
-
-    cat /proc/scsi/zfcp/map >> root_dir/etc/zfcp.conf
-"
-	fi
-    fi
-}
-
 # Detect all zfcp disks
 # We need to activate all disks in the same order
 # as found in the running system to get the same
@@ -1003,7 +925,7 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 #
 mkinitrd_kernel() {
     local kernel_image=$1 initrd_image=$2
-    local kernel_version need_mount sysfs_root use_udev need_block_driver
+    local kernel_version need_mount sysfs_root need_block_driver
     local need_raidautorun
     local -a features
 
@@ -1106,12 +1028,6 @@ mkinitrd_kernel() {
 	fi
     fi
 
-    case "$kernel_version" in
-    2.6*)
-	use_udev=1
-	;;
-    esac
-
     if has_module iscsi ; then
 	if test -x $root_dir/usr/sbin/iscsid; then
 	    cp_bin $root_dir/usr/sbin/iscsid $tmp_mnt/sbin/iscsid
@@ -1135,9 +1051,7 @@ mkinitrd_kernel() {
 
     if [ -n "$s390_dasd_disks" ]; then
 	cp_bin $root_dir/sbin/dasd_configure $tmp_mnt/sbin
-	if [ -n "$use_udev" ]; then
-	    cp_bin $root_dir/sbin/dasdview $tmp_mnt/sbin
-	fi
+	cp_bin $root_dir/sbin/dasdview $tmp_mnt/sbin
     fi
 
     if [ -n "$s390_zfcp_disks" ]; then
@@ -1146,55 +1060,51 @@ mkinitrd_kernel() {
 	cp_bin $root_dir/bin/sed $tmp_mnt/bin
     fi
 
-    if [ -n "$use_udev" ] ; then
-	features=(${features[@]} udev)
-	if [ "$mkinit_type" = "rd" ] ; then
-	    mkdir -p $tmp_mnt/dev/shm
-	fi
-	mkdir -p $tmp_mnt/lib/klibc/bin
-	for klibc_bin in devnumber sed sleep ata_identify scsi_id cat \
-			 umount; do
-	    if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
-		cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
-		    $tmp_mnt/lib/klibc/bin
-		if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
-		    ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
-		fi
-	    fi
-	done
-
-	cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
-
-	for bin in chmod mkdir mknod mount rm; do
-	    cp_bin $root_dir/bin/$bin $tmp_mnt/bin
-	done
-
-	if [ -x $root_dir/lib/mkinitrd/hotplug.sh ] ; then
-	    cp_bin $root_dir/lib/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
-	fi
-
-	# This has to go ...
-	cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
-
-	cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
-	cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
-	cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
-	cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
-	mkdir -p $tmp_mnt/etc/udev
-	cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
-	if [ "$mkinit_type" = "ramfs" ] ; then
-	    mkdir -p $tmp_mnt/events
-	    cp_bin $root_dir/sbin/hotplugeventrecorder $tmp_mnt/sbin
-	    (cd $tmp_mnt/sbin; ln -s hotplugeventrecorder hotplug)
-	fi
-	need_block_driver=1
+    features=(${features[@]} udev)
+    if [ "$mkinit_type" = "rd" ] ; then
+	mkdir -p $tmp_mnt/dev/shm
     fi
+    mkdir -p $tmp_mnt/lib/klibc/bin
+    for klibc_bin in devnumber sed sleep ata_identify scsi_id cat \
+	umount; do
+      if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
+	  cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
+	      $tmp_mnt/lib/klibc/bin
+	  if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
+	      ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+	  fi
+      fi
+    done
+
+    cp_bin $root_dir/lib/klibc/bin/run_init $tmp_mnt/run_init
+    
+    for bin in chmod mkdir mknod mount rm; do
+	cp_bin $root_dir/bin/$bin $tmp_mnt/bin
+    done
+    
+    if [ -x $root_dir/lib/mkinitrd/hotplug.sh ] ; then
+	cp_bin $root_dir/lib/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
+    fi
+
+    # This has to go ...
+    cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
+
+    cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
+    cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
+    cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
+    cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
+    mkdir -p $tmp_mnt/etc/udev
+    cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
+    if [ "$mkinit_type" = "ramfs" ] ; then
+	mkdir -p $tmp_mnt/events
+	cp_bin $root_dir/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	(cd $tmp_mnt/sbin; ln -s hotplugeventrecorder hotplug)
+    fi
+    need_block_driver=1
 
     if [ -n "$root_lvm" ] ; then
 	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
-	[ -z "$use_udev" ] &&
-	    cp -a $root_dir/dev/lvm  $tmp_mnt/dev
 	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	need_mount=1
@@ -1205,9 +1115,6 @@ mkinitrd_kernel() {
 	features=(${features[@]} dm/lvm2)
 	mkdir -p $tmp_mnt/etc/lvm
 	mkdir -p $tmp_mnt/var/lock/lvm
-	if [ -z "$use_udev" ]; then
-	    cp_bin $root_dir/sbin/devmap_mknod.sh $tmp_mnt/sbin
-	fi
 	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod,ls} $tmp_mnt/bin
 	cp -a $root_dir/etc/lvm/lvm.conf $tmp_mnt/etc/lvm
@@ -1217,9 +1124,6 @@ mkinitrd_kernel() {
 
     if [ -n "$root_evms" ] ; then
 	features=(${features[@]} dm/evms2)
-	if [ -z "$use_udev" ]; then
-	    cp_bin $root_dir/sbin/devmap_mknod.sh $tmp_mnt/sbin
-	fi
 	cp_bin $root_dir/sbin/{evms_activate,dmsetup} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod,rm} $tmp_mnt/bin
 	mkdir -p $tmp_mnt/etc
@@ -1278,11 +1182,6 @@ mkinitrd_kernel() {
 	fi
 	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
 	
-	if [ -z "$use_udev" -a -z "$use_pivot_root" -a \
-	     -b "$root_dir/$rootdev" ] ; then
-	    mkdir -p $tmp_mnt/${rootdev%/*}
-	    cp -a $root_dir/$rootdev $tmp_mnt/${rootdev%/*}
-	fi
     fi
 
     if [ -n "$debug_mkinit" ]; then
@@ -1454,23 +1353,21 @@ mkinitrd_kernel() {
 	echo >> $linuxrc
     fi
 
-    # Start udev if necessary
-    if [ -n "$use_udev" ]; then
-	cat_linuxrc <<-EOF
-	|
-	|echo "Starting udev"
-	|if [ -x /sbin/hotplug.sh ]; then
-	|    echo "/sbin/hotplug.sh" > /proc/sys/kernel/hotplug
-	|else
-	|    echo "/sbin/udev" > /proc/sys/kernel/hotplug
-	|fi
-	|echo "Creating devices"
-	|/sbin/udevstart
-	|
-	EOF
-    fi
+    # Start udev
+    cat_linuxrc <<-EOF
+    |
+    |echo "Starting udev"
+    |if [ -x /sbin/hotplug.sh ]; then
+    |    echo "/sbin/hotplug.sh" > /proc/sys/kernel/hotplug
+    |else
+    |    echo "/sbin/udev" > /proc/sys/kernel/hotplug
+    |fi
+    |echo "Creating devices"
+    |/sbin/udevstart
+    |
+    EOF
 
-    # Check for IDE modules, might change use_udev
+    # Check for IDE modules
     check_ide_modules $root_dir/lib/modules/$kernel_version
 
     resolved_modules="$(resolve_modules $kernel_version $modules)"
@@ -1532,14 +1429,6 @@ mkinitrd_kernel() {
 		EOF
 		# Add the intermediate parameter to the modules
 		params="\$dasd_params"
-		;;
-	    */zfcp.*)
-		# zfcp_param is only used on 2.4 kernels,
-		# in 2.6 disks are activated manually
-		# (see s390_zfcp_sysfs)
-		if [ "$zfcp_param" ]; then
-			params="map=\"$zfcp_param\""
-		fi
 		;;
 	    */scsi_mod*)
 		# We may have SCSI parameters on the kernel command line,
@@ -1684,12 +1573,6 @@ mkinitrd_kernel() {
         local vg_root=${rootdev#/dev/}
         vg_root=${vg_root%%/*}
 
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-		|# scan for lvm devices
-		|createpartitiondevs
-		EOF
-	fi
 	cat_linuxrc <<-EOF
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvmtab.d
@@ -1723,26 +1606,19 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$root_dm" -o -n "$root_evms" ]; then
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-		|# create device mapper control device nodes
-		|/sbin/devmap_mknod.sh
-		EOF
-	else
-	    cat_linuxrc <<-'EOF'
-		|echo -n "Waiting for /dev/mapper/control to appear: "
-		|for i in 1 2 3 4 5; do
-		|    [ -e /dev/mapper/control ] && break
-		|    sleep 1
-		|    echo -n "."
-		|done
-		|if [ -e /dev/mapper/control ]; then
-		|    echo " ok"
-		|else
-		|    echo " failed"
-		|fi
-		EOF
-	fi
+	cat_linuxrc <<-'EOF'
+	|echo -n "Waiting for /dev/mapper/control to appear: "
+	|for i in 1 2 3 4 5; do
+	|    [ -e /dev/mapper/control ] && break
+	|    sleep 1
+	|    echo -n "."
+	|done
+	|if [ -e /dev/mapper/control ]; then
+	|    echo " ok"
+	|else
+	|    echo " failed"
+	|fi
+	EOF
     fi
 
     if [ -n "$root_dm" ] ; then
@@ -1862,8 +1738,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$use_udev" ]; then
-	cat_linuxrc <<-'EOF'
+    cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
 	|	local root
 	|	case "$rootdev" in
@@ -1913,7 +1788,6 @@ mkinitrd_kernel() {
 	|    PATH=$PATH /bin/sh
 	|fi
 	EOF
-    fi
 
     if [ -n "$sysfs_root" ]; then
 	cat_linuxrc <<-'EOF'
@@ -1981,13 +1855,6 @@ mkinitrd_kernel() {
 	|	  # (we don't get here.)
 	|    fi
 	|fi
-	EOF
-    fi
-
-    if [ -n "$use_pivot_root" -a -z "$use_udev" ] ; then
-	cat_linuxrc <<-'EOF'
-	|# create missing devices
-	|createpartitiondevs
 	EOF
     fi
 
@@ -2062,13 +1929,6 @@ mkinitrd_kernel() {
 	|
 	|  # need to redo-this setting up the root dev now that the disk is present
 	|  discover_root
-	EOF
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-		|  createpartitiondevs
-		EOF
-	fi
-	cat_linuxrc <<-'EOF'
 	|  # clear dhcp_mode so it looks like we're disk booted...
 	|  dhcp_mode=
 	|fi
@@ -2162,7 +2022,10 @@ mkinitrd_kernel() {
 	|    done
 	|fi
 	|
+	|# These links are required by devices.txt
 	|ln -s /proc/self/fd /dev/fd
+	|(cd /dev; ln -s stdin fd/0; ln -s stdout fd/1; ln -s stderr fd/2)
+	|
 	|
 	|# Save all events
 	|if [ ! -d /dev/events ]; then
@@ -2446,8 +2309,10 @@ if [ "$arch" = s390 ]; then
 	s390_dasd_sysfs
 	s390_zfcp_sysfs
     else
+	echo ""
+	echo "WARNING: sysfs not mounted on /sys."
+	echo "Booting from zfcp will _not_ work."
 	s390_dasd_proc
-	s390_zfcp_proc
     fi
 fi
 
