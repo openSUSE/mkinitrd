@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.85 $
+# $Revision: 1.86 $
 
 #
 # Print usage and exit
@@ -666,26 +666,45 @@ check_ide_modules () {
 
 }
 
-devnumber() {
-    ls -l -L $1 | awk '{printf $5 * 256 + $6}'
+# NOTE: The mkdevn, devmajor and block_driver functions are reused
+#       inside the initrd, so keep them compatible with ash !!!
+#
+
+# Convert a major:minor pair into a device number
+mkdevn() {
+    local major=$1 minor=$2
+    expr '(' $minor % 256 ')' + '(' $major '*' 256 ')' + \
+	 '(' '(' $minor / 256 ')' '*' 256 '*' 4096 ')'
 }
 
-# NOTE: The block_driver function is reused inside the initrd,
-#       so keep it compatible with ash !!!
-#
+# Extract the major part from a device number
+devmajor() {
+    local devn=$1
+    expr '(' $devn / 256 ')' % 4096
+}
+
+# Find the device driver name for a device inode
 block_driver() {
     local devn=$(devnumber $1 2> /dev/null) block major driver
     [ -z "$devn" ] && return 1
     while read major driver; do
 	[ "$major" = Block ] && block=1  # in block device section
 	[ -z "$driver" -o -z "$block" ] && continue
-	if [ $(expr $devn / 256 = $major) = 1 ]; then
+	if [ $(devmajor $devn) = $major ]; then
 	    echo $driver
 	    return 0
 	fi
     done < /proc/devices
     return 1
 }
+
+# (We are using a devnumber binary inside the initrd.)
+devnumber() {
+    #ls -l -L $1 | awk '{printf $5 * 256 + $6}'
+    set -- $(ls -l $1)
+    mkdevn ${5%,} $6
+}
+
 
 # Create the initrd image $2 for kernel $1 (both are absolute path names).
 mkinitrd_kernel () {
@@ -1002,7 +1021,12 @@ mkinitrd_kernel () {
 
     if [ -n "$need_block_driver" ]; then
 	# Transfer the the block_driver function into the initrd
+	type mkdevn | sed -e '1d' >> $linuxrc
+	echo >> $linuxrc
+	type devmajor | sed -e '1d' >> $linuxrc
+	echo >> $linuxrc
 	type block_driver | sed -e '1d' >> $linuxrc
+	echo >> $linuxrc
     fi
 
     # Start udev if necessary
@@ -1161,8 +1185,9 @@ mkinitrd_kernel () {
 	|		if [ -f $dev ]; then
 	|		    local major minor dev_t
 	|		    IFS=":" read major minor < $dev
-	|		    dev_t=$(expr $major '*' 256 + $minor)
-	|		    echo "rootfs: $entry major=$major minor=$minor dev_t=$dev_t"
+	|		    dev_t=$(mkdevn $major $minor)
+	|		    echo "rootfs: $entry major=$major minor=$minor" \
+	|			 "dev_t=$dev_t"
 	|		    echo $dev_t > /proc/sys/kernel/real-root-dev
 	|		    return 0
 	|		fi
@@ -1258,7 +1283,7 @@ mkinitrd_kernel () {
 	|	  if [ -f $entry/dev -a $name = $search ]; then
 	|		local major minor dev_t
 	|		IFS=: read major minor < $entry/dev
-	|		dev_t=$(expr $major '*' 256 + $minor)
+	|		dev_t=$(mkdevn $major $minor)
 	|		echo "rootfs: $entry major=$major minor=$minor" \
 	|		     "dev_t=$dev_t"
 	|		echo $dev_t > /proc/sys/kernel/real-root-dev
@@ -1665,8 +1690,8 @@ s390_zfcp_sysfs() {
 
     for dir in /sys/block/*/*; do
 	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
-	    IFS=":" read tmp_major tmp_minor < $dir/dev
-	    if (($devn == $tmp_major * 256 + $tmp_minor)); then
+	    IFS=":" read major minor < $dir/dev
+	    if (($devn == $(mkdevn $major $minor) )); then
 		path=$dir
 		break;
 	    fi
@@ -1706,8 +1731,8 @@ s390_dasd_sysfs() {
 
     for dir in /sys/block/*/*; do
 	if [ -d "$dir" ] && [ -f "$dir/dev" ]; then
-	    IFS=":" read tmp_major tmp_minor < $dir/dev
-	    if (($devn == $tmp_major * 256 + $tmp_minor)); then
+	    IFS=":" read major minor < $dir/dev
+	    if (($devn == $(mkdevn $major $minor) )); then
 		path=$dir
 		break;
 	    fi
