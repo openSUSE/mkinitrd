@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.23 2004/05/05 15:03:47 olh Exp $
+# $Id: mkinitramfs,v 1.24 2004/05/06 19:01:13 olh Exp $
 
 #
 # Print usage and exit
@@ -917,9 +917,10 @@ root_lvm=
 root_md=
 major=`stat --format='%D' /`
 major="${major%??}"
-# check if the root device is an lvm device
+# check if the root device is an lvm2 via dm device
 if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
-# check if the root device is an dm/lvm2 device
+if [ "$major" = "fd" ] ; then root_lvm=1 ; fi
+# check if the root device is an md device
 if [ "$major" = "9" ] ; then root_md=1 ; fi
 
 s390_zfcp_proc() {
@@ -1060,7 +1061,6 @@ modules="$modules $rootfstype"
 # add modules required by features
 if [ -n "$root_lvm" ] ; then
     add_module dm-mod
-    add_module lvm-mod
 fi
 
 if [ -n "$root_md" ] ; then
