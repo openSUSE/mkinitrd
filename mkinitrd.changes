@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 21 14:43:54 CET 2005 - hare@suse.de
+
+- Include boot-time udev rules if present (#74013).
+
+-------------------------------------------------------------------
 Mon Mar 21 11:01:34 CET 2005 - hare@suse.de
 
 - Fix passing of command-line options to the ide driver (#72454)
