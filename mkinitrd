@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.29 $
+# $Revision: 1.30 $
 
 #
 # Print usage and exit
@@ -528,8 +528,12 @@ resolve_modules () {
 	    rm -f "$tmp_conf"
 	    ;;
 	*)
+	    local with_modprobe_conf
+	    if [ -e /etc/modprobe.conf ]; then
+		with_modprobe_conf="-C /etc/modprobe.conf"
+	    fi
 	    module_list=$( $DO_CHROOT \
-	       /sbin/modprobe -C /etc/modprobe.conf \
+	       /sbin/modprobe $with_modprobe_conf \
 			      --set-version $kernel_version \
 			      --show-depends $module 2> /dev/null \
 	       | sed -ne 's:.*insmod /\?::p' )
