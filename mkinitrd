@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.163 $
+# $Revision: 1.164 $
 
 #
 # Print usage and exit
@@ -1957,7 +1957,7 @@ mkinitrd_kernel() {
 	|
 	|/sbin/evms_activate
 	|mkdir -p /mnt
-	|mount -oro /dev/evms/lvm/system/ROOT /mnt
+	|mount -oro \$rootdev /mnt
 	|FSTAB_ITEMS=\$(get_fstab_entries /mnt/etc/fstab)
 	|umount /mnt
 	|dmsetup remove_all
@@ -1969,8 +1969,8 @@ mkinitrd_kernel() {
 	|    case \$rootdev in
 	|    /dev/*)
 	|	mkdir -p /mnt
-	|	mount -oro /dev/evms/lvm/system/ROOT /mnt
-	|	fix_evms_root_node /mnt /dev/evms/lvm/system/ROOT
+	|	mount -oro \$rootdev /mnt
+	|	fix_evms_root_node /mnt \$rootdev
 	|	remove_evms_fstab \$FSTAB_ITEMS
 	|	umount /mnt
 	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
