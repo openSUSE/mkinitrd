@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.100 $
+# $Revision: 1.101 $
 
 #
 # Print usage and exit
@@ -1451,6 +1451,7 @@ mkinitrd_kernel() {
 	|    /sbin/dasd_configure $1 1 $2
 	EOF
 	    s390_dasd_disk_num=$(expr $s390_dasd_disk_num + 1)
+	    IFS="$saved_IFS"
 	done
 	echo ""
 	cat_linuxrc <<-EOF
