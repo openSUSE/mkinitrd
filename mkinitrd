@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.84 $
+# $Revision: 1.85 $
 
 #
 # Print usage and exit
@@ -272,6 +272,8 @@ shebang=${shebang%.static}
 if [ -x /lib/klibc/bin/sh ]; then
     initrd_shell="/lib/klibc/bin/sh"
     shebang="/bin/sh"
+    [ -x /lib/klibc/bin/devnumber ] \
+	&& cp_bin /lib/klibc/bin/devnumber $tmp_mnt/bin
 fi
 
 [ -x $root_dir/sbin/insmod ] \
@@ -637,8 +639,6 @@ check_ide_modules () {
 	return
     fi
 
-    echo -e -n "IDE modules:\t"
-
     while read pci_id none class_id dev_id rev_id; do
 	saved_IFS="$IFS"
 	IFS=":"
@@ -654,7 +654,6 @@ check_ide_modules () {
 		set -- $line
 		add_module $1
 		ide_modules="$ide_modules $1"
-		echo -n "$1 "
 	    fi
 	fi
     done < <(/sbin/lspci -n)
@@ -663,9 +662,8 @@ check_ide_modules () {
 	add_module ide-floppy
 	add_module ide-cd
 	echo
-    else
-	echo "none"
     fi
+
 }
 
 devnumber() {
@@ -693,7 +691,8 @@ block_driver() {
 mkinitrd_kernel () {
     local kernel_image=$1 initrd_image=$2
     local kernel_version need_mount sysfs_root use_udev need_block_driver
-    local did_raidautorun
+    local need_raidautorun
+    local -a features
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
@@ -707,7 +706,7 @@ mkinitrd_kernel () {
 
     kernel_version=$(/sbin/get_kernel_version $root_dir$kernel_image)
 
-    echo -e "Kernel version:\t$kernel_version"
+    #echo -e "Kernel version:\t$kernel_version"
     echo -e "Kernel image:\t$root_dir$kernel_image"
     echo -e "Initrd image:\t$root_dir$initrd_image"
 
@@ -819,7 +818,7 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$root_lvm" ] ; then
-	echo "Including LVM support"
+	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
 	[ -z "$use_udev" ] &&
 	    cp -a $root_dir/dev/lvm  $tmp_mnt/dev
@@ -830,7 +829,7 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$root_dm" ] ; then
-	echo "Including DM/LVM2 support"
+	features=(${features[@]} dm/lvm2)
 	mkdir -p $tmp_mnt/etc/lvm
 	if [ -z "$use_udev" ]; then
 	    mkdir $tmp_mnt/dev/mapper
@@ -843,8 +842,14 @@ mkinitrd_kernel () {
 	need_block_driver=1
     fi
 
+    if has_any_module raid0 raid1 raid5 linear multipath \
+       || [ $(pvscan 2>/dev/null | grep "/dev/md[0-9]" | wc -l) -gt 0 ]; then
+	cp_bin $root_dir/sbin/raidautorun $tmp_mnt/sbin
+	need_raidautorun=1
+    fi
+
     if [ -n "$use_pivot_root" ] ; then
-	echo "Including pivot root support"
+	features=(${features[@]} pivot-root)
 	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	echo "#! $shebang" > $tmp_mnt/bin/init
@@ -864,7 +869,7 @@ mkinitrd_kernel () {
     fi
 
     if has_module jfs ; then
-	echo "Including JFS recovery support"
+	features=(${features[@]} fsck.jfs)
 	cp_bin $root_dir/sbin/fsck $tmp_mnt/bin
 	cp_bin $root_dir/sbin/fsck.jfs $tmp_mnt/bin
 	need_mount=1
@@ -1125,21 +1130,11 @@ mkinitrd_kernel () {
 	done
     fi
 
-    if has_any_module raid0 raid1 raid5 linear multipath ; then
-	echo "Including raidautorun"
-	cat_linuxrc <<-EOF
-	|echo "raidautorun ..."
-	|raidautorun
-	|echo "done..."
-	EOF
-	did_raidautorun=1
-    fi
-
     if [ -n "$use_udev" ]; then
 	sysfs_root=
-	if [ -n "$root_dev_t" ]; then
-	    echo -e "Udev:\t\tUsing root=$root_dev_t as fallback"
-	fi
+	#if [ -n "$root_dev_t" ]; then
+	#    echo -e "Udev:\t\tUsing root=$root_dev_t as fallback"
+	#fi
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
 	|	local root=$(root_arg)
@@ -1203,15 +1198,6 @@ mkinitrd_kernel () {
 		|createpartitiondevs
 		EOF
 	fi
-	if [ -z "$did_raidautorun" -a \
-	     $(pvscan 2>/dev/null | grep "/dev/md[0-9]" | wc -l) -gt 0 ]
-	then
-	    cat_linuxrc <<-EOF
-		|echo "raidautorun ..."
-		|raidautorun
-		|echo "done..."
-		EOF
-	fi
 	cat_linuxrc <<-'EOF'
 	|#need space for lvm data
 	|mount -n -tramfs none /etc/lvmtab.d
@@ -1273,7 +1259,8 @@ mkinitrd_kernel () {
 	|		local major minor dev_t
 	|		IFS=: read major minor < $entry/dev
 	|		dev_t=$(expr $major '*' 256 + $minor)
-	|		echo "rootfs: $entry major=$major minor=$minor dev_t=$dev_t"
+	|		echo "rootfs: $entry major=$major minor=$minor" \
+	|		     "dev_t=$dev_t"
 	|		echo $dev_t > /proc/sys/kernel/real-root-dev
 	|		return
 	|	  else
@@ -1310,6 +1297,15 @@ mkinitrd_kernel () {
 	cat_linuxrc <<-'EOF'
 	|# create missing devices
 	|createpartitiondevs
+	EOF
+    fi
+
+    if [ -n "$need_raidautorun" ]; then
+	features=(${features[@]} raidautorun)
+	cat_linuxrc <<-EOF
+	|echo "raidautorun ..."
+	|raidautorun
+	|echo "done..."
 	EOF
     fi
 
@@ -1521,6 +1517,9 @@ mkinitrd_kernel () {
 	oops 8 "Failed to install initrd"
 	return
     fi
+
+    [ ${#features[@]} -gt 0 ] \
+	&& echo -e "Including:\t${features[@]}"
 
     splash_bin=
     [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
@@ -1848,6 +1847,7 @@ kernel_images=( $kernel_images )
 boot_modules="$modules"
 echo -e "Module list:\t$boot_modules"
 for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
+    echo
     modules="$boot_modules"
     kernel_image=${kernel_images[$i]}
     [ ${kernel_image:0:1} != '/' ] \
