@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.21 $
+# $Revision: 1.22 $
 
 #
 # Print usage and exit
@@ -437,7 +437,7 @@ shared_object_files () {
 
     initrd_libs=( $(
 	$DO_CHROOT $LDD "${@#$root_dir}" \
-	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:' -e 's:^/::'
+	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:'
     ) )
     
     # Evil hack: On some systems we have generic as well as optimized
@@ -457,6 +457,20 @@ shared_object_files () {
     done
     
     for lib in "${initrd_libs[@]}"; do
+	case "$lib" in
+	linux-gate*)
+	    # This library is mapped into the process by the kernel
+	    # for vsyscalls (i.e., syscalls that don't need a user/
+	    # kernel address space transition) in 2.6 kernels.
+	    continue ;;
+	/*)
+	    lib="${lib:1}" ;;
+	*)
+	    # Library cound not be found.
+	    oops 7 "Dynamic library $lib not found"
+	    continue ;;
+	esac
+
 	while [ -L "$root_dir/$lib" ]; do
 	    echo $lib
 	    link="$(readlink "$root_dir/$lib")"
