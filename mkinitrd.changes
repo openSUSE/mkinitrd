@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov 19 09:14:59 CET 2004 - hare@suse.de
+
+- Fixed udev_discover_root to re-enable boot from NFS-root.
+
+-------------------------------------------------------------------
 Wed Nov 17 14:04:17 CET 2004 - hare@suse.de
 
 - Reordered sections to enable boot from iSCSI (#34258)
