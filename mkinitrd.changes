@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun May 23 02:27:09 CEST 2004 - olh@suse.de
+
+- mkinitramfs: fix parsing of nfsroot=
+
+-------------------------------------------------------------------
 Wed May 19 01:14:29 CEST 2004 - garloff@suse.de
 
 - Remove iSCSI TODO comments.
