@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Oct 26 16:31:50 CEST 2004 - agruen@suse.de
+
+- Fix ldd output parsing (last change was still broken in some
+  cases).
+- /sbin/udevstart now is a symlink to udev. Copy udev binaries
+  so that the symlink will still work.
+- Allow to pivot-root mount by UUID (UUID=* was missing in case
+  statement).
+
+-------------------------------------------------------------------
 Mon Oct 18 21:07:47 CEST 2004 - olh@suse.de
 
 - fix syntax error in mkinitramfs-kinit.sh, in nfsroot path

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.149 $
+# $Revision: 1.150 $
 
 #
 # Print usage and exit
@@ -424,7 +424,7 @@ shared_object_files() {
 
     initrd_libs=( $(
 	$LDD "$@" \
-	| sed -e 's:.* => ::' -e '/not found/d' -e 's:\([^ ]*\).*:\1:'
+	| sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p'
     ) )
 
     # Evil hack: On some systems we have generic as well as optimized
@@ -1094,13 +1094,12 @@ mkinitrd_kernel() {
     done
 
     if [ -z "$use_glibc" ] ; then
-	cp_bin /sbin/udev.static $tmp_mnt/sbin/udev
-	cp_bin /sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
-	cp_bin /sbin/udevstart.static $tmp_mnt/sbin/udevstart
+	cp_bin /sbin/udev{,info,start}.static $tmp_mnt/sbin/
+	ln -s udev.static $tmp_mnt/sbin/udev
+	ln -s udevinfo.static $tmp_mnt/sbin/udevinfo
+	ln -s udevstart.static $tmp_mnt/sbin/udevstart
     else
-	cp_bin /sbin/udev $tmp_mnt/sbin/udev
-	cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/udevinfo
-	cp_bin /sbin/udevstart $tmp_mnt/sbin/udevstart
+	cp_bin /sbin/udev{,info,start} $tmp_mnt/sbin/
     fi
     cp_bin /sbin/udev.*.sh $tmp_mnt/sbin
     mkdir -p $tmp_mnt/etc/udev
@@ -2052,7 +2051,7 @@ mkinitrd_kernel() {
     if [ -n "$use_pivot_root" ] ; then
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
-	|ROOT=*|LABEL=*)
+	|ROOT=*|LABEL=*|UUID=*)
 	|   pivotroot=1 ;;
 	|*)
 	|   pivotroot=$dhcp_mode ;;
