@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.4 2005/01/21 14:37:03 hare Exp $
+.\"$Id: mkinitrd.8,v 1.5 2005/01/31 11:47:15 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -37,8 +37,13 @@ overwrites the rootdev enviroment variable if set
 \fB-s size\fR       
 Add splash animation and bootscreen to initrd.
 .TP
-\fB-o file\fR       
-Add OEM resize support.
+\fB-D interface\fR
+Run dhcp on the specified interface.
+.TP
+\fB-a acpi_dsdt\fR
+Attach compiled ACPI DSDT (Differentiated System Description Table)
+to initrd. This replaces the DSDT of the BIOS. Defaults to the ACPI_DSDT
+variable in /etc/sysconfig/kernel.
 .TP
 \fB-t tmp_dir\fR 
 tmp dir, defaults to "/tmp"
@@ -51,6 +56,12 @@ Use glibc binaries instead of klibc ones.
 .TP
 \fB-u\fR
 Do not use udev for device discovery.
+.TP
+\fB-S\fR
+Load policy file for SELinux if exists.
+.TP
+\fB-V script\fR
+Vendor specific script to run in linuxrc.
 .TP
 \fBroot_dir\fR
 the directory the root partition is mounted to defaults to "/"

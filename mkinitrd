@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.156 $
+# $Revision: 1.157 $
 
 #
 # Print usage and exit
@@ -63,6 +63,7 @@ usage() {
           -g               Use glibc instead of klibc binaries.
           -u               Do not use udev for root device discovery.
 	  -S               Load policy file for SELinux if exist.
+	  -V script        Vendor specific script to run in linuxrc.
 EOM
     exit
 }
@@ -154,7 +155,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hgrk:i:m:b:d:o:s:Sut:D:a: a ; do
+while getopts :hgrk:i:m:b:d:o:s:Sut:D:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -174,6 +175,8 @@ while getopts :hgrk:i:m:b:d:o:s:Sut:D:a: a ; do
 		D)  echo "-D requires dhcp interface parameter"
 		    ;;
 		a)  echo "-a requires a DSDT parameter"
+		    ;;
+		V)  echo "-V requires an executable to run inside linuxrc"
 		    ;;
 		*)  echo "Unknown option: -$OPTARG"
 		    echo "Try mkinitrd -h"
@@ -206,6 +209,8 @@ while getopts :hgrk:i:m:b:d:o:s:Sut:D:a: a ; do
 	a)  acpi_dsdt="$OPTARG"
 	    ;;
 	S)  use_selinux=1
+	    ;;
+	V)  vendor_init_script="$OPTARG"
 	    ;;
 	r)  mkinit_type="ramfs"
 	    ;;
@@ -918,6 +923,8 @@ mkinitrd_kernel() {
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
     tmp_msg=$work_dir/msg$$
+    vendor_script=$tmp_mnt/vendor_init.sh
+
     if [ "$mkinit_type" = "rd" ]; then
 	linuxrc=$tmp_mnt/linuxrc
     else
@@ -1014,6 +1021,11 @@ mkinitrd_kernel() {
 	else
 	   echo -e "SELinux policy:\tnot found"
 	fi
+    fi
+
+    if [ ! -z "$vendor_init_script" ] ; then
+	features=(${features[@]} script\($vendor_script\))
+	cp_bin $vendor_init_script $vendor_script
     fi
 
     if has_module iscsi ; then
@@ -2154,6 +2166,11 @@ mkinitrd_kernel() {
 	|
 	|# Reset hotplug
 	|echo "/sbin/hotplug" > /proc/sys/kernel/hotplug
+	|
+	|# Call vendor-specific init script
+	|if [ -x /vendor_init.sh ] ; then
+	|    /vendor_init.sh
+	|fi
 	|
 	|# ready to leave
 	|cd /root
