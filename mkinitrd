@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.128 $
+# $Revision: 1.129 $
 
 #
 # Print usage and exit
@@ -59,6 +59,7 @@ usage() {
 	  		   Description Table) to initrd. This replaces the
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
+          -r               Use initramfs instead of initrd.
 	  -S               Load policy file for SELinux if exist.
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
@@ -620,17 +621,10 @@ attach_dsdt() {
     	oops 2 "ACPI DSDT $acpi_dsdt does not seem to be in binary form." \
 	       "Will not attach this to $initrd_image."
     else
-	if [ "$mkinit_type" = "rd" ] ; then
-	    {   echo -ne "INITRDDSDT123DSDT123\0"
-		cat "$acpi_dsdt"
-		echo -ne "INITRDDSDT321DSDT321\0"
-	    } >> $initrd_image
-	else
-	    {   echo -ne "INITRDDSDT123DSDT123\0"
-		cat "$acpi_dsdt"
-		echo -ne "INITRDDSDT321DSDT321\0"
-	    } > $tmp_mnt/acpidsdt
-	fi
+	{   echo -ne "INITRDDSDT123DSDT123\0"
+	    cat "$acpi_dsdt"
+	    echo -ne "INITRDDSDT321DSDT321\0"
+	} >> $initrd_image
 	echo -e "ACPI DSDT:\t$acpi_dsdt"
     fi
 }
@@ -2283,6 +2277,17 @@ mkinitrd_kernel() {
 	    oops 8 "Failed to install initrd"
 	    return
 	fi
+    else
+	pushd . > /dev/null 2>&1
+	cd $tmp_mnt
+	find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
+	popd > /dev/null 2>&1
+	if ! cp -f $tmp_initrd.gz $initrd_image ; then
+	    oops 8 "Failed to install initrd"
+	    rm -rf $tmp_mnt
+	    return
+	fi
+	rm -rf $tmp_mnt
     fi
 
     [ ${#features[@]} -gt 0 ] \
@@ -2315,28 +2320,12 @@ mkinitrd_kernel() {
 		    echo "no image for resolution $size"
 		else
 		    echo "$THEME ($size)"
-		    if [ "$mkinit_type" = "rd" ]; then
-			$splash_bin -s -f $cfgname >> $initrd_image
-		    else
-			$splash_bin -s -f $cfgname > $tmp_mnt/bootsplash
-		    fi
+		    $splash_bin -s -f $cfgname >> $initrd_image
 		fi
 	    done
 	else
 	    echo "no theme selected"
 	fi
-    fi
-    if [ "$mkinit_type" = "ramfs" ] ; then
-	pushd . > /dev/null 2>&1
-	cd $tmp_mnt
-	find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
-	popd > /dev/null 2>&1
-	if ! cp -f $tmp_initrd.gz $initrd_image ; then
-	    oops 8 "Failed to install initrd"
-	    rm -rf $tmp_mnt
-	    return
-	fi
-	rm -rf $tmp_mnt
     fi
 
 }
