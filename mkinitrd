@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.60 $
+# $Revision: 1.61 $
 
 #
 # Print usage and exit
@@ -1075,6 +1075,7 @@ mkinitrd_kernel () {
 	sysfs_root=
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
+	|	local node
 	|	for item in $(cat /proc/cmdline); do
 	|		case $item in
 	|		  root=/dev/*)	node=$(expr substr $item 11 99) ;;
@@ -1082,7 +1083,7 @@ mkinitrd_kernel () {
 	|		esac
 	|	done
 	|	if test -n "$node" ; then
-	|	    echo -n "Waiting for device $node to appear: "
+	|	    echo -n "Waiting for device /dev/$node to appear: "
 	|	    for i in 1 2 3 4 5; do
 	|		if test -e /dev/$node; then
 	|		    path=$(udevinfo -q path -n ${node})
@@ -1104,20 +1105,22 @@ mkinitrd_kernel () {
 	|		    dev_t=$(expr $major '*' 256 + $minor)
 	|		    echo "rootfs: $entry major=$major minor=$minor dev_t=$dev_t"
 	|		    echo $dev_t > /proc/sys/kernel/real-root-dev
-	|		    return
+	|		    return 0
 	|		fi
 	|	    else
 	|		echo " not found."
+	|		return 1
 	|	    fi
 	|	fi
 	|
 	|}
 	|
-	|udev_discover_root
-        |echo "device nodes:"
-        |cd /dev
-        |for dev in *; do if test -e $dev; then echo $dev;fi ; done
-        |cd /
+	|udev_discover_root || {
+        |    echo "device nodes:"
+        |    cd /dev
+        |    for dev in *; do if test -e $dev; then echo $dev;fi ; done
+        |    cd /
+	|}
 	EOF
     fi
 
