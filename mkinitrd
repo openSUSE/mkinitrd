@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.174 $
+# $Revision: 1.175 $
 
 #
 # Print usage and exit
@@ -2338,6 +2338,9 @@ mkinitrd_kernel() {
 	|(cd /dev; ln -s /proc/self/fd fd)
 	|(cd /dev; ln -s fd/0 stdin; ln -s fd/1 stdout; ln -s fd/2 stderr)
 	|
+	|
+	|# ISDN requires /dev/isdninfo
+	|mknod /dev/isdninfo c 45 255
 	|
 	|# Save all events
 	|if [ ! -d /dev/events ]; then

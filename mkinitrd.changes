@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 28 17:16:26 CET 2005 - hare@suse.de
+
+- Add device /dev/isdninfo as no-one seems to create it (#66745).
+
+-------------------------------------------------------------------
 Mon Feb 28 12:21:58 CET 2005 - hare@suse.de
 
 - Add links to /dev/stdin, /dev/stdout and /dev/stderr (#66841).
