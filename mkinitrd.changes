@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Thu Oct  7 12:32:46 CEST 2004 - agruen@suse.de
 
-- Add missing -n options to a few umount invocations.
+- #46866: Create a dummy /etc/mtab in the initrd so that mount
+  and umount will run without warnings even without -n.
 
 -------------------------------------------------------------------
 Mon Aug  2 08:37:53 CEST 2004 - hare@suse.de

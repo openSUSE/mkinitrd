@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.5 $
+# $Revision: 1.124.2.6 $
 
 #
 # Print usage and exit
@@ -1049,9 +1049,13 @@ mkinitrd_kernel() {
     is_mounted=1
     # fill the initrd
     rmdir $tmp_mnt/lost+found
-    mkdir -p $tmp_mnt/{sbin,bin,dev}
+    mkdir -p $tmp_mnt/{sbin,etc,bin,dev}
     initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
 			  dev/{console,md0})
+
+    # Create a dummy /etc/mtab for mount/umount
+    echo -n > $tmp_mnt/etc/mtab
+
     case $arch in
 	s390*)
 	    ;;
@@ -1330,9 +1334,9 @@ mkinitrd_kernel() {
 	|
 	|export PATH=/sbin:/bin:/usr/bin
 	|
-	|mount -n -tproc proc /proc
-	|mount -n -tsysfs sysfs /sys > /dev/null 2>&1
-	|mount -n -ttmpfs tmpfs /dev/shm
+	|mount -tproc proc /proc
+	|mount -tsysfs sysfs /sys > /dev/null 2>&1
+	|mount -ttmpfs tmpfs /dev/shm
 	|
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
@@ -1343,9 +1347,9 @@ mkinitrd_kernel() {
 	|done
 	|
 	|die() {
-	|    umount -n /proc
-	|    umount -n /sys
-	|    umount -n /dev/shm
+	|    umount /proc
+	|    umount /sys
+	|    umount /dev/shm
 	|    exit \$1
 	|}
 	|
@@ -1626,7 +1630,7 @@ mkinitrd_kernel() {
 	fi
 	cat_linuxrc <<-EOF
 	|#need space for lvm data
-	|mount -n -tramfs none /etc/lvmtab.d
+	|mount -tramfs none /etc/lvmtab.d
 	|vgscan
 	|for o in \$(cat /proc/cmdline); do
 	|  case \$o in
@@ -1641,7 +1645,7 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|vgchange -a y \$vg_root
-	|umount -n /etc/lvmtab.d
+	|umount /etc/lvmtab.d
 	|# set the right root device if user specified a lvm root
 	|if [ "$(block_driver "\$rootdev")" = lvm ]; then
 	|    case \$rootdev in
@@ -1727,10 +1731,10 @@ mkinitrd_kernel() {
 	|    OLDDEV=\$(devnumber \$1\$2)
 	|    if [ ! -b \$1\$2 -o "\$CURDEV" -ne "\$OLDDEV" ]
 	|    then
-	|	mount -n -oremount,rw \$2 \$1
+	|	mount -oremount,rw \$2 \$1
 	|	rm -f \$1\$2
 	|	mknod -m 640 \$1\$2 b \$(devmajor \$CURDEV) \$(devminor \$CURDEV)
-	|	mount -n -oremount,ro \$2 \$1
+	|	mount -oremount,ro \$2 \$1
 	|    fi
 	|    }
 	|
@@ -1770,9 +1774,9 @@ mkinitrd_kernel() {
 	|
 	|/sbin/evms_activate
 	|mkdir -p /mnt
-	|mount -n -oro /dev/evms/lvm/system/ROOT /mnt
+	|mount -oro /dev/evms/lvm/system/ROOT /mnt
 	|FSTAB_ITEMS=\$(get_fstab_entries /mnt/etc/fstab)
-	|umount -n /mnt
+	|umount /mnt
 	|dmsetup remove_all
 	|create_evms_save_table wrzlbrnft \$FSTAB_ITEMS
 	|/sbin/evms_activate
@@ -1782,10 +1786,10 @@ mkinitrd_kernel() {
 	|    case \$rootdev in
 	|    /dev/*)
 	|	mkdir -p /mnt
-	|	mount -n -oro /dev/evms/lvm/system/ROOT /mnt
+	|	mount -oro /dev/evms/lvm/system/ROOT /mnt
 	|	fix_evms_root_node /mnt /dev/evms/lvm/system/ROOT
 	|	remove_evms_fstab \$FSTAB_ITEMS
-	|	umount -n /mnt
+	|	umount /mnt
 	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
 	|    *)
 	|	# hex number or major:minor pair
@@ -2045,9 +2049,9 @@ mkinitrd_kernel() {
     if [ -n "$use_selinux" -a -d $tmp_mnt/selinux ]; then
 	cat_linuxrc <<-'EOF'
 	|echo -n "Loading SELinux policy	"
-	|if mount -n -t selinuxfs none /selinux >/dev/null 2>/dev/null ; then
+	|if mount -t selinuxfs none /selinux >/dev/null 2>/dev/null ; then
 	|  /sbin/load_policy /etc/security/selinux/policy.15
-	|  umount -n /selinux
+	|  umount /selinux
 	|  echo "successful"
 	|else
 	|  echo "skipped"
@@ -2078,7 +2082,7 @@ mkinitrd_kernel() {
 	|   echo 256 > /proc/sys/kernel/real-root-dev
 	|   # mount the actual root device below /mnt
 	|   echo "Mounting root $rootdev"
-	|   mount -n $opt $rootdev /mnt || die 1
+	|   mount $opt $rootdev /mnt || die 1
 	|
 	|   # do pivot-root call
 	|   cd /mnt
@@ -2087,10 +2091,10 @@ mkinitrd_kernel() {
 	|	exec pivot_root . initrd
 	|   elif [ -d mnt ]; then
 	|	pivot_root . mnt
-	|	exec /bin/umount -n /mnt
+	|	exec /bin/umount /mnt
 	|   else
 	|	pivot_root . tmp
-	|	exec /bin/umount -n /tmp
+	|	exec /bin/umount /tmp
 	|   fi
 	|fi
 	EOF
