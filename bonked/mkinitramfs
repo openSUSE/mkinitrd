@@ -24,7 +24,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitramfs,v $
-# $Revision: 1.13 $
+# $Revision: 1.14 $
 
 #
 # Print usage and exit
@@ -642,15 +642,8 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$root_lvm" ] ; then
-	echo "Including LVM support"
-	mkdir -p $tmp_mnt/etc/lvmtab.d
-	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
-    fi
-
-    if [ -n "$root_dm" ] ; then
 	echo "Including DM/LVM2 support"
 	mkdir -p $tmp_mnt/etc/lvmtab.d
-	cp -a $root_dir/dev/mapper  $tmp_mnt/dev
 	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
     fi
 
@@ -726,7 +719,7 @@ mkinitrd_kernel () {
 	|#! $shebang
 	EOF
 
-    if [ -n "$root_lvm" -o -n "$root_dm" ] ; then
+    if [ -n "$root_lvm" -o -n "$root_md" ] ; then
     echo -n > $load_md
     chmod 755 $load_md
     cat_load_md <<-EOF
@@ -826,7 +819,7 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    if [ -n "$root_lvm" -o -n "$root_dm" ] ; then
+    if [ -n "$root_lvm" -o -n "$root_md" ] ; then
 	# need dummy entry so fsck doesn't complain
 	cat_load_md <<-EOF
 	|# scan for lvm devices
@@ -924,13 +917,13 @@ else
 fi
 
 root_lvm=
-root_dm=
+root_md=
 major=`stat --format='%D' /`
 major="${major%??}"
 # check if the root device is an lvm device
 if [ "$major" = "3a" ] ; then root_lvm=1 ; fi
 # check if the root device is an dm/lvm2 device
-if [ "$major" = "fd" ] ; then root_dm=1 ; fi
+if [ "$major" = "9" ] ; then root_md=1 ; fi
 
 s390_zfcp_proc() {
    zfcp_param=
@@ -1069,10 +1062,11 @@ fi
 ###################################################################
 # add modules required by features
 if [ -n "$root_lvm" ] ; then
+    add_module dm-mod
     add_module lvm-mod
 fi
 
-if [ -n "$root_dm" ] ; then
+if [ -n "$root_md" ] ; then
     add_module dm-mod
 fi
 
