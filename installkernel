@@ -11,12 +11,14 @@ KERNEL_VERSION=$1
 BOOTIMAGE=$2
 MAPFILE=$3
 
-case "`uname -m`" in
-	ppc|ppc64)
+case "$(uname -m)" in
+    s390|s390x)
+	BOOTFILE=image
+	;;
+    ppc|ppc64)
 	BOOTFILE=vmlinux
 	;;
-	*)
-	BOOTFILE=vmlinuz
+    *)	BOOTFILE=vmlinuz
 	;;
 esac
 

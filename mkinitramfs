@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.43.4.1 2004/07/28 16:19:53 olh Exp $
+# $Id: mkinitramfs,v 1.43.4.2 2004/10/19 10:42:22 agruen Exp $
 
 #
 # Print usage and exit
@@ -76,13 +76,15 @@ default_kernel_images () {
 	local regex kernel_image kernel_version version_version initrd_image
 	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
-	case "$arch" in
-		s390*)	regex='image'
-			;;
-		ppc)	regex='vmlinux'
-			;;
-		*)	regex='vmlinuz'
-			;;
+	case "$(uname -m)" in
+	    s390|s390x)
+		regex='image'
+		;;
+	    ppc|ppc64)
+		regex='vmlinux'
+		;;
+	    *)	regex='vmlinuz'
+		;;
 	esac
 
 	kernel_images=""
@@ -122,14 +124,10 @@ use_selinux=
 vendor_init_script=
 
 # architecture dependend changes:
-arch=$(uname -m)
-arch=${arch/ppc64/ppc}
-arch=${arch/s390x/s390}
-
-case $arch in
-s390)
-    splash=off
-    ;;
+case "$(uname -m)" in
+    s390|s390x)
+	splash=off
+	;;
 esac
 
 while getopts :hk:i:m:b:o:s:St:V:a: a ; do
@@ -1050,15 +1048,17 @@ if [ -n "$root_md" ] ; then
     add_module dm-mod
 fi
 
-if [ "$arch" = s390 ]; then
-    # Check if zfcp or dasd modules need to be added automatically:
-    if [ -d /sys/block ]; then
-	s390_dasd_sysfs
-    else
-	s390_dasd_proc
-	s390_zfcp_proc
-    fi
-fi
+case "$(uname -m)" in
+    s390|s390x)
+	# Check if zfcp or dasd modules need to be added automatically:
+	if [ -d /sys/block ]; then
+	    s390_dasd_sysfs
+	else
+	    s390_dasd_proc
+	    s390_zfcp_proc
+	fi
+	;;
+esac
 
 ###################################################################
 

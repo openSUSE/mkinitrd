@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.7 $
+# $Revision: 1.124.2.8 $
 
 #
 # Print usage and exit
@@ -82,13 +82,15 @@ default_kernel_images() {
 	local regex kernel_image kernel_version version_version initrd_image
 	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
-	case "$arch" in
-		s390*)	regex='image'
-			;;
-		ppc)	regex='vmlinu[xz]\(64\)\?'
-			;;
-		*)	regex='vmlinuz'
-			;;
+	case "$(uname -m)" in
+	    s390|s390x)
+		regex='image'
+		;;
+	    ppc|ppc64)
+		regex='vmlinux'
+		;;
+	    *)	regex='vmlinuz'
+		;;
 	esac
 
 	# user mode linux
@@ -136,14 +138,10 @@ acpi_dsdt=
 use_selinux=
 
 # architecture dependend changes:
-arch=$(uname -m)
-arch=${arch/ppc64/ppc}
-arch=${arch/s390x/s390}
-
-case $arch in
-s390)
-    splash=off
-    ;;
+case "$(uname -m)" in
+    s390|s390x)
+	splash=off
+	;;
 esac
 
 while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
@@ -1056,8 +1054,8 @@ mkinitrd_kernel() {
     # Create a dummy /etc/mtab for mount/umount
     echo -n > $tmp_mnt/etc/mtab
 
-    case $arch in
-	s390*)
+    case "$(uname -m)" in
+	s390|s390x)
 	    ;;
 	*)  initrd_devices="$initrd_devices $(echo dev/{fb0,tty1,tty2})"
 	    ;;
@@ -1600,13 +1598,16 @@ mkinitrd_kernel() {
 	done
     fi
 
-    if [ "$arch" = s390 ]; then
-	if [ -z "$s390_zfcp_disks" -a -z "$s390_dasd_disks" ]; then
-	    echo ""
-	    echo "WARNING: No boot devices found."
-	    echo "Make sure to add 'dasd=<dasd-range>' to the kernel command line"
-	fi
-    fi
+    case "$(uname -m)" in
+	s390|s390x)
+	    if [ -z "$s390_zfcp_disks" -a -z "$s390_dasd_disks" ]; then
+		echo ""
+		echo "WARNING: No boot devices found."
+		echo "Make sure to add 'dasd=<dasd-range>' to the" \
+		     "kernel command line"
+	    fi
+	    ;;
+    esac
 
     if [ -n "$need_raidautorun" ]; then
 	features=(${features[@]} raidautorun)
@@ -2276,28 +2277,30 @@ if [ -n "$dhcp_interface" ]; then
     add_module af_packet
 fi
 
-if [ "$arch" = s390 ]; then
-    # Check if zfcp or dasd modules need to be added automatically:
-    if [ -d /sys/block ]; then
-	# Always enable all devices, hotplug is completely garbled
-	s390_enable_dasd=1
-	s390_enable_zfcp=1
-	# if [ "$root_evms" ]; then
-	#     s390_check_evms $rootdev
-	# elif [ "$root_dm" ]; then
-	#     s390_check_lvm2 $rootdev
-	# else
-	#     s390_check_dasd $rootdev
-	#     s390_check_zfcp $rootdev
-	# fi
-	# Activate devices
-	s390_dasd_sysfs
-	s390_zfcp_sysfs
-    else
-	s390_dasd_proc
-	s390_zfcp_proc
-    fi
-fi
+case "$(uname -m)" in
+    s390|s390x)
+	# Check if zfcp or dasd modules need to be added automatically:
+	if [ -d /sys/block ]; then
+	    # Always enable all devices, hotplug is completely garbled
+	    s390_enable_dasd=1
+	    s390_enable_zfcp=1
+	    # if [ "$root_evms" ]; then
+	    #     s390_check_evms $rootdev
+	    # elif [ "$root_dm" ]; then
+	    #     s390_check_lvm2 $rootdev
+	    # else
+	    #     s390_check_dasd $rootdev
+	    #     s390_check_zfcp $rootdev
+	    # fi
+	    # Activate devices
+	    s390_dasd_sysfs
+	    s390_zfcp_sysfs
+	else
+	    s390_dasd_proc
+	    s390_zfcp_proc
+	fi
+	;;
+esac
 
 ###################################################################
 

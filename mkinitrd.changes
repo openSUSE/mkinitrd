@@ -4,6 +4,12 @@ Mon Oct 18 21:07:47 CEST 2004 - olh@suse.de
 - fix syntax error in mkinitramfs-kinit.sh, in nfsroot path
 
 -------------------------------------------------------------------
+Mon Oct 18 18:36:47 CEST 2004 - agruen@suse.de
+
+- Add missing s390 case to installkernel.
+- Clean up architecture tests. A few other cleanups.
+
+-------------------------------------------------------------------
 Sat Oct 16 11:46:19 CEST 2004 - olh@suse.de
 
 - use either vmlinux or vmlinuz in installkernel (#39427 - LTC7872)
