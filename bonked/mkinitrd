@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.76 $
+# $Revision: 1.77 $
 
 #
 # Print usage and exit
@@ -1113,18 +1113,15 @@ mkinitrd_kernel () {
 	fi
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
-	|	local node
-	|	for item in $(cat /proc/cmdline); do
-	|		case $item in
-	|		  root=/dev/*)	node=$(expr substr $item 11 99) ;;
-	|		  *)		continue ;;
-	|		esac
-	|	done
-	|	if [ -n "$node" ]; then
-	|	    echo -n "Waiting for device /dev/$node to appear: "
+	|	local root=$(root_arg)
+	|	case "$root" in
+	|	/dev/*)	root=$(expr substr $root 6 99) ;;
+	|	esac
+	|	if [ -n "$root" ]; then
+	|	    echo -n "Waiting for device /dev/$root to appear: "
 	|	    for i in 1 2 3 4 5; do
-	|		if [ -e /dev/$node ]; then
-	|		    path=$(udevinfo -q path -n ${node})
+	|		if [ -e /dev/$root ]; then
+	|		    path=$(udevinfo -q path -n $root)
 	|		    if [ $? -eq 0 ]; then
 	|		        echo " ok"
 	|			break
@@ -1246,21 +1243,17 @@ mkinitrd_kernel () {
 	|}
 	|
 	|discover_root() {
-	|	for item in $(cat /proc/cmdline); do
-	|		case $item in
-	|		  root=/dev/*)	item=$(expr substr $item 11 99) ;;
-	|		  *)		continue ;;
-	|		esac 
-	|		set -- $(IFS=/ ; echo $item)
-	|		# FIXME: there are a lot more exceptions below...
-	|		case $1 in
-	|			cciss)	# /dev/cciss/c0d0p1  ==>
-	|				#   /sys/block/cciss!c0d0/cciss!c0d0p1
-	|				sysfs_set_root $1!$2 ;;
-	|			*)	# /dev/hdXn  ==>  /sys/block/hdX/hdXn
-	|				sysfs_set_root $1 ;;
-	|		esac
+	|	local root=$(root_arg)
+	|	case $root in
+	|	/dev/*)	root=$(expr substr $root 6 99) ;;
+	|	esac
+	|	while :; do
+	|		idx=$(expr index $root /)
+	|		[ $idx = 0 ] && break
+	|		root=$(expr substr $root 1 $(expr $idx - 1)
+	|		   )!$(expr substr $root   $(expr $idx + 1) 99)
 	|	done
+	|	sysfs_set_root $root
 	|}
 	|
 	|discover_root
@@ -1576,7 +1569,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/$realrootdev" ] ; then
 
     (( 0x${dev_hex:0:2} ==  58 )) && root_lvm=1
     DMDEV=`sed -n "/device-mapper/s/ .*//p" </proc/devices`
-    (( 0x${dev_hex:0:2} == "$DMDEV" )) && root_dm=1
+    (( 0x${dev_hex:0:2} == "${DMDEV:-0}" )) && root_dm=1
 fi
 
 ###################################################################
