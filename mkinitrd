@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.86 $
+# $Revision: 1.87 $
 
 #
 # Print usage and exit
@@ -834,6 +834,7 @@ mkinitrd_kernel () {
 	cp_bin $root_dir/sbin/udev.*.sh $tmp_mnt/sbin
 	mkdir -p $tmp_mnt/etc/udev
 	cp -a $root_dir/etc/udev/* $tmp_mnt/etc/udev
+	need_block_driver=1
     fi
 
     if [ -n "$root_lvm" ] ; then
