@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 13 14:55:44 CEST 2004 - hare@suse.de
+
+- new-kernel-pkg: Only call zipl on S/390 if corresponding
+  configuration file exists.
+
+-------------------------------------------------------------------
 Mon May  3 11:00:21 CEST 2004 - hare@suse.de
 
 - new-kernel-pkg: Fixed embarrasing bug in call to zipl 
