@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.137 $
+# $Revision: 1.138 $
 
 #
 # Print usage and exit
@@ -1061,6 +1061,7 @@ mkinitrd_kernel() {
 
     features=(${features[@]} udev)
     if [ "$mkinit_type" = "rd" ] ; then
+	features=(${features[@]} initramfs)
 	mkdir -p $tmp_mnt/dev/shm
     fi
     mkdir -p $tmp_mnt/lib/klibc/bin
