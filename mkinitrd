@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.162 $
+# $Revision: 1.163 $
 
 #
 # Print usage and exit
@@ -2486,7 +2486,6 @@ fi
 realrootdev="$rootdev"
 case "$rootdev" in
     LABEL=*|UUID=*)
-	use_pivot_root=1
 	# get real root via fsck hack
 	realrootdev=$(fsck -N "$rootdev" \
 		      | sed -ne '2s/.* \/dev/\/dev/p' \
