@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.9 2004/05/21 21:21:01 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.10 2004/05/21 21:23:19 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -76,26 +76,21 @@ for i in $cmdline ; do
 	case "$i" in
 		init=*) 
 			init="`echo $i | sed -e 's@^init=@@'`"
-			echo "init=$init"
 			;;
 		ip=*:*) ipinterface=false;;
 		ip=*)
 			ipinterface="`echo $i | sed -e 's@^ip=@@'`"
-			echo "ipinterface=$ipinterface"
 			;;
 		root=*) 
 			root="`echo $i | sed -e 's@^root=@@'`"
-			echo "root=$root"
 			;;
 		rootfstype=*)
 			rootfstype="`echo $i | sed -e 's@^rootfstype=@@'`"
-			echo "rootfstype=$rootfstype"
 			;;
 		nfsroot=*)
 			nfsroot="`echo $i | sed -e 's@^nfsroot=@@'`"
 			nfsoptions="`echo $i | sed -e 's@^.*,@-o @'`"
 			nfsserver="`echo $nfsroot | sed -e 's@,.*@@'`"
-			echo "nfsserver: $nfsserver nfsoptions: $nfsoptions"
 			;;
 		# iscsi
 		DiscoveryAddress=*)
