@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.74 $
+# $Revision: 1.75 $
 
 #
 # Print usage and exit
@@ -795,7 +795,8 @@ mkinitrd_kernel () {
     if [ -n "$root_lvm" ] ; then
 	echo "Including LVM support"
 	mkdir -p $tmp_mnt/etc/lvmtab.d
-	cp -a $root_dir/dev/lvm  $tmp_mnt/dev
+	[ -z "$use_udev" ] &&
+	    cp -a $root_dir/dev/lvm  $tmp_mnt/dev
 	cp_bin $root_dir/sbin/{vgscan,vgchange} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
 	need_mount=1
@@ -804,7 +805,11 @@ mkinitrd_kernel () {
     if [ -n "$root_dm" ] ; then
 	echo "Including DM/LVM2 support"
 	mkdir -p $tmp_mnt/etc/lvm
-	cp -a $root_dir/dev/mapper  $tmp_mnt/dev
+	if [ -z "$use_udev" ]; then
+	    mkdir $tmp_mnt/dev/mapper
+	    cp -a $root_dir/dev/mapper/control $tmp_mnt/dev/mapper
+	    cp -a $root_dir/device-mapper $tmp_mnt/dev
+	fi
 	cp_bin $root_dir/sbin/{vgscan,vgchange,lvm,devmap_mknod.sh} $tmp_mnt/sbin
 	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod} $tmp_mnt/bin
 	need_mount=1
@@ -1069,46 +1074,6 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    if [ -n "$root_lvm" ] ; then
-	# need dummy entry so fsck doesn't complain
-	cat_linuxrc <<-'EOF'
-	|# scan for lvm devices
-	|createpartitiondevs
-	|#need space for lvm data
-	|mount -n -tramfs none /etc/lvmtab.d
-	|vgscan
-	|vgchange -a y
-	|umount -n /etc/lvmtab.d
-	|# set the right root device if user specified a lvm root
-	|if [ -n "$(root_arg)" ]; then
-	|  devn=$(devnumber $(root_arg) 2> /dev/null)
-	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
-	|    echo $devn > /proc/sys/kernel/real-root-dev
-	|  fi
-	|fi
-	EOF
-    fi
-
-    if [ -n "$root_dm" ] ; then
-	cat_linuxrc <<-'EOF'
-	|# scan for lvm devices
-	|createpartitiondevs
-	|#need space for lvm data
-	|mount -n -tramfs none /etc/lvm
-	|/sbin/devmap_mknod.sh
-	|vgscan
-	|vgchange -a y
-	|umount -n /etc/lvm
-	|# set the right root device if user specified a lvm root
-	|if [ -n "$(root_arg)" ]; then
-	|  devn=$(devnumber $(root_arg) 2> /dev/null)
-	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
-	|    echo $devn > /proc/sys/kernel/real-root-dev
-	|  fi
-	|fi
-	EOF
-    fi
-
     if [ -n "$use_udev" ]; then
 	sysfs_root=
 	if [ -n "$root_dev_t" ]; then
@@ -1172,6 +1137,45 @@ mkinitrd_kernel () {
 	EOF
     fi
 
+    if [ -n "$root_lvm" ] ; then
+	# need dummy entry so fsck doesn't complain
+	cat_linuxrc <<-'EOF'
+	|# scan for lvm devices
+	|createpartitiondevs
+	|#need space for lvm data
+	|mount -n -tramfs none /etc/lvmtab.d
+	|vgscan
+	|vgchange -a y
+	|umount -n /etc/lvmtab.d
+	|# set the right root device if user specified a lvm root
+	|if [ -n "$(root_arg)" ]; then
+	|  devn=$(devnumber $(root_arg) 2> /dev/null)
+	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
+	|    echo $devn > /proc/sys/kernel/real-root-dev
+	|  fi
+	|fi
+	EOF
+    fi
+
+    if [ -n "$root_dm" ] ; then
+	cat_linuxrc <<-'EOF'
+	|# scan for lvm devices
+	|createpartitiondevs
+	|#need space for lvm data
+	|mount -n -tramfs none /etc/lvm
+	|/sbin/devmap_mknod.sh
+	|vgscan
+	|vgchange -a y
+	|umount -n /etc/lvm
+	|# set the right root device if user specified a lvm root
+	|if [ -n "$(root_arg)" ]; then
+	|  devn=$(devnumber $(root_arg) 2> /dev/null)
+	|  if [ "$devn" -ge 14848 -a "$devn" -lt 15104 ]; then
+	|    echo $devn > /proc/sys/kernel/real-root-dev
+	|  fi
+	|fi
+	EOF
+    fi
 
     if [ -n "$sysfs_root" ]; then
 	cat_linuxrc <<-'EOF'
