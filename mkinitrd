@@ -35,6 +35,8 @@
 #
 # ChangeLog:
 #
+# 01/09/2003
+#  - Remove now-obsolete oem resize support.
 # 22/08/2003
 #  - Optionally attach ACPI DSDT.
 # 06/03/2003:   v1.45
@@ -296,7 +298,6 @@ modules=
 modules_set=
 boot_dir=
 splash="auto"
-oem=
 use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
@@ -327,8 +328,6 @@ while getopts :hk:i:m:b:d:o:s:t:D:a: a ; do
 		    ;;
 		s)  echo "-s requires image size(s)"
 		    ;;
-		o)  echo "-o requires oem grow script"
-		    ;;
 		t)  echo "-t requires tmp dir parameter"
 		    ;;
 		D)  echo "-D requires dhcp interface parameter"
@@ -351,10 +350,6 @@ while getopts :hk:i:m:b:d:o:s:t:D:a: a ; do
 	b)  boot_dir=$OPTARG
 	    ;;
 	d)  rootdev=$OPTARG
-	    ;;
-	o)  oem=$OPTARG
-	    # FIXME agruen: Should add another parameter to specify which
-	    # additional binaries need to be pulled in for the script.
 	    ;;
 	s)  splash=$OPTARG
 	    ;;
@@ -819,14 +814,6 @@ mkinitrd_kernel () {
 	need_mount=1
     fi
 
-    if [ -n "$oem" ] ; then
-	echo "Including OEM resize support"
-	cp_bin $root_dir/sbin/{sfdisk,resize_reiserfs} $tmp_mnt/sbin
-	cp_bin $root_dir/bin/{cp,cat,sed} $tmp_mnt/bin
-	mkdir -p $tmp_mnt/usr/bin
-	cp_bin $root_dir/usr/bin/expr  $tmp_mnt/usr/bin
-    fi
-
     if [ -n "$use_pivot_root" ] ; then
 	echo "Including pivot root support"
 	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
@@ -1064,8 +1051,6 @@ mkinitrd_kernel () {
 	|umount -n /proc
 	EOF
     fi
-
-    [ -n "$oem" ] && cat $oem >> $linuxrc
 
     if [ -n "$use_pivot_root" ] ; then
 	cat_linuxrc <<-EOF
@@ -1455,7 +1440,7 @@ fi
 # on s390 the initrd is always needed as long as we don't set the
 # initrd flag in /etc/zipl.conf with YaST.
 if [ -z "$modules" -a -z "$root_lvm" -a -z "$use_pivot_root" -a \
-     -z "$oem" -a -z "$splash" -a "$arch" != s390 ]; then
+     -z "$splash" -a "$arch" != s390 ]; then
     ( cd $boot_dir
       rm -f $initrd_images )
     error 0 "No initrd required"
