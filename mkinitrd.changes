@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Jun 21 17:00:11 CEST 2004 - agruen@suse.de
+
+- The udev helper scripts use /lib/klibc/bin/sh as their shell, so
+  leave the shell where it comes from, and make /bin/sh a symlink
+  to that location.
+- Add a number of binaries the used scripts are using.
+- Temporarily mount /dev/shm for the udev scripts.
+
+-------------------------------------------------------------------
 Sun Jun 20 20:07:19 CEST 2004 - agruen@suse.de
 
 - #42250: Fix race when using lvm2 / device mapper / evms root

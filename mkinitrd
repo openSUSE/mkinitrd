@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.122 $
+# $Revision: 1.123 $
 
 #
 # Print usage and exit
@@ -1052,13 +1052,14 @@ mkinitrd_kernel() {
 	    ;;
     esac
     (cd ${root_dir:-/} ; cp -R --parents $initrd_devices $tmp_mnt )
-    cp_bin $initrd_shell $tmp_mnt$shebang 2>/dev/null \
-	|| error 4 "no static shell"
+    mkdir -p $tmp_mnt${initrd_shell%/*}
+    cp_bin $initrd_shell $tmp_mnt$initrd_shell
+    if [ $shebang != $initrd_shell ]; then
+	ln -s $initrd_shell $tmp_mnt$shebang
+    fi
     if [ $shebang != /bin/sh ]; then
 	ln -s $shebang $tmp_mnt/bin/sh
     fi
-    [ -x /lib/klibc/bin/devnumber ] \
-	&& cp_bin /lib/klibc/bin/devnumber $tmp_mnt/bin
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
 
@@ -1120,11 +1121,20 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_udev" ] ; then
-	if [ -x $root_dir/lib/klibc/bin/sleep ]; then
-	    cp_bin $root_dir/lib/klibc/bin/sleep $tmp_mnt/bin
-	else
-	    cp_bin $root_dir/bin/sleep $tmp_mnt/bin
-	fi
+	mkdir -p $tmp_mnt/dev/shm
+	mkdir -p $tmp_mnt/lib/klibc/bin
+	for klibc_bin in devnumber sed sleep ata_identify scsi_id dasdview \
+			 umount; do
+	    if [ -e $root_dir/lib/klibc/bin/$klibc_bin ]; then
+		cp_bin $root_dir/lib/klibc/bin/$klibc_bin \
+		    $tmp_mnt/lib/klibc/bin
+		ln -s /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+	    fi
+	done
+	for bin in mknod rm; do
+	    cp_bin $root_dir/bin/$bin $tmp_mnt/bin
+	done
+
 	cp_bin $root_dir/sbin/udev $tmp_mnt/sbin/udev
 	cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
 	cp_bin $root_dir/sbin/udevstart $tmp_mnt/sbin/udevstart
@@ -1312,6 +1322,7 @@ mkinitrd_kernel() {
 	|
 	|mount -n -tproc proc /proc
 	|mount -n -tsysfs sysfs /sys > /dev/null 2>&1
+	|mount -n -ttmpfs tmpfs /dev/shm
 	|
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
@@ -1324,6 +1335,7 @@ mkinitrd_kernel() {
 	|die() {
 	|    umount -n /proc
 	|    umount -n /sys
+	|    umount /dev/shm
 	|    exit \$1
 	|}
 	|
