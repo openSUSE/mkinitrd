@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.192 $
+# $Revision: 1.193 $
 
 #
 # Print usage and exit
@@ -1721,11 +1721,29 @@ mkinitrd_kernel() {
 		# Add the intermediate parameter to the modules
 		params="\$dasd_params"
 		;;
+	    */ide?core.*)
+		# This checks whether an ide= parameter is present
+		cat_linuxrc <<-EOF
+		|# check for IDE parameter in /proc/cmdline
+		|for p in \$(cat /proc/cmdline) ; do
+		|  case \$p in
+		|    ide=*)
+		|      ide_params="\$ide_params \$p"
+		|      ;;
+		|    hd?=*)
+		|      ide_params="\$ide_params \$p"
+		|      ;;
+		|  esac
+		|done
+		|mp="/$module\${ide_params:+ options=\"\$ide_params\"}"
+		|echo "Loading \${mp#/lib/modules/$kernel_version/}"	
+		|insmod \$mp
+		EOF
+		;;
 	    */scsi_mod*)
 		# We may have SCSI parameters on the kernel command line,
 		# but because scsi_mod is a module, those would be ignored.
 		# Hack around this by scanning /proc/cmdline in linuxrc.
-		params="\$extra_scsi_params${params:+ $params}"
 
 		cat_linuxrc <<-EOF
 		|# check for SCSI parameters in /proc/cmdline
@@ -1772,15 +1790,20 @@ mkinitrd_kernel() {
 		|if [ \$devflags != 0 ]; then 
 		|    extra_scsi_params="default_dev_flags=\$devflags \$extra_scsi_params"
 		|fi
+		|mp="/$module${extra_scsi_params:+ $extra_scsi_params}"
+		|echo "Loading ${mp#/lib/modules/$kernel_version/}"	
+		|insmod \$mp
+		EOF
+		;;
+	    *)
+		mp="/$module${params:+ $params}"
+		cat_linuxrc <<-EOF
+		|echo "Loading ${mp#/lib/modules/$kernel_version/}"
+		|insmod $mp
 		EOF
 		;;
 	esac
 
-	mp="/$module${params:+ $params}"
-	cat_linuxrc <<-EOF
-	|echo "Loading ${mp#/lib/modules/$kernel_version/}"
-	|insmod $mp
-	EOF
 	initrd_is_using_modules=1
     done < <(echo -e $drv_modules)
     echo
@@ -2381,6 +2404,8 @@ mkinitrd_kernel() {
 	|    # Return the fsck status
 	|    ROOTFS_FSCK=$?
 	|    export ROOTFS_FSCK
+	|    ROOTFS_FSTYPE=$rootfstype
+	|    export ROOTFS_FSTYPE
 	|    if [ $ROOTFS_FSCK -gt 1 -a $ROOTFS_FSCK -lt 4 ]; then
 	|        # reboot needed
 	|        echo "fsck succeeded, but reboot is required."

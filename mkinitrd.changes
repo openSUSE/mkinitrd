@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 21 11:01:34 CET 2005 - hare@suse.de
+
+- Fix passing of command-line options to the ide driver (#72454)
+- Export rootfs filesystem type in ROOTFS_FSTYPE.
+
+-------------------------------------------------------------------
 Wed Mar 16 15:58:50 CET 2005 - hare@suse.de
 
 - Check for invalid fs-types
