@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.145 $
+# $Revision: 1.146 $
 
 #
 # Print usage and exit
@@ -1279,8 +1279,8 @@ mkinitrd_kernel() {
 	|mount -n -t tmpfs -o 'size=3%' initramdevs /dev
 	|mkdir -p /dev/pts
 	|
-	|[ ! -f /proc/cpuinfo ] && mount -tproc proc /proc
-	|[ ! -d /sys/class ] && mount -tsysfs sysfs /sys
+	|[ ! -f /proc/cpuinfo ] && mount -n -tproc proc /proc
+	|[ ! -d /sys/class ] && mount -n -tsysfs sysfs /sys
 	EOF
     fi
     cat_linuxrc <<-EOF
@@ -1994,7 +1994,7 @@ mkinitrd_kernel() {
 	|    die 1
 	|fi
 	|
-	|mount -o bind /dev /root/dev
+	|mount -n -o bind /dev /root/dev
 	|chmod 755 /root/dev
 	|
 	|# Create framebuffer devices
