@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.189 $
+# $Revision: 1.190 $
 
 #
 # Print usage and exit
@@ -1652,7 +1652,7 @@ mkinitrd_kernel() {
     # that the root file system is on a SCSI device, and also include
     # sd_mod.
     local have_scsi have_sd
-    case "$drv_modules" in
+    case "$resolved_modules" in
 	*/scsi_mod.*)   have_scsi=1
 			;;
 	*/sd_mod.*)	have_sd=1
