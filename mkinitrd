@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.134 $
+# $Revision: 1.135 $
 
 #
 # Print usage and exit
@@ -1081,6 +1081,8 @@ mkinitrd_kernel() {
     for bin in chmod mkdir mknod mount rm; do
 	cp_bin $root_dir/bin/$bin $tmp_mnt/bin
     done
+    # Create a dummy /etc/mtab for mount
+    echo -n > $tmp_mnt/etc/mtab
     
     if [ -x $root_dir/lib/mkinitrd/hotplug.sh ] ; then
 	cp_bin $root_dir/lib/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
@@ -1088,6 +1090,14 @@ mkinitrd_kernel() {
 
     # This has to go ...
     cp_bin $root_dir/usr/bin/expr $tmp_mnt/bin
+
+    # all dev nodes belong to root, according to udev.permissions
+    # but some may be owned by a group other than root
+    # getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
+    echo 'root::0:0:::' > $tmp_mnt/etc/passwd
+    getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
+    (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
+    cp_bin /lib/libnss_files* $tmp_mnt/lib/
 
     cp_bin $root_dir/sbin/udev.static $tmp_mnt/sbin/udev
     cp_bin $root_dir/sbin/udevinfo.static $tmp_mnt/sbin/udevinfo
@@ -1740,7 +1750,7 @@ mkinitrd_kernel() {
 	|udev_discover_root() {
 	|	local root
 	|	case "$rootdev" in
-	|	/dev/*)	root=$(expr substr $rootdev 6 99) ;;
+	|	/dev/*)	root=${$rootdev#/dev/} ;;
 	|	esac
 	|	if [ -n "$root" ]; then
 	|	    echo -n "Waiting for device /dev/$root to appear: "
@@ -1829,15 +1839,19 @@ mkinitrd_kernel() {
 	|discover_root() {
 	|	local root
 	|	case $rootdev in
-	|	/dev/*)	root=$(expr substr $rootdev 6 99) ;;
+	|	/dev/*)	root=${$rootdev#/dev/} ;;
 	|	*)	
 	|	esac
 	|	if [ -n "$root" ]; then
 	|	    while :; do
-	|		idx=$(expr index $root /)
-	|		[ $idx = 0 ] && break
-	|		root=$(expr substr $root 1 $(expr $idx - 1)
-	|		   )!$(expr substr $root   $(expr $idx + 1) 99)
+	|		case "$root" in
+	|		*/*)
+	|			root=${root%%/*}!${root#*/}
+	|			;;
+	|		*)
+	|			break
+	|			;;
+	|		esac
 	|	    done
 	|	    sysfs_set_root $root
 	|	fi
