@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.166 $
+# $Revision: 1.167 $
 
 #
 # Print usage and exit
@@ -2126,6 +2126,9 @@ mkinitrd_kernel() {
 	|	else
 	|	    echo " not found (ignoring)"
 	|	fi
+	|    fi
+	|    if [ -z "$root" ]; then
+	|	return 0
 	|    fi
 	|    if udev_wait_for_device $root; then
 	|	path=$(udevinfo -q path -n $root)
