@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.66 $
+# $Revision: 1.67 $
 
 #
 # Print usage and exit
@@ -849,7 +849,9 @@ mkinitrd_kernel () {
 	    echo 'sysfs /sys sysfs defaults 0 0' > $tmp_mnt/etc/fstab
 	fi
 	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
-	if [ -z "$use_pivot_root" -a -b "$root_dir/$rootdev" ] ; then
+	
+	if [ -z "$use_udev" -a -z "$use_pivot_root" -a \
+	     -b "$root_dir/$rootdev" ] ; then
 	    mkdir -p $tmp_mnt/${rootdev%/*}
 	    cp -a $root_dir/$rootdev $tmp_mnt/${rootdev%/*}
 	fi
@@ -1066,14 +1068,13 @@ mkinitrd_kernel () {
 	|root=
 	|for o in $(cat /proc/cmdline) ; do
 	|  case $o in
-	|    root=*) root=$o ;;
+	|    root=*) root=$(IFS== ; set -- $o ; echo $2) ;;
 	|  esac
 	|done
 	|if test -n "$root"; then
-	|  rootdev=$(IFS== ; set -- $root ; echo $2)
-	|  rootdevn=$(devnumber $rootdev 2> /dev/null)
-	|  if test "$rootdevn" -ge 14848 -a "$rootdevn" -lt 15104 ; then
-	|    echo $rootdevn > /proc/sys/kernel/real-root-dev
+	|  devn=$(devnumber $root 2> /dev/null)
+	|  if test "$devn" -ge 14848 -a "$devn" -lt 15104 ; then
+	|    echo $devn > /proc/sys/kernel/real-root-dev
 	|  fi
 	|fi
 	EOF
@@ -1210,8 +1211,9 @@ mkinitrd_kernel () {
 	|dhcp_mode=1
 	|for o in $(cat /proc/cmdline) ; do
 	|  case $o in
-	|    root=*:/*) root="$o" ;;  # machine:/path (nfs)
-	|    root=*) root="$o" ; dhcp_mode= ;;
+	|    root=/dev/nfs) root="$o" ;;
+	|    root=*:/*)	    root="$o" ;;  # machine:/path (nfs)
+	|    root=*)	    root="$o" ; dhcp_mode= ;;
 	|  esac
 	|done
 	EOF
@@ -1288,23 +1290,23 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$dhcp_interface" ] ; then
-	cat_linuxrc <<-EOF
-	|if test -z "\$root" ; then
-	|  if test -z "\$ROOTPATH" ; then
+	cat_linuxrc <<-'EOF'
+	|if test -z "$root" ; then
+	|  if test -z "$ROOTPATH" ; then
 	|    echo "no root= kernel option given and no rootpath" \
 	|         "set by the dhcp server."
 	|    echo 256 > /proc/sys/kernel/real-root-dev
 	|    die 0
 	|  fi
-	|  case \$ROOTPATH in
+	|  case $ROOTPATH in
 	|    *:*)
-	|      rootdev="\$ROOTPATH"
+	|      rootdev="$ROOTPATH"
 	|      ;;
 	|    *)
-	|      if test -n "\$DHCPSIADDR" ; then
-	|        rootdev="\$DHCPSIADDR:\$ROOTPATH"
-	|      elif test -n "\$DHCPSNAME" ; then
-	|        rootdev="\$DHCPSNAME:\$ROOTPATH"
+	|      if test -n "$DHCPSIADDR" ; then
+	|        rootdev="$DHCPSIADDR:$ROOTPATH"
+	|      elif test -n "$DHCPSNAME" ; then
+	|        rootdev="$DHCPSNAME:$ROOTPATH"
 	|      else
 	|        echo "no root= kernel option given and no root" \
 	|             "server set by the dhcp server."
@@ -1344,7 +1346,6 @@ mkinitrd_kernel () {
 	|test -z "\$dhcp_mode" && rootdev="$rootdev"
 	|root=
 	|nopivot=
-	|# bug in some kernels, need cat
 	|for o in \$(cat /proc/cmdline) ; do
 	|  test "\$o" = rw && opt=
 	|  test "\$o" = rw -a -n "\$dhcp_mode" && opt=-onolock
@@ -1359,12 +1360,7 @@ mkinitrd_kernel () {
 	|fi
 	|
 	|if test -n "\$root" ; then
-	|  # sed free programming
-	|  echo "\$root" > /.root
-	|  oifs="\$IFS"
-	|  IFS="="
-	|  read dummy rootdev < /.root
-	|  IFS="\$oifs"
+	|  rootdev=$(IFS== ; set -- \$root ; echo \$2)
 	|fi
 	|
 	|# tell kernel root is /dev/ram0, prevents remount after initrd
@@ -1665,6 +1661,12 @@ fi
 
 if [ -n "$root_dm" ] ; then
     add_module dm-mod
+fi
+
+if [ -n "$dhcp_interface" ]
+    # dhcpd reqires the af_packet module, we include it here
+    # in case the root FS will be mounted via NFS
+    add_module af_packet
 fi
 
 if [ "$arch" = s390 ]; then
