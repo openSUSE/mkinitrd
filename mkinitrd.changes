@@ -1,9 +1,10 @@
 -------------------------------------------------------------------
 Tue Aug 24 20:34:03 CEST 2004 - agruen@suse.de
 
-- remove support for the root_dir parameter: The same effect can be
-  achieved by running mkinitrd with chroot inside the real root
-  directory.
+- Remove support for the root_dir parameter: The same effect can
+  be achieved by running mkinitrd with chroot inside the real
+  root directory.
+- Add missing -p flags to mkdirs.
 
 -------------------------------------------------------------------
 Sun Aug 22 22:41:17 CEST 2004 - olh@suse.de

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.142 $
+# $Revision: 1.143 $
 
 #
 # Print usage and exit
@@ -1080,7 +1080,7 @@ mkinitrd_kernel() {
     # FIXME: only include this if glibc is used !!!
 
     if [ -d /lib64 ]; then
-	mkdir $tmp_mnt/lib64
+	mkdir -p $tmp_mnt/lib64
 	for nss_lib in /lib64/libnss_files*; do
 	    if [ -f "$nss_lib" ]; then
 		cp_bin $nss_lib $tmp_mnt/lib64
@@ -1088,7 +1088,7 @@ mkinitrd_kernel() {
 	done
     fi
 
-    mkdir $tmp_mnt/lib
+    mkdir -p $tmp_mnt/lib
     for nss_lib in /lib/libnss_files*; do
 	if [ -f "$nss_lib" ]; then
 	    cp_bin $nss_lib $tmp_mnt/lib
