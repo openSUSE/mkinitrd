@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.110 $
+# $Revision: 1.111 $
 
 #
 # Print usage and exit
@@ -1118,6 +1118,7 @@ mkinitrd_kernel() {
     if [ -n "$s390_zfcp_disks" ]; then
 	cp_bin $root_dir/sbin/zfcp_host_configure $tmp_mnt/sbin
 	cp_bin $root_dir/sbin/zfcp_disk_configure $tmp_mnt/sbin
+	cp_bin $root_dir/bin/sed $tmp_mnt/bin
     fi
 
     if [ -n "$use_udev" ] ; then

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun  7 14:29:06 CEST 2004 - hare@suse.de
+
+- mkinitrd: add sed to initrd if S/390 zfcp is used (#41484).
+
+-------------------------------------------------------------------
 Sat Jun  5 21:18:29 CEST 2004 - olh@suse.de
 
 - mkinitramfs: create 32 mdN nodes, create isdninfo,
