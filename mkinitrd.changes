@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun  8 12:45:57 CEST 2004 - agruen@suse.de
+
+- mkinitrd: Fix generation of several images (#41765)
+
+-------------------------------------------------------------------
 Mon Jun  7 14:29:06 CEST 2004 - hare@suse.de
 
 - mkinitrd: add sed to initrd if S/390 zfcp is used (#41484).
