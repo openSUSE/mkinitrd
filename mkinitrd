@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.15 $
+# $Revision: 1.124.2.16 $
 
 #
 # Print usage and exit
@@ -532,6 +532,7 @@ resolve_modules() {
 	    fi
 	    module_list=$( do_chroot \
 	       /sbin/modprobe $with_modprobe_conf \
+			      --ignore-install \
 			      --set-version $kernel_version \
 			      --show-depends $module 2> /dev/null \
 	       | sed -ne 's:.*insmod /\?::p' )
@@ -1549,6 +1550,27 @@ mkinitrd_kernel() {
 
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
+    fi
+
+    # Handling of new PCI IDs
+    newid_file=/etc/sysconfig/hardware/newids
+    if [ -f "$newid_file" ]; then
+	while read line; do
+	    saved_IFS="$IFS"
+	    IFS=","
+	    set -- $line
+	    IFS="$saved_IFS"
+	    idstring="$1"
+	    module=$2
+	    if [ -z "$3" ]; then
+		driver=$module
+	    fi
+	    cat_linuxrc <<-EOF
+		|if [ -d /sys/bus/pci/drivers/${driver} ]; then
+		|    echo "$idstring" > /sys/bus/pci/drivers/${driver}/new_id
+		|fi
+		EOF
+	done < "$newid_file"
     fi
 
     if [ -n "$s390_dasd_disks" ]; then

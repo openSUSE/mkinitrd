@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov 19 13:16:22 CET 2004 - hare@suse.de
+
+- Add support for new PCI-IDs for existing drivers (#36084)
+
+-------------------------------------------------------------------
 Fri Nov 19 09:14:59 CET 2004 - hare@suse.de
 
 - Fixed udev_discover_root to re-enable boot from NFS-root.
