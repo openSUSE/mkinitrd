@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.54 $
+# $Revision: 1.55 $
 
 #
 # Print usage and exit
@@ -863,7 +863,7 @@ mkinitrd_kernel () {
 	|die() {
 	|	umount -n /proc
 	|	umount -n /sys
-	|	exit $1
+	|	exit \$1
 	|}
 	EOF
 
