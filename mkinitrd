@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.167 $
+# $Revision: 1.168 $
 
 #
 # Print usage and exit
@@ -141,11 +141,11 @@ acpi_dsdt=
 use_selinux=
 use_glibc=
 use_udev=1
-mkinit_type="rd"
+mkinit_type="ramfs"
 
 case $0 in
     *initramfs)
-	mkinit_type="ramfs"
+	mkinit_type="rd"
 	;;
 esac
 
@@ -156,7 +156,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hgrk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
+while getopts :hgRk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -220,7 +220,7 @@ while getopts :hgrk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
 	    ;;
 	V)  vendor_init_script="$OPTARG"
 	    ;;
-	r)  mkinit_type="ramfs"
+	R)  mkinit_type="rd"
 	    ;;
 	u)  sysfs_root=1
 	    use_udev=
