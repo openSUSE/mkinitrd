@@ -1,5 +1,5 @@
 #!/lib/klibc/bin/sh
-# $Id: mkinitramfs-kinit.sh,v 1.6 2004/04/18 19:53:46 olh Exp $
+# $Id: mkinitramfs-kinit.sh,v 1.7 2004/04/24 21:31:44 olh Exp $
 # vim: syntax=sh
 # set -x
 
@@ -49,7 +49,9 @@ if [ -x /load_modules.sh ] ; then
 fi
 #
 # create all remaining device nodes
+echo -n "creating device nodes .."
 /sbin/udevstart
+echo .
 
 # workaround chicken/egg bug in mdadm and raidautorun
 # they do the ioctl on the not yet existing device node...
@@ -57,12 +59,8 @@ mknod -m 660 /dev/md0 b 9 0
 mknod -m 660 /dev/md1 b 9 1
 mknod -m 660 /dev/md2 b 9 2
 
-# FIXME XXX
 if [ -x /load_md.sh ] ; then
 	PATH=$PATH /load_md.sh
-# FIXME XXX use a small hotplug script to create them on demand
-# create all new device nodes
-	/sbin/udevstart
 fi
 
 #
@@ -208,8 +206,6 @@ case "$root" in
 	for i in \
 	/sys/block/*/dev \
 	/sys/block/*/*/dev \
-	/sys/block/*/*/*/dev \
-	/sys/block/*/*/*/*/dev \
 	; do
 		read j < $i
 		if [ "$j" = "$root" ] ; then
@@ -224,7 +220,11 @@ case "$root" in
 	if [ ! -z "$rootfstype" ] ; then
 		FSTYPE="-t $rootfstype"
 	fi
-	echo "mount $FSTYPE $mountopt $root /root"
+	if [ -x /sbin/fsck ] ; then
+		echo "running filesystem check on $root"
+		fsck $root || exit 42
+	fi
+	echo "mount $FSTYPE $mountopt $root"
 	if [ ! -b "$root" ] ; then echo "$root missing ... "; sleep 1 ; fi
 	sleep 1
 	mount $FSTYPE $mountopt "$root" /root || failed=1
@@ -255,7 +255,11 @@ case "$root" in
 		if [ ! -z "$rootfstype" ] ; then
 			FSTYPE="-t $rootfstype"
 		fi
-		echo "mount $FSTYPE $mountopt $root /root"
+		if [ -x /sbin/fsck ] ; then
+			echo "running filesystem check on $root"
+			fsck $root || exit 42
+		fi
+		echo "mount $FSTYPE $mountopt $root"
 		mount $FSTYPE $mountopt $root /root || failed=1
 	;;
 esac
