@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/bonked/Attic/mkinitrd,v $
-# $Revision: 1.87 $
+# $Revision: 1.88 $
 
 #
 # Print usage and exit
@@ -78,7 +78,7 @@ readlink() {
     fi
 }
 
-default_kernel_images () {
+default_kernel_images() {
 	local regex kernel_image kernel_version version_version initrd_image
 	local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
@@ -272,8 +272,6 @@ shebang=${shebang%.static}
 if [ -x /lib/klibc/bin/sh ]; then
     initrd_shell="/lib/klibc/bin/sh"
     shebang="/bin/sh"
-    [ -x /lib/klibc/bin/devnumber ] \
-	&& cp_bin /lib/klibc/bin/devnumber $tmp_mnt/bin
 fi
 
 [ -x $root_dir/sbin/insmod ] \
@@ -346,7 +344,7 @@ umount_proc() {
     mounted_proc=
 }
 
-cleanup () {
+cleanup() {
     [ "$is_mounted" ] && umount $tmp_mnt
     is_mounted=
     [ "$is_mounted_small" ] && umount $tmp_mnt_small
@@ -357,12 +355,12 @@ cleanup () {
     [ -d "$tmp_mnt_small" ] && rmdir $tmp_mnt_small
 }
 
-cleanup_finish () {
+cleanup_finish() {
     umount_proc
     [ -d "$work_dir" ] && rmdir $work_dir
 }
 
-handle_terminate () {
+handle_terminate() {
     echo "(received signal)
 
 Interrupted, cleaning up." >&2
@@ -373,21 +371,21 @@ Interrupted, cleaning up." >&2
 
 trap handle_terminate 1 2 3 15
 
-error () {
+error() {
     echo "$2" >&2
     cleanup
     cleanup_finish
     exit $1
 }
 
-oops () {
+oops() {
     exit_code=$1
     shift
     echo "$@" >&2
 }
 
 # Check if module $1 is listed in $modules.
-has_module () {
+has_module() {
     case " $modules " in
 	*" $1 "*)   return 0 ;;
     esac
@@ -395,7 +393,7 @@ has_module () {
 }
 
 # Check if any of the modules in $* are listed in $modules.
-has_any_module () {
+has_any_module() {
     local module
     for module in "$@"; do
 	has_module "$module" && return 0
@@ -403,7 +401,7 @@ has_any_module () {
 }
 
 # Add module $1 at the end of the module list.
-add_module () {
+add_module() {
     local module
     for module in "$@"; do
 	has_module "$module" || modules="$modules $module"
@@ -411,7 +409,7 @@ add_module () {
 }
 
 # Install a binary file
-cp_bin () {
+cp_bin() {
     cp -a "$@" \
     || exit_code=1
 
@@ -441,7 +439,7 @@ do_chroot() {
 # Resolve dynamic library dependencies. Returns a list of symbolic links
 # to shared objects and shared object files for the binaries in $*. The
 # binaries must be relative to $root_dir.
-shared_object_files () {
+shared_object_files() {
     local LDD CHROOT initrd_libs lib_files lib_links lib link
 
     LDD=/usr/bin/ldd
@@ -501,7 +499,7 @@ shared_object_files () {
 
 # Resolve module dependencies and parameters. Returns a list of modules and
 # their parameters. The module names returned are relative to $root_dir.
-resolve_modules () {
+resolve_modules() {
     local kernel_version=$1 module
     shift
 
@@ -578,7 +576,7 @@ resolve_modules () {
 }
 
 # Test if file $1 is smaller than file $2 (kilobyte granularity)
-smaller_file () {
+smaller_file() {
     local size1=$(ls -l "$1" |awk '{print $5}')
     local size2=$(ls -l "$2" |awk '{print $5}')
     [ $size1 -lt $size2 ]
@@ -586,13 +584,13 @@ smaller_file () {
 
 # Cat from stdin to linuxrc, removing leading whitespace up to pipe symbol.
 # Note that here documents can only be indented with tabs, not with spaces.
-cat_linuxrc () {
+cat_linuxrc() {
     sed 's/^[ \t]*|//' >> $linuxrc
     echo >> $linuxrc
 }
 
 # Attach ACPI DSDT if necessary.
-attach_dsdt () {
+attach_dsdt() {
     local initrd_image=$1
 
     if [ -z "$acpi_dsdt" ]; then
@@ -623,7 +621,7 @@ attach_dsdt () {
 }
 
 # Check for IDE module
-check_ide_modules () {
+check_ide_modules() {
     local modules_dir=$1 ide_modules
 
     # Check for PCI bus
@@ -685,7 +683,19 @@ devmajor() {
 
 # Find the device driver name for a device inode
 block_driver() {
-    local devn=$(devnumber $1 2> /dev/null) block major driver
+    local devn block major driver
+    case "$1" in
+    /dev/*) devn=$(devnumber $1 2> /dev/null) ;;
+
+    *:*)    # major:minor
+	    set -- $(IFS=: ; echo $1)
+	    devn=$(mkdevn $1 $2) ;;
+
+    [0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
+	    # hex device number
+	    devn=$((0x$1)) ;;
+    esac
+
     [ -z "$devn" ] && return 1
     while read major driver; do
 	[ "$major" = Block ] && block=1  # in block device section
@@ -700,14 +710,13 @@ block_driver() {
 
 # (We are using a devnumber binary inside the initrd.)
 devnumber() {
-    #ls -l -L $1 | awk '{printf $5 * 256 + $6}'
-    set -- $(ls -l $1)
+    set -- $(ls -lL $1)
     mkdevn ${5%,} $6
 }
 
 
 # Create the initrd image $2 for kernel $1 (both are absolute path names).
-mkinitrd_kernel () {
+mkinitrd_kernel() {
     local kernel_image=$1 initrd_image=$2
     local kernel_version need_mount sysfs_root use_udev need_block_driver
     local need_raidautorun
@@ -772,6 +781,8 @@ mkinitrd_kernel () {
     if [ $shebang != /bin/sh ]; then
 	ln -s $shebang $tmp_mnt/bin/sh
     fi
+    [ -x /lib/klibc/bin/devnumber ] \
+	&& cp_bin /lib/klibc/bin/devnumber $tmp_mnt/bin
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
 
@@ -1004,20 +1015,23 @@ mkinitrd_kernel () {
 	|	exit \$1
 	|}
 	|
-	|root_arg() {
-	|   set -- \$(cat /proc/cmdline)
-	|   while [ \$# -gt 1 ]; do
-	|	case \$1 in
-	|	root=*)
-	|	    IFS==
-	|	    set -- \$1
-	|	    echo \$2
-	|	    return 0 ;;
-	|	esac
-	|	shift
-	|   done
-	|   return 1
-	|}
+	|# Fallback root device number
+	|rootdevn=$rootdevn
+	|
+	|set -- \$(cat /proc/cmdline)
+	|while [ \$# -gt 1 ]; do
+	|    case \$1 in
+	|    root=*)
+	|	set -- \$(IFS== ; echo \$1)
+	|	rootdev=\$2
+	|	rootdev_cmdline=1
+	|	break ;;
+	|    esac
+	|    shift
+	|done
+	|if [ -z "\$rootdev" ]; then
+	|    rootdev=$rootdev
+	|fi
 	EOF
 
     if [ -n "$need_block_driver" ]; then
@@ -1033,8 +1047,6 @@ mkinitrd_kernel () {
     # Start udev if necessary
     if [ -n "$use_udev" ]; then
 	cat_linuxrc <<-EOF
-	|
-	|root_dev_t=$root_dev_t
 	|
 	|echo "Starting udev"
 	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
@@ -1155,16 +1167,70 @@ mkinitrd_kernel () {
 	done
     fi
 
+    if [ -n "$need_raidautorun" ]; then
+	features=(${features[@]} raidautorun)
+	cat_linuxrc <<-EOF
+	|echo "raidautorun ..."
+	|raidautorun
+	|echo "done..."
+	EOF
+    fi
+
+    if [ -n "$root_lvm" ] ; then
+	if [ -z "$use_udev" ]; then
+	    cat_linuxrc <<-'EOF'
+		|# scan for lvm devices
+		|createpartitiondevs
+		EOF
+	fi
+	cat_linuxrc <<-'EOF'
+	|#need space for lvm data
+	|mount -n -tramfs none /etc/lvmtab.d
+	|vgscan
+	|vgchange -a y
+	|umount -n /etc/lvmtab.d
+	|# set the right root device if user specified a lvm root
+	|if [ "$(block_driver "$rootdev")" = lvm ]; then
+	|    case $rootdev in
+	|    /dev/*)
+	|	echo $(devnumber $rootdev) > /proc/sys/kernel/real-root-dev ;;
+	|    *)
+	|	# hex number or major:minor pair
+	|	echo $rootdev > /proc/sys/kernel/real-root-dev ;;
+	|    esac
+	|    die 0
+	|fi
+	EOF
+    fi
+
+    if [ -n "$root_dm" ] ; then
+	cat_linuxrc <<-'EOF'
+	|#need space for lvm data
+	|mount -n -tramfs none /etc/lvm
+	|/sbin/devmap_mknod.sh
+	|vgscan
+	|vgchange -a y
+	|umount -n /etc/lvm
+	|# set the right root device if user specified a lvm root
+	|if [ "$(block_driver "$rootdev")" = device-mapper ]; then
+	|    case $rootdev in
+	|    /dev/*)
+	|	echo $(devnumber $rootdev) > /proc/sys/kernel/real-root-dev ;;
+	|    *)
+	|	# hex number or major:minor pair
+	|	echo $rootdev > /proc/sys/kernel/real-root-dev ;;
+	|    esac
+	|    die 0
+	|fi
+	EOF
+    fi
+
     if [ -n "$use_udev" ]; then
-	sysfs_root=
-	#if [ -n "$root_dev_t" ]; then
-	#    echo -e "Udev:\t\tUsing root=$root_dev_t as fallback"
-	#fi
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
-	|	local root=$(root_arg)
-	|	case "$root" in
-	|	/dev/*)	root=$(expr substr $root 6 99) ;;
+	|	local root
+	|	case "$rootdev" in
+	|	/dev/*)	root=$(expr substr $rootdev 6 99) ;;
 	|	esac
 	|	if [ -n "$root" ]; then
 	|	    echo -n "Waiting for device /dev/$root to appear: "
@@ -1184,138 +1250,99 @@ mkinitrd_kernel () {
 	|	    if [ -n "$path" ]; then
 	|	        dev=/sys$path/dev
 	|		if [ -f $dev ]; then
-	|		    local major minor dev_t
+	|		    local major minor devn
 	|		    IFS=":" read major minor < $dev
-	|		    dev_t=$(mkdevn $major $minor)
+	|		    devn=$(mkdevn $major $minor)
 	|		    echo "rootfs: $entry major=$major minor=$minor" \
-	|			 "dev_t=$dev_t"
-	|		    echo $dev_t > /proc/sys/kernel/real-root-dev
+	|			 "devn=$devn"
+	|		    echo $devn > /proc/sys/kernel/real-root-dev
 	|		    return 0
 	|		fi
-	|	    elif [ -n "$root_dev_t" ]; then
-	|		echo " not found, using fallback"
-	|		echo $root_dev_t > /proc/sys/kernel/real-root-dev
-	|	    else
-	|		echo " not found"
 	|	    fi
 	|	    return 1
 	|	fi
-	|
 	|}
 	|
-	|udev_discover_root || {
-	|    echo "device nodes:"
+	|if udev_discover_root ; then
+	|    die 0
+	|else
+	|    echo "not found -- device nodes:"
 	|    cd /dev
 	|    for dev in *; do
 	|	if [ -e $dev ]; then
-	|	    echo $dev
+	|	    echo -n "$dev "
 	|	fi
 	|    done
 	|    cd /
-	|}
-	EOF
-    fi
-
-    if [ -n "$root_lvm" ] ; then
-	# need dummy entry so fsck doesn't complain
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-		|# scan for lvm devices
-		|createpartitiondevs
-		EOF
-	fi
-	cat_linuxrc <<-'EOF'
-	|#need space for lvm data
-	|mount -n -tramfs none /etc/lvmtab.d
-	|vgscan
-	|vgchange -a y
-	|umount -n /etc/lvmtab.d
-	|# set the right root device if user specified a lvm root
-	|root=$(root_arg)
-	|if [ -n "$root" ]; then
-	|  if [ "$(block_driver $root)" = lvm ]; then
-	|    echo $(devnumber $root) > /proc/sys/kernel/real-root-dev
-	|  fi
-	|fi
-	EOF
-    fi
-
-    if [ -n "$root_dm" ] ; then
-	if [ -z "$use_udev" ]; then
-	    cat_linuxrc <<-'EOF'
-		|# scan for lvm devices
-		|createpartitiondevs
-		EOF
-	fi
-	cat_linuxrc <<-'EOF'
-	|#need space for lvm data
-	|mount -n -tramfs none /etc/lvm
-	|/sbin/devmap_mknod.sh
-	|vgscan
-	|vgchange -a y
-	|umount -n /etc/lvm
-	|# set the right root device if user specified a lvm root
-	|root=$(root_arg)
-	|if [ -n "$root" ]; then
-	|  if [ "$(block_driver $root)" = device-mapper ]; then
-	|    echo $(devnumber $root) > /proc/sys/kernel/real-root-dev
-	|  fi
 	|fi
 	EOF
     fi
 
     if [ -n "$sysfs_root" ]; then
 	cat_linuxrc <<-'EOF'
-	|sh_basename () {
+	|basename() {
 	|	local IFS=/
 	|
 	|	set -- $1
 	|	eval echo \${$#}
 	|}
 	|
-	|sysfs_set_root_dir () {
+	|sysfs_set_root_dir() {
 	|	local entry name dir=$1 search=$2
 	|
 	|	for entry in $dir/*; do
 	|	  [ -L $entry ] && continue
 	|	  [ -d $entry ] || continue
 	|
-	|	  name=$(sh_basename $entry)
+	|	  name=$(basename $entry)
 	|	  if [ -f $entry/dev -a $name = $search ]; then
-	|		local major minor dev_t
+	|		local major minor devn
 	|		IFS=: read major minor < $entry/dev
-	|		dev_t=$(mkdevn $major $minor)
+	|		devn=$(mkdevn $major $minor)
 	|		echo "rootfs: $entry major=$major minor=$minor" \
-	|		     "dev_t=$dev_t"
-	|		echo $dev_t > /proc/sys/kernel/real-root-dev
-	|		return
+	|		     "devn=$devn"
+	|		echo $devn > /proc/sys/kernel/real-root-dev
+	|		return 0
 	|	  else
-	|	    sysfs_set_root_dir $entry $search
+	|	    sysfs_set_root_dir $entry $search \
+	|		&& return 0
 	|	  fi
 	|	done
+	|	return 1
 	|}
 	|
-	|sysfs_set_root () {
+	|sysfs_set_root() {
 	|	local root=$1
 	|
 	|	sysfs_set_root_dir /sys/block $root
 	|}
 	|
 	|discover_root() {
-	|	local root=$(root_arg)
-	|	case $root in
-	|	/dev/*)	root=$(expr substr $root 6 99) ;;
+	|	local root
+	|	case $rootdev in
+	|	/dev/*)	root=$(expr substr $rootdev 6 99) ;;
+	|	*)	
 	|	esac
-	|	while :; do
+	|	if [ -n "$root" ]; then
+	|	    while :; do
 	|		idx=$(expr index $root /)
 	|		[ $idx = 0 ] && break
 	|		root=$(expr substr $root 1 $(expr $idx - 1)
 	|		   )!$(expr substr $root   $(expr $idx + 1) 99)
-	|	done
-	|	sysfs_set_root $root
+	|	    done
+	|	    sysfs_set_root $root
 	|}
 	|
-	|discover_root
+	|if ! discover_root ; then
+	|    if [ -n "$rootdev" ]; then
+	|	echo $rootdev > /proc/sys/kernel/real-root-dev
+	|    elif [ -n "$rootdevn" ]; then
+	|	echo $rootdevn > /proc/sys/kernel/real-root-dev
+	|    else
+	|	: # let the kernel do its internal root device scan
+	|	  # (we don't get here.)
+	|    fi
+	|fi
 	EOF
     fi
 
@@ -1326,18 +1353,9 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    if [ -n "$need_raidautorun" ]; then
-	features=(${features[@]} raidautorun)
-	cat_linuxrc <<-EOF
-	|echo "raidautorun ..."
-	|raidautorun
-	|echo "done..."
-	EOF
-    fi
-
     if [ -n "$dhcp_interface" ] ; then
 	cat_linuxrc <<-'EOF'
-	|case $(root_arg) in
+	|case $rootdev in
 	|/dev/nfs|*:/*|"")
 	|   dhcp_mode=1 ;;
 	|esac
@@ -1421,7 +1439,7 @@ mkinitrd_kernel () {
 
     if [ -n "$dhcp_interface" ]; then
 	cat_linuxrc <<-'EOF'
-	|if [ -z "$(root_arg)" ]; then
+	|if [ -z "$rootdev_cmdline" ]; then
 	|  case "$ROOTPATH" in
 	|    "") ;;
 	|    *:*)
@@ -1443,16 +1461,10 @@ mkinitrd_kernel () {
 	EOF
     fi
 
-    cat_linuxrc <<-EOF
-	|if [ -z "\$rootdev" ]; then
-	|   rootdev=\$(root_arg) || rootdev="$rootdev"
-	|fi
-	EOF
-
     if has_module jfs && [ -n "$rootdev" ] ; then
 	cat_linuxrc <<-'EOF'
 	|# check filesystem if it is of type jfs
-	|[ -z "$dhcp_mode" ] && fsck -t jfs "$rootdev"
+	|[ -z "$dhcp_mode" ] && fsck -t jfs $rootdev
 	EOF
     fi
 
@@ -1509,6 +1521,10 @@ mkinitrd_kernel () {
 	|fi
 	EOF
     fi
+
+    cat_linuxrc <<-'EOF'
+	|die 0
+	EOF
 
     # Now create a second initrd with minimal size
 
@@ -1635,12 +1651,12 @@ esac
 # check if the root device is an lvm device
 root_lvm=
 root_dm=
-if [ -n "$realrootdev" -a -b "$root_dir/$realrootdev" ] ; then
-    root_dev_t=$(devnumber $root_dir/$realrootdev)
+if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
+    rootdevn=$(devnumber $root_dir/${realrootdev#/})
 
-    [ "$(block_driver "$root_dir/$realrootdev")" = lvm ] \
+    [ "$(block_driver "$root_dir/${realrootdev#/}")" = lvm ] \
 	&& root_lvm=1
-    [ "$(block_driver "$root_dir/$realrootdev")" = device-mapper ] \
+    [ "$(block_driver "$root_dir/${realrootdev#/}")" = device-mapper ] \
     	&& root_dm=1
 fi
 
