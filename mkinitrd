@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.121 $
+# $Revision: 1.122 $
 
 #
 # Print usage and exit
@@ -1052,11 +1052,8 @@ mkinitrd_kernel() {
 	    ;;
     esac
     (cd ${root_dir:-/} ; cp -R --parents $initrd_devices $tmp_mnt )
-    mkdir -p $tmp_mnt${initrd_shell%/*}
-    cp_bin $initrd_shell $tmp_mnt$initrd_shell
-    if [ $shebang != $initrd_shell ]; then
-	ln -s $initrd_shell $tmp_mnt$shebang
-    fi
+    cp_bin $initrd_shell $tmp_mnt$shebang 2>/dev/null \
+	|| error 4 "no static shell"
     if [ $shebang != /bin/sh ]; then
 	ln -s $shebang $tmp_mnt/bin/sh
     fi
