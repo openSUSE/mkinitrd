@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.104 $
+# $Revision: 1.105 $
 
 #
 # Print usage and exit
@@ -756,7 +756,7 @@ s390_check_evms() {
 	evms_cmd="q:r,v=$rootdev"
 
 	while read a b c d; do
-	    if [ "$a" = "Region" -a "$b" = "Name:" ]; then
+	    if [ "$a $b" = "Region Name:" ]; then
 		evms_reg="$evms_reg $c"
 	    fi
 	done < <( echo "$evms_cmd" | /sbin/evms -s )
@@ -766,7 +766,7 @@ s390_check_evms() {
 	evms_cmd="q:c,r=$reg"
 	
 	while read a b c d; do
-	    if [ "$a" = "Container" -a "$b" = "Name:" ]; then
+	    if [ "$a $b" = "Container Name:" ]; then
 		evms_cont="$evms_cont $c"
 	    fi
 	done < <(echo "$evms_cmd" | /sbin/evms -s )
@@ -776,7 +776,7 @@ s390_check_evms() {
 	evms_cmd="q:s,c=$cont"
 	
 	while read a b c d; do
-	    if [ "$a" = "Segment" -a "$b" = "Name:" ]; then
+	    if [ "$a $b" = "Segment Name:" ]; then
 		evms_seg="$evms_seg $c"
 	    fi
 	done < <(echo "$evms_cmd" | /sbin/evms -s )
@@ -785,7 +785,7 @@ s390_check_evms() {
     for seg in $evms_seg; do
 	evms_cmd="q:d,s=$seg"
 	while read a b c d; do
-	    if [ "$a" = "Logical" -a "$b" = "Disk" -a "$c" = "Name:" ]; then
+	    if [ "$a $b $c" = "Logical Disk Name:" ]; then
 		evms_dsk="$evms_dsk $d"
 	    fi
 	done < <(echo "$evms_cmd" | /sbin/evms -s )
