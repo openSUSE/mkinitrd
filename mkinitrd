@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.10 $
+# $Revision: 1.11 $
 
 #
 # Print usage and exit
@@ -1322,10 +1322,11 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     # Hack: Previous kernels have had a symlink vmlinuz -> vmlinuz-$VERSION,
     # but initrd was a plain file. Try to detect that case, and replace
     # old initrd files with symlinks.
-    if [ -L /boot/vmlinuz -a \
-	 "$(readlink /boot/vmlinuz)" == "${kernel_image#/boot/}" ]; then
-	rm -f /boot/initrd
-	ln -s "${initrd_image#/boot/}" /boot/initrd
+    if [ -L $root_dir/$boot_dir/vmlinuz -a \
+	 "$(readlink $root_dir/$boot_dir/vmlinuz)" == \
+	 "${kernel_image#$boot_dir/}" ]; then
+	rm -f $root_dir/$boot_dir/initrd
+	ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
     fi
     cleanup
 done
