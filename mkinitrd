@@ -3,7 +3,7 @@
 # mkinitrd - create the inital ramdisk images
 # usage: see below usage() or call with -h
 #
-# Copyright (C) 1999-2004 SuSE Linux AG, Nuernberg, Germany
+# Copyright (C) 1999-2005 SUSE Linux Products AG, Nuernberg, Germany
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.22 $
+# $Revision: 1.124.2.23 $
 
 #
 # Print usage and exit
@@ -55,6 +55,7 @@ usage() {
 	  -s size          Add splash animation and bootscreen to initrd.
 	  -t tmp_dir       Temporary directory. Defaults to $root_dir/var/tmp.
 	  -D interface     Run dhcp on the specified interface.
+	  -I interface     Configure the specified interface statically.
 	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
 	  		   Description Table) to initrd. This replaces the
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
@@ -144,7 +145,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
+while getopts :hk:i:m:b:d:s:St:D:I:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -162,6 +163,8 @@ while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
 		t)  echo "-t requires tmp dir parameter"
 		    ;;
 		D)  echo "-D requires dhcp interface parameter"
+		    ;;
+		I)  echo "-I requires network interface parameter"
 		    ;;
 		a)  echo "-a requires a DSDT parameter"
 		    ;;
@@ -186,8 +189,14 @@ while getopts :hk:i:m:b:d:o:s:St:D:a: a ; do
 	    ;;
 	t)  tmp_dir=$OPTARG
 	    ;;
-	D)  dhcp_interface=$OPTARG
-	    dhcp_interface=${dhcp_interface#/dev/}
+	D)  interface=$OPTARG
+	    interface=${interface#/dev/}
+	    use_dhcp=1
+	    use_pivot_root=1
+	    ;;
+	I)  interface=$OPTARG
+	    interface=${interface#/dev/}
+	    use_ipconfig=1
 	    use_pivot_root=1
 	    ;;
 	a)  acpi_dsdt="$OPTARG"
@@ -722,6 +731,46 @@ devnumber() {
     mkdevn ${5%,} $6
 }
 
+# Get the interface information for ipconfig
+get_ip_config() {
+    local iface
+    local iplink
+    local iproute
+
+    iface=$1
+    iplink=$(ifconfig $iface | grep "inet ")
+
+    set -- $iplink
+    if [ "$1" == "inet" ]; then
+	shift
+
+	while [ "$1" ]; do
+	    case "$1" in
+		addr:*)
+		    ipaddr=${1#addr:}
+		    ;;
+		Bcast:*)
+		    bcast=${1#Bcast:}
+		    ;;
+		P-t-P:*)
+		    srvaddr=${1#P-t-P:}
+		    ;;
+		Mask:*)
+		    netmask=${1#Mask:}
+		    ;;
+	    esac
+	    shift
+	done
+    fi
+    iproute=$(route -n | grep $iface | grep UG)
+    if [ $? -eq 0 ]; then
+	set -- $iproute
+	gwaddr=$2
+    fi
+    hostname=$(hostname)
+    echo "$ipaddr:$srvaddr:$gwaddr:$netmask:$hostname:$iface:none"
+}  
+
 ###################################################################
 #
 # S/390 specific procedures
@@ -1119,6 +1168,8 @@ mkinitrd_kernel() {
 	    echo -e "iSCSI error:\tcan't find iscsid"
 	fi
 	cp_bin $root_dir/bin/usleep $tmp_mnt/bin/usleep
+	mkdir -p $tmp_mnt/var/run
+	mkdir -p $tmp_mnt/var/lib/iscsi
 	need_mount=1
 	use_pivot_root=
     fi
@@ -1141,7 +1192,20 @@ mkinitrd_kernel() {
 	cp_bin $root_dir/bin/sed $tmp_mnt/bin
     fi
 
+    if [ -n "$use_pivot_root" ] ; then
+	features=(${features[@]} pivot-root)
+	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
+	cp_bin $root_dir/bin/cat $tmp_mnt/bin
+	echo "#! $shebang" > $tmp_mnt/bin/init
+	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
+	chmod 755 $tmp_mnt/bin/init
+	mkdir -p $tmp_mnt/mnt
+	use_udev=
+	need_mount=1
+    fi
+
     if [ -n "$use_udev" ] ; then
+	features=(${features[@]} udev)
 	mkdir -p $tmp_mnt/dev/shm
 	mkdir -p $tmp_mnt/lib/klibc/bin
 	for klibc_bin in devnumber sed sleep ata_identify scsi_id \
@@ -1221,25 +1285,19 @@ mkinitrd_kernel() {
 	fi
     fi
 
-    if [ -n "$use_pivot_root" ] ; then
-	features=(${features[@]} pivot-root)
-	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
-	cp_bin $root_dir/bin/cat $tmp_mnt/bin
-	echo "#! $shebang" > $tmp_mnt/bin/init
-	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
-	chmod 755 $tmp_mnt/bin/init
-	mkdir -p $tmp_mnt/mnt
-	need_mount=1
-    fi
-
-    if [ -n "$dhcp_interface" ] ; then
-	features=(${features[@]} dhcp\($dhcp_interface\))
+    if [ -n "$use_dhcp" ] ; then
+	features=(${features[@]} dhcp\($interface\))
 	cp_bin $root_dir/sbin/dhcpcd $tmp_mnt/bin
 	cp_bin $root_dir/bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
 	mkdir -p $tmp_mnt/var/run
 	need_mount=1
-	use_dhcp=1
+    fi
+
+    if [ -n "$use_ipconfig" ] ; then
+	features=(${features[@]} static\($interface\))
+	cp_bin $root_dir/lib/klibc/bin/ipconfig $tmp_mnt/bin
+	need_mount=1
     fi
 
     if has_module jfs ; then
@@ -1421,8 +1479,6 @@ mkinitrd_kernel() {
 	|echo "Starting udev"
 	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
 	|echo "Creating devices"
-	|UDEVSTART_ON_BOOT=1
-	|export UDEVSTART_ON_BOOT
 	|/sbin/udevstart
 	EOF
     fi
@@ -1694,15 +1750,15 @@ mkinitrd_kernel() {
 	|if [ -n "\$dhcp_mode" ]; then
 	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
 	|  # portmap
-	|  echo "running dhcpcd on interface $dhcp_interface"
-	|  dhcpcd -R -Y -N -t 100000000 $dhcp_interface
-	|  [ -s /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info ] || {
+	|  echo "running dhcpcd on interface $interface"
+	|  dhcpcd -R -Y -N -t 100000000 $interface
+	|  [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] || {
 	|    echo "no response from dhcp server."
 	|    echo 256 > /proc/sys/kernel/real-root-dev
 	|    die 0
 	|  }
-	|  . /var/lib/dhcpcd/dhcpcd-$dhcp_interface.info
-	|  kill -9 \$(cat /var/run/dhcpcd-$dhcp_interface.pid)
+	|  . /var/lib/dhcpcd/dhcpcd-$interface.info
+	|  kill -9 \$(cat /var/run/dhcpcd-$interface.pid)
 	|  if [ -n "\$DNS" ]; then
 	|    oifs="\$IFS"
 	|    IFS=","
@@ -1715,6 +1771,26 @@ mkinitrd_kernel() {
 	|    fi
 	|    echo 'hosts: dns' > /etc/nsswitch.conf
 	|  fi
+	|fi
+	EOF
+    fi
+
+    if [ -n "$use_ipconfig" ]; then
+	ipinterface=$(get_ip_config $interface)
+	cat_linuxrc <<-EOF
+	|# configure interface
+	|for o in \$(cat /proc/cmdline); do
+	|  case \$o in
+	|    ip=*)
+	|      ifspec=\${o#ip=};;
+	|  esac
+	|done
+	|if [ -z "\$ifspec" ]; then
+	|    # Fallback to configured interface
+	|    ifspec=$ipinterface
+	|fi
+	|if [ -n "\$ifspec" ]; then
+	|  ipconfig \$ifspec
 	|fi
 	EOF
     fi
@@ -2346,13 +2422,13 @@ if [ -n "$root_dm" -o -n "$root_evms" ] ; then
     add_module dm-snapshot
 fi
 
-if [ -n "$dhcp_interface" ]; then
+if [ -n "$interface" ]; then
     # dhcpd reqires the af_packet module, we include it here
     # in case the root FS will be mounted via NFS
     add_module af_packet
     # Try to load the appropriate driver module
     if [ -d /sys/class ]; then
-	netdrv_path=/sys/class/net/$dhcp_interface/driver
+	netdrv_path=/sys/class/net/$interface/driver
 	if [ -d "$netdrv_path" ]; then
 	    netdrv=`cd -P $netdrv_path; echo $(basename $PWD)`
 	    [ -n "$netdrv" ] && add_module "$netdrv"

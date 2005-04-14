@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 14 09:12:38 CEST 2005 - hare@suse.de
+
+- Fix udevstart execution to actually create devices.
+- Allow static network interface configuration.
+- Update manpage.
+
+-------------------------------------------------------------------
 Mon Feb 21 15:31:53 CET 2005 - fehr@suse.de
 
 - fix handling of unstable EVMS minor device numbers in initrd (#49277)
