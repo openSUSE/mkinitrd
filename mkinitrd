@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.23 $
+# $Revision: 1.124.2.24 $
 
 #
 # Print usage and exit
@@ -2074,7 +2074,7 @@ mkinitrd_kernel() {
 	|    echo
 	|    echo "No root device found; exiting to /bin/sh"
 	|    cd /
-	|    /bin/sh
+	|    PATH=$PATH PS1='$ ' /bin/sh -i
 	|fi
 	EOF
     fi
@@ -2357,12 +2357,19 @@ else
   rootfstype=$(echo $x1 | cut -f 3 -d " ")
 fi
 
-if [ -z "$use_dhcp" ]; then
+if [ -z "$use_dhcp" ] || [ -z "$use_ipconfig" ]; then
     [ -z "$rootdev" ] \
 	&& error 1 "No '/' mountpoint specified in $root_dir/etc/fstab"
 else
-    rootdev=
-    rootfstype=nfs
+    # Not everything is nfs these days.
+    case $rootdev in
+	*/nfs|nfs://*)
+	    rootdev=
+	    rootfstype=nfs
+	    ;;
+	*)
+	    ;;
+    esac
 fi
 
 realrootdev="$rootdev"
@@ -2396,7 +2403,7 @@ fi
 ###################################################################
 
 x="$rootdev"
-[ -n "$use_dhcp" ] && x="nfs-root"
+[ "$rootfstype" = "nfs" ] && x="nfs-root"
 [ "$rootdev" != "$realrootdev" ] && x="$x ($realrootdev)"
 echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 

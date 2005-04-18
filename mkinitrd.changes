@@ -3,6 +3,7 @@ Thu Apr 14 09:12:38 CEST 2005 - hare@suse.de
 
 - Fix udevstart execution to actually create devices.
 - Allow static network interface configuration.
+- Fix booting from iSCSI.
 - Update manpage.
 
 -------------------------------------------------------------------
