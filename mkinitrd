@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.24 $
+# $Revision: 1.124.2.25 $
 
 #
 # Print usage and exit
@@ -1318,12 +1318,15 @@ mkinitrd_kernel() {
 	if [ "$sysfs_root" ] ; then
 	    echo 'sysfs /sys sysfs defaults 0 0' > $tmp_mnt/etc/fstab
 	fi
-	cp_bin $root_dir/bin/{mount,umount} $tmp_mnt/bin
+	cp_bin $root_dir/bin/mount $tmp_mnt/bin
 	
-	if [ -z "$use_udev" -a -z "$use_pivot_root" -a \
-	     -b "$root_dir/$rootdev" ] ; then
-	    mkdir -p $tmp_mnt/${rootdev%/*}
-	    cp -a $root_dir/$rootdev $tmp_mnt/${rootdev%/*}
+	if [ -z "$use_udev" ]; then
+	    cp_bin $root_dir/bin/umount $tmp_mnt/bin
+	    if [ -z "$use_pivot_root" -a \
+		-b "$root_dir/$rootdev" ] ; then
+		mkdir -p $tmp_mnt/${rootdev%/*}
+		cp -a $root_dir/$rootdev $tmp_mnt/${rootdev%/*}
+	    fi
 	fi
     fi
 
@@ -1413,7 +1416,7 @@ mkinitrd_kernel() {
 	|
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
-	|    initrd=trace)
+	|    linuxrc=trace)
 	|	set -x
 	|	;;
 	|    sysrq=yes|sysrq=1)
@@ -1717,6 +1720,42 @@ mkinitrd_kernel() {
 	    fi
 	    ;;
     esac
+
+    # Check for multipathing
+    cat_linuxrc <<-'EOF'
+	|for o in $(cat /proc/cmdline); do
+	|  case $o in
+	|    multipath=*)
+	|      multipath_hosts=${o#multipath=} ;;
+	|  esac
+	|done
+	|case $multipath_hosts in
+	|  all|yes)
+	|      hosts_to_scan=*
+	|      ;;
+	|  host*)
+	|      set -- $(IFS=, ; echo $multipath_hosts)
+	|      hosts_to_scan=$@ 
+	|      ;;
+	|esac
+	|old_pwd=$PWD
+	|cd /sys/class/scsi_host
+	|for host in $hosts_to_scan; do
+	|    cd /sys/class/scsi_host/$host
+	|    if [ -d device ]; then
+	|        for dev in device/target*; do
+	|            if [ -d $dev ]; then
+	|                have_targets=1
+	|            fi
+	|        done
+	|    fi
+	|    if [ -z "$have_targets" -a -w no_partition_check ]; then
+	|        echo 1 > no_partition_check
+	|        echo "- - -" > scan
+	|    fi
+	|done
+	|cd $old_pwd
+	EOF
 
     if [ -n "$use_dhcp" ] ; then
 	cat_linuxrc <<-'EOF'
