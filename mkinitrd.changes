@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May  2 22:43:08 CEST 2005 - schwab@suse.de
+
+- Initialize fs_modules and drv_modules in each round.
+
+-------------------------------------------------------------------
 Thu Mar 31 11:03:56 CEST 2005 - hare@suse.de
 
 - Fix booting from DASD on S/390.

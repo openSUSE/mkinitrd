@@ -3,7 +3,7 @@
 # mkinitrd - create the inital ramdisk images
 # usage: see below usage() or call with -h
 #
-# Copyright (C) 1999-2004 SuSE Linux AG, Nuernberg, Germany
+# Copyright (C) 1999-2005 SuSE Linux Products GmbH, Nuernberg, Germany
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.196 $
+# $Revision: 1.197 $
 
 #
 # Print usage and exit
@@ -1057,6 +1057,7 @@ mkinitrd_kernel() {
     local kernel_version need_block_driver
     local need_raidautorun
     local -a features
+    local fs_modules drv_modules
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
