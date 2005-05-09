@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May  9 09:42:30 CEST 2005 - agruen@suse.de
+
+- module_upgrade: Add script for renaming modules in all system
+  config files. This is invoked from the kernel post-install
+  script (#47755).
+
+-------------------------------------------------------------------
 Mon May  2 22:43:08 CEST 2005 - schwab@suse.de
 
 - Initialize fs_modules and drv_modules in each round.

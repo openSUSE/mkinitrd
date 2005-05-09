@@ -30,6 +30,7 @@ Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
 Source4:      hotplug.sh
+Source20:     module_upgrade
 
 %description
 Mkinitrd creates filesystem images for use as initial ramdisk (initrd)
@@ -59,7 +60,7 @@ Authors:
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/sbin
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
-cp %SOURCE0 %SOURCE1 %SOURCE2 $RPM_BUILD_ROOT/sbin/
+cp %SOURCE0 %SOURCE1 %SOURCE2 %SOURCE20 $RPM_BUILD_ROOT/sbin/
 mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd
 cp %SOURCE4 $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
@@ -71,6 +72,7 @@ cp %SOURCE3 $RPM_BUILD_ROOT/%{_mandir}/man8
 /sbin/mkinitrd
 /sbin/installkernel
 /sbin/new-kernel-pkg
+/sbin/module_upgrade
 /usr/share/mkinitrd/hotplug.sh
 %{_mandir}/man8/mkinitrd.8.gz
 
