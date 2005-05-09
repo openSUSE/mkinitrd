@@ -20,7 +20,7 @@ Provides:     aaa_base:/sbin/mk_initrd
 Requires:     coreutils ash modutils util-linux grep e2fsprogs tar gzip sed gawk cpio udev
 # bootsplash required only if creating splash initrd's.
 Autoreqprov:  on
-Version:      1.0
+Version:      1.2
 Release:      199
 Summary:      Creates an initial ramdisk image for preloading modules
 BuildRoot:    %{_tmppath}/%{name}-%{version}-build
