@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 10 15:22:36 CEST 2005 - hare@suse.de
+
+- Add DCSS support (Feature ID 140601)
+- Fix multipath feature.
+
+-------------------------------------------------------------------
 Mon May  9 11:40:05 CEST 2005 - agruen@suse.de
 
 - Bump version to 1.2 so that other packages can depend on features

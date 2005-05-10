@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.25 $
+# $Revision: 1.124.2.26 $
 
 #
 # Print usage and exit
@@ -897,6 +897,21 @@ s390_check_zfcp() {
     fi
 }
 
+s390_check_dcss() {
+    local dir
+    local segment
+
+    for dir in /sys/devices/dcssblk/*; do
+	if [ -d "$dir" ] ; then
+	    segment=${dir#/sys/devices/dcssblk/}
+	    s390_dcss_segments="$s390_dcss_segments $segment"
+	fi
+    done
+    if [ -n "$s390_dcss_segments" ]; then
+	add_module dcssblk
+    fi
+}
+
 s390_zfcp_proc() {
    zfcp_param=
    if [ ! -s $root_dir/etc/zfcp.conf ] && cat /proc/modules | grep -q "^zfcp"
@@ -1739,12 +1754,13 @@ mkinitrd_kernel() {
 	|      ;;
 	|esac
 	|old_pwd=$PWD
+	|if [ -d /sys/class/scsi_host ]; then
 	|cd /sys/class/scsi_host
 	|for host in $hosts_to_scan; do
 	|    cd /sys/class/scsi_host/$host
 	|    if [ -d device ]; then
 	|        for dev in device/target*; do
-	|            if [ -d $dev ]; then
+	|            if [ -d "$dev" ]; then
 	|                have_targets=1
 	|            fi
 	|        done
@@ -1755,7 +1771,33 @@ mkinitrd_kernel() {
 	|    fi
 	|done
 	|cd $old_pwd
+	|fi
 	EOF
+
+    if has_module dcssblk ; then
+	if [ -n "$s390_dcss_segments" ] ; then
+	    segments=$(echo $s390_dcss_segments | tr ' ' ',')
+	    echo -e "DCSS segments:\t$segments"
+	    cat_linuxrc <<-EOF
+		|dcss_segments=$segments
+		EOF
+	fi
+	cat_linuxrc <<-'EOF'
+	|for o in $(cat /proc/cmdline); do
+	|  case $o in
+	|    dcssblk.segments=*)
+	|      dcss_segments="${o#dcssblk.segments=}";;
+	|  esac
+	|done
+	|# add each DCSS segment
+	|if [ -n "$dcss_segments" ]; then
+	|    for segment in $(IFS=, ; echo $dcss_segments); do
+	|        echo "$segment" > /sys/devices/dcssblk/add
+	|        echo "Activated DCSS segment $segment"
+	|    done
+	|fi
+	EOF
+    fi
 
     if [ -n "$use_dhcp" ] ; then
 	cat_linuxrc <<-'EOF'
@@ -2500,6 +2542,7 @@ case "$(uname -m)" in
 	    # Activate devices
 	    s390_dasd_sysfs
 	    s390_zfcp_sysfs
+	    s390_check_dcss
 	else
 	    s390_dasd_proc
 	    s390_zfcp_proc
