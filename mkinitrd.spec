@@ -1,5 +1,5 @@
 #
-# spec file for package mkinitrd (Version 1.0)
+# spec file for package mkinitrd (Version 1.2)
 #
 # Copyright (c) 2005 SUSE LINUX Products GmbH, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine

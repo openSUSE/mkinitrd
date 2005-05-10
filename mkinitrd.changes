@@ -24,6 +24,11 @@ Mon Feb 21 15:31:53 CET 2005 - fehr@suse.de
 - fix handling of unstable EVMS minor device numbers in initrd (#49277)
 
 -------------------------------------------------------------------
+Fri Feb  4 10:23:53 CET 2005 - hare@suse.de
+
+- Do not overwrite umount in the installed system (#50130)
+
+-------------------------------------------------------------------
 Tue Jan 18 13:56:22 CET 2005 - olh@suse.de
 
 - mkinitramfs: remove exit 0 from load_md.sh to allow root
