@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.26 $
+# $Revision: 1.124.2.27 $
 
 #
 # Print usage and exit
@@ -1121,6 +1121,7 @@ mkinitrd_kernel() {
     # fill the initrd
     rmdir $tmp_mnt/lost+found
     mkdir -p $tmp_mnt/{sbin,etc,bin,dev}
+    mkdir -p $tmp_mnt/dev/shm
     initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
 			  dev/{console,md0})
 
@@ -1211,17 +1212,19 @@ mkinitrd_kernel() {
 	features=(${features[@]} pivot-root)
 	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
+	cp_bin $root_dir/bin/mknod $tmp_mnt/bin
+	cp_bin $root_dir/usr/bin/sed $tmp_mnt/bin
 	echo "#! $shebang" > $tmp_mnt/bin/init
 	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
 	chmod 755 $tmp_mnt/bin/init
 	mkdir -p $tmp_mnt/mnt
 	use_udev=
 	need_mount=1
+	need_block_driver=1
     fi
 
     if [ -n "$use_udev" ] ; then
 	features=(${features[@]} udev)
-	mkdir -p $tmp_mnt/dev/shm
 	mkdir -p $tmp_mnt/lib/klibc/bin
 	for klibc_bin in devnumber sed sleep ata_identify scsi_id \
 			 umount; do
@@ -1453,7 +1456,7 @@ mkinitrd_kernel() {
 	|for o in \$(cat /proc/cmdline); do
 	|    case \$o in
 	|    root=*)
-	|	rootdev=\$(expr substr \$o 6 99)
+	|	rootdev=\${o#root=}
 	|	rootdev_cmdline=1
 	|	;;
 	|    esac
@@ -1465,7 +1468,7 @@ mkinitrd_kernel() {
 	|    case \$rootdev in
 	|	/dev/*)
 	|	    ;;
-	|	LABEL=*)
+	|	LABEL=*|UUID=*)
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    rootdev=0\$rootdev ;;
@@ -1498,6 +1501,34 @@ mkinitrd_kernel() {
 	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
 	|echo "Creating devices"
 	|/sbin/udevstart
+	EOF
+    else
+	cat_linuxrc <<-'EOF'
+	|createpartitiondevs() {
+	|    local devname partname major minor
+	|
+	|    cd /sys/block;
+	|    for dev in *; do
+	|	if [ -d "$dev" ]; then
+	|	    cd $dev
+	|	    devname=$(echo $dev) 
+	|	    for part in *; do
+	|		if [ "$part" = "dev" ]; then
+	|		    IFS=: read major minor < dev
+	|		    test -b /dev/$devname || mknod /dev/$devname b $major $minor
+	|		fi
+	|		if [ -d "$part" -a -r "$part/dev" ]; then
+	|		    partname=$(echo $part) 
+	|		    IFS=: read major minor < $part/dev
+	|		    test -b /dev/$partname || mknod /dev/$partname b $major $minor
+	|		fi
+	|	    done
+	|	    cd /sys/block
+	|	fi
+	|    done
+	|    cd /
+	|}
+	|
 	EOF
     fi
 
@@ -2283,10 +2314,16 @@ mkinitrd_kernel() {
     if [ -n "$use_pivot_root" ] ; then
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
-	|ROOT=*|LABEL=*|UUID=*)
-	|   pivotroot=1 ;;
-	|*)
-	|   pivotroot=$dhcp_mode ;;
+	|    ROOT=*|LABEL=*|UUID=*)
+	|	    rootdev="-L ${rootdev#LABEL=}"
+	|	    pivotroot=1 ;;
+	|    UUID=*)
+	|	    rootdev="-U ${rootdev#UUID=}"
+	|	    pivotroot=1 ;;
+	|    ROOT=*)
+	|	    pivotroot=1 ;;
+	|    *)
+	|	    pivotroot=$dhcp_mode ;;
 	|esac
 	|
 	|if [ -n "$pivotroot" ]; then
