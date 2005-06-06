@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.27 $
+# $Revision: 1.124.2.28 $
 
 #
 # Print usage and exit
@@ -1146,6 +1146,8 @@ mkinitrd_kernel() {
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
 
+    cp_bin $root_dir/sbin/blkid $tmp_mnt/sbin
+
     # If exists, copy also insmod.static.old, it is created by modutils for
     # 2.5.47+ kernels and it is needed by these to work with older kernels.
     if [ -r $initrd_insmod.old ] ; then
@@ -1468,7 +1470,7 @@ mkinitrd_kernel() {
 	|    case \$rootdev in
 	|	/dev/*)
 	|	    ;;
-	|	LABEL=*|UUID=*)
+	|	LABEL=*|UUID=*|ROOT=*)
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    rootdev=0\$rootdev ;;
@@ -1501,34 +1503,6 @@ mkinitrd_kernel() {
 	|echo "/sbin/udev" > /proc/sys/kernel/hotplug
 	|echo "Creating devices"
 	|/sbin/udevstart
-	EOF
-    else
-	cat_linuxrc <<-'EOF'
-	|createpartitiondevs() {
-	|    local devname partname major minor
-	|
-	|    cd /sys/block;
-	|    for dev in *; do
-	|	if [ -d "$dev" ]; then
-	|	    cd $dev
-	|	    devname=$(echo $dev) 
-	|	    for part in *; do
-	|		if [ "$part" = "dev" ]; then
-	|		    IFS=: read major minor < dev
-	|		    test -b /dev/$devname || mknod /dev/$devname b $major $minor
-	|		fi
-	|		if [ -d "$part" -a -r "$part/dev" ]; then
-	|		    partname=$(echo $part) 
-	|		    IFS=: read major minor < $part/dev
-	|		    test -b /dev/$partname || mknod /dev/$partname b $major $minor
-	|		fi
-	|	    done
-	|	    cd /sys/block
-	|	fi
-	|    done
-	|    cd /
-	|}
-	|
 	EOF
     fi
 
@@ -2127,6 +2101,22 @@ mkinitrd_kernel() {
 	EOF
     fi
 
+    cat_linuxrc <<-EOF
+	|case "\$rootdev" in
+	|	LABEL=*)
+	|	    rootdev=\$(/sbin/blkid -t \$rootdev)
+	|	    rootdev=\${rootdev%:*}
+	|	    ;;
+	|	UUID=*)
+	|	    rootdev=\$(/sbin/blkid -t \$rootdev)
+	|	    rootdev=\${rootdev%:*}
+	|	    ;;
+	|esac
+	|if [ -z "\$rootdev" ]; then
+	|    rootdev=$rootdev
+	|fi
+	EOF
+
     if [ -n "$use_udev" ]; then
 	cat_linuxrc <<-'EOF'
 	|udev_discover_root() {
@@ -2314,16 +2304,10 @@ mkinitrd_kernel() {
     if [ -n "$use_pivot_root" ] ; then
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
-	|    ROOT=*|LABEL=*|UUID=*)
-	|	    rootdev="-L ${rootdev#LABEL=}"
-	|	    pivotroot=1 ;;
-	|    UUID=*)
-	|	    rootdev="-U ${rootdev#UUID=}"
-	|	    pivotroot=1 ;;
-	|    ROOT=*)
-	|	    pivotroot=1 ;;
-	|    *)
-	|	    pivotroot=$dhcp_mode ;;
+	|ROOT=*)
+	|   pivotroot=1 ;;
+	|*)
+	|   pivotroot=$dhcp_mode ;;
 	|esac
 	|
 	|if [ -n "$pivotroot" ]; then
@@ -2493,7 +2477,6 @@ fi
 realrootdev="$rootdev"
 case "$rootdev" in
     LABEL=*|UUID=*)
-	use_pivot_root=1
 	# get real root via fsck hack
 	realrootdev=$(fsck -N "$rootdev" \
 		      | sed -ne '2s/.* \/dev/\/dev/p' \
