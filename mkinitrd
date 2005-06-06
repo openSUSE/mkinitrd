@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.28 $
+# $Revision: 1.124.2.29 $
 
 #
 # Print usage and exit
@@ -1220,7 +1220,6 @@ mkinitrd_kernel() {
 	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
 	chmod 755 $tmp_mnt/bin/init
 	mkdir -p $tmp_mnt/mnt
-	use_udev=
 	need_mount=1
 	need_block_driver=1
     fi
