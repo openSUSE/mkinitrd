@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.30 $
+# $Revision: 1.124.2.31 $
 
 #
 # Print usage and exit
@@ -2303,6 +2303,9 @@ mkinitrd_kernel() {
 	|ROOT=*)
 	|   rootdev=${rootdev#ROOT=}
 	|   pivotroot=1 ;;
+	|/dev/nfs|*:/*)
+	|   pivotroot=1 ;;
+	|   nfsroot=1 ;;
 	|*)
 	|   pivotroot=$dhcp_mode ;;
 	|esac
@@ -2315,7 +2318,7 @@ mkinitrd_kernel() {
 	|
 	|   opt=-oro
 	|   [ -n "$read_write" ] && opt=-orw
-	|   [ -n "$dhcp_mode" ] && opt="${opt},nolock"
+	|   [ -n "$nfsroot" ] && opt="${opt},nolock -n -t nfs"
 	|
 	|   # tell kernel root is /dev/ram0, prevents remount after initrd
 	|   echo 256 > /proc/sys/kernel/real-root-dev
