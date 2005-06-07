@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.29 $
+# $Revision: 1.124.2.30 $
 
 #
 # Print usage and exit
@@ -1214,14 +1214,11 @@ mkinitrd_kernel() {
 	features=(${features[@]} pivot-root)
 	cp_bin $root_dir/sbin/pivot_root $tmp_mnt/bin
 	cp_bin $root_dir/bin/cat $tmp_mnt/bin
-	cp_bin $root_dir/bin/mknod $tmp_mnt/bin
-	cp_bin $root_dir/usr/bin/sed $tmp_mnt/bin
 	echo "#! $shebang" > $tmp_mnt/bin/init
 	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
 	chmod 755 $tmp_mnt/bin/init
 	mkdir -p $tmp_mnt/mnt
 	need_mount=1
-	need_block_driver=1
     fi
 
     if [ -n "$use_udev" ] ; then
@@ -2104,11 +2101,11 @@ mkinitrd_kernel() {
 	|case "\$rootdev" in
 	|	LABEL=*)
 	|	    rootdev=\$(/sbin/blkid -t \$rootdev)
-	|	    rootdev=\${rootdev%:*}
+	|	    rootdev=\${rootdev%%:*}
 	|	    ;;
 	|	UUID=*)
 	|	    rootdev=\$(/sbin/blkid -t \$rootdev)
-	|	    rootdev=\${rootdev%:*}
+	|	    rootdev=\${rootdev%%:*}
 	|	    ;;
 	|esac
 	|if [ -z "\$rootdev" ]; then
@@ -2304,6 +2301,7 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
 	|ROOT=*)
+	|   rootdev=${rootdev#ROOT=}
 	|   pivotroot=1 ;;
 	|*)
 	|   pivotroot=$dhcp_mode ;;
