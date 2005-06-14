@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.197 $
+# $Revision: 1.198 $
 
 #
 # Print usage and exit
@@ -934,7 +934,10 @@ s390_check_zfcp() {
 # as found in the running system to get the same
 # behaviour during booting.
 s390_zfcp_sysfs() {
-    local path
+    local dev_dir
+    local fcp_disk_hba
+    local fcp_disk_wwpn
+    local fcp_disk_lun
 
     if [ "$s390_enable_zfcp" ] ; then
 	# Root is on SCSI, detect all SCSI devices
@@ -958,7 +961,7 @@ s390_zfcp_sysfs() {
 		fi
 	    fi
 	done
-	if [ "$fcp_disk_hba" ]; then
+	if [ "$s390_zfcp_hbas" ]; then
 	    add_module sd_mod
 	    add_module zfcp
 	fi
@@ -972,7 +975,7 @@ s390_dasd_sysfs() {
 
     if [ "$s390_enable_dasd" ]; then
 	# Root device is on a dasd device, enable all dasd disks
-	for dir in /sys/block/*; do
+	for dir in /sys/block/dasd*; do
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
 		cd $dir
 		cd $(readlink device)
@@ -1284,17 +1287,41 @@ mkinitrd_kernel() {
     if [ -n "$use_udev" ] ; then
 	features=(${features[@]} udev)
 	if [ -z "$use_glibc" ] ; then
-	    cp_bin /sbin/udev.static $tmp_mnt/sbin/
-	    cp_bin /sbin/udevinfo.static $tmp_mnt/sbin/
-	    if [ ! -L /sbin/udevstart.static ] ; then
-		cp_bin /sbin/udevstart.static $tmp_mnt/sbin/
-	    fi
-	    ln -s udev.static $tmp_mnt/sbin/udev
-	    ln -s udevinfo.static $tmp_mnt/sbin/udevinfo
-	    if [ ! -L /sbin/udevstart.static ] ; then
-		ln -s udevstart.static $tmp_mnt/sbin/udevstart
+	    if [ -x /lib/klibc/sbin/udev ]; then
+		klibc_sbin_dir=/lib/klibc/sbin
+		klibc_bin_dir=/lib/klibc/bin
+		klibc_suffix=
+	    elif [ -x /lib/klibc/bin/udev ]; then
+		klibc_sbin_dir=/lib/klibc/bin
+		klibc_bin_dir=/lib/klibc/bin
+		klibc_suffix=
+	    elif [ -x /sbin/udev.static ]; then
+		klibc_sbin_dir=/sbin
+		klibc_bin_dir=/usr/bin
+		klibc_suffix=".static"
 	    else
-		ln -s udev.static $tmp_mnt/sbin/udevstart
+		klibc_sbin_dir=/sbin
+		klibc_bin_dir=/usr/bin
+		klibc_suffix=
+	    fi
+
+	    cp_bin $klibc_sbin_dir/udev$klibc_suffix $tmp_mnt/sbin/
+	    cp_bin $klibc_bin_dir/udevinfo$klibc_suffix $tmp_mnt/sbin/
+	    if [ ! -L $klibc_sbin_dir/udevstart$klibc_suffix ] ; then
+		cp_bin $klibc_sbin_dir/udevstart$klibc_suffix $tmp_mnt/sbin/
+	    fi
+	    if [ -n "$klibc_suffix" ]; then
+		ln -s udev$klibc_suffix $tmp_mnt/sbin/udev
+		ln -s udevinfo$klibc_suffix $tmp_mnt/sbin/udevinfo
+		if [ ! -L $klibc_sbin_dir/udevstart.static ] ; then
+		    ln -s udevstart$klibc_suffix $tmp_mnt/sbin/udevstart
+		else
+		    ln -s udev$klibc_suffix $tmp_mnt/sbin/udevstart
+		fi
+	    else
+		if [ -L $klibc_sbin_dir/udevstart ]; then
+		    ln -s udev $tmp_mnt/sbin/udevstart
+		fi
 	    fi
 	else
 	    cp_bin /sbin/udev $tmp_mnt/sbin/
@@ -2033,11 +2060,9 @@ mkinitrd_kernel() {
 	|	echo -n "Waiting for device /dev/$root to appear: "
 	|	while [ $timeout -gt 0 ]; do
 	|	    if [ -e /dev/$root ]; then
-	|		if [ $? -eq 0 ]; then
-	|		    echo " ok"
-	|		    retval=0
-	|		    break;
-	|		fi
+	|		echo " ok"
+	|		retval=0
+	|		break;
 	|	    fi
 	|	    sleep 1
 	|	    echo -n "."
@@ -2081,7 +2106,7 @@ mkinitrd_kernel() {
 	|    if [ -n "$resume_mode" ]; then
 	|	resume=${resumedev#/dev/}
 	|	if udev_wait_for_device $resume; then
-	|	    path=$(udevinfo -q path -n $resume)
+	|	    path=$(/sbin/udevinfo -q path -n $resume)
 	|	    set -- $(udev_read_devn $path)
 	|	    if [ -n "$1" ]; then
 	|		devn=$1
@@ -2108,7 +2133,7 @@ mkinitrd_kernel() {
 	|	return 0
 	|    fi
 	|    if udev_wait_for_device $root $vg_root; then
-	|	path=$(udevinfo -q path -n $root)
+	|	path=$(/sbin/udevinfo -q path -n $root)
 	|	if [ $? -eq 0 -a -n "$path" ]; then
 	|	    set -- $(udev_read_devn $path)
 	|	    if [ -n "$1" ]; then

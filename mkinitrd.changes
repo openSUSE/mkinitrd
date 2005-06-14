@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun 14 12:22:57 CEST 2005 - hare@suse.de
+
+- Update for new udev program locations.
+
+-------------------------------------------------------------------
 Mon May  9 09:42:30 CEST 2005 - agruen@suse.de
 
 - module_upgrade: Add script for renaming modules in all system
