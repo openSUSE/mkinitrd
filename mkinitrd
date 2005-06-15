@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.198 $
+# $Revision: 1.199 $
 
 #
 # Print usage and exit
@@ -1219,7 +1219,7 @@ mkinitrd_kernel() {
 	      fi
 	  fi
 	done
-	cp_bin /lib/klibc/bin/run_init $tmp_mnt/run_init
+	cp_bin /lib/klibc/sbin/run_init $tmp_mnt/run_init
     else
 	for glibc_bin in sed sleep ln mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
@@ -1228,7 +1228,7 @@ mkinitrd_kernel() {
 	cp_bin /sbin/ata_identify $tmp_mnt/bin
 	cp_bin /sbin/udev_volume_id $tmp_mnt/bin
 	# this must be a static binary because /lib is already gone when it runs
-	cp_bin /lib/klibc/bin/run_init $tmp_mnt/run_init
+	cp_bin /lib/klibc/sbin/run_init $tmp_mnt/run_init
 	# always use the klibc binary as this doesn't need portmap
 	cp_bin /lib/klibc/bin/nfsmount $tmp_mnt/bin
     fi
@@ -1341,7 +1341,7 @@ mkinitrd_kernel() {
     if [ "$mkinit_type" = "ramfs" ] ; then
 	mkdir -p $tmp_mnt/events
 	if [ -z "$use_glibc" ] ; then
-	    cp_bin /lib/klibc/bin/hotplugeventrecorder $tmp_mnt/sbin
+	    cp_bin /lib/klibc/sbin/hotplugeventrecorder $tmp_mnt/sbin
 	else
 	    cp_bin /sbin/hotplugeventrecorder $tmp_mnt/sbin
 	fi

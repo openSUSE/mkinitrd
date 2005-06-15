@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun 15 13:14:42 CEST 2005 - hare@suse.de
+
+- Fix locations for hotplugeventrecorder and run_init.
+
+-------------------------------------------------------------------
 Tue Jun 14 12:22:57 CEST 2005 - hare@suse.de
 
 - Update for new udev program locations.
