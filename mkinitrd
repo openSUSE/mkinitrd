@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.199 $
+# $Revision: 1.200 $
 
 #
 # Print usage and exit
@@ -1209,17 +1209,27 @@ mkinitrd_kernel() {
     
     if [ -z "$use_glibc" ] ; then
 	mkdir -p $tmp_mnt/lib/klibc/bin
-	for klibc_bin in chroot devnumber sed sleep ata_identify scsi_id \
-	    cat ln mount umount nfsmount udev_volume_id; do
-	  if [ -e /lib/klibc/bin/$klibc_bin ]; then
-	      cp_bin /lib/klibc/bin/$klibc_bin \
-		  $tmp_mnt/lib/klibc/bin
-	      if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
-		  ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
-	      fi
+	for klibc_bin in chroot sed sleep \
+	    cat ln mount umount nfsmount; do
+	  cp_bin /lib/klibc/bin/$klibc_bin \
+	      $tmp_mnt/lib/klibc/bin
+	  if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
+	      ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
 	  fi
 	done
-	cp_bin /lib/klibc/sbin/run_init $tmp_mnt/run_init
+	for klibc_bin in run-init ata_identify scsi_id \
+	    udev_volume_id; do
+	  if [ -e /lib/klibc/sbin/$klibc_bin ]; then
+	      cp_bin /lib/klibc/sbin/$klibc_bin \
+		  $tmp_mnt/lib/klibc/bin
+	  else
+	      cp_bin /lib/klibc/bin/$klibc_bin \
+		  $tmp_mnt/lib/klibc/bin
+	  fi
+	  if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
+	      ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+	  fi
+	done
     else
 	for glibc_bin in sed sleep ln mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
@@ -1228,7 +1238,7 @@ mkinitrd_kernel() {
 	cp_bin /sbin/ata_identify $tmp_mnt/bin
 	cp_bin /sbin/udev_volume_id $tmp_mnt/bin
 	# this must be a static binary because /lib is already gone when it runs
-	cp_bin /lib/klibc/sbin/run_init $tmp_mnt/run_init
+	cp_bin /lib/klibc/sbin/run-init $tmp_mnt/bin/run-init
 	# always use the klibc binary as this doesn't need portmap
 	cp_bin /lib/klibc/bin/nfsmount $tmp_mnt/bin
     fi
@@ -1574,6 +1584,10 @@ mkinitrd_kernel() {
 	|	rootdev=\${o#root=}
 	|	rootdev_cmdline=1
 	|	;;
+	|    nfsroot=*)
+	|	rootdev=\${o#nfsroot=}
+	|	rootdev_cmdline=1
+	|	;;
 	|    resume=*)
 	|	set -- \$(IFS== ; echo \$o)
 	|	resumedev=\$2
@@ -1651,6 +1665,8 @@ mkinitrd_kernel() {
 	type devmajor | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
 	type devminor | sed -e '1d' >> $linuxrc
+	echo >> $linuxrc
+	type devnumber | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
 	type block_driver | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
@@ -2560,21 +2576,9 @@ mkinitrd_kernel() {
 	|ROOTFS_REALDEV="/lib/klibc/$rootdev"
 	|export ROOTFS_REALDEV
 	|
-	|# The point of no return!
-	|for i in /*
-	|do
-	|    case "$i" in
-	|        /root|/dev|/run_init|/bin|/lib*)
-	|            continue;;
-	|	 *)
-	|            rm -rf $i
-	|	 ;;
-	|    esac
-	|done
-	|rm -rf /bin /lib*
 	|set -- $kernel_cmdline
-	|exec /run_init "$@" < "./dev/console" > "./dev/console" 2>&1
-	|echo could not exec run_init!
+	|exec /bin/run-init -c ./dev/console /root $init "$@"
+	|echo could not exec run-init!
 	EOF
     fi
 

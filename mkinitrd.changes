@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Jun 17 11:03:40 CEST 2005 - hare@suse.de
+
+- Fix even more locations.
+- Parse nfsroot= parameter.
+
+-------------------------------------------------------------------
+Wed Jun 15 16:33:38 CEST 2005 - hare@suse.de
+
+- Fix locations for udev_volume_id and devnumber.
+
+-------------------------------------------------------------------
 Wed Jun 15 13:14:42 CEST 2005 - hare@suse.de
 
 - Fix locations for hotplugeventrecorder and run_init.
