@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.200 $
+# $Revision: 1.201 $
 
 #
 # Print usage and exit
@@ -1219,7 +1219,7 @@ mkinitrd_kernel() {
 	done
 	for klibc_bin in run-init ata_identify scsi_id \
 	    udev_volume_id; do
-	  if [ -e /lib/klibc/sbin/$klibc_bin ]; then
+	  if [ -x /lib/klibc/sbin/$klibc_bin ]; then
 	      cp_bin /lib/klibc/sbin/$klibc_bin \
 		  $tmp_mnt/lib/klibc/bin
 	  else
@@ -1307,7 +1307,7 @@ mkinitrd_kernel() {
 		klibc_suffix=
 	    elif [ -x /sbin/udev.static ]; then
 		klibc_sbin_dir=/sbin
-		klibc_bin_dir=/usr/bin
+		klibc_bin_dir=/sbin
 		klibc_suffix=".static"
 	    else
 		klibc_sbin_dir=/sbin
@@ -1351,7 +1351,11 @@ mkinitrd_kernel() {
     if [ "$mkinit_type" = "ramfs" ] ; then
 	mkdir -p $tmp_mnt/events
 	if [ -z "$use_glibc" ] ; then
-	    cp_bin /lib/klibc/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	    if [ -x /lib/klibc/sbin/hotplugeventrecorder ]; then
+		cp_bin /lib/klibc/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	    else
+		cp_bin /lib/klibc/bin/hotplugeventrecorder $tmp_mnt/sbin
+	    fi
 	else
 	    cp_bin /sbin/hotplugeventrecorder $tmp_mnt/sbin
 	fi
