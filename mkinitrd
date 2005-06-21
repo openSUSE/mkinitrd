@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.201 $
+# $Revision: 1.202 $
 
 #
 # Print usage and exit
@@ -309,30 +309,33 @@ case "$splash" in
 off)
     splashsizes= ;;
 auto)
-    splashsizes=
-    bootconf=/dev/null
-    [ -f /etc/lilo.conf ] \
-	&& bootconf="$bootconf /etc/lilo.conf"
-    [ -f /boot/grub/menu.lst ] \
-	&& bootconf="$bootconf /boot/grub/menu.lst"
-    for vga in $(sed -e '/^[ \t]*#/d' $bootconf \
-	    	 | sed -ne 's/^.*vga[ \t]*=[ \t]*\([^ \t]*\).*/\1/p' \
-		 | sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p'); do
-	splashsize=
-	case $(($vga)) in  # $((...)) : Convert 0xFOO to decimal
-	    785|786) splashsize=640x480   ;;
-	    788|789) splashsize=800x600   ;;
-	    791|792) splashsize=1024x768  ;;
-	    794)     splashsize=1280x1024 ;;
-	    795)     splashsize=1280x1024 ;;
-	    *)	     vgahex=$(printf 0x%04x "$(($vga))")
-		     splashsize=$(hwinfo --framebuffer | sed -ne \
-				   's/^.*Mode '$vgahex': \([^ ]\+\) .*$/\1/p' \
-				  2>/dev/null) ;;
-	esac
-	[ -n "$splashsize" -a "${splashsizes/$splashsize/}" = "$splashsizes" ] \
-	    && splashsizes="$splashsizes $splashsize"
-    done ;;
+    unset ${!splash_size_*}
+    modes=
+    for file in $root_dir/{etc/lilo.conf,boot/grub/menu.lst,proc/cmdline}; do
+	[ -e $file ] || continue
+ 	modes="$modes $(sed -e '/^[ \t]*#/d' $file \
+			| sed -ne 's/^.*vga[ \t]*=[ \t]*\([^ \t]*\).*/\1/p' \
+			| sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p')"
+    done
+
+    for mode in $modes; do
+	case $(($mode)) in  # $((...)) : Convert 0xFOO to decimal
+	785|786) splash_size_640x480=1 ;;
+	788|789) splash_size_800x600=1 ;;
+	791|792) splash_size_1024x768=1 ;;
+	794|795) splash_size_1280x1024=1 ;;
+	*)       vgahex=$(printf 0x%04x "$(($vga))")
+		 size=$(hwinfo --framebuffer | \
+		     sed -ne 's/^.*Mode '$vgahex': \([^ ]\+\) .*$/\1/p' \
+			2>/dev/null)
+		 eval splash_size_$size=1 ;;
+        esac
+    done
+    splashsizes="$(for x in ${!splash_size_*}; do
+			echo ${x#splash_size_}
+		   done)"
+    unset ${!splash_size_*}
+    ;;
 *)
     splashsizes=$splash ;;
 esac
