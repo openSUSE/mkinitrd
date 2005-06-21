@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jun 21 14:24:32 CEST 2005 - agruen@suse.de
+
+- vga mode recognition: during initial installation, mkinitrd is
+  called before the bootloader config (e.g., /boot/grub/menu.lst) 
+  is written. IN that case, also parse the vga= mode setting out
+  of /proc/cmdline (91259).
+
+-------------------------------------------------------------------
 Mon Jun  6 17:20:27 CEST 2005 - hare@suse.de
 
 - Fix mount by label / by-uuid to not use pivot_root (#81903).
