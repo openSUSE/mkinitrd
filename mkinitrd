@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.33 $
+# $Revision: 1.124.2.34 $
 
 #
 # Print usage and exit
@@ -1124,7 +1124,7 @@ mkinitrd_kernel() {
     is_mounted=1
     # fill the initrd
     rmdir $tmp_mnt/lost+found
-    mkdir -p $tmp_mnt/{sbin,etc,bin,dev}
+    mkdir -p $tmp_mnt/{sbin,etc,bin,dev,tmp}
     mkdir -p $tmp_mnt/dev/shm
     initrd_devices=$(echo dev/{zero,null,ram0,ram1,ram2,ram,ramdisk} \
 			  dev/{console,md0})
@@ -1286,11 +1286,16 @@ mkinitrd_kernel() {
 	cp_bin $root_dir/bin/{cat,sed,mkdir,mknod,rm} $tmp_mnt/bin
 	mkdir -p $tmp_mnt/etc
 	cp -a $root_dir/etc/evms.conf $tmp_mnt/etc
-	mkdir -p $tmp_mnt/lib/evms
-	SD=$(ls -A $root_dir/lib/evms | tail -n 1)
-	(cd $tmp_mnt/lib/evms && mkdir -p $SD)
-	cp_bin $root_dir/lib/evms/$SD/* $tmp_mnt/lib/evms/$SD
-	rm -f $tmp_mnt/lib/evms/*/*{ext2,jfs,ogfs,reiser,swap,xfs}*so
+	if [ -d $root_dir/lib64/evms ]; then
+	    evms_lib="lib64/evms"
+	else
+	    evms_lib="lib/evms"
+	fi
+	mkdir -p $tmp_mnt/$evms_lib
+	SD=$(ls -A $root_dir/$evms_lib | tail -n 1)
+	(cd $tmp_mnt/$evms_lib && mkdir -p $SD)
+	cp_bin $root_dir/$evms_lib/$SD/* $tmp_mnt/$evms_lib/$SD
+	rm -f $tmp_mnt/$evms_lib/*/*{ext2,jfs,ogfs,reiser,swap,xfs}*so
 	need_mount=1
 	need_block_driver=1
     fi

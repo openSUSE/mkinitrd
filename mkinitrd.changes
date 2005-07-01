@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Jul  1 10:15:32 CEST 2005 - hare@suse.de
+
+- Add /tmp directory to the initrd (#83279).
+
+-------------------------------------------------------------------
+Fri Jun 24 13:57:54 CEST 2005 - hare@suse.de
+
+- Load EVMS libraries from correct path (#93827).
+
+-------------------------------------------------------------------
 Tue Jun 21 14:24:32 CEST 2005 - agruen@suse.de
 
 - vga mode recognition: during initial installation, mkinitrd is
