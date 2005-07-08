@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.202 $
+# $Revision: 1.203 $
 
 #
 # Print usage and exit
@@ -1212,7 +1212,7 @@ mkinitrd_kernel() {
     
     if [ -z "$use_glibc" ] ; then
 	mkdir -p $tmp_mnt/lib/klibc/bin
-	for klibc_bin in chroot sed sleep \
+	for klibc_bin in devnumber chroot run-init sed sleep \
 	    cat ln mount umount nfsmount; do
 	  cp_bin /lib/klibc/bin/$klibc_bin \
 	      $tmp_mnt/lib/klibc/bin
@@ -1220,26 +1220,22 @@ mkinitrd_kernel() {
 	      ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
 	  fi
 	done
-	for klibc_bin in run-init ata_identify scsi_id \
-	    udev_volume_id; do
-	  if [ -x /lib/klibc/sbin/$klibc_bin ]; then
-	      cp_bin /lib/klibc/sbin/$klibc_bin \
-		  $tmp_mnt/lib/klibc/bin
-	  else
-	      cp_bin /lib/klibc/bin/$klibc_bin \
-		  $tmp_mnt/lib/klibc/bin
-	  fi
-	  if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
-	      ln -sf /lib/klibc/bin/$klibc_bin $tmp_mnt/bin
+	mkdir -p $tmp_mnt/lib/klibc/sbin
+	for klibc_bin in ata_id scsi_id usb_id \
+	    vol_id; do
+	  cp_bin /lib/klibc/sbin/$klibc_bin \
+	    $tmp_mnt/lib/klibc/sbin
+	  if [ ! -e $tmp_mnt/sbin/$klibc_bin ]; then
+	      ln -sf /lib/klibc/sbin/$klibc_bin $tmp_mnt/sbin
 	  fi
 	done
     else
 	for glibc_bin in sed sleep ln mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
 	done
-	cp_bin /sbin/scsi_id $tmp_mnt/bin
-	cp_bin /sbin/ata_identify $tmp_mnt/bin
-	cp_bin /sbin/udev_volume_id $tmp_mnt/bin
+	cp_bin /sbin/scsi_id $tmp_mnt/sbin
+	cp_bin /sbin/ata_id $tmp_mnt/sbin
+	cp_bin /sbin/vol_id $tmp_mnt/sbin
 	# this must be a static binary because /lib is already gone when it runs
 	cp_bin /lib/klibc/sbin/run-init $tmp_mnt/bin/run-init
 	# always use the klibc binary as this doesn't need portmap
@@ -1614,14 +1610,14 @@ mkinitrd_kernel() {
 	|	    ;;
 	|	LABEL=*)
 	|	    label=\${rootdev#LABEL=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/bin/udev_volume_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" > /etc/udev/rules.d/01-label.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/bin/udev_volume_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" >> /etc/udev/rules.d/01-label.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" > /etc/udev/rules.d/01-label.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" >> /etc/udev/rules.d/01-label.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	UUID=*)
 	|	    uuid=\${rootdev#UUID=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/bin/udev_volume_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" > /etc/udev/rules.d/02-uuid.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/bin/udev_volume_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" > /etc/udev/rules.d/02-uuid.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
@@ -1672,8 +1668,6 @@ mkinitrd_kernel() {
 	type devmajor | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
 	type devminor | sed -e '1d' >> $linuxrc
-	echo >> $linuxrc
-	type devnumber | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
 	type block_driver | sed -e '1d' >> $linuxrc
 	echo >> $linuxrc
@@ -2441,7 +2435,7 @@ mkinitrd_kernel() {
     if [ "$mkinit_type" = "ramfs" -o -n "$pivot_root" ]; then
 	cat_linuxrc <<-'EOF'
 	|if [ -z "$rootfstype" ]; then
-	|    rootfstype=$(/bin/udev_volume_id -t $rootdev)
+	|    rootfstype=$(/sbin/vol_id -t $rootdev)
 	|    [ $? -ne 0 ] && $rootfstype=
 	|    [ "$rootfstype" = "unknown" ] && $rootfstype=
 	|fi
@@ -2489,7 +2483,7 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-'EOF'
 	|opt="-o ro"
 	|[ -n "$read_write" ] && opt="-o rw"
-	|[ -n "$dhcp_mode" ] && opt="${opt},nolock"
+	|[ "$rootfstype" = "nfs" ] && opt="${opt},nolock"
 	|
 	|# tell kernel root is /dev/ram0, prevents remount after initrd
 	|echo 256 > /proc/sys/kernel/real-root-dev
@@ -2772,6 +2766,11 @@ fi
 
 realrootdev="$rootdev"
 case "$rootdev" in
+    *:*)
+	rootdev=
+	rootfstype=nfs
+	use_udev=
+	;;
     LABEL=*|UUID=*)
 	# get real root via fsck hack
 	realrootdev=$(fsck -N "$rootdev" \
@@ -2800,7 +2799,7 @@ fi
 ###################################################################
 
 x="$rootdev"
-[ -n "$use_dhcp" ] && x="nfs-root"
+[ "$rootfstype" = "nfs" ] && x="nfs-root"
 [ "$rootdev" != "$realrootdev" ] && x="$x ($realrootdev)"
 echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 

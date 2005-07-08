@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul  8 16:37:47 CEST 2005 - hare@suse.de
+
+- Update to match latest udev program locations.
+- Fix nfsroot.
+
+-------------------------------------------------------------------
 Tue Jun 21 14:31:11 CEST 2005 - agruen@suse.de
 
 - vga mode recognition: during initial installation, mkinitrd is
