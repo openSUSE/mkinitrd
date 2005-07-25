@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jul 25 14:03:18 CEST 2005 - hare@suse.de
+
+- Fix booting with dynamic /dev.
+- Add udev db directory.
+- Make software suspend working again (#97875, #95601)
+
+-------------------------------------------------------------------
 Fri Jul  8 16:37:47 CEST 2005 - hare@suse.de
 
 - Update to match latest udev program locations.

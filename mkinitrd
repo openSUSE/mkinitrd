@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.203 $
+# $Revision: 1.204 $
 
 #
 # Print usage and exit
@@ -1544,6 +1544,7 @@ mkinitrd_kernel() {
 	|devdir="/dev"
 	|mount -t tmpfs -o 'size=5%' initramfsdevs \$devdir
 	|mkdir -p \$devdir/pts
+	|mkdir -p \$devdir/.udevdb
 	|
 	|[ ! -f /proc/cpuinfo ] && mount -tproc proc /proc
 	|[ ! -d /sys/class ] && mount -tsysfs sysfs /sys
@@ -2124,15 +2125,26 @@ mkinitrd_kernel() {
 	|	resume=${resumedev#/dev/}
 	|	if udev_wait_for_device $resume; then
 	|	    path=$(/sbin/udevinfo -q path -n $resume)
-	|	    set -- $(udev_read_devn $path)
-	|	    if [ -n "$1" ]; then
-	|		devn=$1
-	|		major=$2
-	|		minor=$3
-	|		echo "$major:$minor" > /sys/power/resume
-	|		devn=
+	|	    if [ $? -eq 0 -a -n "$path" ]; then
+	|		set -- $(udev_read_devn $path)
+	|		if [ -n "$1" ]; then
+	|		    devn=$1
+	|		    major=$2
+	|		    minor=$3
+	|		fi
+	|	    else
+	|		# Try major:minor number of the device node
+	|		devn=$(devnumber $rootdev)
+	|		major=$(devmajor $devn)
+	|		minor=$(devminor $devn)
 	|	    fi
 	|	    path=
+	|	    devn=
+	|       fi
+	|       if [ -n "$major" -a -n "$minor" ]; then
+	|	    echo "$major:$minor" > /sys/power/resume
+	|	    major=
+	|	    minor=
 	|	else
 	|	    echo "resume device $resumedev not found (ignoring)"
 	|       fi
@@ -2574,8 +2586,10 @@ mkinitrd_kernel() {
 	|ROOTFS_BLKDEV="$rootdev"
 	|export ROOTFS_BLKDEV
 	|
-	|ROOTFS_REALDEV="/lib/klibc/$rootdev"
-	|export ROOTFS_REALDEV
+	|if [ -z "$dev_on_tmpfs" ] ; then
+	|    ROOTFS_REALDEV="/lib/klibc/$rootdev"
+	|    export ROOTFS_REALDEV
+	|fi
 	|
 	|set -- $kernel_cmdline
 	|exec /bin/run-init -c ./dev/console /root $init "$@"
