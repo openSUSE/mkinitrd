@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.204 $
+# $Revision: 1.205 $
 
 #
 # Print usage and exit
@@ -2172,7 +2172,7 @@ mkinitrd_kernel() {
 	|	    fi
 	|	else
 	|	    # Try major:minor number of the device node
-	|	    devn=$(devnumber $rootdev)
+	|	    devn=$(devnumber $resumedev)
 	|	    major=$(devmajor $devn)
 	|	    minor=$(devminor $devn)
 	|	fi
