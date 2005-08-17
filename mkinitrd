@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.208 $
+# $Revision: 1.209 $
 
 #
 # Print usage and exit
@@ -2588,7 +2588,6 @@ mkinitrd_kernel() {
 	|    export ROOTFS_REALDEV
 	|fi
 	|
-	|set -- $kernel_cmdline
 	|exec /bin/run-init -c ./dev/console /root $init $runlevel
 	|echo could not exec run-init!
 	EOF
