@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 17 08:35:23 CEST 2005 - hare@suse.de
+
+- Pass only valid parameters to init (#104984).
+
+-------------------------------------------------------------------
 Tue Aug 16 20:08:10 CEST 2005 - agruen@suse.de
 
 - Revert change that was meant for the perl-Bootloader code, which

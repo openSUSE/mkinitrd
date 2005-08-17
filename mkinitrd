@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.207 $
+# $Revision: 1.208 $
 
 #
 # Print usage and exit
@@ -1570,7 +1570,7 @@ mkinitrd_kernel() {
 	|    sysrq=yes|sysrq=1)
 	|	echo 1 > /proc/sys/kernel/sysrq
 	|	;;
-	|    1|2|3|4|5|S|single)
+	|    1|2|3|4|5|S|s|single)
 	|	runlevel=\$o
 	|	;;
 	|    rw)
@@ -2579,9 +2579,6 @@ mkinitrd_kernel() {
 	|umount /proc
 	|umount /sys
 	|
-	|INIT="$init"
-	|export INIT
-	|
 	|# Export root fs information
 	|ROOTFS_BLKDEV="$rootdev"
 	|export ROOTFS_BLKDEV
@@ -2592,7 +2589,7 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|set -- $kernel_cmdline
-	|exec /bin/run-init -c ./dev/console /root $init "$@"
+	|exec /bin/run-init -c ./dev/console /root $init $runlevel
 	|echo could not exec run-init!
 	EOF
     fi
