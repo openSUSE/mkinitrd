@@ -2,6 +2,8 @@
 Wed Aug 17 08:35:23 CEST 2005 - hare@suse.de
 
 - Pass only valid parameters to init (#104984).
+- Remove ROOT= parameter parsing
+- Do not evaluate IDE modules if network interface is set (#83782).
 
 -------------------------------------------------------------------
 Tue Aug 16 20:08:10 CEST 2005 - agruen@suse.de

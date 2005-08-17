@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.209 $
+# $Revision: 1.210 $
 
 #
 # Print usage and exit
@@ -1695,7 +1695,9 @@ mkinitrd_kernel() {
 	EOF
 
     # Check for IDE modules
-    check_ide_modules $root_dir/lib/modules/$kernel_version
+    if [ -z "$interface" ]; then
+	check_ide_modules $root_dir/lib/modules/$kernel_version
+    fi
 
     resolved_modules="$(resolve_modules $kernel_version $modules)"
 
@@ -1837,8 +1839,8 @@ mkinitrd_kernel() {
 		|if [ \$devflags != 0 ]; then 
 		|    extra_scsi_params="default_dev_flags=\$devflags \$extra_scsi_params"
 		|fi
-		|mp="/$module${extra_scsi_params:+ $extra_scsi_params}"
-		|echo "Loading ${mp#/lib/modules/$kernel_version/}"	
+		|mp="/$module\${extra_scsi_params:+ $extra_scsi_params}"
+		|echo "Loading \${mp#/lib/modules/$kernel_version/}"	
 		|insmod \$mp
 		EOF
 		;;
@@ -2594,12 +2596,9 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_pivot_root" ] ; then
-	# FIXME: rootdev is "ROOT=..." will not be recognized by the
-	#	 mount call below!
-
 	cat_linuxrc <<-'EOF'
 	|case "$rootdev" in
-	|ROOT=*|LABEL=*|UUID=*)
+	|LABEL=*|UUID=*)
 	|   pivotroot=1 ;;
 	|*)
 	|   pivotroot=$dhcp_mode ;;
