@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.210 $
+# $Revision: 1.211 $
 
 #
 # Print usage and exit
@@ -298,6 +298,14 @@ if [ -n "$use_static_binaries" ]; then
     initrd_insmod=/sbin/insmod.static
 else
     initrd_insmod=$initrd_insmod_dynamic
+fi
+
+[ -x /sbin/modprobe ] \
+    && initrd_modprobe_dynamic=/sbin/modprobe
+if [ -n "$use_static_binaries" ]; then
+    initrd_modprobe=/sbin/modprobe.static
+else
+    initrd_modprobe=$initrd_modprobe_dynamic
 fi
 
 # maximum initrd size
@@ -1154,6 +1162,8 @@ mkinitrd_kernel() {
     fi
     cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
 	|| error 5 "no static insmod"
+    cp_bin $initrd_modprobe $tmp_mnt/sbin/modprobe 2>/dev/null \
+	|| error 5 "no static modprobe"
 
     # SELinux: Binary policy file and load_policy utility for loading it.
     if [ -n "$use_selinux" ] ; then
@@ -1212,7 +1222,7 @@ mkinitrd_kernel() {
     if [ -z "$use_glibc" ] ; then
 	mkdir -p $tmp_mnt/lib/klibc/bin
 	for klibc_bin in devnumber chroot run-init sed sleep \
-	    cat ln mount umount nfsmount; do
+	    cat ln mount umount nfsmount printf; do
 	  cp_bin /lib/klibc/bin/$klibc_bin \
 	      $tmp_mnt/lib/klibc/bin
 	  if [ ! -e $tmp_mnt/bin/$klibc_bin ]; then
@@ -1232,6 +1242,7 @@ mkinitrd_kernel() {
 	for glibc_bin in sed sleep ln mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
 	done
+	cp_bin /usr/bin/printf $tmp_mnt/printf
 	cp_bin /sbin/scsi_id $tmp_mnt/sbin
 	cp_bin /sbin/ata_id $tmp_mnt/sbin
 	cp_bin /sbin/vol_id $tmp_mnt/sbin
@@ -1341,9 +1352,18 @@ mkinitrd_kernel() {
 	    fi
 	    
 	fi
+	cp_bin /sbin/path_id $tmp_mnt/sbin
 	cp_bin /sbin/udev.*.sh $tmp_mnt/sbin
-	mkdir -p $tmp_mnt/etc/udev
-	cp -a /etc/udev/* $tmp_mnt/etc/udev
+	mkdir -p $tmp_mnt/etc/udev/rules.d
+	# Create our own udev.conf
+	echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
+	echo "udev_db=\"/dev/.udevdb\"" >> $tmp_mnt/etc/udev/udev.conf
+	echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
+	cp /etc/udev/rules.d/* $tmp_mnt/etc/udev/rules.d
+	# comment out binaries not available in initrd
+	for file in $tmp_mnt/etc/udev/rules.d/*; do
+		sed 's@\(.*/usr/.*\)@#(mkinitrd) \1@g' -i $file
+	done
     fi
 
     if [ "$mkinit_type" = "ramfs" ] ; then
@@ -1500,6 +1520,7 @@ mkinitrd_kernel() {
 	    if [ -n "$initrd_insmod_dynamic" ]; then
 		#echo " - Using dynamically linked /sbin/insmod"
 		cp_bin $initrd_insmod_dynamic $tmp_mnt/sbin/insmod
+		cp_bin $initrd_modprobe_dynamic $tmp_mnt/sbin/modprobe
 	    fi
 	fi
     fi
@@ -1541,7 +1562,7 @@ mkinitrd_kernel() {
 	|exec < /dev/console > /dev/console 2>&1
 	|
 	|devdir="/dev"
-	|mount -t tmpfs -o 'size=25%' initramfsdevs \$devdir
+	|mount -t tmpfs -o 'size=25%,mode=0755' initramfsdevs \$devdir
 	|mkdir -p \$devdir/pts
 	|mkdir -p \$devdir/shm
 	|mkdir -p \$devdir/.udevdb
@@ -1563,6 +1584,7 @@ mkinitrd_kernel() {
 	|	done
 	|	echo ""
 	|	set -x
+	|	debug_linuxrc=1
 	|	;;
 	|    noresume)
 	|	resume_mode=no
@@ -1660,6 +1682,12 @@ mkinitrd_kernel() {
 	|    resume_mode=
 	|fi
 	|
+	|# Check for debugging
+	|if [ -n "\$debug_linuxrc" ]; then
+	|    echo "udev_log=\"debug\"" >> /etc/udev/udev.conf
+	|else
+	|    echo "udev_log=\"error\"" >> /etc/udev/udev.conf
+	|fi
 	EOF
 
     if [ -n "$need_block_driver" ]; then
@@ -1694,11 +1722,6 @@ mkinitrd_kernel() {
 	|
 	EOF
 
-    # Check for IDE modules
-    if [ -z "$interface" ]; then
-	check_ide_modules $root_dir/lib/modules/$kernel_version
-    fi
-
     resolved_modules="$(resolve_modules $kernel_version $modules)"
 
     # If a SCSI module is loaded, we will have a dependency on scsi_mod
@@ -1718,6 +1741,20 @@ mkinitrd_kernel() {
 	resolved_modules="$(resolve_modules $kernel_version $modules)"
     fi
 
+    # The same reasoning goes for IDE modules
+    local have_ide have_ide_disk
+    case "$resolved_modules" in
+	*/ide-core.*)   have_ide=1
+			;;
+	*/ide-disk.*)	have_ide_disk=1
+			;;
+    esac
+    if [ -n "$have_ide" -a -z "$have_ide_disk" ]; then
+	modules="ide-disk $modules"
+	# Re-evaluate module dependencies
+	resolved_modules="$(resolve_modules $kernel_version $modules)"
+    fi
+
     # Filter modules into fs and non-fs (driver) modules
     for module in $resolved_modules; do
 	case $module in
@@ -1729,6 +1766,10 @@ mkinitrd_kernel() {
 		;;
 	esac
     done
+
+    # Add modules which we might load during booting
+    modules="sd_mod osst st sr_mod sg ide-disk ide-scsi ide-cd ide-tape ide-floppy cdrom"
+    uld_modules=$(resolve_modules $kernel_version $modules)
 
     # Copy the modules to the initrd
     echo -ne "Driver modules:\t"
@@ -1860,6 +1901,16 @@ mkinitrd_kernel() {
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
     fi
+
+    # Now copy the upper level driver modules
+    for module in $uld_modules; do
+	if [ ! -f $tmp_mnt/$module ]; then
+	    if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
+		oops 6 "Failed to add module $module."
+		return
+	    fi
+	fi
+    done
 
     if [ -n "$s390_dasd_disks" ]; then
 	# We only need to activate DASDs manually if it
@@ -2231,6 +2282,13 @@ mkinitrd_kernel() {
     done < <(echo -e "$fs_modules")
     echo
 
+    # And run depmod to ensure proper loading
+    map=${root_dir:-/}/boot/System.map-$kernel_version
+    if [ ! -f $map ]; then
+	map=${root_dir:-/}/boot/System.map
+    fi
+    ( cd $tmp_mnt; /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version )
+
     if [ -n "$need_raidautorun" ]; then
 	features=(${features[@]} raidautorun)
 	cat_linuxrc <<-EOF
@@ -2555,7 +2613,7 @@ mkinitrd_kernel() {
 	|
 	|# Save all events
 	|if [ -d /root/lib/klibc/events ]; then
-	|    mount -t tmpfs -o 'size=5%' eventfs /root/lib/klibc/events
+	|    mount -t tmpfs -o 'size=5%,mode=0755' eventfs /root/lib/klibc/events
 	|    cd /events
 	|    for ev in *; do
 	|        if [ -f "$ev" ]; then cat $ev > /root/lib/klibc/events/$ev ; fi

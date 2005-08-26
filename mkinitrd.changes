@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 26 12:04:28 CEST 2005 - hare@suse.de
+
+- Add modprobe and modules.dep for proper handling of modules
+- Fix mount permissions (#112765)
+- Switch off binaries not available during boot (#112820)
+
+-------------------------------------------------------------------
 Wed Aug 17 08:35:23 CEST 2005 - hare@suse.de
 
 - Pass only valid parameters to init (#104984).
