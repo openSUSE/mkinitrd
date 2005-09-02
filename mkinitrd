@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.211 $
+# $Revision: 1.212 $
 
 #
 # Print usage and exit
@@ -1756,6 +1756,11 @@ mkinitrd_kernel() {
     fi
 
     # Filter modules into fs and non-fs (driver) modules
+    # FIXME: $resolved_modules must be processed line by line: it contains
+    #        modules and module parameters!
+    # FIXME: document why the heck we need to split the module list.
+    # FIXME: don't insert meta-character sequences in fs_modules or
+    #        drv_modules; use the same format as $resolved_modules...
     for module in $resolved_modules; do
 	case $module in
 	    */kernel/fs/*)
@@ -1768,8 +1773,11 @@ mkinitrd_kernel() {
     done
 
     # Add modules which we might load during booting
+    # FIXME: Why are we overwriting $modules below?
+    # FIXME: uld_modules are never loaded
+    # FIXME: move uld_modules close to where it's used...
     modules="sd_mod osst st sr_mod sg ide-disk ide-scsi ide-cd ide-tape ide-floppy cdrom"
-    uld_modules=$(resolve_modules $kernel_version $modules)
+    uld_modules="$(resolve_modules $kernel_version $modules)"
 
     # Copy the modules to the initrd
     echo -ne "Driver modules:\t"
@@ -1903,6 +1911,8 @@ mkinitrd_kernel() {
     fi
 
     # Now copy the upper level driver modules
+    # FIXME: $uld_modules must be processed line by line: it contains
+    #        modules and module parameters!
     for module in $uld_modules; do
 	if [ ! -f $tmp_mnt/$module ]; then
 	    if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
