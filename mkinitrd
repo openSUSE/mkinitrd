@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.212 $
+# $Revision: 1.213 $
 
 #
 # Print usage and exit
@@ -2882,13 +2882,8 @@ echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
-    if [ -e $root_dir/etc/sysconfig/kernel ]; then
-	. $root_dir/etc/sysconfig/kernel
-	modules="$INITRD_MODULES"
-    elif [ -e $root_dir/etc/rc.config ]; then
-	. $root_dir/etc/sysconfig/kernel
-	modules="$INITRD_MODULES"
-    fi
+    . $root_dir/etc/sysconfig/kernel
+    modules="$INITRD_MODULES"
 fi
 
 ###################################################################
