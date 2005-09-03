@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.213 $
+# $Revision: 1.214 $
 
 #
 # Print usage and exit
@@ -1756,21 +1756,9 @@ mkinitrd_kernel() {
     fi
 
     # Filter modules into fs and non-fs (driver) modules
-    # FIXME: $resolved_modules must be processed line by line: it contains
-    #        modules and module parameters!
     # FIXME: document why the heck we need to split the module list.
-    # FIXME: don't insert meta-character sequences in fs_modules or
-    #        drv_modules; use the same format as $resolved_modules...
-    for module in $resolved_modules; do
-	case $module in
-	    */kernel/fs/*)
-		fs_modules="${fs_modules}${fs_modules:+\n}${module}"
-		;;
-	    *)
-		drv_modules="${drv_modules}${drv_modules:+\n}${module}"
-		;;
-	esac
-    done
+    fs_modules="$(echo "$resolved_modules" | grep -e '/kernel/fs/')"
+    drv_modules="$(echo "$resolved_modules" | grep -v -e '/kernel/fs/')"
 
     # Add modules which we might load during booting
     # FIXME: Why are we overwriting $modules below?
@@ -1903,7 +1891,7 @@ mkinitrd_kernel() {
 	esac
 
 	initrd_is_using_modules=1
-    done < <(echo -e $drv_modules)
+    done < <(echo "$drv_modules")
     echo
 
     if [ -z "$initrd_is_using_modules" ]; then
@@ -1911,16 +1899,14 @@ mkinitrd_kernel() {
     fi
 
     # Now copy the upper level driver modules
-    # FIXME: $uld_modules must be processed line by line: it contains
-    #        modules and module parameters!
-    for module in $uld_modules; do
+    while read module params ; do
 	if [ ! -f $tmp_mnt/$module ]; then
 	    if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
 		oops 6 "Failed to add module $module."
 		return
 	    fi
 	fi
-    done
+    done < <(echo "$uld_modules")
 
     if [ -n "$s390_dasd_disks" ]; then
 	# We only need to activate DASDs manually if it
@@ -2289,7 +2275,7 @@ mkinitrd_kernel() {
 	|insmod $mp
 	EOF
 	initrd_is_using_modules=1
-    done < <(echo -e "$fs_modules")
+    done < <(echo "$fs_modules")
     echo
 
     # And run depmod to ensure proper loading
