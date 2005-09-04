@@ -4,6 +4,17 @@ Sat Sep  3 18:47:52 CEST 2005 - agruen@suse.de
 - Fix module parameter handling (broken with the #71218 fix).
 
 -------------------------------------------------------------------
+Fri Sep  2 17:43:51 CEST 2005 - kasievers@suse.de
+
+- read DEV_ON_TMPFS from /etc/sysconfig/kernel (#114400)
+  with default yes.
+
+-------------------------------------------------------------------
+Sat Aug 27 22:48:48 CEST 2005 - cthiel@suse.de
+
+- Fix splash size autodetection (#113573)
+
+-------------------------------------------------------------------
 Fri Aug 26 12:04:28 CEST 2005 - hare@suse.de
 
 - Add modprobe and modules.dep for proper handling of modules

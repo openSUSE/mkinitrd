@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.214 $
+# $Revision: 1.215 $
 
 #
 # Print usage and exit
@@ -332,7 +332,7 @@ auto)
 	788|789) splash_size_800x600=1 ;;
 	791|792) splash_size_1024x768=1 ;;
 	794|795) splash_size_1280x1024=1 ;;
-	*)       vgahex=$(printf 0x%04x "$(($vga))")
+	*)       vgahex=$(printf 0x%04x "$(($mode))")
 		 size=$(hwinfo --framebuffer | \
 		     sed -ne 's/^.*Mode '$vgahex': \([^ ]\+\) .*$/\1/p' \
 			2>/dev/null)
@@ -2584,8 +2584,8 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|# Setup dynamic device nodes directory
-	|dev_on_tmpfs=$(. /root/etc/sysconfig/hotplug; echo $HOTPLUG_DEV_ON_TMPFS)
-	|if [ "$dev_on_tmpfs" != "yes" ]; then
+	|dev_on_tmpfs="yes"
+	|if [ -n "$DEV_ON_TMPFS" -a "$DEV_ON_TMPFS" != "yes" ]; then
 	|    dev_on_tmpfs=
 	|fi
 	|
