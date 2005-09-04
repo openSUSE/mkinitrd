@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Sep  4 19:04:48 CEST 2005 - schwab@suse.de
+
+- Filter out empty lines in resolve_modules.
+
+-------------------------------------------------------------------
 Sat Sep  3 18:47:52 CEST 2005 - agruen@suse.de
 
 - Fix module parameter handling (broken with the #71218 fix).
