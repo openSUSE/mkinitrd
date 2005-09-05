@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep  5 16:29:08 CEST 2005 - agruen@suse.de
+
+- Some modules we generally include in initrds do not exist
+  with every kernel configuration. Only try to include modules
+  that actually exist.
+
+-------------------------------------------------------------------
 Mon Sep  5 10:43:22 CEST 2005 - hare@suse.de
 
 - Properly (re-)set $uld_modules (#115217)

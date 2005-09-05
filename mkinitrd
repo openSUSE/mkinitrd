@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.218 $
+# $Revision: 1.219 $
 
 #
 # Print usage and exit
@@ -1897,9 +1897,13 @@ mkinitrd_kernel() {
     fi
 
     # Add modules which might be loaded via udev during booting
-    uld_modules="$(resolve_modules $kernel_version \
-    		     sd_mod osst st sr_mod sg ide-disk ide-scsi \
-		     ide-cd ide-tape ide-floppy cdrom)"
+    uld_modules=
+    for module in sd_mod osst st sr_mod sg ide-disk ide-scsi \
+	          ide-cd ide-tape ide-floppy cdrom; do
+	grep -qw $module $root_dir/lib/modules/$kernel_version/modules.dep \
+	&& uld_modules="$uld_modules $module"
+    done
+    uld_modules="$(resolve_modules $kernel_version $uld_modules)"
 
     # Now copy the upper level driver modules
     while read module params ; do
@@ -2282,9 +2286,9 @@ mkinitrd_kernel() {
     echo
 
     # And run depmod to ensure proper loading
-    map=${root_dir:-/}/boot/System.map-$kernel_version
+    map=$root_dir/boot/System.map-$kernel_version
     if [ ! -f $map ]; then
-	map=${root_dir:-/}/boot/System.map
+	map=$root_dir/boot/System.map
     fi
     ( cd $tmp_mnt; /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version )
 
