@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.219 $
+# $Revision: 1.220 $
 
 #
 # Print usage and exit
@@ -1149,8 +1149,12 @@ mkinitrd_kernel() {
 	(cd ${root_dir:-/} ; cp -R --parents $initrd_devices $tmp_mnt )
     else
 	mkdir -p $tmp_mnt/{tmp,root,lib/klibc/dev}
+	mknod $tmp_mnt/dev/console c 5 1
+	mknod $tmp_mnt/dev/null c 1 3
+	mknod $tmp_mnt/dev/kmsg c 1 11
 	mknod $tmp_mnt/lib/klibc/dev/console c 5 1
 	mknod $tmp_mnt/lib/klibc/dev/null c 1 3
+	mknod $tmp_mnt/lib/klibc/dev/kmsg c 1 11
     fi
 
     mkdir -p $tmp_mnt${initrd_shell%/*}
@@ -1231,8 +1235,7 @@ mkinitrd_kernel() {
 	  fi
 	done
 	mkdir -p $tmp_mnt/lib/klibc/sbin
-	for klibc_bin in ata_id scsi_id usb_id \
-	    vol_id; do
+	for klibc_bin in ata_id scsi_id usb_id vol_id dasd_id; do
 	  cp_bin /lib/klibc/sbin/$klibc_bin \
 	    $tmp_mnt/lib/klibc/sbin
 	  if [ ! -e $tmp_mnt/sbin/$klibc_bin ]; then
@@ -1267,8 +1270,8 @@ mkinitrd_kernel() {
 	cp_bin /usr/share/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
     fi
 
-    # all dev nodes belong to root, according to udev.permissions
-    # but some may be owned by a group other than root
+    # all dev nodes belong to root, but some may be
+    # owned by a group other than root
     # getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
     echo 'root::0:0:::' > $tmp_mnt/etc/passwd
     getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
@@ -1355,17 +1358,19 @@ mkinitrd_kernel() {
 	    
 	fi
 	cp_bin /sbin/path_id $tmp_mnt/sbin
-	cp_bin /sbin/udev.*.sh $tmp_mnt/sbin
+	for udev_script in /sbin/udev.*.sh; do
+		# we don't have bash in initramfs
+		if grep -q /bin/bash $udev_script; then
+			continue
+		fi
+		cp_bin $udev_script $tmp_mnt/sbin
+	done
 	mkdir -p $tmp_mnt/etc/udev/rules.d
 	# Create our own udev.conf
 	echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
 	echo "udev_db=\"/dev/.udevdb\"" >> $tmp_mnt/etc/udev/udev.conf
 	echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
-	cp /etc/udev/rules.d/* $tmp_mnt/etc/udev/rules.d
-	# comment out binaries not available in initrd
-	for file in $tmp_mnt/etc/udev/rules.d/*; do
-		sed 's@\(.*/usr/.*\)@#(mkinitrd) \1@g' -i $file
-	done
+	cp /etc/udev/rules.d/*.rules $tmp_mnt/etc/udev/rules.d
     fi
 
     if [ "$mkinit_type" = "ramfs" ] ; then
@@ -1525,6 +1530,20 @@ mkinitrd_kernel() {
 		cp_bin $initrd_modprobe_dynamic $tmp_mnt/sbin/modprobe
 	    fi
 	fi
+    fi
+
+    if [ -n "$use_udev" ] ; then
+	# comment out rules with tools not available in initramfs
+	for tool in $(sed 's:.*"\(/.*bin/[^ "]*\).*:\1:' /etc/udev/rules.d/*.rules | grep '^/.*bin/' | sort -u); do
+		if [ -x "$tmp_mnt$tool" ]; then
+			# tool exists, keep the rule
+			continue
+		fi
+		# comment out all rules using this tool
+		for file in $tmp_mnt/etc/udev/rules.d/*.rules; do
+			sed "s@\(.*$tool.*\)@#(mkinitrd) \1@" -i $file
+		done;
+	done
     fi
 
     cat /dev/null > $linuxrc
