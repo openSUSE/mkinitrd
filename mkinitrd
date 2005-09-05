@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.217 $
+# $Revision: 1.218 $
 
 #
 # Print usage and exit
@@ -1765,11 +1765,6 @@ mkinitrd_kernel() {
     fs_modules="$(echo "$resolved_modules" | grep -e '/kernel/fs/')"
     drv_modules="$(echo "$resolved_modules" | grep -v -e '/kernel/fs/')"
 
-    # Add modules which might be loaded via udev during booting
-    # FIXME: move uld_modules close to where it's used...
-    uld_modules="sd_mod osst st sr_mod sg ide-disk ide-scsi ide-cd ide-tape ide-floppy cdrom"
-    uld_modules="$(resolve_modules $kernel_version $uld_modules)"
-
     # Copy the modules to the initrd
     echo -ne "Driver modules:\t"
     initrd_is_using_modules=
@@ -1900,6 +1895,11 @@ mkinitrd_kernel() {
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
     fi
+
+    # Add modules which might be loaded via udev during booting
+    uld_modules="$(resolve_modules $kernel_version \
+    		     sd_mod osst st sr_mod sg ide-disk ide-scsi \
+		     ide-cd ide-tape ide-floppy cdrom)"
 
     # Now copy the upper level driver modules
     while read module params ; do
