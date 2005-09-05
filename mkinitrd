@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.216 $
+# $Revision: 1.217 $
 
 #
 # Print usage and exit
@@ -1072,7 +1072,7 @@ mkinitrd_kernel() {
     local kernel_version need_block_driver
     local need_raidautorun
     local -a features
-    local fs_modules drv_modules
+    local fs_modules drv_modules uld_modules
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
@@ -1274,8 +1274,9 @@ mkinitrd_kernel() {
     getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
     (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
     
-    # FIXME: only include this if glibc is used !!!
-
+    # FIXME: We should only include those if glibc binaries are used.
+    # $use_glibc doesn't work as even without it some programs are
+    # only present as glibc binaries (eg lvm)
     if [ -d /lib64 ]; then
 	mkdir -p $tmp_mnt/lib64
 	for nss_lib in /lib64/libnss_files*; do
@@ -1757,16 +1758,17 @@ mkinitrd_kernel() {
     fi
 
     # Filter modules into fs and non-fs (driver) modules
-    # FIXME: document why the heck we need to split the module list.
+    # We _must not_ load filesystem modules as this breaks
+    # resume. For some weird reasons loading a filesystem module
+    # changes the internal kernel state in such a way that
+    # resume doesn't work anymore. Ask Pavel for details
     fs_modules="$(echo "$resolved_modules" | grep -e '/kernel/fs/')"
     drv_modules="$(echo "$resolved_modules" | grep -v -e '/kernel/fs/')"
 
-    # Add modules which we might load during booting
-    # FIXME: Why are we overwriting $modules below?
-    # FIXME: uld_modules are never loaded
+    # Add modules which might be loaded via udev during booting
     # FIXME: move uld_modules close to where it's used...
-    modules="sd_mod osst st sr_mod sg ide-disk ide-scsi ide-cd ide-tape ide-floppy cdrom"
-    uld_modules="$(resolve_modules $kernel_version $modules)"
+    uld_modules="sd_mod osst st sr_mod sg ide-disk ide-scsi ide-cd ide-tape ide-floppy cdrom"
+    uld_modules="$(resolve_modules $kernel_version $uld_modules)"
 
     # Copy the modules to the initrd
     echo -ne "Driver modules:\t"
