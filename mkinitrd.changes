@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep  7 12:26:39 CEST 2005 - hare@suse.de
+
+- Re-enable scan for IDE devices (#114511)
+- Return proper error codes (#115374)
+- Fix NFS-root (#87351)
+
+-------------------------------------------------------------------
 Mon Sep  5 16:34:44 CEST 2005 - hare@suse.de
 
 - Do not run udev rules for which no binaries are present (#115133)

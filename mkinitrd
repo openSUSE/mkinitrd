@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.220 $
+# $Revision: 1.221 $
 
 #
 # Print usage and exit
@@ -702,16 +702,17 @@ check_ide_modules() {
 		add_module $module
 	    fi
 	done
-	if grep -q ide-disk ${modules_dir}/modules.dep; then
-	    add_module ide-disk
-	fi
+	# All IDE modules are now loaded later
+	# if grep -q ide-disk ${modules_dir}/modules.dep; then
+	#     add_module ide-disk
+	# fi
 	# IDE-floppy is considered obsolete
 	# if grep -q ide-floppy ${modules_dir}/modules.dep; then
 	#     add_module ide-floppy
 	# fi
-	if grep -q ide-cd ${modules_dir}/modules.dep; then
-	    add_module ide-cd
-	fi
+	# if grep -q ide-cd ${modules_dir}/modules.dep; then
+	#     add_module ide-cd
+	# fi
 	echo
     fi
 
@@ -1103,7 +1104,9 @@ mkinitrd_kernel() {
     fi
 
     # create an empty initrd
-    mkdir $tmp_mnt || error 1 "could not create temporary directory"
+    if ! mkdir $tmp_mnt ; then
+	error 1 "could not create temporary directory"
+    fi
     if [ "$mkinit_type" = "rd" ]; then
 	dd if=/dev/zero of=$tmp_initrd bs=1k count=$image_blocks 2>/dev/null
 	mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd 2>/dev/null 1>&2
@@ -1165,11 +1168,12 @@ mkinitrd_kernel() {
     if [ $shebang != /bin/sh ]; then
 	ln -s $shebang $tmp_mnt/bin/sh
     fi
-    cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null \
-	|| error 5 "no static insmod"
-    cp_bin $initrd_modprobe $tmp_mnt/sbin/modprobe 2>/dev/null \
-	|| error 5 "no static modprobe"
-
+    if ! cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null ; then
+	error 5 "no static insmod"
+    fi
+    if ! cp_bin $initrd_modprobe $tmp_mnt/sbin/modprobe 2>/dev/null ; then
+	error 5 "no static modprobe"
+    fi
     # SELinux: Binary policy file and load_policy utility for loading it.
     if [ -n "$use_selinux" ] ; then
 	if [ -f /etc/security/selinux/policy.15 -a \
@@ -1742,6 +1746,12 @@ mkinitrd_kernel() {
 	|done
 	|
 	EOF
+
+    # FIXME: we should only load IDE modules if we need them for booting
+    # Check for IDE modules
+    if [ -z "$interface" ]; then
+	check_ide_modules $root_dir/lib/modules/$kernel_version
+    fi
 
     resolved_modules="$(resolve_modules $kernel_version $modules)"
 
@@ -2495,7 +2505,7 @@ mkinitrd_kernel() {
 	|discover_root() {
 	|	local root
 	|	case $rootdev in
-	|	/dev/*)	root=${$rootdev#/dev/} ;;
+	|	/dev/*)	root=${rootdev#/dev/} ;;
 	|	*)	
 	|	esac
 	|	if [ -n "$root" ]; then
@@ -2773,8 +2783,9 @@ mkinitrd_kernel() {
 	is_mounted_small=1
 	
 	rmdir $tmp_mnt_small/lost+found
-	cp -a $tmp_mnt/* $tmp_mnt_small \
-	    || error 6 "copy big image to small image failed"
+	if ! cp -a $tmp_mnt/* $tmp_mnt_small ; then
+	    error 6 "copy big image to small image failed"
+	fi
 	chown -R 0:0 $tmp_mnt
 
 	umount $tmp_mnt_small
@@ -2845,12 +2856,12 @@ else
 fi
 
 if [ -z "$use_dhcp" ]; then
-    [ -z "$rootdev" ] \
-	&& error 1 "No '/' mountpoint specified in $root_dir/etc/fstab"
+    if [ -z "$rootdev" ] ; then
+	error 1 "No '/' mountpoint specified in $root_dir/etc/fstab"
+    fi
 else
     rootdev=
     rootfstype=nfs
-    use_udev=
 fi
 
 realrootdev="$rootdev"
@@ -2858,15 +2869,15 @@ case "$rootdev" in
     *:*)
 	rootdev=
 	rootfstype=nfs
-	use_udev=
 	;;
     LABEL=*|UUID=*)
 	# get real root via fsck hack
 	realrootdev=$(fsck -N "$rootdev" \
 		      | sed -ne '2s/.* \/dev/\/dev/p' \
 		      | sed -e 's/  *//g')
-	[ -z "$realrootdev" ] \
-	    && error 1 "Could not expand $rootdev to real device"
+	if [ -z "$realrootdev" ] ; then
+	    error 1 "Could not expand $rootdev to real device"
+	fi
 	;;
 esac
 
@@ -2944,7 +2955,7 @@ esac
 
 ###################################################################
 
-exit_code=0
+export exit_code=0
 
 initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
