@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.221 $
+# $Revision: 1.222 $
 
 #
 # Print usage and exit
@@ -2955,7 +2955,7 @@ esac
 
 ###################################################################
 
-export exit_code=0
+exit_code=0
 
 initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
