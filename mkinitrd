@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.225 $
+# $Revision: 1.226 $
 
 #
 # Print usage and exit
@@ -1094,6 +1094,7 @@ mkinitrd_kernel() {
     fi
 
     kernel_version=$(/sbin/get_kernel_version $kernel_image)
+    modules_dep=$root_dir/lib/modules/$kernel_version/modules.dep
 
     #echo -e "Kernel version:\t$kernel_version"
     echo -e "Kernel image:\t$kernel_image"
@@ -1831,19 +1832,24 @@ mkinitrd_kernel() {
 	fi
     done
 
-    # Filter modules into fs and non-fs (driver) modules
-    # We _must not_ load filesystem modules as this breaks
-    # resume. For some weird reasons loading a filesystem module
-    # changes the internal kernel state in such a way that
-    # resume doesn't work anymore. Ask Pavel for details
-    fs_modules="$(echo "$resolved_modules" | grep -e '/kernel/fs/')"
-    drv_modules="$(echo "$resolved_modules" | grep -v -e '/kernel/fs/')"
+    # Filter modules into fs and non-fs (driver) modules.
+    # We do this to avoid loading xfs when doing a resule: xfs had
+    # (or still has) a bug that slows down resume a lot.
+    # FIXME: get rid of this split crap again.
+    for module in $modules; do
+	if grep -q "/kernel/fs/.*/${module%.ko}.ko:" $modules_dep; then
+	    fs_modules="$fs_modules $module"
+	else
+	    drv_modules="$drv_modules $module"
+	fi
+    done
+    #fs_modules="$(echo "$resolved_modules" | grep -e '/kernel/fs/')"
+    #drv_modules="$(echo "$resolved_modules" | grep -v -e '/kernel/fs/')"
 
-    # Copy the modules to the initrd
     echo -ne "Driver modules:\t"
     initrd_is_using_modules=
     for module in $drv_modules; do
-	echo -n "${module#lib/modules/$kernel_version/} "
+	echo -n "$module "
 	cat_linuxrc <<-EOF
 	|params=
 	|for p in \$(cat /proc/cmdline) ; do
@@ -2313,7 +2319,18 @@ mkinitrd_kernel() {
     echo -ne "Filesystem modules:\t"
     initrd_is_using_modules=
     for module in $fs_modules; do
-	echo -n "${module#lib/modules/$kernel_version/} "
+	echo -n "$module "
+	cat_linuxrc <<-EOF
+	|params=
+	|for p in \$(cat /proc/cmdline) ; do
+	|  case \$p in
+	|    $module.*)
+	|      params="\$params \${p#$module.}"
+	|      ;;
+	|  esac
+	|done
+	EOF
+
 	cat_linuxrc <<-EOF
 	|echo "Loading ${module#/lib/modules/$kernel_version/}"
 	|modprobe $module
