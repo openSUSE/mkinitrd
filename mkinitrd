@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.223 $
+# $Revision: 1.224 $
 
 #
 # Print usage and exit
@@ -533,7 +533,9 @@ resolve_modules() {
 	NF == 0     { next }
 	$1 in seen  { next }
 		    { seen[$1]=1
-		      print
+		      # drop module parameters here: modprobe in the initrd
+		      # will pick them up again.
+		      print $1
 		    }
     '
     rm -f $temp
@@ -1169,19 +1171,23 @@ mkinitrd_kernel() {
 	ln -s $shebang $tmp_mnt/bin/sh
     fi
     
-    # Add a version of /bin/true: modprobe.conf might need it.
-    cat > $tmp_mnt/bin/true <<EOF
+    if ! cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null ; then
+	error 5 "no static insmod"
+    fi
+
+    # Add modprobe, modprobe.conf*, and a version of /bin/true: modprobe.conf
+    # might use it.
+    if ! cp_bin $initrd_modprobe $tmp_mnt/sbin/modprobe 2>/dev/null ; then
+	error 5 "no static modprobe"
+    fi
+    cp -r $root_dir/etc/modprobe.conf $root_dir/etc/modprobe.conf.local \
+ 	  $root_dir/etc/modprobe.d $tmp_mnt/etc
+    cat > $tmp_mnt/bin/true <<-EOF
 	#! /bin/sh
 	:
 	EOF
     chmod +x $tmp_mnt/bin/true
-    
-    if ! cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null ; then
-	error 5 "no static insmod"
-    fi
-    if ! cp_bin $initrd_modprobe $tmp_mnt/sbin/modprobe 2>/dev/null ; then
-	error 5 "no static modprobe"
-    fi
+ 
     # SELinux: Binary policy file and load_policy utility for loading it.
     if [ -n "$use_selinux" ] ; then
 	if [ -f /etc/security/selinux/policy.15 -a \
@@ -1805,8 +1811,7 @@ mkinitrd_kernel() {
     # Copy the modules to the initrd
     echo -ne "Driver modules:\t"
     initrd_is_using_modules=
-    while read module params ; do
-	[ -z "$module" ] && continue
+    for module in $drv_modules; do
 	echo -n "${module#lib/modules/$kernel_version/} "
 	if [ ! -r $root_dir/$module ]; then
 	    oops 9 "Module $module not found."
@@ -1816,6 +1821,17 @@ mkinitrd_kernel() {
 	    oops 6 "Failed to add module $module."
 	    return
 	fi
+
+	cat_linuxrc <<-EOF
+	|params=
+	|for p in \$(cat /proc/cmdline) ; do
+	|  case \$p in
+	|    $module.*)
+	|      params="\$params \${p#$module.}"
+	|      ;;
+	|  esac
+	|done
+	EOF
 
 	case "$module" in
 	    */dasd_mod.*)
@@ -1833,13 +1849,10 @@ mkinitrd_kernel() {
 		|for p in \$(cat /proc/cmdline) ; do
 		|  case \$p in
 		|    dasd=*)
-		|      dasd_params="\$p"
+		|      params="\$params \$p"
 		|      ;;
 		|  esac
 		|done
-		|mp="/$module\${dasd_params:+ dasd=\"\$dasd_params\"}"
-		|echo "Loading \${mp#/lib/modules/$kernel_version/}"	
-		|insmod \$mp
 		EOF
 		;;
 	    */ide?core.*)
@@ -1856,9 +1869,9 @@ mkinitrd_kernel() {
 		|      ;;
 		|  esac
 		|done
-		|mp="/$module\${ide_params:+ options=\"\$ide_params\"}"
-		|echo "Loading \${mp#/lib/modules/$kernel_version/}"	
-		|insmod \$mp
+		|if [ -n "\$ide_params" ]; then
+		|  params="\$params options=\"\$ide_params\""
+		|fi
 		EOF
 		;;
 	    */scsi_mod*)
@@ -1872,7 +1885,7 @@ mkinitrd_kernel() {
 		|for p in \$(cat /proc/cmdline) ; do
 		|  case \$p in
 		|    scsi_mod.*)
-		|	extra_scsi_params="\$extra_scsi_params \${p#scsi_mod.}"
+		|	params="\$params \${p#scsi_mod.}"
 		|	;;
 		|    scsi_reportlun2=1)
 		|	echo "scsi_reportlun2 compat: Use scsi_mod.default_dev_flags=0x20000 instead"
@@ -1904,29 +1917,24 @@ mkinitrd_kernel() {
 		|	;;
 		|    max_luns=*|max_report_luns=*|inq_timeout=*|dev_flags=*|default_dev_flags=*)
 		|	echo "scsi_mod compat: Please use prefix: scsi_mod.\$p"
-		|	extra_scsi_params="\$extra_scsi_params \$p"
+		|	params="\$params \$p"
 		|      ;;
 		|  esac
 		|done
 		|if [ \$devflags != 0 ]; then 
-		|    extra_scsi_params="default_dev_flags=\$devflags \$extra_scsi_params"
+		|    params="default_dev_flags=\$devflags \$params"
 		|fi
-		|mp="/$module\${extra_scsi_params:+ $extra_scsi_params}"
-		|echo "Loading \${mp#/lib/modules/$kernel_version/}"	
-		|insmod \$mp
-		EOF
-		;;
-	    *)
-		mp="/$module${params:+ $params}"
-		cat_linuxrc <<-EOF
-		|echo "Loading ${mp#/lib/modules/$kernel_version/}"
-		|insmod $mp
 		EOF
 		;;
 	esac
+	module_basename=${module##*/}
+	cat_linuxrc <<-EOF
+	|echo "Loading ${module_basename%.ko}"
+	|modprobe ${module_basename%.ko} \$params
+	EOF
 
 	initrd_is_using_modules=1
-    done < <(echo "$drv_modules")
+    done
     echo
 
     if [ -z "$initrd_is_using_modules" ]; then
@@ -1943,14 +1951,14 @@ mkinitrd_kernel() {
     uld_modules="$(resolve_modules $kernel_version $uld_modules)"
 
     # Now copy the upper level driver modules
-    while read module params ; do
+    for module in $uld_modules; do
 	if [ ! -f $tmp_mnt/$module ]; then
 	    if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
 		oops 6 "Failed to add module $module."
 		return
 	    fi
 	fi
-    done < <(echo "$uld_modules")
+    done
 
     if [ -n "$s390_dasd_disks" ]; then
 	# We only need to activate DASDs manually if it
@@ -2301,8 +2309,7 @@ mkinitrd_kernel() {
     # Load fs modules _after_ resume
     echo -ne "Filesystem modules:\t"
     initrd_is_using_modules=
-    while read module params ; do
-	[ -z "$module" ] && continue
+    for module in $fs_modules; do
 	echo -n "${module#lib/modules/$kernel_version/} "
 	if [ ! -r $root_dir/$module ]; then
 	    oops 9 "Module $module not found."
@@ -2313,13 +2320,12 @@ mkinitrd_kernel() {
 	    return
 	fi
 
-	mp="/$module${params:+ $params}"
 	cat_linuxrc <<-EOF
-	|echo "Loading ${mp#/lib/modules/$kernel_version/}"
-	|insmod $mp
+	|echo "Loading ${module#/lib/modules/$kernel_version/}"
+	|modprobe $module
 	EOF
 	initrd_is_using_modules=1
-    done < <(echo "$fs_modules")
+    done
     echo
 
     # And run depmod to ensure proper loading

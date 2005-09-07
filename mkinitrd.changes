@@ -1,7 +1,10 @@
 -------------------------------------------------------------------
-Wed Sep  7 14:27:24 CEST 2005 - agruen@suse.de
+Wed Sep  7 14:31:18 CEST 2005 - agruen@suse.de
 
-- Add a version of /bin/true: modprobe.conf might need it.
+- Switch from using insmod to modprobe: modprobe will
+  fetch module parameters from modprobe.conf, so we don't need to
+  add them by hand.
+- Add a version of /bin/true: modprobe.conf might use it.
 
 -------------------------------------------------------------------
 Wed Sep  7 12:26:39 CEST 2005 - hare@suse.de
