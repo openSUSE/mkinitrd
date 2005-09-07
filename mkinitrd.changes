@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Sep  7 16:16:32 CEST 2005 - agruen@suse.de
+
+- Consolidate the code that copies modules into the initrd.
+- modprobe unresolved instead of resolved modules so that modprobe
+  will go through the usual rules when loading.
+- Add $module.* parameters from the kernel command line for
+  filesystem modules, too.
+
+-------------------------------------------------------------------
 Wed Sep  7 14:31:18 CEST 2005 - agruen@suse.de
 
 - Switch from using insmod to modprobe: modprobe will
