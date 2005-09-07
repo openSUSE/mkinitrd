@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.226 $
+# $Revision: 1.227 $
 
 #
 # Print usage and exit
@@ -1861,8 +1861,8 @@ mkinitrd_kernel() {
 	|done
 	EOF
 
-	case "$module" in
-	    */dasd_mod.*)
+	case $module in
+	    dasd_mod)
 		# kernel cmdline dasd parameter is placed into the environment.
 		# This is tricky. The only reliably way to check whether the
 		# dasd parameter is set is to indeed check for it within the
@@ -1883,7 +1883,7 @@ mkinitrd_kernel() {
 		|done
 		EOF
 		;;
-	    */ide?core.*)
+	    ide?core)
 		# This checks whether an ide= parameter is present
 		cat_linuxrc <<-EOF
 		|# check for IDE parameter in /proc/cmdline
@@ -1902,7 +1902,7 @@ mkinitrd_kernel() {
 		|fi
 		EOF
 		;;
-	    */scsi_mod*)
+	    scsi_mod)
 		# We may have SCSI parameters on the kernel command line,
 		# but because scsi_mod is a module, those would be ignored.
 		# Hack around this by scanning /proc/cmdline in linuxrc.
