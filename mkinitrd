@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.224 $
+# $Revision: 1.225 $
 
 #
 # Print usage and exit
@@ -1800,6 +1800,37 @@ mkinitrd_kernel() {
 	resolved_modules="$(resolve_modules $kernel_version $modules)"
     fi
 
+    # Copy all modules into the initrd
+    for module in $resolved_modules; do
+	if [ ! -r $root_dir/$module ]; then
+	    oops 9 "Module $module not found."
+	    continue
+	fi
+	if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
+	    oops 6 "Failed to add module $module."
+	    return
+	fi
+    done
+
+    # Add modules which might be loaded via udev during booting
+    uld_modules=
+    for module in sd_mod osst st sr_mod sg ide-disk ide-scsi \
+	          ide-cd ide-tape ide-floppy cdrom; do
+	grep -qw $module $root_dir/lib/modules/$kernel_version/modules.dep \
+	&& uld_modules="$uld_modules $module"
+    done
+    uld_modules="$(resolve_modules $kernel_version $uld_modules)"
+
+    # Now copy the upper level driver modules
+    for module in $uld_modules; do
+	if [ ! -f $tmp_mnt/$module ]; then
+	    if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
+		oops 6 "Failed to add module $module."
+		return
+	    fi
+	fi
+    done
+
     # Filter modules into fs and non-fs (driver) modules
     # We _must not_ load filesystem modules as this breaks
     # resume. For some weird reasons loading a filesystem module
@@ -1813,15 +1844,6 @@ mkinitrd_kernel() {
     initrd_is_using_modules=
     for module in $drv_modules; do
 	echo -n "${module#lib/modules/$kernel_version/} "
-	if [ ! -r $root_dir/$module ]; then
-	    oops 9 "Module $module not found."
-	    continue
-	fi
-	if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
-	    oops 6 "Failed to add module $module."
-	    return
-	fi
-
 	cat_linuxrc <<-EOF
 	|params=
 	|for p in \$(cat /proc/cmdline) ; do
@@ -1940,25 +1962,6 @@ mkinitrd_kernel() {
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
     fi
-
-    # Add modules which might be loaded via udev during booting
-    uld_modules=
-    for module in sd_mod osst st sr_mod sg ide-disk ide-scsi \
-	          ide-cd ide-tape ide-floppy cdrom; do
-	grep -qw $module $root_dir/lib/modules/$kernel_version/modules.dep \
-	&& uld_modules="$uld_modules $module"
-    done
-    uld_modules="$(resolve_modules $kernel_version $uld_modules)"
-
-    # Now copy the upper level driver modules
-    for module in $uld_modules; do
-	if [ ! -f $tmp_mnt/$module ]; then
-	    if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
-		oops 6 "Failed to add module $module."
-		return
-	    fi
-	fi
-    done
 
     if [ -n "$s390_dasd_disks" ]; then
 	# We only need to activate DASDs manually if it
@@ -2311,15 +2314,6 @@ mkinitrd_kernel() {
     initrd_is_using_modules=
     for module in $fs_modules; do
 	echo -n "${module#lib/modules/$kernel_version/} "
-	if [ ! -r $root_dir/$module ]; then
-	    oops 9 "Module $module not found."
-	    continue
-	fi
-	if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
-	    oops 6 "Failed to add module $module."
-	    return
-	fi
-
 	cat_linuxrc <<-EOF
 	|echo "Loading ${module#/lib/modules/$kernel_version/}"
 	|modprobe $module
