@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.222 $
+# $Revision: 1.223 $
 
 #
 # Print usage and exit
@@ -1168,6 +1168,14 @@ mkinitrd_kernel() {
     if [ $shebang != /bin/sh ]; then
 	ln -s $shebang $tmp_mnt/bin/sh
     fi
+    
+    # Add a version of /bin/true: modprobe.conf might need it.
+    cat > $tmp_mnt/bin/true <<EOF
+	#! /bin/sh
+	:
+	EOF
+    chmod +x $tmp_mnt/bin/true
+    
     if ! cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null ; then
 	error 5 "no static insmod"
     fi

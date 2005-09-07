@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep  7 14:27:24 CEST 2005 - agruen@suse.de
+
+- Add a version of /bin/true: modprobe.conf might need it.
+
+-------------------------------------------------------------------
 Wed Sep  7 12:26:39 CEST 2005 - hare@suse.de
 
 - Re-enable scan for IDE devices (#114511)
