@@ -25,7 +25,7 @@ Release:      0
 Summary:      Creates an initial ramdisk image for preloading modules
 BuildRoot:    %{_tmppath}/%{name}-%{version}-build
 BuildArch:    noarch
-Source:       mkinitrd
+Source0:       mkinitrd
 Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
@@ -58,22 +58,19 @@ Authors:
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/sbin
-mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
-cp %SOURCE0 %SOURCE1 %SOURCE2 %SOURCE20 $RPM_BUILD_ROOT/sbin/
-mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd
-cp %SOURCE4 $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
+install -D -m 755 %{S:0} $RPM_BUILD_ROOT/sbin/mkinitrd
+install -D -m 755 %{S:1} $RPM_BUILD_ROOT/sbin/installkernel
+install -D -m 755 %{S:2} $RPM_BUILD_ROOT/sbin/new-kernel-pkg
+install -D -m 755 %{S:20} $RPM_BUILD_ROOT/sbin/module_upgrade
+install -D -m 755 %{S:4} $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
-cp %SOURCE3 $RPM_BUILD_ROOT/%{_mandir}/man8
+install -D -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 
 %files
-%defattr(755,root,root)
+%defattr(-,root,root)
 %dir /usr/share/mkinitrd
-/sbin/mkinitrd
-/sbin/installkernel
-/sbin/new-kernel-pkg
-/sbin/module_upgrade
+/sbin/*
 /usr/share/mkinitrd/hotplug.sh
-%{_mandir}/man8/mkinitrd.8.gz
+%doc %{_mandir}/man8/mkinitrd.8.gz
 
 %changelog -n mkinitrd

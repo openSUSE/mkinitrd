@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  8 13:33:24 CEST 2005 - hare@suse.de
+
+- Fixed installation permissions (#114849).
+
+-------------------------------------------------------------------
 Wed Sep  7 16:16:32 CEST 2005 - agruen@suse.de
 
 - Consolidate the code that copies modules into the initrd.
