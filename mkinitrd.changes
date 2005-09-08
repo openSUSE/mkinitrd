@@ -2,6 +2,7 @@
 Fri Jul  1 10:15:32 CEST 2005 - hare@suse.de
 
 - Add /tmp directory to the initrd (#83279).
+- Fix display of bootsplash resolutions (#94586).
 
 -------------------------------------------------------------------
 Fri Jun 24 13:57:54 CEST 2005 - hare@suse.de
