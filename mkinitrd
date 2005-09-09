@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.227 $
+# $Revision: 1.228 $
 
 #
 # Print usage and exit
@@ -2297,8 +2297,8 @@ mkinitrd_kernel() {
 	|    fi
 	|}
 	|
-	|# Default timeout is 5 seconds
-	|udev_timeout=5
+	|# Default timeout is 10 seconds
+	|udev_timeout=10
 	|# Override timeout from commandline
 	|for o in $(cat /proc/cmdline); do
 	|    case $o in

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  9 14:32:07 CEST 2005 - hare@suse.de
+
+- Raise device timeout to 10 secs (#116101).
+
+-------------------------------------------------------------------
 Thu Sep  8 13:33:24 CEST 2005 - hare@suse.de
 
 - Fixed installation permissions (#114849).
