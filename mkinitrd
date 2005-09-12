@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.228 $
+# $Revision: 1.229 $
 
 #
 # Print usage and exit
@@ -693,31 +693,30 @@ check_ide_modules() {
 	if [ -z "$ide_modules" ]; then
 	    ide_modules=$(check_ide_modules_pcimap $pcimap_file $pci_id_vendor $pci_id_device)
 	fi
-    done
 
-    if [ "$ide_modules" ]; then
-	for module in $ide_modules; do
-	    # Only add ahci module if ata_piix is not loaded already
-	    if [ "$module" == "ahci" ]; then
-		has_module ata_piix || add_module $module
-	    else
-		add_module $module
+	    if [ "$ide_modules" ]; then
+		for module in $ide_modules; do
+		    # Only add ahci module if ata_piix is not loaded already
+		    if [ "$module" == "ahci" ]; then
+			has_module ata_piix || add_module $module
+		    else
+			add_module $module
+		    fi
+		done
+		# All IDE modules are now loaded later
+		# if grep -q ide-disk ${modules_dir}/modules.dep; then
+		#     add_module ide-disk
+		# fi
+		# IDE-floppy is considered obsolete
+		# if grep -q ide-floppy ${modules_dir}/modules.dep; then
+		#     add_module ide-floppy
+		# fi
+		# if grep -q ide-cd ${modules_dir}/modules.dep; then
+		#     add_module ide-cd
+		# fi
+		echo
 	    fi
-	done
-	# All IDE modules are now loaded later
-	# if grep -q ide-disk ${modules_dir}/modules.dep; then
-	#     add_module ide-disk
-	# fi
-	# IDE-floppy is considered obsolete
-	# if grep -q ide-floppy ${modules_dir}/modules.dep; then
-	#     add_module ide-floppy
-	# fi
-	# if grep -q ide-cd ${modules_dir}/modules.dep; then
-	#     add_module ide-cd
-	# fi
-	echo
-    fi
-
+    done
 }
 
 # NOTE: The mkdevn, devmajor and block_driver functions are reused

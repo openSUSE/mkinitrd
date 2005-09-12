@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 12 17:50:57 CEST 2005 - agruen@suse.de
+
+- Also include and load kernel modules for additional storage
+  controllers other than the first (115930).
+
+-------------------------------------------------------------------
 Fri Sep  9 14:32:07 CEST 2005 - hare@suse.de
 
 - Raise device timeout to 10 secs (#116101).
