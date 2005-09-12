@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.229 $
+# $Revision: 1.230 $
 
 #
 # Print usage and exit
@@ -602,6 +602,7 @@ check_ide_modules_pcimap() {
     pci_device_id=$(printf "0x%08x" $(($3)))
     while read pcimap_module rest; do
 	if [ "$pcimap_module" == "ata_piix" ]; then
+	    # FIXME: add_module will have no effect in a sub-shell...
 	    add_module "ahci"
 	    ide_modules="$ide_modules ahci"
 	fi
