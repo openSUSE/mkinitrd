@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.230 $
+# $Revision: 1.231 $
 
 #
 # Print usage and exit
@@ -2427,7 +2427,7 @@ mkinitrd_kernel() {
 	|
 	|get_fstab_entries()
 	|    {
-	|    FSTLIST=\$(sed -n "\:^/dev/:p" <\$1 | sed -e "\:/media/:d" -e "s:/dev/::" -e "s:[   ].*::")
+	|    FSTLIST=\$(sed -n "\:^/dev/:p" <\$1 | sed -e "\:/media/:d" -e "s:/dev/::" -e "s:[   ].*::" -e "s:/:|:g")
 	|    for i in \$FSTLIST
 	|    do
 	|	LINES=\$(dmsetup ls | sed -n "\:^\$i:p")
@@ -2444,7 +2444,8 @@ mkinitrd_kernel() {
 	|    rm -f /table_file
 	|    for i in \$*
 	|    do
-	|	echo \$(expr \$COUNT "*" 100) 100 linear /dev/\$i 0 >> /table_file
+	|	dd=\$(echo \$i | sed "s:|:/:g")
+	|	echo \$(expr \$COUNT "*" 100) 100 linear /dev/\$dd 0 >> /table_file
 	|	COUNT=\$(expr \$COUNT + 1)
 	|    done
 	|    dmsetup create \$TNAME </table_file
