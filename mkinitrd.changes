@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 17 19:48:27 CEST 2005 - fehr@suse.de
+
+- fix problem handling devices in subdir of /dev in fstab when 
+  root fs is on evms (#119140)
+
+-------------------------------------------------------------------
 Fri Jul  1 10:15:32 CEST 2005 - hare@suse.de
 
 - Add /tmp directory to the initrd (#83279).
