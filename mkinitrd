@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.36 $
+# $Revision: 1.124.2.37 $
 
 #
 # Print usage and exit
@@ -467,7 +467,7 @@ shared_object_files() {
 
     initrd_libs=( $(
 	do_chroot $LDD "${@#$root_dir}" \
-	| sed -e '\: => :!d' -e 's:.* => \([^ ]*\).*:\1:'
+	| sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p'
     ) )
 
     # Evil hack: On some systems we have generic as well as optimized

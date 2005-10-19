@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 19 14:33:39 CEST 2005 - od@suse.de
+
+- Fix ldd output parsing (taken from fix in STABLE) (#118559)
+
+-------------------------------------------------------------------
 Mon Oct 17 19:48:27 CEST 2005 - fehr@suse.de
 
 - fix problem handling devices in subdir of /dev in fstab when 
