@@ -1,13 +1,13 @@
 -------------------------------------------------------------------
-Wed Oct 19 14:33:39 CEST 2005 - od@suse.de
-
-- Fix ldd output parsing (taken from fix in STABLE) (#118559)
-
--------------------------------------------------------------------
 Mon Oct 17 19:48:27 CEST 2005 - fehr@suse.de
 
 - fix problem handling devices in subdir of /dev in fstab when 
   root fs is on evms (#119140)
+
+-------------------------------------------------------------------
+Thu Sep 22 18:23:22 CEST 2005 - od@suse.de
+
+- Fix ldd output parsing (taken from fix in STABLE) (#118559)
 
 -------------------------------------------------------------------
 Fri Jul  1 10:15:32 CEST 2005 - hare@suse.de
