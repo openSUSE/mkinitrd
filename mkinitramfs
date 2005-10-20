@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# $Id: mkinitramfs,v 1.43.4.5 2005/10/19 12:56:08 od Exp $
+# $Id: mkinitramfs,v 1.43.4.6 2005/10/20 07:28:12 hare Exp $
 
 #
 # Print usage and exit
@@ -471,8 +471,6 @@ resolve_modules () {
 		     "should be removed " >&2
 		if [ -e /etc/sysconfig/kernel ]; then
 		    echo "from /etc/sysconfig/kernel." >&2
-		elif [ -e /etc/rc.config ]; then
-		    echo "from /etc/rc.config." >&2
 		else
 		    echo "." >&2
 		fi
@@ -1010,9 +1008,6 @@ root_md=
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
     if [ -e /etc/sysconfig/kernel ]; then
-	. /etc/sysconfig/kernel
-	modules="$INITRD_MODULES"
-    elif [ -e /etc/rc.config ]; then
 	. /etc/sysconfig/kernel
 	modules="$INITRD_MODULES"
     fi

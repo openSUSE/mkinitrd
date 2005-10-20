@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 20 08:59:43 CEST 2005 - hare@suse.de
+
+- Do not include EVMS HA modules (#128046).
+- Print out warning if any errors occured.
+- Remove obsolete reference to rc.config (#104004 - LTC17468).
+
+-------------------------------------------------------------------
 Thu Oct 20 08:50:42 CEST 2005 - hare@suse.de
 
 - Fix error codes (#115374).

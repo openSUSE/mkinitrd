@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.38 $
+# $Revision: 1.124.2.39 $
 
 #
 # Print usage and exit
@@ -430,6 +430,7 @@ add_module() {
 cp_bin() {
     if ! cp -a "$@" ; then
 	exit_code=1
+	return $exit_code
     fi
 
     # Remember the binaries installed. We need the list for checking
@@ -572,8 +573,6 @@ resolve_modules() {
 		     "should be removed " >&2
 	        if [ -e $root_dir/etc/sysconfig/kernel ]; then
 		    echo "from /etc/sysconfig/kernel." >&2
-	        elif [ -e $root_dir/etc/rc.config ]; then
-		    echo "from /etc/rc.config." >&2
 		else
 		    echo "." >&2
 		fi
@@ -1299,7 +1298,7 @@ mkinitrd_kernel() {
 	SD=$(ls -A $root_dir/$evms_lib | tail -n 1)
 	(cd $tmp_mnt/$evms_lib && mkdir -p $SD)
 	cp_bin $root_dir/$evms_lib/$SD/* $tmp_mnt/$evms_lib/$SD
-	rm -f $tmp_mnt/$evms_lib/*/*{ext2,jfs,ogfs,reiser,swap,xfs}*so
+	rm -f $tmp_mnt/$evms_lib/*/{ext2,jfs,ogfs,reiser,swap,xfs,ha}*so
 	need_mount=1
 	need_block_driver=1
     fi
@@ -2528,9 +2527,6 @@ if [ -z "$modules_set" ]; then
     if [ -e $root_dir/etc/sysconfig/kernel ]; then
 	. $root_dir/etc/sysconfig/kernel
 	modules="$INITRD_MODULES"
-    elif [ -e $root_dir/etc/rc.config ]; then
-	. $root_dir/etc/sysconfig/kernel
-	modules="$INITRD_MODULES"
     fi
 fi
 
@@ -2625,30 +2621,38 @@ cleanup_finish
 if [ -e $root_dir/etc/sysconfig/bootloader ]; then
     . $root_dir/etc/sysconfig/bootloader
 fi
-case $LOADER_TYPE in
-  lilo)
-    echo "
+
+if [ $exit_code -eq 0 ] ; then
+    case $LOADER_TYPE in
+	lilo)
+	    echo "
 Run lilo now to update the boot loader configuration."
-    ;;
-  elilo)
-    if [ -x /sbin/elilo ]; then
-      /sbin/elilo
-    else
-      echo "
+	    ;;
+	elilo)
+	    if [ -x /sbin/elilo ]; then
+		/sbin/elilo
+	    else
+		echo "
 You may now have to update the elilo boot loader configuration."
-    fi
-    ;;
-  grub)
-    ;;
-  *)
-    if [ -f "$root_dir/etc/zipl.conf" ]; then
-	echo "
+	    fi
+	    ;;
+	grub)
+	    ;;
+	*)
+	    if [ -f "$root_dir/etc/zipl.conf" ]; then
+		echo "
 initrd updated, zipl needs to update the IPL record before IPL!"
-    else
-	echo "
+	    else
+		echo "
 You may now have to update your boot loader configuration."
-    fi
-    ;;
-esac
+	    fi
+	    ;;
+    esac
+else
+    echo "
+WARNING: Some errors occured during assembly of the initrd.
+Your system might not boot if these errors are not fixed.
+Please check the output before running mkinitrd again."
+fi
 
 exit $exit_code
