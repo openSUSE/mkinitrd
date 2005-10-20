@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 20 08:50:42 CEST 2005 - hare@suse.de
+
+- Fix error codes (#115374).
+
+-------------------------------------------------------------------
 Mon Oct 17 19:48:27 CEST 2005 - fehr@suse.de
 
 - fix problem handling devices in subdir of /dev in fstab when 
@@ -8,6 +13,11 @@ Mon Oct 17 19:48:27 CEST 2005 - fehr@suse.de
 Thu Sep 22 18:23:22 CEST 2005 - od@suse.de
 
 - Fix ldd output parsing (taken from fix in STABLE) (#118559)
+
+-------------------------------------------------------------------
+Mon Jul 25 14:40:10 CEST 2005 - hare@suse.de
+
+- Validated condition (#94586).
 
 -------------------------------------------------------------------
 Fri Jul  1 10:15:32 CEST 2005 - hare@suse.de
