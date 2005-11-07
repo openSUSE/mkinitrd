@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.232 $
+# $Revision: 1.233 $
 
 #
 # Print usage and exit
@@ -136,7 +136,7 @@ modules_set=
 boot_dir=
 splash="auto"
 use_pivot_root=
-use_static_binaries=1
+use_static_binaries=
 acpi_dsdt=
 use_selinux=
 use_glibc=1
@@ -1273,7 +1273,6 @@ mkinitrd_kernel() {
 	for glibc_bin in sed sleep ln mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
 	done
-	cp_bin /usr/bin/printf $tmp_mnt/printf
 	for glibc_bin in ata_id scsi_id usb_id vol_id dasd_id; do
 	    cp_bin /sbin/$glibc_bin $tmp_mnt/sbin
 	done
