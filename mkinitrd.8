@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.7 2005/03/04 13:43:09 hare Exp $
+.\"$Id: mkinitrd.8,v 1.8 2005/11/07 14:22:11 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -55,10 +55,10 @@ tmp dir, defaults to "/tmp"
 Use initrd instead of initramfs.
 .TP
 \fB-g\fR
-Use glibc binaries instead of klibc ones.
+Use klibc binaries instead of glibc ones.
 .TP
-\fB-u\fR
-Do not use udev for device discovery.
+\fB-e\fR
+Use static binaries where possible.
 .TP
 \fB-S\fR
 Load policy file for SELinux if exists.

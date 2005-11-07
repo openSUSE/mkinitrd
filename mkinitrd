@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.231 $
+# $Revision: 1.232 $
 
 #
 # Print usage and exit
@@ -61,8 +61,8 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
           -R               Use initrd instead of initramfs.
-          -g               Use glibc instead of klibc binaries.
-          -u               Do not use udev for root device discovery.
+          -g               Use klibc instead of glibc binaries.
+          -e               Use static binaries where possible.
 	  -S               Load policy file for SELinux if exist.
 	  -V script        Vendor specific script to run in linuxrc.
 EOF
@@ -139,8 +139,7 @@ use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
 use_selinux=
-use_glibc=
-use_udev=1
+use_glibc=1
 mkinit_type="ramfs"
 
 case $0 in
@@ -156,7 +155,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hgMRk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
+while getopts :ehgMRk:i:m:b:d:o:s:St:D:I:V:a: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -187,7 +186,10 @@ while getopts :hgMRk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
 	    esac
 	    exit 1
 	    ;;
-	g)  use_glibc=1
+	e)  use_static_binaries=1
+	    ;;
+	g)  use_glibc=
+	    use_static_binaries=1
 	    ;;
 	k)  kernel_images=$OPTARG
 	    ;;
@@ -219,9 +221,6 @@ while getopts :hgMRk:i:m:b:d:o:s:Sut:D:I:V:a: a ; do
 	V)  vendor_init_script="$OPTARG"
 	    ;;
 	R)  mkinit_type="rd"
-	    ;;
-	u)  sysfs_root=1
-	    use_udev=
 	    ;;
 	h)  usage
 	    ;;
@@ -272,13 +271,12 @@ fi
 
 
 # Check which shell and insmod binaries to use in initrd.
-[ -x /bin/ash ] \
-    && initrd_shell_dynamic=/bin/ash
+initrd_shell_dynamic=/bin/bash
 if [ -n "$use_static_binaries" ]; then
     if [ -x /bin/ash.static ]; then
 	initrd_shell=/bin/ash.static
     else
-	initrd_shell=/bin/ash.static
+	initrd_shell=/bin/ash
     fi
 else
     initrd_shell=$initrd_shell_dynamic
@@ -1072,7 +1070,7 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 #
 mkinitrd_kernel() {
     local kernel_image=$1 initrd_image=$2
-    local kernel_version need_block_driver
+    local kernel_version
     local need_raidautorun
     local -a features
     local fs_modules drv_modules uld_modules
@@ -1219,7 +1217,6 @@ mkinitrd_kernel() {
 	    echo -e "iSCSI error:\tcan't find iscsid"
 	fi
 	cp_bin /bin/usleep $tmp_mnt/bin/usleep
-	need_mount=1
 	use_pivot_root=
     fi
 
@@ -1231,7 +1228,6 @@ mkinitrd_kernel() {
     if [ -n "$s390_zfcp_disks" ]; then
 	cp_bin /sbin/zfcp_host_configure $tmp_mnt/sbin
 	cp_bin /sbin/zfcp_disk_configure $tmp_mnt/sbin
-	cp_bin /bin/sed $tmp_mnt/bin
     fi
 
     if [ "$use_glibc" ] ; then
@@ -1244,6 +1240,7 @@ mkinitrd_kernel() {
     fi
     
     if [ -z "$use_glibc" ] ; then
+	# Copy in klibc binaries
 	mkdir -p $tmp_mnt/lib/klibc/bin
 	for klibc_bin in devnumber chroot run-init sed sleep \
 	    cat ln mount umount nfsmount printf; do
@@ -1261,18 +1258,32 @@ mkinitrd_kernel() {
 	      ln -sf /lib/klibc/sbin/$klibc_bin $tmp_mnt/sbin
 	  fi
 	done
+	# Optional helper programs
+	for klibc_bin in path_id edd_id cdrom_id ; do
+	    if [ -x /lib/klibc/sbin/$klibc_bin ] ; then
+		cp_bin /lib/klibc/sbin/$klibc_bin \
+		    $tmp_mnt/lib/klibc/sbin
+		if [ ! -e $tmp_mnt/sbin/$klibc_bin ] ; then
+		    ln -sf /lib/klibc/sbin/$klibc_bin $tmp_mnt/sbin
+		fi
+	    fi
+	done
     else
+	# Copy in glibc binaries
 	for glibc_bin in sed sleep ln mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
 	done
 	cp_bin /usr/bin/printf $tmp_mnt/printf
-	cp_bin /sbin/scsi_id $tmp_mnt/sbin
-	cp_bin /sbin/ata_id $tmp_mnt/sbin
-	cp_bin /sbin/vol_id $tmp_mnt/sbin
-	# this must be a static binary because /lib is already gone when it runs
-	cp_bin /lib/klibc/sbin/run-init $tmp_mnt/bin/run-init
-	# always use the klibc binary as this doesn't need portmap
-	cp_bin /lib/klibc/bin/nfsmount $tmp_mnt/bin
+	for glibc_bin in ata_id scsi_id usb_id vol_id dasd_id; do
+	    cp_bin /sbin/$glibc_bin $tmp_mnt/sbin
+	done
+	# Optional helper programs
+	for glibc_bin in path_id edd_id cdrom_id ; do
+	    if [ -x /sbin/$glibc_bin ] ; then
+		cp_bin /sbin/$glibc_bin $tmp_mnt/sbin
+	    fi
+	done
+	cp_bin /lib/mkinitrd/bin/run-init $tmp_mnt/bin/run-init
     fi
 
     # cat might not be present as klibc binary
@@ -1285,10 +1296,6 @@ mkinitrd_kernel() {
 	cp_bin /bin/$bin $tmp_mnt/bin
     done
     
-    if [ -x /usr/share/mkinitrd/hotplug.sh ] ; then
-	cp_bin /usr/share/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
-    fi
-
     # all dev nodes belong to root, but some may be
     # owned by a group other than root
     # getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
@@ -1323,95 +1330,98 @@ mkinitrd_kernel() {
 	echo 'echo initrd failed, goodbye...' >> $tmp_mnt/bin/init
 	chmod 755 $tmp_mnt/bin/init
 	mkdir -p $tmp_mnt/mnt
-	use_udev=
-	need_mount=1
     fi
 
-    if [ -n "$use_udev" ] ; then
-	features=(${features[@]} udev)
-	if [ -z "$use_glibc" ] ; then
-	    if [ -x /lib/klibc/sbin/udev ]; then
-		klibc_sbin_dir=/lib/klibc/sbin
-		klibc_bin_dir=/lib/klibc/bin
-		klibc_suffix=
-	    elif [ -x /lib/klibc/bin/udev ]; then
-		klibc_sbin_dir=/lib/klibc/bin
-		klibc_bin_dir=/lib/klibc/bin
-		klibc_suffix=
-	    elif [ -x /sbin/udev.static ]; then
-		klibc_sbin_dir=/sbin
-		klibc_bin_dir=/sbin
-		klibc_suffix=".static"
-	    else
-		klibc_sbin_dir=/sbin
-		klibc_bin_dir=/usr/bin
-		klibc_suffix=
-	    fi
-
-	    cp_bin $klibc_sbin_dir/udev$klibc_suffix $tmp_mnt/sbin/
-	    cp_bin $klibc_bin_dir/udevinfo$klibc_suffix $tmp_mnt/sbin/
-	    if [ ! -L $klibc_sbin_dir/udevstart$klibc_suffix ] ; then
-		cp_bin $klibc_sbin_dir/udevstart$klibc_suffix $tmp_mnt/sbin/
-	    fi
-	    if [ -n "$klibc_suffix" ]; then
-		ln -s udev$klibc_suffix $tmp_mnt/sbin/udev
-		ln -s udevinfo$klibc_suffix $tmp_mnt/sbin/udevinfo
-		if [ ! -L $klibc_sbin_dir/udevstart.static ] ; then
-		    ln -s udevstart$klibc_suffix $tmp_mnt/sbin/udevstart
-		else
-		    ln -s udev$klibc_suffix $tmp_mnt/sbin/udevstart
-		fi
-	    else
-		if [ -L $klibc_sbin_dir/udevstart ]; then
-		    ln -s udev $tmp_mnt/sbin/udevstart
-		fi
-	    fi
+    # udev is mandatory now
+    features=(${features[@]} udev)
+    if [ -z "$use_glibc" ] ; then
+	if [ -x /sbin/udev.static ]; then
+	    # SL9.3 installation
+	    cp_bin /sbin/udev.static $tmp_mnt/sbin/udev
+	    ln -s udev $tmp_mnt/sbin/udevstart
+	    cp_bin /usr/bin/udevinfo $tmp_mnt/sbin
 	else
-	    cp_bin /sbin/udev $tmp_mnt/sbin/
-	    cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/
-	    if [ ! -L /sbin/udevstart ] ; then
-		cp_bin /sbin/udevstart $tmp_mnt/sbin/
-	    else
-		ln -s udev $tmp_mnt/sbin/udevstart
-	    fi
-	    
+	    # SL10.0 installation or later
+	    cp_bin /lib/klibc/sbin/udev $tmp_mnt/sbin
+	    cp_bin /lib/klibc/sbin/udevstart $tmp_mnt/sbin
+	    cp_bin /lib/klibc/bin/udevinfo $tmp_mnt/sbin
 	fi
-	cp_bin /sbin/path_id $tmp_mnt/sbin
+
+    else
+	cp_bin /sbin/udev $tmp_mnt/sbin/
+	cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/
+	if [ ! -L /sbin/udevstart ] ; then
+	    cp_bin /sbin/udevstart $tmp_mnt/sbin/
+	else
+	    ln -s udev $tmp_mnt/sbin/udevstart
+	fi
+	
+    fi
+
+    if [ -d /lib/udev ]; then
+	# This is a SL10.1 installation
+	udev_store_events=
+    else
 	for udev_script in /sbin/udev.*.sh; do
-		# we don't have bash in initramfs
-		if grep -q /bin/bash $udev_script; then
+	# we don't have bash in initramfs
+	    if grep -q /bin/bash $udev_script; then
+		continue
+	    fi
+	    cp_bin $udev_script $tmp_mnt/sbin
+	done
+	udev_store_events=1
+    fi
+    mkdir -p $tmp_mnt/etc/udev/rules.d
+    # Create our own udev.conf
+    echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
+    echo "udev_db=\"/dev/.udevdb\"" >> $tmp_mnt/etc/udev/udev.conf
+    echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
+    if [ -f /etc/udev/rules.d/60-persistent.rules ]; then
+	cp /etc/udev/rules.d/60-persistent.rules $tmp_mnt/etc/udev/rules.d
+    else
+	# Copy all rules into the initramfs
+	cp /etc/udev/rules.d/*.rules $tmp_mnt/etc/udev/rules.d
+
+	# comment out rules with tools not available in initramfs
+	for tool in $(sed 's:.*"\(/.*bin/[^ "]*\).*:\1:' /etc/udev/rules.d/*.rules | grep '^/.*bin/' | sort -u); do
+		if [ -x "$tmp_mnt$tool" ]; then
+			# tool exists, keep the rule
 			continue
 		fi
-		cp_bin $udev_script $tmp_mnt/sbin
+		# comment out all rules using this tool
+		for file in $tmp_mnt/etc/udev/rules.d/*.rules; do
+			sed "s@\(.*$tool.*\)@#(mkinitrd) \1@" -i $file
+		done;
 	done
-	mkdir -p $tmp_mnt/etc/udev/rules.d
-	# Create our own udev.conf
-	echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
-	echo "udev_db=\"/dev/.udevdb\"" >> $tmp_mnt/etc/udev/udev.conf
-	echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
-	cp /etc/udev/rules.d/*.rules $tmp_mnt/etc/udev/rules.d
     fi
 
     if [ "$mkinit_type" = "ramfs" ] ; then
-	mkdir -p $tmp_mnt/events
-	if [ -z "$use_glibc" ] ; then
-	    if [ -x /lib/klibc/sbin/hotplugeventrecorder ]; then
-		cp_bin /lib/klibc/sbin/hotplugeventrecorder $tmp_mnt/sbin
+	if [ "$udev_store_events" ]; then
+	    mkdir -p $tmp_mnt/events
+	    if [ -z "$use_glibc" ] ; then
+		if [ -x /lib/klibc/sbin/hotplugeventrecorder ]; then
+		    cp_bin /lib/klibc/sbin/hotplugeventrecorder $tmp_mnt/sbin
+		else
+		    cp_bin /lib/klibc/bin/hotplugeventrecorder $tmp_mnt/sbin
+		fi
 	    else
-		cp_bin /lib/klibc/bin/hotplugeventrecorder $tmp_mnt/sbin
+		cp_bin /sbin/hotplugeventrecorder $tmp_mnt/sbin
+	    fi
+	    if [ -x /usr/share/mkinitrd/hotplug.sh ] ; then
+		cp_bin /usr/share/mkinitrd/hotplug.sh $tmp_mnt/sbin/hotplug.sh
+		(cd $tmp_mnt/sbin; ln -s hotplug.sh hotplug)
+	    else
+		(cd $tmp_mnt/sbin; ln -s hotplugeventrecorder hotplug)
 	    fi
 	else
-	    cp_bin /sbin/hotplugeventrecorder $tmp_mnt/sbin
+	    (cd $tmp_mnt/sbin; ln -s udev hotplug)
 	fi
-	(cd $tmp_mnt/sbin; ln -s hotplugeventrecorder hotplug)
     fi
-    need_block_driver=1
 
     if [ -n "$root_lvm" ] ; then
 	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
 	cp_bin /sbin/{vgscan,vgchange} $tmp_mnt/sbin
-	need_block_driver=1
     fi
 
     if [ -n "$root_dm" ] ; then
@@ -1421,7 +1431,6 @@ mkinitrd_kernel() {
 	cp_bin /sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
 	cp_bin /bin/{sed,mkdir,mknod,ls} $tmp_mnt/bin
 	cp -a /etc/lvm/lvm.conf $tmp_mnt/etc/lvm
-	need_block_driver=1
     fi
 
     if [ -n "$root_evms" ] ; then
@@ -1436,7 +1445,6 @@ mkinitrd_kernel() {
 	(cd $tmp_mnt/lib/evms && mkdir -p $SD)
 	cp_bin /lib/evms/$SD/* $tmp_mnt/lib/evms/$SD
 	rm -f $tmp_mnt/lib/evms/*/*{ext2,jfs,ogfs,reiser,swap,xfs}*so
-	need_block_driver=1
     fi
 
     if has_any_module raid0 raid1 raid5 linear multipath; then
@@ -1450,13 +1458,11 @@ mkinitrd_kernel() {
 	cp_bin /bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
 	mkdir -p $tmp_mnt/var/run
-	need_mount=1
     fi
 
     if [ -n "$use_ipconfig" ] ; then
 	features=(${features[@]} static\($interface\))
 	cp_bin $root_dir/lib/klibc/bin/ipconfig $tmp_mnt/bin
-	need_mount=1
     fi
   
     if has_module ext2 ; then
@@ -1549,20 +1555,6 @@ mkinitrd_kernel() {
 		cp_bin $initrd_modprobe_dynamic $tmp_mnt/sbin/modprobe
 	    fi
 	fi
-    fi
-
-    if [ -n "$use_udev" ] ; then
-	# comment out rules with tools not available in initramfs
-	for tool in $(sed 's:.*"\(/.*bin/[^ "]*\).*:\1:' /etc/udev/rules.d/*.rules | grep '^/.*bin/' | sort -u); do
-		if [ -x "$tmp_mnt$tool" ]; then
-			# tool exists, keep the rule
-			continue
-		fi
-		# comment out all rules using this tool
-		for file in $tmp_mnt/etc/udev/rules.d/*.rules; do
-			sed "s@\(.*$tool.*\)@#(mkinitrd) \1@" -i $file
-		done;
-	done
     fi
 
     cat /dev/null > $linuxrc
@@ -1730,34 +1722,28 @@ mkinitrd_kernel() {
 	|fi
 	EOF
 
-    if [ -n "$need_block_driver" ]; then
-	# Transfer the the block_driver function into the initrd
-	type mkdevn | sed -e '1d' >> $linuxrc
-	echo >> $linuxrc
-	type devmajor | sed -e '1d' >> $linuxrc
-	echo >> $linuxrc
-	type devminor | sed -e '1d' >> $linuxrc
-	echo >> $linuxrc
-	type block_driver | sed -e '1d' >> $linuxrc
-	echo >> $linuxrc
-    fi
+    # Transfer the the block_driver function into the initrd
+    type mkdevn | sed -e '1d' >> $linuxrc
+    echo >> $linuxrc
+    type devmajor | sed -e '1d' >> $linuxrc
+    echo >> $linuxrc
+    type devminor | sed -e '1d' >> $linuxrc
+    echo >> $linuxrc
+    type block_driver | sed -e '1d' >> $linuxrc
+    echo >> $linuxrc
 
     # Start udev
     cat_linuxrc <<-EOF
 	|
-	|echo "Starting udev"
-	|if [ -x /sbin/hotplug.sh ]; then
-	|    echo "/sbin/hotplug.sh" > /proc/sys/kernel/hotplug
-	|else
-	|    echo "/sbin/udev" > /proc/sys/kernel/hotplug
-	|fi
 	|echo "Creating devices"
 	|/sbin/udevstart
 	|
 	|# workaround chicken/egg bug in mdadm and raidautorun
 	|# they do the ioctl on the not yet existing device node...
-	|for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 ; do
+	|i=0
+	|while [ \$((i)) -lt 32 ] ; do
 	|  mknod -m 660 /dev/md\$i b 9 \$i
+	|  i=\$((i + 1))
 	|done
 	|
 	EOF
@@ -2173,8 +2159,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$use_udev" ] ; then
-	cat_linuxrc <<-'EOF'
+    cat_linuxrc <<-'EOF'
 	|# Waiting for a device to appear
 	|# device node will be created by udev
 	|udev_wait_for_device() {
@@ -2313,7 +2298,6 @@ mkinitrd_kernel() {
 	|udev_discover_resume
 	|
 	EOF
-    fi
 
     # Load fs modules _after_ resume
     echo -ne "Filesystem modules:\t"
@@ -2479,88 +2463,13 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$use_udev" ] ; then
-	cat_linuxrc <<-'EOF'
+    cat_linuxrc <<-'EOF'
 	|if ! udev_discover_root ; then
 	|    echo "not found -- exiting to /bin/sh"
 	|    cd /
 	|    PATH=$PATH PS1='$ ' /bin/sh -i
 	|fi
 	EOF
-    fi
-
-    if [ -n "$sysfs_root" ]; then
-	cat_linuxrc <<-'EOF'
-	|basename() {
-	|	local IFS=/
-	|
-	|	set -- $1
-	|	eval echo \${$#}
-	|}
-	|
-	|sysfs_set_root_dir() {
-	|	local entry name dir=$1 search=$2
-	|
-	|	for entry in $dir/*; do
-	|	  [ -L $entry ] && continue
-	|	  [ -d $entry ] || continue
-	|
-	|	  name=$(basename $entry)
-	|	  if [ -f $entry/dev -a $name = $search ]; then
-	|		local major minor devn
-	|		IFS=: read major minor < $entry/dev
-	|		devn=$(mkdevn $major $minor)
-	|		echo "rootfs: $entry major=$major minor=$minor" \
-	|		     "devn=$devn"
-	|		echo $devn > /proc/sys/kernel/real-root-dev
-	|		return 0
-	|	  else
-	|	    sysfs_set_root_dir $entry $search \
-	|		&& return 0
-	|	  fi
-	|	done
-	|	return 1
-	|}
-	|
-	|sysfs_set_root() {
-	|	local root=$1
-	|
-	|	sysfs_set_root_dir /sys/block $root
-	|}
-	|
-	|discover_root() {
-	|	local root
-	|	case $rootdev in
-	|	/dev/*)	root=${rootdev#/dev/} ;;
-	|	*)	
-	|	esac
-	|	if [ -n "$root" ]; then
-	|	    while :; do
-	|		case "$root" in
-	|		*/*)
-	|			root=${root%%/*}!${root#*/}
-	|			;;
-	|		*)
-	|			break
-	|			;;
-	|		esac
-	|	    done
-	|	    sysfs_set_root $root
-	|	fi
-	|}
-	|
-	|if ! discover_root ; then
-	|    if [ -n "$rootdev" ]; then
-	|	echo $rootdev > /proc/sys/kernel/real-root-dev
-	|    elif [ -n "$rootdevn" ]; then
-	|	echo $rootdevn > /proc/sys/kernel/real-root-dev
-	|    else
-	|	: # let the kernel do its internal root device scan
-	|	  # (we don't get here.)
-	|    fi
-	|fi
-	EOF
-    fi
 
     if [ "$mkinit_type" = "ramfs" -o -n "$pivot_root" ]; then
 	cat_linuxrc <<-'EOF'
@@ -2620,7 +2529,7 @@ mkinitrd_kernel() {
 	|# mount the actual root device below /root
 	|echo "Mounting root $rootdev"
 	|[ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
-	|if [ "$rootfstype" = "nfs" ]; then
+	|if [ -x /bin/nfsmount -a "$rootfstype" = "nfs" ]; then
 	|    nfsmount $rootdev /root || die 1
 	|else
 	|    mount $opt $rootdev /root || die 1
@@ -2645,32 +2554,21 @@ mkinitrd_kernel() {
 	|    die 1
 	|fi
 	|
-	|# Setup dynamic device nodes directory
-	|dev_on_tmpfs="yes"
-	|if [ -n "$DEV_ON_TMPFS" -a "$DEV_ON_TMPFS" != "yes" ]; then
-	|    dev_on_tmpfs=
+	|# Create framebuffer devices
+	|if [ -f /proc/fb ]; then
+	|    cat /proc/fb | while read fbnum fbtype; do
+	|        if [ $(($fbnum < 32)) ] ; then
+	|            [ -c /dev/fb$fbnum ] || mknod /dev/fb$fbnum c 29 $fbnum
+	|        fi
+	|    done
 	|fi
 	|
-	|if [ -n "$dev_on_tmpfs" ]; then
-	|    # Create framebuffer devices
-	|    if [ -f /proc/fb ]; then
-	|        cat /proc/fb | while read fbnum fbtype; do
-	|            if [ $(($fbnum < 32)) ] ; then
-	|                [ -c /dev/fb$fbnum ] || mknod /dev/fb$fbnum c 29 $fbnum
-	|            fi
-	|        done
-	|    fi
-	|
-	|    # These links are required by devices.txt
-	|    (cd /dev; ln -s /proc/self/fd fd)
-	|    (cd /dev; ln -s fd/0 stdin; ln -s fd/1 stdout; ln -s fd/2 stderr)
-	|
-	|    # ISDN requires /dev/isdninfo
-	|    mknod /dev/isdninfo c 45 255
-	|fi
+	|# These links are required by devices.txt
+	|(cd /dev; ln -s /proc/self/fd fd)
+	|(cd /dev; ln -s fd/0 stdin; ln -s fd/1 stdout; ln -s fd/2 stderr)
 	|
 	|# Save all events
-	|if [ -d /root/lib/klibc/events ]; then
+	|if [ -d /events -a -d /root/lib/klibc/events ]; then
 	|    mount -t tmpfs -o 'size=5%,mode=0755' eventfs /root/lib/klibc/events
 	|    cd /events
 	|    for ev in *; do
@@ -2678,14 +2576,7 @@ mkinitrd_kernel() {
 	|    done
 	|fi
 	|
-	|if [ -n "$dev_on_tmpfs" ] ; then
-	|    /bin/mount -o move /dev /root/dev
-	|else
-	|    /bin/mount -o move /dev /root/lib/klibc/dev
-	|fi
-	|
-	|# Reset hotplug
-	|echo "/sbin/hotplug" > /proc/sys/kernel/hotplug
+	|/bin/mount -o move /dev /root/dev
 	|
 	|# Call vendor-specific init script
 	|if [ -x /vendor_init.sh ] ; then
@@ -2700,11 +2591,6 @@ mkinitrd_kernel() {
 	|# Export root fs information
 	|ROOTFS_BLKDEV="$rootdev"
 	|export ROOTFS_BLKDEV
-	|
-	|if [ -z "$dev_on_tmpfs" ] ; then
-	|    ROOTFS_REALDEV="/lib/klibc/$rootdev"
-	|    export ROOTFS_REALDEV
-	|fi
 	|
 	|exec /bin/run-init -c ./dev/console /root $init $runlevel
 	|echo could not exec run-init!

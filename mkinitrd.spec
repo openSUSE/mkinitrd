@@ -24,12 +24,12 @@ Version:      1.2
 Release:      0
 Summary:      Creates an initial ramdisk image for preloading modules
 BuildRoot:    %{_tmppath}/%{name}-%{version}-build
-BuildArch:    noarch
 Source0:       mkinitrd
 Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
 Source4:      hotplug.sh
+Source10:     run-init.c
 Source20:     module_upgrade
 
 %description
@@ -56,8 +56,16 @@ Authors:
     Hannes Reinecke <hare@suse.de>
 
 
+%prep
+cp %{S:10} .
+
+%build
+gcc -Wall -Os --static -o run-init run-init.c
+
 %install
 rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
+install -D -m 755 run-init $RPM_BUILD_ROOT/lib/mkinitrd/bin/run-init
 install -D -m 755 %{S:0} $RPM_BUILD_ROOT/sbin/mkinitrd
 install -D -m 755 %{S:1} $RPM_BUILD_ROOT/sbin/installkernel
 install -D -m 755 %{S:2} $RPM_BUILD_ROOT/sbin/new-kernel-pkg
@@ -69,6 +77,10 @@ install -D -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 %files
 %defattr(-,root,root)
 %dir /usr/share/mkinitrd
+%dir /lib/mkinitrd
+%dir /lib/mkinitrd/dev
+%dir /lib/mkinitrd/bin
+/lib/mkinitrd/bin/run-init
 /sbin/*
 /usr/share/mkinitrd/hotplug.sh
 %doc %{_mandir}/man8/mkinitrd.8.gz

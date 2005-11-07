@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Nov  7 14:13:20 CET 2005 - hare@suse.de
+
+- Default to glibc binaries
+- udev is now mandatory
+- Add run-init program
+- events are not stored anymore
+
+-------------------------------------------------------------------
 Mon Oct 17 19:48:27 CEST 2005 - fehr@suse.de
 
 - fix problem handling devices in subdir of /dev in fstab when
