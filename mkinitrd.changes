@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 11 16:31:37 CET 2005 - hare@suse.de
+
+- Fix mount --move to really have /dev on tmpfs
+- Add devnumber script as we're now having bash.
+
+-------------------------------------------------------------------
 Mon Nov  7 14:13:20 CET 2005 - hare@suse.de
 
 - Default to glibc binaries

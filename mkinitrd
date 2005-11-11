@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.233 $
+# $Revision: 1.234 $
 
 #
 # Print usage and exit
@@ -1270,7 +1270,7 @@ mkinitrd_kernel() {
 	done
     else
 	# Copy in glibc binaries
-	for glibc_bin in sed sleep ln mount umount; do
+	for glibc_bin in sed sleep ln ls mount umount; do
 	    cp_bin /bin/$glibc_bin $tmp_mnt/bin
 	done
 	for glibc_bin in ata_id scsi_id usb_id vol_id dasd_id; do
@@ -1730,6 +1730,10 @@ mkinitrd_kernel() {
     echo >> $linuxrc
     type block_driver | sed -e '1d' >> $linuxrc
     echo >> $linuxrc
+    if [ -z "$use_static_binaries" ]; then
+	type devnumber | sed -e '1d' >> $linuxrc
+	echo >> $linuxrc
+    fi
 
     # Start udev
     cat_linuxrc <<-EOF
@@ -2575,7 +2579,7 @@ mkinitrd_kernel() {
 	|    done
 	|fi
 	|
-	|/bin/mount -o move /dev /root/dev
+	|/bin/mount --move /dev /root/dev
 	|
 	|# Call vendor-specific init script
 	|if [ -x /vendor_init.sh ] ; then
