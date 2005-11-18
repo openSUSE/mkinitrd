@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 18 08:51:48 CET 2005 - hare@suse.de
+
+- Removed initrd support; initramfs is now mandatory
+- Removed pivot_root, unneccessary now
+- Fixed spec file and manpage
+
+-------------------------------------------------------------------
 Fri Nov 11 16:31:37 CET 2005 - hare@suse.de
 
 - Fix mount --move to really have /dev on tmpfs
