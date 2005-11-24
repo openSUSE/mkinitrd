@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.39 $
+# $Revision: 1.124.2.40 $
 
 #
 # Print usage and exit
@@ -97,6 +97,11 @@ default_kernel_images() {
 	# user mode linux
 	if grep -q UML /proc/cpuinfo; then
 		regex='linux'
+	fi
+
+	# Virtual Iron
+	if [ -r /proc/kma ]; then
+	    regex='vmlinux'
 	fi
 
 	kernel_images=""
@@ -278,6 +283,7 @@ shebang=${shebang%.static}
 
 if [ -x /lib/klibc/bin/sh ]; then
     initrd_shell="/lib/klibc/bin/sh"
+    initrd_shell_dynamic=
     shebang="/bin/sh"
 fi
 
@@ -2071,15 +2077,17 @@ mkinitrd_kernel() {
 	|    TNAME=\$1
 	|    shift
 	|    COUNT=0
-	|    rm -f /table_file
+	|    rm -rf /table_file
 	|    for i in \$*
 	|    do
 	|	dd=\$(echo \$i | sed "s:|:/:g")
 	|	echo \$(expr \$COUNT "*" 100) 100 linear /dev/\$dd 0 >> /table_file
 	|	COUNT=\$(expr \$COUNT + 1)
 	|    done
-	|    dmsetup create \$TNAME </table_file
-	|    rm -f /table_file
+	|    if [ -f /table_file ] ; then
+	|        dmsetup create \$TNAME </table_file
+	|        rm -f /table_file
+	|    fi
 	|    }
 	|
 	|/sbin/evms_activate

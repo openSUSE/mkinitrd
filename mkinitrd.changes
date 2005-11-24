@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov 24 11:11:12 CET 2005 - hare@suse.de
+
+- Do not try to remove table_file if it doesn't exist (#132698)
+- Select correct kernel for Virtual Iron (#135299)
+- Do not accidentally overwrite /lib/klibc/bin/sh
+
+-------------------------------------------------------------------
 Thu Oct 20 08:59:43 CEST 2005 - hare@suse.de
 
 - Do not include EVMS HA modules (#128046).
