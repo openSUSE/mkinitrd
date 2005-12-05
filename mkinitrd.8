@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.10 2005/12/05 14:44:33 hare Exp $
+.\"$Id: mkinitrd.8,v 1.11 2005/12/05 14:54:41 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -59,6 +59,9 @@ Load policy file for SELinux if exists.
 .TP
 \fB-V script\fR
 Vendor specific script to run in linuxrc.
+.TP
+\fB-M map\fR
+System.map file to use.
 .TP
 \fBroot_dir\fR
 the directory the root partition is mounted to defaults to "/"

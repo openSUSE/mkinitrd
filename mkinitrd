@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.236 $
+# $Revision: 1.237 $
 
 usage() {
     cat<<EOF
@@ -133,6 +133,7 @@ splash="auto"
 use_static_binaries=
 acpi_dsdt=
 use_selinux=
+sysmap=
 
 # architecture dependend changes:
 case "$(uname -m)" in
@@ -141,7 +142,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :ehk:i:m:b:d:s:St:D:I:V:a: a ; do
+while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -166,6 +167,8 @@ while getopts :ehk:i:m:b:d:s:St:D:I:V:a: a ; do
 		    ;;
 		V)  echo "-V requires an executable to run inside linuxrc"
 		    ;;
+		M)  echo "-M requires the System.map file"
+		    ;;	
 		*)  echo "Unknown option: -$OPTARG"
 		    echo "Try mkinitrd -h"
 		    ;;
@@ -202,6 +205,8 @@ while getopts :ehk:i:m:b:d:s:St:D:I:V:a: a ; do
 	S)  use_selinux=1
 	    ;;
 	V)  vendor_init_script="$OPTARG"
+	    ;;
+	M)  sysmap="$OPTARG"
 	    ;;
 	h)  usage
 	    ;;
@@ -2091,10 +2096,19 @@ mkinitrd_kernel() {
     echo
 
     # And run depmod to ensure proper loading
-    map=$root_dir/boot/System.map-$kernel_version
+    if [ "$sysmap" ] ; then
+	map="$sysmap"
+    else
+	map=$root_dir/boot/System.map-$kernel_version
+    fi
     if [ ! -f $map ]; then
 	map=$root_dir/boot/System.map
     fi
+    if [ ! -f $map ]; then
+	oops 9 "Could not find map $map, please specify a correct file with -M."
+	return
+    fi
+
     ( cd $tmp_mnt; /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version )
 
     if [ -n "$need_raidautorun" ]; then

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec  5 15:53:53 CET 2005 - hare@suse.de
+
+- Add '-M' to specify non-standard System.map file (#118554)
+
+-------------------------------------------------------------------
 Mon Dec  5 15:43:37 CET 2005 - kay.sievers@vrfy.org
 
 - Remove klibc support; glibc is now mandatory
