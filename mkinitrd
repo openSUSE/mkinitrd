@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.237 $
+# $Revision: 1.238 $
 
 usage() {
     cat<<EOF
@@ -60,6 +60,7 @@ usage() {
           -e               Use static binaries where possible.
 	  -S               Load policy file for SELinux if exist.
 	  -V script        Vendor specific script to run in linuxrc.
+	  -M map           System.map file to use.
 EOF
     exit
 }
