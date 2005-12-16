@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.238 $
+# $Revision: 1.239 $
 
 usage() {
     cat<<EOF
@@ -708,7 +708,7 @@ devmajor() {
 
 # Extract the minor part from a device number
 devminor() {
-    local devn=$1
+    local devn=${1:-0}
     echo $(( $devn % 256 )) 
 }
 
@@ -1154,9 +1154,14 @@ mkinitrd_kernel() {
 
     features=(${features[@]} initramfs)
 
-    # Programs
-    for prog in sed sleep cat ln ls mount umount; do
-        cp_bin /bin/$prog $tmp_mnt/bin
+    # Programs /sbin
+    for prog in killall5; do
+	cp_bin /sbin/$prog $tmp_mnt/sbin
+    done
+
+    # Programs /bin
+    for prog in sed sleep cat ln ls pidof mount umount; do
+	cp_bin /bin/$prog $tmp_mnt/bin
     done
 
     # Common utilities
@@ -1180,16 +1185,16 @@ mkinitrd_kernel() {
 		cp_bin $nss_lib $tmp_mnt/lib64
 	    fi
 	done
+    else
+	mkdir -p $tmp_mnt/lib
+	for nss_lib in /lib/libnss_files*; do
+	    if [ -f "$nss_lib" ]; then
+		cp_bin $nss_lib $tmp_mnt/lib
+	    fi
+	done
     fi
 
-    mkdir -p $tmp_mnt/lib
-    for nss_lib in /lib/libnss_files*; do
-	if [ -f "$nss_lib" ]; then
-	    cp_bin $nss_lib $tmp_mnt/lib
-	fi
-    done
-
-    cp_bin /sbin/udev $tmp_mnt/sbin/
+    cp_bin /sbin/udevd $tmp_mnt/sbin/
     cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/
     cp_bin /sbin/udevstart $tmp_mnt/sbin/
 
@@ -1198,12 +1203,11 @@ mkinitrd_kernel() {
     echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
     echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
     # copy needed rules
-    if [ -f /etc/udev/rules.d/60-persistent-disk.rules ]; then
-	cp /etc/udev/rules.d/60-persistent-disk.rules $tmp_mnt/etc/udev/rules.d
-    fi
-
-    # udev is /sbin/hotplug
-    ln -s udev $tmp_mnt/sbin/hotplug
+    for rule in 50-udev-default.rules 60-persistent-disk.rules; do
+	if [ -f /etc/udev/rules.d/$rule ]; then
+	    cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
+	fi
+    done
 
     # udev *_id programs
     for prog in ata_id scsi_id usb_id vol_id dasd_id edd_id path_id; do
@@ -1216,7 +1220,18 @@ mkinitrd_kernel() {
 	cp_bin /sbin/{vgscan,vgchange} $tmp_mnt/sbin
     fi
 
-    if [ -n "$root_dm" ] ; then
+    if [ -n "$root_mpath" ] ; then
+	features=(${features[@]} dm/mpath)
+	cp_bin /sbin/multipath $tmp_mnt/sbin
+	cp_bin /sbin/kpartx $tmp_mnt/sbin
+	cp_bin /sbin/dmsetup $tmp_mnt/sbin
+	if [ -f /etc/multipath.conf ] ; then
+	    cp -a /etc/multipath.conf $tmp_mnt/etc
+	fi
+	cp /etc/udev/rules.d/71-multipath.rules $tmp_mnt/etc/udev/rules.d
+    fi
+
+    if [ -n "$root_lvm2" ] ; then
 	features=(${features[@]} dm/lvm2)
 	mkdir -p $tmp_mnt/etc/lvm
 	mkdir -p $tmp_mnt/var/lock/lvm
@@ -1365,14 +1380,44 @@ mkinitrd_kernel() {
 	|    exit \$1
 	|}
 	|
+	|# generate events with the sysfs trigger
+	|function trigger_device_events() {
+	|    list=\$(echo /sys/bus/*/devices/*/uevent)
+	|    list="\$list \$(echo /sys/class/*/*/uevent)"
+	|    list="\$list \$(echo /sys/block/*/uevent /sys/block/*/*/uevent)"
+	|    for i in \$list; do
+	|	case "\$i" in
+	|	    */device/uevent|*\**)
+	|		continue
+	|		;;
+	|	    */class/mem/*|*/class/tty/*)
+	|		first="\$first \$i"
+	|		;;
+	|	    */block/md*)
+	|		last="\$last \$i"
+	|		;;
+	|	    */*)
+	|		default="\$default \$i"
+	|		;;
+	|	esac
+	|    done
+	|
+	|    # trigger the sorted events
+	|    for i in \$first \$default \$last; do
+	|	echo "add" > "\$i"
+	|   done
+	|}
+	|
 	|exec < /dev/console > /dev/console 2>&1
 	|
 	|mount -t tmpfs udev /dev
 	|mkdir /dev/pts
-	|mkdir /dev/shm
+	|mkdir -m 1777 /dev/shm
 	|
 	|mount -tproc proc /proc
 	|mount -tsysfs sysfs /sys
+	|
+	|echo "" > /proc/sys/kernel/hotplug
 	|
 	|kernel_cmdline="\$@"
 	|
@@ -1430,6 +1475,10 @@ mkinitrd_kernel() {
 	|else
 	|    # lilo strips off the /dev/prefix from device names!
 	|    case \$rootdev in
+	|	/dev/disk/by-name/*)
+	|	    rootdevid=\${rootdev#/dev/disk/by-name/}
+	|	    rootdevid=\${rootdevid%-part*}
+	|	    ;;
 	|	/dev/*)
 	|	    ;;
 	|	LABEL=*)
@@ -1508,8 +1557,17 @@ mkinitrd_kernel() {
     # Start udev
     cat_linuxrc <<-EOF
 	|
+	|echo "Starting udevd"
+	|/sbin/udevd --daemon
+	|
 	|echo "Creating devices"
-	|/sbin/udevstart
+	|trigger_device_events
+	|loop=300
+	|while test -d /dev/.udev/queue; do
+	|    sleep 0.1;
+	|    test "\$loop" -gt 0 || break
+	|    loop=\$((\$loop - 1))
+	|done
 	|
 	|# workaround chicken/egg bug in mdadm and raidautorun
 	|# they do the ioctl on the not yet existing device node...
@@ -1916,7 +1974,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$root_dm" -o -n "$root_evms" ]; then
+    if [ -n "$root_mpath" -o -n "$root_lvm2" -o -n "$root_evms" ]; then
 	cat_linuxrc <<-'EOF'
 	|echo -n "Waiting for /dev/mapper/control to appear: "
 	|for i in 1 2 3 4 5; do
@@ -1953,6 +2011,7 @@ mkinitrd_kernel() {
 	|	    sleep 1
 	|	    echo -n "."
 	|	    [ -n "$vg" ] && vgchange -a y $vg
+	|	    [ -n "$rootdevid" ] && /sbin/multipath -v0
 	|	    timeout=$(( $timeout - 1 ))
 	|	done
 	|    fi
@@ -1960,6 +2019,12 @@ mkinitrd_kernel() {
 	|    if [ -n "$vg" -a $retval -eq 1 ]; then
 	|        vgscan
 	|        vgchange -a y $vg
+	|    fi
+	|    # Rescan for multipath
+	|    if [ -n "$rootdevid" -a $retval -eq 1 ]; then
+	|        /sbin/multipath -v0
+	|        /sbin/kpartx -a -p -part /dev/$root
+	|        [ -e /dev/$root ] && retval=0
 	|    fi
 	|    return $retval;
 	|}
@@ -1992,21 +2057,10 @@ mkinitrd_kernel() {
 	|    if [ -n "$resume_mode" ]; then
 	|	resume=${resumedev#/dev/}
 	|	if udev_wait_for_device $resume; then
-	|	    path=$(/sbin/udevinfo -q path -n $resume)
-	|	    if [ $? -eq 0 -a -n "$path" ]; then
-	|		set -- $(udev_read_devn $path)
-	|		if [ -n "$1" ]; then
-	|		    devn=$1
-	|		    major=$2
-	|		    minor=$3
-	|		fi
-	|	    else
-	|		# Try major:minor number of the device node
-	|		devn=$(devnumber $resumedev)
-	|		major=$(devmajor $devn)
-	|		minor=$(devminor $devn)
-	|	    fi
-	|	    path=
+	|	    # Try major:minor number of the device node
+	|	    devn=$(devnumber $resumedev)
+	|	    major=$(devmajor $devn)
+	|	    minor=$(devminor $devn)
 	|	    devn=
 	|       fi
 	|       if [ -n "$major" -a -n "$minor" ]; then
@@ -2029,21 +2083,14 @@ mkinitrd_kernel() {
 	|    if [ -z "$root" ]; then
 	|	return 0
 	|    fi
+	|    if [ "$rootdevid" ]; then
+	|	root=disk/by-name/$rootdevid
+	|    fi
 	|    if udev_wait_for_device $root $vg_root; then
-	|	path=$(/sbin/udevinfo -q path -n $root)
-	|	if [ $? -eq 0 -a -n "$path" ]; then
-	|	    set -- $(udev_read_devn $path)
-	|	    if [ -n "$1" ]; then
-	|	        devn=$1
-	|	        major=$2
-	|	        minor=$3
-	|	    fi
-	|	else
-	|	    # Try major:minor number of the device node
-	|	    devn=$(devnumber $rootdev)
-	|	    major=$(devmajor $devn)
-	|	    minor=$(devminor $devn)
-	|	fi
+	|	# Get major:minor number of the device node
+	|	devn=$(devnumber $rootdev)
+	|	major=$(devmajor $devn)
+	|	minor=$(devminor $devn)
 	|    fi
 	|    if [ -n "$devn" ]; then
 	|	echo "rootfs: $entry major=$major minor=$minor" \
@@ -2147,10 +2194,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$root_dm" ] ; then
-	# Name of the volume containing the root filesystem
-        local vg_root=${rootdev#/dev/}
-        vg_root=${vg_root%%/*}
+    if [ -n "$root_lvm2" ] ; then
 	cat_linuxrc <<-EOF
 	|
 	|for o in \$(cat /proc/cmdline); do
@@ -2161,8 +2205,8 @@ mkinitrd_kernel() {
 	|       ;;
 	|  esac
 	|done
-	|if [ -z "\$vg_root" ]; then
-	|  vg_root=$vg_root
+	|if [ -z "\$lv_root" ]; then
+	|  vg_root=$lv_root
 	|fi
 	|
 	EOF
@@ -2354,6 +2398,9 @@ mkinitrd_kernel() {
 	|    /vendor_init.sh
 	|fi
 	|
+	|# kill udevd, we will run the one from the real root
+	|kill $(pidof udevd)
+	|
 	|# ready to leave
 	|cd /root
 	|umount /proc
@@ -2485,7 +2532,9 @@ esac
 # check if the root device is an lvm device
 root_lvm=
 root_dm=
+root_lvm2=
 root_evms=
+root_mpath=
 if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
     rootdevn=$(devnumber $root_dir/${realrootdev#/})
 
@@ -2494,7 +2543,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
     [ "$(block_driver "$root_dir/${realrootdev#/}")" = device-mapper ] \
     	&& root_dm=1
     [ "${realrootdev:0:10}" = /dev/evms/ ] \
-    	&& root_evms=1 && root_dm=
+    	&& root_evms=1
 fi
 
 ###################################################################
@@ -2516,9 +2565,34 @@ if [ -n "$root_lvm" ] ; then
     add_module lvm-mod
 fi
 
-if [ -n "$root_dm" -o -n "$root_evms" ] ; then
+if [ -n "$root_dm" ] ; then
     add_module dm-mod
     add_module dm-snapshot
+fi
+
+if [ -n "$root_dm" ] ; then
+    # Add all required dm modules
+    dm_modules=$(dmsetup table | cut -f 4 -d ' ' | sort | uniq)
+    for table in $dm_modules; do
+	if [ "$table" ] && [ "$table" != "linear" ] ; then
+	    add_module dm-$table
+	fi
+	# Check for multipathing
+	if [ "$table" == "multipath" ] ; then
+	    root_mpath=1
+	    add_module dm-round-robin
+	    add_module dm-emc
+	fi
+    done
+    # Check whether we are using LVM2
+    rootmajor=$(devmajor $rootdevn)
+    rootminor=$(devminor $roodevn)
+    vg_line=$(lvdisplay -c 2> /dev/null | grep "$rootmajor:$rootminor")
+    if [ "$vg_line" ] ; then
+	root_lvm2=1
+	lv_root=$(echo $vg_line | cut -f 1 -d :)
+	vg_root=$(echo $vg_line | cut -f 3 -d :)
+    fi
 fi
 
 if [ -n "$use_dhcp" ]; then

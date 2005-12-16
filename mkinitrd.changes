@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Dec 16 14:59:12 CET 2005 - hare@suse.de
+
+- Run udevd within initramfs
+- Set the correct mode for /dev/shm (#138451)
+- Implement root on multipath (Feature ID #235, #110256).
+
+-------------------------------------------------------------------
 Mon Dec  5 15:53:53 CET 2005 - hare@suse.de
 
 - Add '-M' to specify non-standard System.map file (#118554)
