@@ -24,7 +24,7 @@ Version:      1.2
 Release:      0
 Summary:      Creates an initial ramdisk image for preloading modules
 BuildRoot:    %{_tmppath}/%{name}-%{version}-build
-Source0:       mkinitrd
+Source0:      mkinitrd
 Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
@@ -54,7 +54,6 @@ Authors:
     Bernhard Kaindl <bk@suse.de>
     Andreas Gruenbacher <agruen@suse.de>
     Hannes Reinecke <hare@suse.de>
-
 
 %prep
 cp %{S:10} .
