@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.239 $
+# $Revision: 1.240 $
 
 usage() {
     cat<<EOF
@@ -1074,15 +1074,12 @@ mkinitrd_kernel() {
     fi
 
     # fill the initrd
-    mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys}
+    mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys,root}
+
+    mkdir -p -m 4777 $tmp_mnt/tmp
 
     # Create a dummy /etc/mtab for mount/umount
     echo -n > $tmp_mnt/etc/mtab
-
-    mkdir -p $tmp_mnt/{tmp,root}
-    mknod $tmp_mnt/dev/console c 5 1
-    mknod $tmp_mnt/dev/null c 1 3
-    mknod $tmp_mnt/dev/kmsg c 1 11
 
     mkdir -p $tmp_mnt${initrd_shell%/*}
     cp_bin $initrd_shell $tmp_mnt$initrd_shell
@@ -1410,9 +1407,16 @@ mkinitrd_kernel() {
 	|
 	|exec < /dev/console > /dev/console 2>&1
 	|
-	|mount -t tmpfs udev /dev
+	|mount -t tmpfs -o mode=0755,noexec udev /dev
+	|mknod /dev/console c 5 1
+	|mknod /dev/null c 1 3
+	|mknod /dev/kmsg c 1 11
 	|mkdir /dev/pts
 	|mkdir -m 1777 /dev/shm
+	|ln -s /proc/self/fd /dev/fd
+	|ln -s fd/0 /dev/stdin
+	|ln -s fd/1 /dev/stdout
+	|ln -s fd/2 /dev/stderr
 	|
 	|mount -tproc proc /proc
 	|mount -tsysfs sysfs /sys
@@ -1422,6 +1426,11 @@ mkinitrd_kernel() {
 	|kernel_cmdline="\$@"
 	|
 	|for o in \$(cat /proc/cmdline); do
+	|    if [ "\$z_arg" ] ; then
+	|	init_args="\$init_args \$o"
+	|	z_arg=
+	|	continue
+	|    fi
 	|    case \$o in
 	|    linuxrc=trace)
 	|	echo -n "cmdline: "
@@ -1433,10 +1442,20 @@ mkinitrd_kernel() {
 	|	debug_linuxrc=1
 	|	;;
 	|    noresume)
-	|	resume_mode=no
+	|	resume_mode=off
 	|	;;
 	|    sysrq=yes|sysrq=1)
 	|	echo 1 > /proc/sys/kernel/sysrq
+	|	;;
+	|    -z)
+	|	init_args="\$init_args \$o"
+	|	z_arg=1
+	|	;;
+	|    -s)
+	|	runlevel=s
+	|	;;
+	|    -a|auto|-b|emergency)
+	|	init_args="\$init_args \$o"
 	|	;;
 	|    1|2|3|4|5|S|s|single)
 	|	runlevel=\$o
@@ -2162,9 +2181,14 @@ mkinitrd_kernel() {
     if [ -n "$need_raidautorun" ]; then
 	features=(${features[@]} raidautorun)
 	cat_linuxrc <<-EOF
-	|echo "raidautorun ..."
-	|raidautorun
-	|echo "done..."
+	|if [ -f /sys/module/md_mod/parameters/start_ro ]; then
+	|    # maybe should switch all arrays to rw/ but not really necessary
+	|    echo 0 > /sys/module/md_mod/parameters/start_ro
+	|else
+	|    echo "raidautorun ..."
+	|    raidautorun
+	|    echo "done..."
+	|fi
 	EOF
     fi
 
@@ -2308,7 +2332,7 @@ mkinitrd_kernel() {
 	|if [ -n "$rootfstype" -a -x /bin/fsck.${rootfstype} ]; then
 	|    # fsck is unhappy without it
 	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
-	|    fsck -t $rootfstype -a $rootdev
+	|    fsck -t $rootfstype -V -a $rootdev
 	|    # Return the fsck status
 	|    ROOTFS_FSCK=$?
 	|    export ROOTFS_FSCK
@@ -2386,11 +2410,6 @@ mkinitrd_kernel() {
 	|    done
 	|fi
 	|
-	|ln -s /proc/self/fd /dev/fd
-	|ln -s fd/0 /dev/stdin
-	|ln -s fd/1 /dev/stdout
-	|ln -s fd/2 /dev/stderr
-	|
 	|/bin/mount --move /dev /root/dev
 	|
 	|# Call vendor-specific init script
@@ -2410,7 +2429,7 @@ mkinitrd_kernel() {
 	|ROOTFS_BLKDEV="$rootdev"
 	|export ROOTFS_BLKDEV
 	|
-	|exec /bin/run-init -c ./dev/console /root $init $runlevel
+	|exec /bin/run-init -c ./dev/console /root $init $init_args $runlevel
 	|echo could not exec run-init!
 	|die 0
 	EOF

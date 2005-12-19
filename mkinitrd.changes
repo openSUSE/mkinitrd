@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 19 10:54:41 CET 2005 - hare@suse.de
+
+- Add '-V' to fsck (#121946)
+- Enable 'start_ro' for md devices (#
+- Pass all arguments to init (#132122)
+
+-------------------------------------------------------------------
 Fri Dec 16 14:59:12 CET 2005 - hare@suse.de
 
 - Run udevd within initramfs
