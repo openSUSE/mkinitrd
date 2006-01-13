@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Fri Jan 13 12:33:17 CET 2006 - hare@suse.de
+
+- Rework device detection.
+  We're now waiting for udev to settle before checking for rootfs.
+- MD Integration. Should now work properly with md.
+
+-------------------------------------------------------------------
+Fri Dec 23 20:42:44 CET 2005 - kay.sievers@suse.de
+
+- don't mount /dev "noexec", X can't mmap() video BIOS with /dev/mem
+
+-------------------------------------------------------------------
 Mon Dec 19 10:54:41 CET 2005 - hare@suse.de
 
 - Add '-V' to fsck (#121946)
