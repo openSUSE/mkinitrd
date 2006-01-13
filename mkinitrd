@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.240 $
+# $Revision: 1.241 $
 
 usage() {
     cat<<EOF
@@ -1039,7 +1039,9 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 mkinitrd_kernel() {
     local kernel_image=$1 initrd_image=$2
     local kernel_version
-    local need_raidautorun
+    local need_raidstart
+    local need_mdadm
+    local need_mdconf
     local -a features
     local fs_modules drv_modules uld_modules
 
@@ -1050,7 +1052,7 @@ mkinitrd_kernel() {
 
     linuxrc=$tmp_mnt/init
 
-    if ! [ -f "$kernel_image" ] ; then
+    if [ ! -f "$kernel_image" ] ; then
 	echo "No kernel image $kernel_image found" >&2
 	return
     fi
@@ -1205,6 +1207,16 @@ mkinitrd_kernel() {
 	    cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
 	fi
     done
+    # copy helper scripts
+    mkdir -p $tmp_mnt/lib/udev
+    for script in /lib/udev/* ; do
+	if [ -f "$script" ] ; then
+	    cp_bin $script ${tmp_mnt}${script}
+	fi
+    done
+    rm -f $tmp_mnt/lib/udev/mount.sh
+    echo '#!/bin/sh' > $tmp_mnt/lib/udev/mount.sh
+    echo 'exit 0' >> $tmp_mnt/lib/udev/mount.sh
 
     # udev *_id programs
     for prog in ata_id scsi_id usb_id vol_id dasd_id edd_id path_id; do
@@ -1252,8 +1264,17 @@ mkinitrd_kernel() {
     fi
 
     if has_any_module raid0 raid1 raid5 linear multipath; then
-	cp_bin /sbin/raidautorun $tmp_mnt/sbin
-	need_raidautorun=1
+	if [ -f /etc/raidtab ]; then
+	    cp_bin /sbin/raidstart $tmp_mnt/sbin
+	    cat /etc/raidtab > $tmp_mnt/etc/raidtab
+	    need_raidstart=1
+	else
+	    cp_bin /sbin/mdadm $tmp_mnt/sbin
+	    need_mdadm=1
+	    if [ -f /etc/mdadm.conf ] ; then
+		cat /etc/mdadm.conf > $tmp_mnt/etc/mdadm.conf
+	    fi
+	fi
     fi
 
     if [ -n "$use_dhcp" ] ; then
@@ -1407,7 +1428,7 @@ mkinitrd_kernel() {
 	|
 	|exec < /dev/console > /dev/console 2>&1
 	|
-	|mount -t tmpfs -o mode=0755,noexec udev /dev
+	|mount -t tmpfs -o mode=0755 udev /dev
 	|mknod /dev/console c 5 1
 	|mknod /dev/null c 1 3
 	|mknod /dev/kmsg c 1 11
@@ -1588,7 +1609,7 @@ mkinitrd_kernel() {
 	|    loop=\$((\$loop - 1))
 	|done
 	|
-	|# workaround chicken/egg bug in mdadm and raidautorun
+	|# workaround chicken/egg bug in mdadm
 	|# they do the ioctl on the not yet existing device node...
 	|i=0
 	|while [ \$((i)) -lt 32 ] ; do
@@ -2010,15 +2031,34 @@ mkinitrd_kernel() {
     fi
 
     cat_linuxrc <<-'EOF'
+	|
+	|# Wait for udev to settle
+	|udev_settle() {
+	|    local retval=1
+	|    local timeout=$udev_timeout
+	|    [ ! -d /dev/.udev/queue ] && return 0;
+	|    echo -n "Waiting for udev to settle: "
+	|    while [ $timeout -gt 0 ]; do
+	|        if test ! -d /dev/.udev/queue ; then
+	|		echo " ok"
+	|		retval=0
+	|		break;
+	|	 fi
+	|        sleep 1;
+	|	 echo -n "."
+	|        timeout=$(( $timeout - 1 ))
+	|    done
+	| 
+	|    return $retval;
+	|}
+	|
 	|# Waiting for a device to appear
 	|# device node will be created by udev
-	|udev_wait_for_device() {
+	|udev_check_for_device() {
 	|    local root
-	|    local vg
 	|    local retval=1
 	|    local timeout=$udev_timeout
 	|    root=$1
-	|    vg=$2
 	|    if [ -n "$root" ]; then
 	|	echo -n "Waiting for device /dev/$root to appear: "
 	|	while [ $timeout -gt 0 ]; do
@@ -2029,53 +2069,17 @@ mkinitrd_kernel() {
 	|	    fi
 	|	    sleep 1
 	|	    echo -n "."
-	|	    [ -n "$vg" ] && vgchange -a y $vg
-	|	    [ -n "$rootdevid" ] && /sbin/multipath -v0
 	|	    timeout=$(( $timeout - 1 ))
 	|	done
 	|    fi
-	|    # Rescan for LVM1
-	|    if [ -n "$vg" -a $retval -eq 1 ]; then
-	|        vgscan
-	|        vgchange -a y $vg
-	|    fi
-	|    # Rescan for multipath
-	|    if [ -n "$rootdevid" -a $retval -eq 1 ]; then
-	|        /sbin/multipath -v0
-	|        /sbin/kpartx -a -p -part /dev/$root
-	|        [ -e /dev/$root ] && retval=0
-	|    fi
 	|    return $retval;
-	|}
-	|
-	|# Reads the major:minor pair from a sysfs path
-	|# and converts it into a devno
-	|udev_read_devn() {
-	|    local dev;
-	|    local devn;
-	|
-	|    if [ -z "$1" ]; then
-	|	echo ""
-	|	return
-	|    fi
-	|
-	|    dev=/sys$1/dev
-	|    if [ -f $dev ]; then
-	|	local major minor devn
-	|	IFS=":" read major minor < $dev
-	|	devn=$(mkdevn $major $minor)
-	|	echo "$devn $major $minor"
-	|    else
-	|	echo ""
-	|    fi
 	|}
 	|
 	|udev_discover_resume() {
 	|    local resume
 	|    # Waits for the resume device to appear
 	|    if [ -n "$resume_mode" ]; then
-	|	resume=${resumedev#/dev/}
-	|	if udev_wait_for_device $resume; then
+	|	if [ -e $resumedev ] ; then
 	|	    # Try major:minor number of the device node
 	|	    devn=$(devnumber $resumedev)
 	|	    major=$(devmajor $devn)
@@ -2102,17 +2106,14 @@ mkinitrd_kernel() {
 	|    if [ -z "$root" ]; then
 	|	return 0
 	|    fi
-	|    if [ "$rootdevid" ]; then
-	|	root=disk/by-name/$rootdevid
-	|    fi
-	|    if udev_wait_for_device $root $vg_root; then
+	|    if [ -e $rootdev ] ; then
 	|	# Get major:minor number of the device node
 	|	devn=$(devnumber $rootdev)
 	|	major=$(devmajor $devn)
 	|	minor=$(devminor $devn)
 	|    fi
 	|    if [ -n "$devn" ]; then
-	|	echo "rootfs: $entry major=$major minor=$minor" \
+	|	echo "rootfs: major=$major minor=$minor" \
 	|	    "devn=$devn"
 	|	echo $devn > /proc/sys/kernel/real-root-dev
 	|	return 0
@@ -2133,8 +2134,8 @@ mkinitrd_kernel() {
 	|    esac
 	|done
 	|
-	|# wait for the resume device
-	|udev_discover_resume
+	|# wait udev to settle
+	|udev_settle
 	|
 	EOF
 
@@ -2178,17 +2179,53 @@ mkinitrd_kernel() {
 
     ( cd $tmp_mnt; /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version )
 
-    if [ -n "$need_raidautorun" ]; then
-	features=(${features[@]} raidautorun)
+    if [ -n "$root_mpath" ] ; then
 	cat_linuxrc <<-EOF
-	|if [ -f /sys/module/md_mod/parameters/start_ro ]; then
-	|    # maybe should switch all arrays to rw/ but not really necessary
-	|    echo 0 > /sys/module/md_mod/parameters/start_ro
-	|else
-	|    echo "raidautorun ..."
-	|    raidautorun
-	|    echo "done..."
+	|# Rescan for multipath
+	|/sbin/multipath -v0
+	|udev_settle
+	EOF
+    fi
+
+    if [ -n "$need_raidstart" ]; then
+	features=(${features[@]} raidstart)
+	cat_linuxrc <<-EOF
+	|echo "raidstart ..."
+	|raidstart --all
+	|echo "done..."
+	EOF
+    fi
+
+    if [ -n "$need_mdconf" ]; then
+	features=(${features[@]} mdconf)
+	cat_linuxrc <<-EOF
+	|echo -n "Assembling md raid: "
+	|for tab in /dev/shm/mdtab-* ; do
+	|    if [ -f "\$tab" ] ; then
+	|	if [ ! -f /etc/mdadm.conf ] ; then
+	|	    echo 'DEVICE /dev/hd* /dev/sd* /dev/dasd*' > /etc/mdadm.conf
+	|	    echo 'DEVICE /dev/disk/by-name/*' >> /etc/mdadm.conf
+	|	fi
+	|	cat $tab >> /etc/mdadm.conf
+	|	echo -n '.'
+	|	rm $tab
+	|    fi
+	|done
+	|echo 'ok.'
+	EOF
+    fi
+
+    if [ -n "$need_mdadm" ]; then
+	features=(${features[@]} mdadm)
+	cat_linuxrc <<-EOF
+	|if [ -n "$resume_mode" -a -f /sys/module/md_mod/parameters/start_ro ]; then
+	|    echo 1 > /sys/module/md_mod/parameters/start_ro
 	|fi
+	|
+	|if [ -f /etc/mdadm.conf ] ; then
+	|    mdconf="--config=/etc/mdadm.conf"
+	|fi
+	|/sbin/mdadm --assemble --scan \$mdconf
 	EOF
     fi
 
@@ -2314,6 +2351,33 @@ mkinitrd_kernel() {
     fi
 
     cat_linuxrc <<-'EOF'
+	|# Wait for udev to settle
+	|udev_settle
+	|# Check for a resume device
+	|udev_discover_resume
+	EOF
+
+    if [ -n "$need_mdadm" ]; then
+	cat_linuxrc <<-EOF
+	|if [ -n "\$resume_mode" ] ; then
+	|    # Stop all arrays
+	|    /sbin/mdadm --stop --scan \$mdconf
+	|    # Switch md back to read-write mode
+	|    if [ -f /sys/module/md_mod/parameters/start_ro ]; then
+	|        # maybe should switch all arrays to rw/ but not really necessary
+	|        echo 0 > /sys/module/md_mod/parameters/start_ro
+	|    fi
+	|
+	|    # And restart them again
+	|    /sbin/mdadm --assemble --scan \$mdconf
+	|    # Wait for udev to settle
+	|    udev_settle
+	|fi
+	EOF
+    fi
+
+    cat_linuxrc <<-'EOF'
+	|# And now for the real thing
 	|if ! udev_discover_root ; then
 	|    echo "not found -- exiting to /bin/sh"
 	|    cd /
