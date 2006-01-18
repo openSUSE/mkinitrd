@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.40 $
+# $Revision: 1.124.2.41 $
 
 #
 # Print usage and exit
@@ -61,6 +61,8 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
 	  -S               Load policy file for SELinux if exist.
+	  -x size          Additional space on the initrd in kBytes.
+                           Default is 2048.
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
 EOM
@@ -142,6 +144,7 @@ use_pivot_root=
 use_static_binaries=1
 acpi_dsdt=
 use_selinux=
+initrd_space=2048
 
 # architecture dependend changes:
 case "$(uname -m)" in
@@ -150,7 +153,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hk:i:m:b:d:s:St:D:I:a: a ; do
+while getopts :hk:i:m:b:d:s:St:D:I:a:x: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -172,6 +175,8 @@ while getopts :hk:i:m:b:d:s:St:D:I:a: a ; do
 		I)  echo "-I requires network interface parameter"
 		    ;;
 		a)  echo "-a requires a DSDT parameter"
+		    ;;
+		x)  echo "-x requires the size to extend"
 		    ;;
 		*)  echo "Unknown option: -$OPTARG"
 		    echo "Try mkinitrd -h"
@@ -208,6 +213,8 @@ while getopts :hk:i:m:b:d:s:St:D:I:a: a ; do
 	    ;;
 	S)  use_selinux=1
 	    ;;
+	x)  initrd_space=$OPTARG
+	    ;;
 	h)  usage
 	    ;;
     esac
@@ -229,6 +236,12 @@ fi
 if [ ! -d "$boot_dir" ]; then
     echo "$boot_dir is not a directory" >&2
     exit 1
+fi
+
+# Check if the additional space is large enough
+if (($initrd_space < 2048)) ; then
+    echo "Not enough additional space, resetting to 2048"
+    initrd_space=2048
 fi
 
 # FIXME agruen: tmp_dir is the full, absolute path to a temporary directory
@@ -371,7 +384,7 @@ cleanup() {
     is_mounted=
     [ "$is_mounted_small" ] && umount $tmp_mnt_small
     is_mounted_small=
-    rm -f $tmp_initrd $tmp_initrd.gz $tmp_msg tmp_initrd_small \
+    rm -f $tmp_initrd $tmp_initrd.gz $tmp_msg $tmp_initrd_small \
 	  $tmp_initrd_small.gz
     [ -d "$tmp_mnt" ] && rmdir $tmp_mnt
     [ -d "$tmp_mnt_small" ] && rmdir $tmp_mnt_small
@@ -2367,7 +2380,7 @@ mkinitrd_kernel() {
     # Now create a second initrd with minimal size
 
     #echo "Creating minimum size initrd image"
-    img_size=$(expr $(df -kP $tmp_mnt | sed '1d' | awk '{print $3}') + 2000)
+    img_size=$(expr $(df -kP $tmp_mnt | sed '1d' | awk '{print $3}') + $initrd_space)
     mkdir $tmp_mnt_small
 
     dd if=/dev/zero of=$tmp_initrd_small bs=1k count=$img_size 2>/dev/null

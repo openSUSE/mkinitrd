@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.1.4.1 2005/04/14 07:24:24 hare Exp $
+.\"$Id: mkinitrd.8,v 1.1.4.2 2006/01/18 09:52:10 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -54,7 +54,10 @@ variable in /etc/sysconfig/kernel.
 Load policy file for SELinux if exists.
 .TP
 \fB-t tmp_dir\fR 
-tmp dir, defaults to "/tmp"
+tmp dir, defaults to "/tmp".
+.TP
+\fB-x size\fR 
+additional space in kBytes on the initrd, default is 2048.
 .TP
 \fBroot_dir\fR
 the directory the root partition is mounted to defaults to "/"

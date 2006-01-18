@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 18 10:49:54 CET 2006 - hare@suse.de
+
+- Add parameter '-x' to specify the additional space
+  on the initrd (#143205).
+- Fix typo on cleanup.
+
+-------------------------------------------------------------------
 Thu Nov 24 11:11:12 CET 2005 - hare@suse.de
 
 - Do not try to remove table_file if it doesn't exist (#132698)
