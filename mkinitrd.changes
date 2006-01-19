@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 19 17:04:45 CET 2006 - hare@suse.de
+
+- Add handling of external journal (Feature ID #300179).
+
+-------------------------------------------------------------------
 Fri Jan 13 12:33:17 CET 2006 - hare@suse.de
 
 - Rework device detection.

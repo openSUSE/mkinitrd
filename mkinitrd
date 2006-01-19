@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.241 $
+# $Revision: 1.242 $
 
 usage() {
     cat<<EOF
@@ -135,6 +135,7 @@ use_static_binaries=
 acpi_dsdt=
 use_selinux=
 sysmap=
+journaldev=
 
 # architecture dependend changes:
 case "$(uname -m)" in
@@ -143,7 +144,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M: a ; do
+while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -169,6 +170,8 @@ while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M: a ; do
 		V)  echo "-V requires an executable to run inside linuxrc"
 		    ;;
 		M)  echo "-M requires the System.map file"
+		    ;;	
+		j)  echo "-j requires the journal device"
 		    ;;	
 		*)  echo "Unknown option: -$OPTARG"
 		    echo "Try mkinitrd -h"
@@ -208,6 +211,8 @@ while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M: a ; do
 	V)  vendor_init_script="$OPTARG"
 	    ;;
 	M)  sysmap="$OPTARG"
+	    ;;
+	j)  journaldev="$OPTARG"
 	    ;;
 	h)  usage
 	    ;;
@@ -1504,6 +1509,10 @@ mkinitrd_kernel() {
 	|	set -- \$(IFS== ; echo \$o)
 	|	resumedev=\$2
 	|	;;
+	|    journal=*)
+	|	set -- \$(IFS== ; echo \$o)
+	|	journaldev=\$2
+	|	;;
 	|    init=*)
 	|	set -- \$(IFS== ; echo \$o)
 	|	init=\$2
@@ -1578,6 +1587,10 @@ mkinitrd_kernel() {
 	|else
 	|    echo "udev_log=\"error\"" >> /etc/udev/udev.conf
 	|fi
+	|
+	|# Set default for the journal device
+	|if [ -z "\$journaldev" ]; then
+	|    journaldev=$journaldev
 	EOF
 
     # Transfer the the block_driver function into the initrd
@@ -2396,6 +2409,8 @@ mkinitrd_kernel() {
 	|if [ -n "$rootfstype" -a -x /bin/fsck.${rootfstype} ]; then
 	|    # fsck is unhappy without it
 	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
+	|    # Check external journal for reiserfs
+	|    [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && rootfstype="${rootfstype} -j $journaldev"
 	|    fsck -t $rootfstype -V -a $rootdev
 	|    # Return the fsck status
 	|    ROOTFS_FSCK=$?
@@ -2439,6 +2454,9 @@ mkinitrd_kernel() {
 	|echo 256 > /proc/sys/kernel/real-root-dev
 	|# mount the actual root device below /root
 	|echo "Mounting root $rootdev"
+	|# check external journal
+	|[ "$rootfstype" = "xfs" -a -n "$journaldev" ] && opt="${opt},logdev=$journaldev"
+	|[ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && opt="${opt},jdev=$journaldev"
 	|[ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
 	|if [ -x /bin/nfsmount -a "$rootfstype" = "nfs" ]; then
 	|    nfsmount $rootdev /root || die 1
@@ -2576,6 +2594,7 @@ if [ -z "$rootdev" ] ; then
     if [ "$fstab_mountpoint" = "/" ]; then
       rootdev="$fstab_device"
       rootfstype="$fstab_type"
+      rootfsopts="$fstab_options"
       break
     fi
   done < <( sed -e '/^[ 	]*#/d' < $root_dir/etc/fstab)
@@ -2611,6 +2630,18 @@ case "$rootdev" in
 	fi
 	;;
 esac
+
+# check for journal device
+if [ "$rootfsopts" -a -z "$journaldev" ] ; then
+    jdev=${rootfsopts#*,jdev=}
+    if [ "$jdev" != "$rootfsopts" ] ; then
+	journaldev=${jdev%%,*}
+    fi
+    logdev=${rootfsopts#*,logdev=}
+    if [ "$logdev" != "$rootfsopts" ] ; then
+	journaldev=${logdev%%,*}
+    fi
+fi
 
 # check if the root device is an lvm device
 root_lvm=
