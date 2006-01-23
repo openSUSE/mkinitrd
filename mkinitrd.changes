@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 23 16:13:44 CET 2006 - hare@suse.de
+
+- Update iscsi handling.
+
+-------------------------------------------------------------------
 Thu Jan 19 17:04:45 CET 2006 - hare@suse.de
 
 - Add handling of external journal (Feature ID #300179).

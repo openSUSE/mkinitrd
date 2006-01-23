@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.242 $
+# $Revision: 1.243 $
 
 usage() {
     cat<<EOF
@@ -1136,13 +1136,11 @@ mkinitrd_kernel() {
 
     if has_module iscsi ; then
 	features=(${features[@]} iscsi)
-	if test -x /usr/sbin/iscsid; then
-	    cp_bin /usr/sbin/iscsid $tmp_mnt/sbin/iscsid
-	elif test -x /sbin/iscsid; then
-	    cp_bin /sbin/iscsid $tmp_mnt/sbin/iscsid
-	else
-	    echo -e "iSCSI error:\tcan't find iscsid"
-	fi
+	cp_bin /sbin/iscsid $tmp_mnt/sbin/iscsid
+	cp_bin /sbin/iscsiadm $tmp_mnt/sbin/iscsiadm
+	mkdir -p $tmp_mnt/var/lib/open-iscsi
+	cp /var/lib/open-iscsi/discovery.db $tmp_mnt/var/lib/open-iscsi
+	cp /var/lib/open-iscsi/node.db $tmp_mnt/var/lib/open-iscsi
 	cp_bin /bin/usleep $tmp_mnt/bin/usleep
     fi
 
@@ -1982,6 +1980,27 @@ mkinitrd_kernel() {
 
     if has_module iscsi ; then
 	cat_linuxrc <<-'EOF'
+	|iscsi_login_all_nodes()
+	|{
+	|    local STARTUP
+	|    local NODE
+	|    local iscsi_tgts
+	|    local rec
+	|
+	|    iscsi_tgts=$(/sbin/iscsiadm -m node | sed 's@\[\(.*\)\] .*@\1@g')
+	|    for rec in $iscsi_tgts; do
+	|	STARTUP=`/sbin/iscsiadm -m node -r $rec | grep "node.conn\[0\].startup" | cut -d' ' -f3`
+	|	NODE=`/sbin/iscsiadm -m node -r $rec | grep "node.name" | cut -d' ' -f3`
+	|	if [ $STARTUP = "automatic" ] ; then
+	|	    echo -n "Logging into $NODE: "
+	|	    if /sbin/iscsiadm -m node -r $rec -l ; then
+	|		echo "ok."
+	|	    else
+	|		echo "failed."
+	|	    fi
+	|	fi
+	|    done
+	|}
 	|if [ -n "$iscsi_boot" ]; then
 	|  echo "Continuous=no" >> /etc/iscsi.conf
 	|  echo "ImmediateData=no" >> /etc/iscsi.conf
@@ -1989,13 +2008,11 @@ mkinitrd_kernel() {
 	|  echo "$initiatorname" >> /etc/initiatorname.iscsi
 	|
 	|  echo "Starting iSCSI"
-	|  iscsid
+	|  /sbin/iscsid
 	|  usleep 5000000
 	|
 	|  # need to redo-this setting up the root dev now that the disk is present
-	|  discover_root
-	|  # clear dhcp_mode so it looks like we're disk booted...
-	|  dhcp_mode=
+	|  iscsi_login_all_nodes
 	|fi
 	EOF
     fi
