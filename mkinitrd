@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.243 $
+# $Revision: 1.244 $
 
 usage() {
     cat<<EOF
@@ -1226,6 +1226,14 @@ mkinitrd_kernel() {
 	cp_bin /sbin/$prog $tmp_mnt/sbin
     done
 
+    # QLogic firmware
+    mkdir -p $tmp_mnt/lib/firmware
+    for fw in /lib/firmware/ql*.bin ; do
+	if [ -f "$fw" ] ; then
+	    cp -a $fw $tmp_mnt/lib/firmware
+	fi
+    done
+
     if [ -n "$root_lvm" ] ; then
 	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
@@ -1589,6 +1597,7 @@ mkinitrd_kernel() {
 	|# Set default for the journal device
 	|if [ -z "\$journaldev" ]; then
 	|    journaldev=$journaldev
+	|fi
 	EOF
 
     # Transfer the the block_driver function into the initrd

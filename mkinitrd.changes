@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 24 12:36:06 CET 2006 - hare@suse.de
+
+- Fix journal handling
+- Copy QLogic firmware into the initramfs
+
+-------------------------------------------------------------------
 Mon Jan 23 16:13:44 CET 2006 - hare@suse.de
 
 - Update iscsi handling.
