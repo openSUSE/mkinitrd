@@ -22,47 +22,8 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/new-kernel-pkg,v $
-# $Revision: 1.4 $
+# $Revision: 1.5 $
 
-
-update_zipl_conf() {
-	local zipl_conf=$1
-	local common='
-	function uq(x)	{ return gensub(/^"(.*)"$/, "\\1", "", x) }
-	function fields(a,x) \
-			{ x=$a ; 
-			  while (++a<=NF) x=x OFS $a
-			  return x }
-        $1 ~ /[^ ]*=[^ ]*/	{ sub(/=/, " = ") }
-	/^\[.*\]$/	{ sec = gensub(/^\[(.*)\]$/, "\\1", "", $0) }
-	'
-
-	# Find out the default boot section defined by the
-	# default=* setting in [defaultboot]
-	local boot=$(
-	awk "$common"'
-        /^\#/            { next }
-        /^ *$/            { next }
-	sec == "defaultboot" && $1 == "default" \
-			{ print uq($3) ; exit(0) }
-	' "$zipl_conf")
-
-	mv "$zipl_conf" "$zipl_conf".rpmorig
-	# Update the default boot section
-	# - image is always '/boot/image'
-	# - ramdisk is always '/boot/initrd'
-	# - Add a parameter 'TERM=dumb' to the kernel commandline
-	#   if no 'TERM' parameter is set
-	awk "$common"'
-	sec == "'"$boot"'" \
-			{ $1 == "image"		&& $3 = "/boot/image"
-			  $1 == "ramdisk"	&& $3 = "/boot/initrd"
-                          if ($1 == "parameters" && $0 !~ /TERM=/) { \
-			      $0 = "parameters = \"" uq(fields(3)) \
-			         " TERM=dumb\"" } }
-			{ print }
-	' "$zipl_conf".rpmorig > "$zipl_conf"
-}
 
 if [ -f /etc/sysconfig/bootloader ]; then
   . /etc/sysconfig/bootloader
@@ -137,22 +98,6 @@ case "$LOADER_TYPE" in
     s390)
 	ZIPL_CONF=/etc/zipl.conf
 	if [ -f "$ZIPL_CONF" ]; then
-	    echo "Updating $ZIPL_CONF..."
-	    out=$(update_zipl_conf $ZIPL_CONF 2>&1) || {
-		echo "Could not update your $ZIPL_CONF file."
-		echo "The error was:"
-		echo ""
-		echo "$out"
-		echo ""
-		echo "Please update your zipl.conf file to include a section"
-		echo 
-		echo "[ipl]"
-		echo "image=/boot/image"
-		echo "ramdisk=/boot/initrd"
-		echo ""
-		mv $ZIPL_CONF.rpmorig $ZIPL_CONF
-		exit 1
-	    } >&2
 	    echo "Running zipl..."
 	    out=$(/sbin/zipl -V 2>&1) || {
 		echo "zipl failed to update the IPL record of your system."

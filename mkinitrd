@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.244 $
+# $Revision: 1.245 $
 
 usage() {
     cat<<EOF
@@ -1198,7 +1198,6 @@ mkinitrd_kernel() {
 
     cp_bin /sbin/udevd $tmp_mnt/sbin/
     cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/
-    cp_bin /sbin/udevstart $tmp_mnt/sbin/
 
     mkdir -p $tmp_mnt/etc/udev/rules.d
     # Create our own udev.conf

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 25 08:09:38 CET 2006 - hare@suse.de
+
+- new-kernel-pkg: Remove code for updating zipl.conf,
+  is now handled by the new perl-bootloader.
+- mkinitrd: Remove udevstart reference.
+
+-------------------------------------------------------------------
 Tue Jan 24 12:36:06 CET 2006 - hare@suse.de
 
 - Fix journal handling
