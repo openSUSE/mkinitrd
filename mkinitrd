@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.246 $
+# $Revision: 1.247 $
 
 usage() {
     cat<<EOF
@@ -1281,16 +1281,18 @@ mkinitrd_kernel() {
     fi
 
     if has_any_module raid0 raid1 raid5 linear multipath; then
-	if [ -f /etc/raidtab ]; then
+	# Try for mdadm first
+	if [ -f /etc/mdadm.conf ] ; then
+	    cp_bin /sbin/mdadm $tmp_mnt/sbin
+	    need_mdadm=1
+	    cat /etc/mdadm.conf > $tmp_mnt/etc/mdadm.conf
+	elif [ -f /etc/raidtab ]; then
 	    cp_bin /sbin/raidstart $tmp_mnt/sbin
 	    cat /etc/raidtab > $tmp_mnt/etc/raidtab
 	    need_raidstart=1
 	else
 	    cp_bin /sbin/mdadm $tmp_mnt/sbin
 	    need_mdadm=1
-	    if [ -f /etc/mdadm.conf ] ; then
-		cat /etc/mdadm.conf > $tmp_mnt/etc/mdadm.conf
-	    fi
 	fi
     fi
 

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 30 16:18:43 CET 2006 - hare@suse.de
+
+- Try for mdadm first as raidstart is deprecated (#146304)
+
+-------------------------------------------------------------------
 Mon Jan 30 11:46:01 CET 2006 - hare@suse.de
 
 - Do not use read() on /proc/devices (#146095).
