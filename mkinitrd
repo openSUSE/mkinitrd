@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.245 $
+# $Revision: 1.246 $
 
 usage() {
     cat<<EOF
@@ -732,15 +732,17 @@ block_driver() {
     esac
 
     [ -z "$devn" ] && return 1
-    while read major driver; do
-	[ "$major" = Block ] && block=1  # in block device section
-	[ -z "$driver" -o -z "$block" ] && continue
-	if [ $(devmajor $devn) = $major ]; then
+    major=$(devmajor $devn)
+    driver=$(cat /proc/devices | sed -n "s/^[ ]*$major \(.*\)/\1/p;/Block/p" | tail -1)
+    case "$driver" in
+	Block*)
+	    return 1
+	    ;;
+	*)
 	    echo $driver
 	    return 0
-	fi
-    done < /proc/devices
-    return 1
+	    ;;
+    esac
 }
 
 # (We are using a devnumber binary inside the initrd.)
@@ -1225,6 +1227,9 @@ mkinitrd_kernel() {
 	cp_bin /sbin/$prog $tmp_mnt/sbin
     done
 
+    # scsi_id config file
+    cp /etc/scsi_id.config $tmp_mnt/etc/scsi_id.config
+
     # QLogic firmware
     mkdir -p $tmp_mnt/lib/firmware
     for fw in /lib/firmware/ql*.bin ; do
@@ -1237,6 +1242,7 @@ mkinitrd_kernel() {
 	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
 	cp_bin /sbin/{vgscan,vgchange} $tmp_mnt/sbin
+	cp_bin /sbin/dmsetup $tmp_mnt/sbin
     fi
 
     if [ -n "$root_mpath" ] ; then
@@ -1255,6 +1261,7 @@ mkinitrd_kernel() {
 	mkdir -p $tmp_mnt/etc/lvm
 	mkdir -p $tmp_mnt/var/lock/lvm
 	cp_bin /sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
+	cp_bin /sbin/dmsetup $tmp_mnt/sbin
 	cp_bin /bin/{sed,mkdir,mknod,ls} $tmp_mnt/bin
 	cp -a /etc/lvm/lvm.conf $tmp_mnt/etc/lvm
     fi
@@ -2308,6 +2315,7 @@ mkinitrd_kernel() {
 	|  vg_root=$lv_root
 	|fi
 	|
+	|vgchange -a y \$vg_root
 	EOF
     fi
 

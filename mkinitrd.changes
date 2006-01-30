@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jan 30 11:46:01 CET 2006 - hare@suse.de
+
+- Do not use read() on /proc/devices (#146095).
+- LVM2 also requires a call to vgchange (#146095).
+
+-------------------------------------------------------------------
 Wed Jan 25 21:38:20 CET 2006 - mls@suse.de
 
 - converted neededforbuild to BuildRequires
