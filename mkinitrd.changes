@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 25 21:38:20 CET 2006 - mls@suse.de
+
+- converted neededforbuild to BuildRequires
+
+-------------------------------------------------------------------
 Wed Jan 25 08:09:38 CET 2006 - hare@suse.de
 
 - new-kernel-pkg: Remove code for updating zipl.conf,
