@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Feb  1 12:47:51 CET 2006 - hare@suse.de
+
+- Do not try to rewrite symlink if mkinitrd fails (#145888)
+- Clean up all directories on failure
+- Rewrite '-b' and '-a' arguments as run_init would otherwise
+  try to interpret them.
+
+-------------------------------------------------------------------
 Mon Jan 30 16:18:43 CET 2006 - hare@suse.de
 
 - Try for mdadm first as raidstart is deprecated (#146304)

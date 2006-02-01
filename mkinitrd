@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.247 $
+# $Revision: 1.248 $
 
 usage() {
     cat<<EOF
@@ -1494,8 +1494,11 @@ mkinitrd_kernel() {
 	|    -s)
 	|	runlevel=s
 	|	;;
-	|    -a|auto|-b|emergency)
-	|	init_args="\$init_args \$o"
+	|    -b|emergency)
+	|	init_args="\$init_args emergency"
+	|	;;
+	|    -a|auto)
+	|	init_args="\$init_args auto"
 	|	;;
 	|    1|2|3|4|5|S|s|single)
 	|	runlevel=\$o
@@ -1694,6 +1697,7 @@ mkinitrd_kernel() {
 	fi
 	if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
 	    oops 6 "Failed to add module $module."
+	    rm -rf $tmp_mnt
 	    return
 	fi
     done
@@ -1712,6 +1716,7 @@ mkinitrd_kernel() {
 	if [ ! -f $tmp_mnt/$module ]; then
 	    if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
 		oops 6 "Failed to add module $module."
+		rm -rf $tmp_mnt
 		return
 	    fi
 	fi
@@ -1721,8 +1726,8 @@ mkinitrd_kernel() {
     # We do this to avoid loading xfs when doing a resule: xfs had
     # (or still has) a bug that slows down resume a lot.
     # FIXME: get rid of this split crap again.
-    for module in $modules; do
-	if grep -q "/kernel/fs/.*/${module%.ko}.ko:" $modules_dep; then
+    for module in $resolved_modules; do
+	if [ "$module" != "${module#*/kernel/fs/}" ]; then
 	    fs_modules="$fs_modules $module"
 	else
 	    drv_modules="$drv_modules $module"
@@ -1733,8 +1738,10 @@ mkinitrd_kernel() {
 
     echo -ne "Driver modules:\t"
     initrd_is_using_modules=
-    for module in $drv_modules; do
-	echo -n "$module "
+    for modpath in $drv_modules; do
+	module=${modpath##*/}
+	module=${module%.ko}
+	echo -n "${module} "
 	cat_linuxrc <<-EOF
 	|params=
 	|for p in \$(cat /proc/cmdline) ; do
@@ -2189,7 +2196,9 @@ mkinitrd_kernel() {
     # Load fs modules _after_ resume
     echo -ne "Filesystem modules:\t"
     initrd_is_using_modules=
-    for module in $fs_modules; do
+    for modpath in $fs_modules; do
+	module=${modpath##*/}
+	module=${module%.ko}
 	echo -n "$module "
 	cat_linuxrc <<-EOF
 	|params=
@@ -2221,6 +2230,7 @@ mkinitrd_kernel() {
     fi
     if [ ! -f $map ]; then
 	oops 9 "Could not find map $map, please specify a correct file with -M."
+	rm -rf $tmp_mnt
 	return
     fi
 
@@ -2604,8 +2614,6 @@ mkinitrd_kernel() {
     popd > /dev/null 2>&1
     if ! cp -f $tmp_initrd.gz $initrd_image ; then
 	oops 8 "Failed to install initrd"
-	rm -rf $tmp_mnt
-	return
     fi
     rm -rf $tmp_mnt
 
@@ -2802,7 +2810,7 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     # If the current $kernel_image has a symlink without "-<version>" (e.g.
     # "vmlinuz") pointing to it, create an "initrd" symlink for the
     # corresponding $initrd_image.
-    if [ "$(readlink ${kernel_image%%-*})" = \
+    if [ $exit_code -eq 0 -a "$(readlink ${kernel_image%%-*})" = \
 	 "${kernel_image#$boot_dir/}" ]; then
 	rm -f $root_dir/$boot_dir/initrd
 	ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
