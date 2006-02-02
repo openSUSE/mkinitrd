@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb  2 08:34:34 CET 2006 - hare@suse.de
+
+- Wrong initialisation for LVM (#147415)
+
+-------------------------------------------------------------------
 Wed Feb  1 12:47:51 CET 2006 - hare@suse.de
 
 - Do not try to rewrite symlink if mkinitrd fails (#145888)

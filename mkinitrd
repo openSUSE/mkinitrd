@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.248 $
+# $Revision: 1.249 $
 
 usage() {
     cat<<EOF
@@ -2323,8 +2323,8 @@ mkinitrd_kernel() {
 	|       ;;
 	|  esac
 	|done
-	|if [ -z "\$lv_root" ]; then
-	|  vg_root=$lv_root
+	|if [ -z "\$vg_root" ]; then
+	|  vg_root=$vg_root
 	|fi
 	|
 	|vgchange -a y \$vg_root
