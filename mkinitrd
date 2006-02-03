@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.249 $
+# $Revision: 1.250 $
 
 usage() {
     cat<<EOF
@@ -2580,24 +2580,35 @@ mkinitrd_kernel() {
 	    themes_dir="$root_dir/usr/share/splash/themes"
 	fi
 
-	echo -ne "Bootsplash:\t"
-	if [ -n "$themes_dir" -a \
-	     -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
-	    for size in $splashsizes; do
-		bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
-		cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
-		if [ ! -r $cfgname ] ; then
-		    echo "disabled for resolution $size"
-		elif [ ! -r $bootsplash_picture ] ; then
-		    echo "no image for resolution $size"
-		else
-		    echo -n "${splash_image:+, }$THEME ($size)"
-		    splash_image="$splash_image $cfgname"
-		fi
-	    done
-	    echo
+	no_splash=
+	case ${kernel_version##*-} in
+	    kdump|um|xen*)
+		no_splash=1
+		;;
+	esac
+
+	if [ -n "$no_splash" ]; then
+	    echo "No bootsplash for kernel flavor ${kernel_version##*-}"
 	else
-	    echo "no theme selected"
+	    echo -ne "Bootsplash:\t"
+	    if [ -n "$themes_dir" -a \
+		 -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
+		for size in $splashsizes; do
+		    bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
+		    cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
+		    if [ ! -r $cfgname ] ; then
+			echo "disabled for resolution $size"
+		    elif [ ! -r $bootsplash_picture ] ; then
+			echo "no image for resolution $size"
+		    else
+			echo -n "${splash_image:+, }$THEME ($size)"
+			splash_image="$splash_image $cfgname"
+		    fi
+		done
+		echo
+	    else
+		echo "no theme selected"
+	    fi
 	fi
     fi
 
