@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb  6 16:07:42 CET 2006 - hare@suse.de
+
+- corrected an error for invalid rootfstype (#142847)
+- Rewrote md activation (#147795)
+- Parse /etc/fstab to update mount parameters.
+
+-------------------------------------------------------------------
 Fri Feb  3 16:18:20 CET 2006 - agruen@suse.de
 
 - Never add a bootsplash for kernel flavors kdump, um, xen*.

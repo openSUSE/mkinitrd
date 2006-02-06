@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.250 $
+# $Revision: 1.251 $
 
 usage() {
     cat<<EOF
@@ -1281,18 +1281,10 @@ mkinitrd_kernel() {
     fi
 
     if has_any_module raid0 raid1 raid5 linear multipath; then
-	# Try for mdadm first
+	cp_bin /sbin/mdadm $tmp_mnt/sbin
+	need_mdadm=1
 	if [ -f /etc/mdadm.conf ] ; then
-	    cp_bin /sbin/mdadm $tmp_mnt/sbin
-	    need_mdadm=1
 	    cat /etc/mdadm.conf > $tmp_mnt/etc/mdadm.conf
-	elif [ -f /etc/raidtab ]; then
-	    cp_bin /sbin/raidstart $tmp_mnt/sbin
-	    cat /etc/raidtab > $tmp_mnt/etc/raidtab
-	    need_raidstart=1
-	else
-	    cp_bin /sbin/mdadm $tmp_mnt/sbin
-	    need_mdadm=1
 	fi
     fi
 
@@ -1530,6 +1522,10 @@ mkinitrd_kernel() {
 	|	set -- \$(IFS== ; echo \$o)
 	|	journaldev=\$2
 	|	;;
+	|    mduuid=*)
+	|	set -- \$(IFS== ; echo \$o)
+	|	md_uuid=\$2
+	|	;;
 	|    init=*)
 	|	set -- \$(IFS== ; echo \$o)
 	|	init=\$2
@@ -1544,6 +1540,10 @@ mkinitrd_kernel() {
 	|	/dev/disk/by-name/*)
 	|	    rootdevid=\${rootdev#/dev/disk/by-name/}
 	|	    rootdevid=\${rootdevid%-part*}
+	|	    ;;
+	|	/dev/md*)
+	|	    md_dev=\$rootdev
+	|	    md_minor=\${rootdev#/dev/md}
 	|	    ;;
 	|	/dev/*)
 	|	    ;;
@@ -2274,15 +2274,40 @@ mkinitrd_kernel() {
 
     if [ -n "$need_mdadm" ]; then
 	features=(${features[@]} mdadm)
+
 	cat_linuxrc <<-EOF
-	|if [ -n "$resume_mode" -a -f /sys/module/md_mod/parameters/start_ro ]; then
-	|    echo 1 > /sys/module/md_mod/parameters/start_ro
-	|fi
 	|
 	|if [ -f /etc/mdadm.conf ] ; then
-	|    mdconf="--config=/etc/mdadm.conf"
+	|    mdarg="-Ac /etc/mdadm.conf --scan"
+	|else
+	|    mdarg="-Ac partitions"
 	|fi
-	|/sbin/mdadm --assemble --scan \$mdconf
+	|
+	|if [ -n "\$md_uuid" ] ; then
+	|    mdarg="\$mdarg --uuid=\$md_uuid"
+	|elif [ -n "\$md_minor" ] ; then
+	|    mdarg="\$mdarg --super-minor=\$md_minor"
+	|    md_dev="/dev/md\$md_minor"
+	|fi
+	|
+	|if [ -z "\$md_dev" -a -n "$md_dev" ] ; then
+	|    md_dev="$md_dev"
+	|fi
+	|if [ -z "\$md_uuid" -a -n "$md_uuid" ] ; then
+	|    mdarg="$mdarg --uuid=$md_uuid"
+	|elif [ -z "\$md_minor" ] ; then
+	|    mdarg="$mdarg --super-minor=$md_minor"
+	|fi
+	|
+	|case \$resumedev in
+	|    /dev/md*)
+	|        resumeminor="\${resumedev#/dev/md}"
+	|        mdadm -Ac partitions -m \$resumeminor --auto=md \$resumedev
+	|        ;;
+	|esac
+	|
+	|/sbin/mdadm \$mdarg --auto=md \$md_dev
+	|
 	EOF
     fi
 
@@ -2447,7 +2472,7 @@ mkinitrd_kernel() {
 	|if [ -z "$rootfstype" ]; then
 	|    rootfstype=$(/sbin/vol_id -t $rootdev)
 	|    [ $? -ne 0 ] && $rootfstype=
-	|    [ "$rootfstype" = "unknown" ] && $rootfstype=
+	|    [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
 	|fi
 	|
 	|# check filesystem if possible
@@ -2526,6 +2551,14 @@ mkinitrd_kernel() {
 	|if [ -z "$init" ] ; then
 	|    echo "No init found. Try passing init= optino to the kernel."
 	|    die 1
+	|fi
+	|
+	|# Parse root mount options
+	|if [ -f /root/etc/fstab ] ; then
+	|    fsoptions=$(cat /root/etc/fstab | while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done)
+	|    if [ "$fsoptions" ] && [ "$fsoptions" != "defaults" ] ; then
+	|        mount -o remount,$fsoptions /
+	|    fi
 	|fi
 	|
 	|# Create framebuffer devices
@@ -2673,6 +2706,13 @@ case "$rootdev" in
     *:*)
 	rootdev=
 	rootfstype=nfs
+	;;
+    /dev/md*)
+	# get md UUID
+	md_uuid=$(mdadm -Db /dev/md0 | head -1 | cut -f 5 -d ' ')
+	md_uuid=${md_uuid#UUID=}
+	md_minor=${rootdev#/dev/md}
+	md_dev=$rootdev
 	;;
     LABEL=*|UUID=*)
 	# get real root via fsck hack
