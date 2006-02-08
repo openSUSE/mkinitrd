@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.251 $
+# $Revision: 1.252 $
 
 usage() {
     cat<<EOF
@@ -2294,9 +2294,9 @@ mkinitrd_kernel() {
 	|    md_dev="$md_dev"
 	|fi
 	|if [ -z "\$md_uuid" -a -n "$md_uuid" ] ; then
-	|    mdarg="$mdarg --uuid=$md_uuid"
+	|    mdarg="\$mdarg --uuid=$md_uuid"
 	|elif [ -z "\$md_minor" ] ; then
-	|    mdarg="$mdarg --super-minor=$md_minor"
+	|    mdarg="\$mdarg --super-minor=$md_minor"
 	|fi
 	|
 	|case \$resumedev in
