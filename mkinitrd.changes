@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  8 16:59:49 CET 2006 - hare@suse.de
+
+- Add 05-udev-early.rules (#148818)
+- Fix parsing of dasd= parameter (#145198 - LTC20909)
+- Fix journal handling (#148474)
+
+-------------------------------------------------------------------
 Mon Feb  6 16:07:42 CET 2006 - hare@suse.de
 
 - corrected an error for invalid rootfstype (#142847)

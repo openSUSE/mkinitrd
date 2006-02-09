@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.252 $
+# $Revision: 1.253 $
 
 usage() {
     cat<<EOF
@@ -1206,7 +1206,7 @@ mkinitrd_kernel() {
     echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
     echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
     # copy needed rules
-    for rule in 50-udev-default.rules 60-persistent-disk.rules; do
+    for rule in 05-udev-early.rules 50-udev-default.rules 60-persistent-disk.rules; do
 	if [ -f /etc/udev/rules.d/$rule ]; then
 	    cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
 	fi
@@ -1847,10 +1847,9 @@ mkinitrd_kernel() {
 		EOF
 		;;
 	esac
-	module_basename=${module##*/}
 	cat_linuxrc <<-EOF
-	|echo "Loading ${module_basename%.ko}"
-	|modprobe ${module_basename%.ko} \$params
+	|echo "Loading $module"
+	|modprobe $module \$params
 	EOF
 
 	initrd_is_using_modules=1
@@ -2479,9 +2478,10 @@ mkinitrd_kernel() {
 	|if [ -n "$rootfstype" -a -x /bin/fsck.${rootfstype} ]; then
 	|    # fsck is unhappy without it
 	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
+	|    fsckopts="-V -a"
 	|    # Check external journal for reiserfs
-	|    [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && rootfstype="${rootfstype} -j $journaldev"
-	|    fsck -t $rootfstype -V -a $rootdev
+	|    [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && fsckopts="-j $journaldev $fsckopts"
+	|    fsck -t $rootfstype $fsckopts $rootdev
 	|    # Return the fsck status
 	|    ROOTFS_FSCK=$?
 	|    export ROOTFS_FSCK
