@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.253 $
+# $Revision: 1.254 $
 
 usage() {
     cat<<EOF
@@ -751,6 +751,36 @@ devnumber() {
     mkdevn ${5%,} $6
 }
 
+# Calculate the netmask for a given prefix
+calc_netmask() {
+    local prefix=$1
+    local netmask
+
+    netmask=
+    num=0
+    while (( $prefix >= 8 )) ; do
+	if (( $num > 0 )) ; then
+	    netmask="${netmask}.255"
+	else
+	    netmask="255"
+	fi
+	prefix=$(($prefix - 8))
+	num=$(($num + 1))
+    done
+    if (( $prefix > 0 )) ; then
+	mask=$(( 0xFF00 >> $prefix ))
+    else
+	mask=0
+    fi
+    netmask="${netmask}.$(( $mask & 0xFF ))"
+    num=$(($num + 1))
+    while (( $num < 4 )) ; do
+	netmask="${netmask}.0"
+	num=$(($num + 1))
+    done
+    echo $netmask
+}
+
 # Get the interface information for ipconfig
 get_ip_config() {
     local iface
@@ -758,34 +788,21 @@ get_ip_config() {
     local iproute
 
     iface=$1
-    iplink=$(ifconfig $iface | grep "inet ")
+    iplink=$(ip addr show dev $iface | grep "inet ")
 
     set -- $iplink
     if [ "$1" == "inet" ]; then
 	shift
 
-	while [ "$1" ]; do
-	    case "$1" in
-		addr:*)
-		    ipaddr=${1#addr:}
-		    ;;
-		Bcast:*)
-		    bcast=${1#Bcast:}
-		    ;;
-		P-t-P:*)
-		    srvaddr=${1#P-t-P:}
-		    ;;
-		Mask:*)
-		    netmask=${1#Mask:}
-		    ;;
-	    esac
-	    shift
-	done
+	ipaddr=${1%%/*}
+	prefix=${1##*/}
+	netmask=$(calc_netmask $prefix)
+	bcast=$3
     fi
-    iproute=$(route -n | grep $iface | grep UG)
+    iproute=$(ip route list dev $iface | grep default)
     if [ $? -eq 0 ]; then
 	set -- $iproute
-	gwaddr=$2
+	gwaddr=$3
     fi
     hostname=$(hostname)
     echo "$ipaddr:$srvaddr:$gwaddr:$netmask:$hostname:$iface:none"
@@ -1298,7 +1315,8 @@ mkinitrd_kernel() {
 
     if [ -n "$use_ipconfig" ] ; then
 	features=(${features[@]} static\($interface\))
-	cp_bin $root_dir/lib/mkinitrd/ipconfig $tmp_mnt/bin
+	cp_bin $root_dir/lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
+	cp_bin $root_dir/sbin/ip $tmp_mnt/sbin/ip
     fi
   
     if has_module ext2 ; then
@@ -1996,7 +2014,7 @@ mkinitrd_kernel() {
 	|    ifspec=$ipinterface
 	|fi
 	|if [ -n "\$ifspec" ]; then
-	|  ipconfig \$ifspec
+	|  /bin/ipconfig \$ifspec
 	|fi
 	EOF
     fi

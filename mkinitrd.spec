@@ -26,6 +26,7 @@ Source1:      installkernel
 Source2:      new-kernel-pkg
 Source3:      mkinitrd.8
 Source4:      hotplug.sh
+Source5:      ipconfig.sh
 Source10:     run-init.c
 Source20:     module_upgrade
 
@@ -67,6 +68,7 @@ install -D -m 755 %{S:1} $RPM_BUILD_ROOT/sbin/installkernel
 install -D -m 755 %{S:2} $RPM_BUILD_ROOT/sbin/new-kernel-pkg
 install -D -m 755 %{S:20} $RPM_BUILD_ROOT/sbin/module_upgrade
 install -D -m 755 %{S:4} $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
+install -D -m 755 %{S:5} $RPM_BUILD_ROOT/lib/mkinitrd/bin/ipconfig.sh
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 install -D -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 
@@ -77,6 +79,7 @@ install -D -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 %dir /lib/mkinitrd/dev
 %dir /lib/mkinitrd/bin
 /lib/mkinitrd/bin/run-init
+/lib/mkinitrd/bin/ipconfig.sh
 /sbin/*
 /usr/share/mkinitrd/hotplug.sh
 %doc %{_mandir}/man8/mkinitrd.8.gz
