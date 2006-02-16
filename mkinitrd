@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.254 $
+# $Revision: 1.255 $
 
 usage() {
     cat<<EOF
@@ -1955,7 +1955,7 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-'EOF'
 	|for o in $(cat /proc/cmdline); do
 	|  case $o in
-	|    DiscoveryAddress=*)
+	|    TargetAddress=*)
 	|      target="$o" ; iscsi_boot=1 ;;
 	|    InitiatorName=*)
 	|      initiatorname="$o" ; iscsi_boot=1 ;;

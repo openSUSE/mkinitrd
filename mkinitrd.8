@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.12 2006/01/19 16:05:38 hare Exp $
+.\"$Id: mkinitrd.8,v 1.13 2006/02/16 12:38:10 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -69,14 +69,58 @@ External journal device to use for the root filesystem.
 \fBroot_dir\fR
 the directory the root partition is mounted to defaults to "/"
 
+.SH KERNEL COMMAND-LINE PARAMETER
+\fBmkinitrd\fR implements a set of additional kernel command-line
+parameters which are interpreted by the generated \fBinit\fR script.
+In addition to the standard kernel parameters the following parameter
+are supported:
+.TP
+\fBlinuxrc=trace\fR
+Enabling command tracing of the init script
+.TP
+\fBnoresume\fR
+Do not check for a resume device
+.TP
+\fBsysrq=yes\fR
+\fBsysrq=1\fR
+Enable sysrq
+.TP
+\fBresume=<device>\fR
+Resume from device \fI<device>\fR
+.TP
+\fBjournal=<device>\fR
+Use device \fI<device>\fR as external journal device.
+This is only valid for reiser and xfs filesystems.
+.TP
+\fBmduuid=<UUID>\fR
+Mount md RAID with uuid \fI<UUID\fR as the root filesystem.
+.TP
+\fBTargetAddress=<IP Address>\fR
+[iSCSI] IP Address of the iSCSI Target
+.TP
+\fBInitiatorName=<iqn>\fR
+[iSCSI] Use \fI<iqn>\fR as the iSCIS initiatorname.
+.TP
+\fBip=<ipspec>\fR
+Use \fI<ipspec>\fR to configure the network interface. Format of the
+\fI<ipspec>\fR is
+<client>:<server>:<gateway>:<netmask>:<hostname>:<device>:<proto>.
+<client>, <server>, <gateway>, <netmask> are in the standard
+dotted-decimal IP notation. <proto> is currently ignored.
+.TP
+\fBudev_timeout=<secs>\fR
+Set the timeout for root device detection to \fI<secs>\fR
+seconds. Default is 10.
+
+
 .SH NOTE
 \fBmk_initrd\fR is now a symbolic link to \fBmkinitrd\fR.
 .SH ENVIRONMENT VARIABLES
 You can specify the root device via the environment variable rootdev (e.g.
 "rootdev=/dev/hda mk_initrd").
 .BR 
-.SH "SEE ALSO"
-.BR \fBinitrd\fR(4)
 .SH AUTHOR
-Steffen Winterfeldt <wfeldt@suse.de>, Susanne Oberhauser <froh@suse.de>
+Steffen Winterfeldt <wfeldt@suse.de>, Susanne Oberhauser
+<froh@suse.de>, Andreas Gruenbacher <agruen@suse.de>, Hannes Reinecke
+<hare@suse.de>
 .BR 
