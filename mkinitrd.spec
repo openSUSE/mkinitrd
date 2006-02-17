@@ -57,7 +57,7 @@ Authors:
 cp %{S:10} .
 
 %build
-gcc -Wall -Os --static -o run-init run-init.c
+gcc -Wall -Os -o run-init run-init.c
 
 %install
 rm -rf $RPM_BUILD_ROOT
