@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.255 $
+# $Revision: 1.256 $
 
 usage() {
     cat<<EOF
@@ -808,6 +808,29 @@ get_ip_config() {
     echo "$ipaddr:$srvaddr:$gwaddr:$netmask:$hostname:$iface:none"
 }  
 
+check_iscsi_root() {
+    local devname=$1
+    local sysfs_path
+
+    sysfs_path=$(udevinfo -q path -n $rootdev)
+    cd /sys$sysfs_path
+    if [ ! -d device ] ; then
+	cd ..
+    fi
+
+    if [ ! -d device ] ; then
+	# no device link; return
+	return;
+    fi
+
+    cd -P device
+    cd ../..
+
+    if [ -d session* ]; then
+	echo session*
+    fi
+}
+
 ###################################################################
 #
 # S/390 specific procedures
@@ -1153,10 +1176,11 @@ mkinitrd_kernel() {
 	cp_bin $vendor_init_script $vendor_script
     fi
 
-    if has_module iscsi ; then
+    if has_module iscsi_tcp ; then
 	features=(${features[@]} iscsi)
 	cp_bin /sbin/iscsid $tmp_mnt/sbin/iscsid
 	cp_bin /sbin/iscsiadm $tmp_mnt/sbin/iscsiadm
+	cat /etc/initiatorname.iscsi > $tmp_mnt/etc/initiatorname.iscsi
 	mkdir -p $tmp_mnt/var/lib/open-iscsi
 	cp /var/lib/open-iscsi/discovery.db $tmp_mnt/var/lib/open-iscsi
 	cp /var/lib/open-iscsi/node.db $tmp_mnt/var/lib/open-iscsi
@@ -1670,7 +1694,7 @@ mkinitrd_kernel() {
 
     # FIXME: we should only load IDE modules if we need them for booting
     # Check for IDE modules
-    if [ -z "$interface" ]; then
+    if [ -z "$interface" && -z "iscsi_root" ]; then
 	check_ide_modules $root_dir/lib/modules/$kernel_version
     fi
 
@@ -1951,20 +1975,20 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if has_module iscsi ; then
-	cat_linuxrc <<-'EOF'
-	|for o in $(cat /proc/cmdline); do
-	|  case $o in
+    if [ -n "$iscsi_root" ] ; then
+	cat_linuxrc <<-EOF
+	|for o in \$(cat /proc/cmdline); do
+	|  case \$o in
 	|    TargetAddress=*)
-	|      target="$o" ; iscsi_boot=1 ;;
+	|      iscsiserver="\${o#TargetAddress=}" ;;
+	|    TargetName=*)
+	|      iscsitarget="\${o#TargetName=}" ;;
+	|    TargetPort=*)
+	|      iscsiport="\${o#TargetPort=}" ;;
 	|    InitiatorName=*)
-	|      initiatorname="$o" ; iscsi_boot=1 ;;
+	|      echo \$o > /etc/initiatorname.iscsi ;;
 	|  esac
 	|done
-	|# iscsi boot requires dhcp, regardless of root= format
-	|if [ -n "$iscsi_boot" ]; then
-	|  dhcp_mode=1
-	|fi
 	EOF
     fi
 
@@ -2019,42 +2043,36 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if has_module iscsi ; then
-	cat_linuxrc <<-'EOF'
-	|iscsi_login_all_nodes()
+    if [ -n "$iscsi_root" ] ; then
+	iscsi_sid=$(/sbin/iscsiadm -m node | grep `cat /sys/class/iscsi_session/${iscsi_root}/targetname` | sed 's@\[\(.*\)\] .*@\1@g')
+	cat_linuxrc <<-EOF
+	|iscsi_login_root_node()
 	|{
-	|    local STARTUP
 	|    local NODE
-	|    local iscsi_tgts
-	|    local rec
+	|    local iscsi_sid
 	|
-	|    iscsi_tgts=$(/sbin/iscsiadm -m node | sed 's@\[\(.*\)\] .*@\1@g')
-	|    for rec in $iscsi_tgts; do
-	|	STARTUP=`/sbin/iscsiadm -m node -r $rec | grep "node.conn\[0\].startup" | cut -d' ' -f3`
-	|	NODE=`/sbin/iscsiadm -m node -r $rec | grep "node.name" | cut -d' ' -f3`
-	|	if [ $STARTUP = "automatic" ] ; then
-	|	    echo -n "Logging into $NODE: "
-	|	    if /sbin/iscsiadm -m node -r $rec -l ; then
-	|		echo "ok."
-	|	    else
-	|		echo "failed."
-	|	    fi
-	|	fi
-	|    done
+	|    if [ -n "\$iscsitarget" ] ; then 
+	|      iscsi_sid=$(/sbin/iscsiadm -m node | grep \$iscsitarget | sed 's@\[\(.*\)\] .*@\1@g')
+	|    fi
+	|    if [ -z "\iscsi_sid" ] ; then
+	|        iscsi_sid=$iscsi_sid
+	|    fi
+	|    
+	|    NODE=`/sbin/iscsiadm -m node -r \$iscsi_sid | grep "node.name" | cut -d' ' -f3`
+	|    echo -n "Logging into \$NODE: "
+	|    if /sbin/iscsiadm -m node -r \$iscsi_sid -l ; then
+	|	echo "ok."
+	|    else
+	|	echo "failed."
+	|    fi
 	|}
-	|if [ -n "$iscsi_boot" ]; then
-	|  echo "Continuous=no" >> /etc/iscsi.conf
-	|  echo "ImmediateData=no" >> /etc/iscsi.conf
-	|  echo "$target" >> /etc/iscsi.conf
-	|  echo "$initiatorname" >> /etc/initiatorname.iscsi
 	|
-	|  echo "Starting iSCSI"
-	|  /sbin/iscsid
-	|  usleep 5000000
+	|echo "Starting iSCSI daemon"
+	|/sbin/iscsid
+	|usleep 5000000
 	|
-	|  # need to redo-this setting up the root dev now that the disk is present
-	|  iscsi_login_all_nodes
-	|fi
+	|iscsi_login_root_node
+	|
 	EOF
     fi
 
@@ -2598,6 +2616,9 @@ mkinitrd_kernel() {
 	|# kill udevd, we will run the one from the real root
 	|kill $(pidof udevd)
 	|
+	|# kill iscsid, will be restarted from the real root
+	|kill -KILL $(pidof iscsid)
+	|
 	|# ready to leave
 	|cd /root
 	|umount /proc
@@ -2710,13 +2731,13 @@ else
   rootfstype=$(echo $x1 | cut -f 3 -d " ")
 fi
 
-if [ -z "$use_dhcp" ]; then
-    if [ -z "$rootdev" ] ; then
+if [ -z "$rootdev" ] ; then
+    if [ -z "$use_dhcp" ]; then
 	error 1 "No '/' mountpoint specified in $root_dir/etc/fstab"
+    else
+	rootdev=
+	rootfstype=nfs
     fi
-else
-    rootdev=
-    rootfstype=nfs
 fi
 
 realrootdev="$rootdev"
@@ -2731,6 +2752,11 @@ case "$rootdev" in
 	md_uuid=${md_uuid#UUID=}
 	md_minor=${rootdev#/dev/md}
 	md_dev=$rootdev
+	;;
+    /dev/sd*)
+	# Check for iSCSI
+	sid=$(check_iscsi_root $rootdev)
+	root_iscsi="$sid"
 	;;
     LABEL=*|UUID=*)
 	# get real root via fsck hack
@@ -2776,6 +2802,7 @@ fi
 
 x="$rootdev"
 [ "$rootfstype" = "nfs" ] && x="nfs-root"
+[ "$root_iscsi" ] && x="$(cat /sys/class/iscsi_session/$root_iscsi/targetname)"
 [ "$rootdev" != "$realrootdev" ] && x="$x ($realrootdev)"
 echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 
@@ -2818,6 +2845,19 @@ if [ -n "$root_dm" ] ; then
 	root_lvm2=1
 	lv_root=$(echo $vg_line | cut -f 1 -d :)
 	vg_root=$(echo $vg_line | cut -f 3 -d :)
+    fi
+fi
+
+if [ -n "$root_iscsi" ] ; then
+    add_module scsi_transport_iscsi
+    add_module iscsi_tcp
+fi
+
+if [ -n "$interface" ] ; then
+    # Pull in network module
+    if [ -d /sys/class/net/$interface/device ] ; then
+	drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
+	add_module ${drvlink##*/}
     fi
 fi
 
