@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.256 $
+# $Revision: 1.257 $
 
 usage() {
     cat<<EOF
@@ -1694,7 +1694,7 @@ mkinitrd_kernel() {
 
     # FIXME: we should only load IDE modules if we need them for booting
     # Check for IDE modules
-    if [ -z "$interface" && -z "iscsi_root" ]; then
+    if [ -z "$interface" ] ; then
 	check_ide_modules $root_dir/lib/modules/$kernel_version
     fi
 
