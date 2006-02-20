@@ -10,38 +10,39 @@
 
 # norootforbuild
 
-Name:         mkinitrd
-License:      GPL
-Group:        System/Base
-Provides:     aaa_base:/sbin/mk_initrd
-Requires:     coreutils modutils util-linux grep e2fsprogs gzip sed gawk cpio udev pciutils
+Name:           mkinitrd
+License:        GPL
+Group:          System/Base
+Provides:       aaa_base:/sbin/mk_initrd
+Requires:       coreutils modutils util-linux grep e2fsprogs gzip sed gawk cpio udev pciutils
 # bootsplash required only if creating splash initrd's.
-Autoreqprov:  on
-Version:      1.2
-Release:      0
-Summary:      Creates an initial ramdisk image for preloading modules
-BuildRoot:    %{_tmppath}/%{name}-%{version}-build
-Source0:      mkinitrd
-Source1:      installkernel
-Source2:      new-kernel-pkg
-Source3:      mkinitrd.8
-Source4:      hotplug.sh
-Source5:      ipconfig.sh
-Source10:     run-init.c
-Source20:     module_upgrade
+Autoreqprov:    on
+Version:        1.2
+Release:        0
+Summary:        Creates an Initial RAM Disk Image for Preloading Modules
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Source0:        mkinitrd
+Source1:        installkernel
+Source3:        mkinitrd.8
+Source4:        hotplug.sh
+Source5:        ipconfig.sh
+Source10:       run-init.c
+Source20:       module_upgrade
 
 %description
-Mkinitrd creates filesystem images for use as initial ramdisk (initrd)
-images.  These ramdisk images are often used to preload the block
-device modules (SCSI or RAID) needed to access the root filesystem.
+Mkinitrd creates file system images for use as initial RAM disk
+(initrd) images.  These RAM disk images are often used to preload the
+block device modules (SCSI or RAID) needed to access the root file
+system.
 
 In other words, generic kernels can be built without drivers for any
-SCSI adapters which load the SCSI driver as a module.  Since the kernel
-needs to read those modules, but in this case it isn't able to address
-the SCSI adapter, an initial ramdisk is used.  The initial ramdisk is
-loaded by the operating system loader (normally LILO) and is available
-to the kernel as soon as the ramdisk is loaded.  The ramdisk loads the
-proper SCSI adapter and allows the kernel to mount the root filesystem.
+SCSI adapters that load the SCSI driver as a module.  Because the
+kernel needs to read those modules, but in this case is not able to
+address the SCSI adapter, an initial RAM disk is used.	The initial RAM
+disk is loaded by the operating system loader (normally LILO) and is
+available to the kernel as soon as the RAM disk is loaded.  The RAM
+disk loads the proper SCSI adapter and allows the kernel to mount the
+root file system.
 
 
 
@@ -65,7 +66,6 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 install -D -m 755 run-init $RPM_BUILD_ROOT/lib/mkinitrd/bin/run-init
 install -D -m 755 %{S:0} $RPM_BUILD_ROOT/sbin/mkinitrd
 install -D -m 755 %{S:1} $RPM_BUILD_ROOT/sbin/installkernel
-install -D -m 755 %{S:2} $RPM_BUILD_ROOT/sbin/new-kernel-pkg
 install -D -m 755 %{S:20} $RPM_BUILD_ROOT/sbin/module_upgrade
 install -D -m 755 %{S:4} $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
 install -D -m 755 %{S:5} $RPM_BUILD_ROOT/lib/mkinitrd/bin/ipconfig.sh

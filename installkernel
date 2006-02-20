@@ -8,7 +8,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/installkernel,v $
-# $Revision: 1.7 $
+# $Revision: 1.8 $
 #
 
 : ${INSTALL_PATH:=/boot}
@@ -35,7 +35,6 @@ esac
 if [ -f $INSTALL_PATH/$BOOTFILE -a ! -L $INSTALL_PATH/$BOOTFILE ]; then
     mv $INSTALL_PATH/$BOOTFILE $INSTALL_PATH/$BOOTFILE.old
 fi
-ln -sf $BOOTFILE-$KERNEL_VERSION $INSTALL_PATH/$BOOTFILE
 
 if [ -L $INSTALL_PATH/System.map ]; then
     rm -f $INSTALL_PATH/System.map
@@ -63,7 +62,6 @@ fi
 
 cp -fp $BOOTIMAGE $INSTALL_PATH/$BOOTFILE-$KERNEL_VERSION
 cp -fp $MAPFILE $INSTALL_PATH/System.map-$KERNEL_VERSION
-ln -sf $BOOTFILE-$KERNEL_VERSION $INSTALL_PATH/$BOOTFILE
 
 KERNTYPES=$(dirname $MAPFILE)/init/kerntypes.o
 if [ -e $KERNTYPES ]; then
@@ -73,11 +71,10 @@ fi
 #
 # Generate initial ramdisk
 #
-[ -x /sbin/mk_initrd ] && : ${MKINITRD:=/sbin/mk_initrd}
-[ -x /sbin/mkinitrd ]  && : ${MKINITRD:=/sbin/mkinitrd}
-if [ -n "$MKINITRD" -a -d /lib/modules/$KERNEL_VERSION ]; then
-    $MKINITRD -k $BOOTFILE-$KERNEL_VERSION -i initrd-$KERNEL_VERSION \
-	      -b $INSTALL_PATH
+if [ -x /sbin/mkinitrd -a -d /lib/modules/$KERNEL_VERSION ]; then
+    /sbin/mkinitrd -k $BOOTFILE-$KERNEL_VERSION \
+		   -i initrd-$KERNEL_VERSION \
+		   -b $INSTALL_PATH
 else
     echo "You may need to create an initial ramdisk now."
 fi
@@ -87,9 +84,9 @@ fi
 #
 if [ -x /sbin/update-bootloader ]; then
     opt_initrd=
-    [ -e /boot/initrd-$KERNEL_VERSION ] \
-	&& opt_initrd="--initrd /boot/initrd-$KERNEL_VERSION"
-    /sbin/update-bootloader --image /boot/$BOOTFILE-$KERNEL_VERSION \
-	$opt_initrd --add
+    [ -e $INSTALL_PATH/initrd-$KERNEL_VERSION ] \
+	&& opt_initrd="--initrd $INSTALL_PATH/initrd-$KERNEL_VERSION"
+    /sbin/update-bootloader --name $KERNEL_VERSION \
+	--image $INSTALL_PATH/$BOOTFILE-$KERNEL_VERSION \
+	$opt_initrd --add --force
 fi
-/sbin/new-kernel-pkg $KERNEL_VERSION
