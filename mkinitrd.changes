@@ -1,10 +1,15 @@
 -------------------------------------------------------------------
+Tue Feb 21 14:13:01 CET 2006 - hare@suse.de
+
+- Fix remount call (#151424)
+
+-------------------------------------------------------------------
 Sun Feb 19 16:05:50 CET 2006 - agruen@suse.de
 
 - Use new options of /sbin/update-bootloader. This updates the
   bootloader for us, so no need to call /sbin/new-kernel-pkg
   anymore.
-- /sbin/new-kernel-pkg is now obsolete; drop it.
+- /sbin/new-kernel-pkg is now obsolete; drop it (#148393)
 
 -------------------------------------------------------------------
 Fri Feb 17 16:24:46 CET 2006 - hare@suse.de

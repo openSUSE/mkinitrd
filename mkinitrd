@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.257 $
+# $Revision: 1.258 $
 
 usage() {
     cat<<EOF
@@ -2593,7 +2593,7 @@ mkinitrd_kernel() {
 	|if [ -f /root/etc/fstab ] ; then
 	|    fsoptions=$(cat /root/etc/fstab | while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done)
 	|    if [ "$fsoptions" ] && [ "$fsoptions" != "defaults" ] ; then
-	|        mount -o remount,$fsoptions /
+	|        mount -o remount,$fsoptions $rootdev /root
 	|    fi
 	|fi
 	|
