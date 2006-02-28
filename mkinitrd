@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.258 $
+# $Revision: 1.259 $
 
 usage() {
     cat<<EOF
@@ -2617,7 +2617,8 @@ mkinitrd_kernel() {
 	|kill $(pidof udevd)
 	|
 	|# kill iscsid, will be restarted from the real root
-	|kill -KILL $(pidof iscsid)
+	|iscsi_pid=$(pidof iscsid)
+	|[ "$iscsi_pid" ] && kill -KILL $iscsi_pid
 	|
 	|# ready to leave
 	|cd /root
