@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.259 $
+# $Revision: 1.260 $
 
 usage() {
     cat<<EOF
@@ -2330,7 +2330,7 @@ mkinitrd_kernel() {
 	|fi
 	|if [ -z "\$md_uuid" -a -n "$md_uuid" ] ; then
 	|    mdarg="\$mdarg --uuid=$md_uuid"
-	|elif [ -z "\$md_minor" ] ; then
+	|elif [ -z "\$md_minor" -a -n "$md_minor" ] ; then
 	|    mdarg="\$mdarg --super-minor=$md_minor"
 	|fi
 	|
@@ -2841,11 +2841,11 @@ if [ -n "$root_dm" ] ; then
     # Check whether we are using LVM2
     rootmajor=$(devmajor $rootdevn)
     rootminor=$(devminor $roodevn)
-    vg_line=$(lvdisplay -c 2> /dev/null | grep "$rootmajor:$rootminor")
+    vg_line=$(lvdisplay -c 2> /dev/null | grep ":$rootmajor:$rootminor")
     if [ "$vg_line" ] ; then
 	root_lvm2=1
 	lv_root=$(echo $vg_line | cut -f 1 -d :)
-	vg_root=$(echo $vg_line | cut -f 3 -d :)
+	vg_root=$(echo $vg_line | cut -f 2 -d :)
     fi
 fi
 

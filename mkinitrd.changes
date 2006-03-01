@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  1 15:03:39 CET 2006 - hare@suse.de
+
+- Fix boot from LVM over software RAID (#152237)
+- Fixup LVM default settings (#152790)
+
+-------------------------------------------------------------------
 Tue Feb 28 16:22:57 CET 2006 - hare@suse.de
 
 - Do not try to kill iscsid if it's not running (#153374)
