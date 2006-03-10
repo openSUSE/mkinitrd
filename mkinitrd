@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.260 $
+# $Revision: 1.261 $
 
 usage() {
     cat<<EOF
@@ -1220,6 +1220,7 @@ mkinitrd_kernel() {
     # owned by a group other than root
     # getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
     echo 'root::0:0:::' > $tmp_mnt/etc/passwd
+    echo 'nobody::65534:65533:::' >> $tmp_mnt/etc/passwd
     getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
     (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
 
@@ -1291,6 +1292,7 @@ mkinitrd_kernel() {
 	cp_bin /sbin/multipath $tmp_mnt/sbin
 	cp_bin /sbin/kpartx $tmp_mnt/sbin
 	cp_bin /sbin/dmsetup $tmp_mnt/sbin
+	cp_bin /sbin/mpath_id $tmp_mnt/sbin
 	if [ -f /etc/multipath.conf ] ; then
 	    cp -a /etc/multipath.conf $tmp_mnt/etc
 	fi
@@ -2506,7 +2508,7 @@ mkinitrd_kernel() {
     cat_linuxrc <<-'EOF'
 	|if [ -z "$rootfstype" ]; then
 	|    rootfstype=$(/sbin/vol_id -t $rootdev)
-	|    [ $? -ne 0 ] && $rootfstype=
+	|    [ $? -ne 0 ] && rootfstype=
 	|    [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
 	|fi
 	|
@@ -2535,6 +2537,10 @@ mkinitrd_kernel() {
 	|        echo "fsck succeeded. Mounting root device read-write."
 	|        read_write=1
 	|    fi
+	|else
+	|    echo "invalid root filesystem -- exiting to /bin/sh"
+	|    cd /
+	|    PATH=$PATH PS1='$ ' /bin/sh -i
 	|fi
 	EOF
 

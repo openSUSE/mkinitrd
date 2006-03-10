@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar  9 11:38:33 CET 2006 - hare@suse.de
+
+- Add mpath_id program for multipathing (#149995 - LTC21557)
+- Dropping into a shell if the rootfstype is invalid (#154284)
+
+-------------------------------------------------------------------
 Wed Mar  1 15:03:39 CET 2006 - hare@suse.de
 
 - Fix boot from LVM over software RAID (#152237)
