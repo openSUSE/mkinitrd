@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.261 $
+# $Revision: 1.262 $
 
 usage() {
     cat<<EOF
@@ -2151,9 +2151,9 @@ mkinitrd_kernel() {
 	|    local timeout=$udev_timeout
 	|    root=$1
 	|    if [ -n "$root" ]; then
-	|	echo -n "Waiting for device /dev/$root to appear: "
+	|	echo -n "Waiting for device $root to appear: "
 	|	while [ $timeout -gt 0 ]; do
-	|	    if [ -e /dev/$root ]; then
+	|	    if [ -e $root ]; then
 	|		echo " ok"
 	|		retval=0
 	|		break;
@@ -2197,7 +2197,7 @@ mkinitrd_kernel() {
 	|    if [ -z "$root" ]; then
 	|	return 0
 	|    fi
-	|    if [ -e $rootdev ] ; then
+	|    if udev_check_for_device $rootdev  ; then
 	|	# Get major:minor number of the device node
 	|	devn=$(devnumber $rootdev)
 	|	major=$(devmajor $devn)
