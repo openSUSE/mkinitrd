@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.262 $
+# $Revision: 1.263 $
 
 usage() {
     cat<<EOF
@@ -336,6 +336,9 @@ esac
 # should be nothing to change below...
 
 PATH=/sbin:/usr/sbin:$PATH
+
+# Fixup old installations
+unset CDPATH
 
 work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
 if [ $? -ne 0 ]; then
