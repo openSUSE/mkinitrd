@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.263 $
+# $Revision: 1.264 $
 
 usage() {
     cat<<EOF
@@ -1348,31 +1348,31 @@ mkinitrd_kernel() {
 	cp_bin $root_dir/sbin/ip $tmp_mnt/sbin/ip
     fi
   
-    if has_module ext2 ; then
+    if [ "$rootfstype" = "ext2" ] ; then
 	features=(${features[@]} fsck.ext2)
 	cp_bin /sbin/fsck $tmp_mnt/bin
 	cp_bin /sbin/fsck.ext2 $tmp_mnt/bin
     fi
 
-    if has_module ext3 ; then
+    if [ "$rootfstype" = "ext3" ] ; then
 	features=(${features[@]} fsck.ext3)
 	cp_bin /sbin/fsck $tmp_mnt/bin
 	cp_bin /sbin/fsck.ext3 $tmp_mnt/bin
     fi
 
-    if has_module reiserfs ; then
+    if [ "$rootfstype" = "reiserfs" ] ; then
 	features=(${features[@]} fsck.reiserfs)
 	cp_bin /sbin/fsck $tmp_mnt/bin
 	cp_bin /sbin/fsck.reiserfs $tmp_mnt/bin
     fi
 
-    if has_module jfs ; then
+    if [ "$rootfstype" = "jfs" ] ; then
 	features=(${features[@]} fsck.jfs)
 	cp_bin /sbin/fsck $tmp_mnt/bin
 	cp_bin /sbin/fsck.jfs $tmp_mnt/bin
     fi
 
-    if has_module xfs ; then
+    if [ "$rootfstype" = "xfs" ] ; then
 	features=(${features[@]} fsck.xfs)
 	cp_bin /sbin/fsck $tmp_mnt/bin
 	cp_bin /sbin/fsck.xfs $tmp_mnt/bin
@@ -2516,7 +2516,11 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|# check filesystem if possible
-	|if [ -n "$rootfstype" -a -x /bin/fsck.${rootfstype} ]; then
+	|if [ -z "$rootfstype" ]; then
+	|    echo "invalid root filesystem -- exiting to /bin/sh"
+	|    cd /
+	|    PATH=$PATH PS1='$ ' /bin/sh -i
+	|elif [ -x /bin/fsck.${rootfstype} ]; then
 	|    # fsck is unhappy without it
 	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
 	|    fsckopts="-V -a"
@@ -2540,10 +2544,6 @@ mkinitrd_kernel() {
 	|        echo "fsck succeeded. Mounting root device read-write."
 	|        read_write=1
 	|    fi
-	|else
-	|    echo "invalid root filesystem -- exiting to /bin/sh"
-	|    cd /
-	|    PATH=$PATH PS1='$ ' /bin/sh -i
 	|fi
 	EOF
 

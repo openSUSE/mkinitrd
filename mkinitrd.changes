@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 14 15:41:14 CET 2006 - hare@suse.de
+
+- Check for the rootfstype to select which fsck to include
+- Unset CDPATH for compability with old installation.
+
+-------------------------------------------------------------------
 Thu Mar  9 11:38:33 CET 2006 - hare@suse.de
 
 - Add mpath_id program for multipathing (#149995 - LTC21557)
