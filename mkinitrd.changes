@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 17 13:14:05 CET 2006 - hare@suse.de
+
+- use /sbin/udevtrigger instead of shell logic (#148043)
+
+-------------------------------------------------------------------
 Tue Mar 14 15:41:14 CET 2006 - hare@suse.de
 
 - Check for the rootfstype to select which fsck to include

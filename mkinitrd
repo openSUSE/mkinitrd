@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.264 $
+# $Revision: 1.265 $
 
 usage() {
     cat<<EOF
@@ -1244,6 +1244,7 @@ mkinitrd_kernel() {
     fi
 
     cp_bin /sbin/udevd $tmp_mnt/sbin/
+    cp_bin /sbin/udevtrigger $tmp_mnt/sbin/
     cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/
 
     mkdir -p $tmp_mnt/etc/udev/rules.d
@@ -1456,34 +1457,6 @@ mkinitrd_kernel() {
 	|    exit \$1
 	|}
 	|
-	|# generate events with the sysfs trigger
-	|function trigger_device_events() {
-	|    list=\$(echo /sys/bus/*/devices/*/uevent)
-	|    list="\$list \$(echo /sys/class/*/*/uevent)"
-	|    list="\$list \$(echo /sys/block/*/uevent /sys/block/*/*/uevent)"
-	|    for i in \$list; do
-	|	case "\$i" in
-	|	    */device/uevent|*\**)
-	|		continue
-	|		;;
-	|	    */class/mem/*|*/class/tty/*)
-	|		first="\$first \$i"
-	|		;;
-	|	    */block/md*)
-	|		last="\$last \$i"
-	|		;;
-	|	    */*)
-	|		default="\$default \$i"
-	|		;;
-	|	esac
-	|    done
-	|
-	|    # trigger the sorted events
-	|    for i in \$first \$default \$last; do
-	|	echo "add" > "\$i"
-	|   done
-	|}
-	|
 	|exec < /dev/console > /dev/console 2>&1
 	|
 	|mount -t tmpfs -o mode=0755 udev /dev
@@ -1679,7 +1652,7 @@ mkinitrd_kernel() {
 	|/sbin/udevd --daemon
 	|
 	|echo "Creating devices"
-	|trigger_device_events
+	|/sbin/udevtrigger
 	|loop=300
 	|while test -d /dev/.udev/queue; do
 	|    sleep 0.1;
