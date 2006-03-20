@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.13 2006/02/16 12:38:10 hare Exp $
+.\"$Id: mkinitrd.8,v 1.14 2006/03/20 15:48:01 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -26,6 +26,11 @@ match the "kernel list",  defaults to "initrd initrd.shipped"
 \fB-m "module list"\fR 
 modules to include in initrd, defaults to INITRD_MODULES variable in
 /etc/sysconfig/kernel 
+.TP
+\fB-f "feature list"\fR 
+features to be enabled for the initrd. In general mkinitrd configures
+the initrd for the root device it is started from. With this option
+additional feature can be enabled.
 .TP
 \fB-b boot_dir\fR
 boot dir, defaults to "/boot", where the initrd is created.
@@ -112,6 +117,30 @@ dotted-decimal IP notation. <proto> is currently ignored.
 Set the timeout for root device detection to \fI<secs>\fR
 seconds. Default is 10.
 
+.SH FEATURES
+Normally \fBmkinitrd\fR detects all required features automatically,
+based upon the current root filesystem. If additional features should
+be enabled, the \fB-f\fR option can be specified.
+
+Currently, the following features can be selected:
+.TP
+\fBiscsi\fR
+Include iSCSI support
+.TP
+\fBmpath\fR
+Add support for multipathing
+.TP
+\fBmd\fR
+Add support for Software RAID (md)
+.TP
+\fBlvm2\fR
+Add support for LVM2
+.TP
+\fBevms\fR
+Add support for EVMS
+.TP
+\fBlvm\fR
+Add support for LVM1
 
 .SH NOTE
 \fBmk_initrd\fR is now a symbolic link to \fBmkinitrd\fR.

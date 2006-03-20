@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 20 09:38:15 CET 2006 - hare@suse.de
+
+- Add '-f' option to enable additional features
+  (#157678 - LTC22362, #130696)
+
+-------------------------------------------------------------------
 Fri Mar 17 13:14:05 CET 2006 - hare@suse.de
 
 - use /sbin/udevtrigger instead of shell logic (#148043)

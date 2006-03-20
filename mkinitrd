@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.265 $
+# $Revision: 1.266 $
 
 usage() {
     cat<<EOF
@@ -45,6 +45,9 @@ usage() {
 			   all kernels found in /boot.
           -m "module list" Modules to include in initrd. Defaults to the
                            INITRD_MODULES variable in /etc/sysconfig/kernel.
+          -f "feature list" Features to be enabled when generating initrd.
+                           Available features are:
+                           iscsi, md, mpath, lvm, lvm2, evms
           -b boot_dir      Boot directory. Defaults to /boot.
           -d root_device   Root device. Defaults to the device from which
                            / is mounted. Overrides the rootdev enviroment
@@ -129,6 +132,7 @@ kernel_images=
 initrd_images=
 modules=
 modules_set=
+feature_list=
 boot_dir=
 splash="auto"
 use_static_binaries=
@@ -144,7 +148,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
+while getopts :ef:hk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -152,6 +156,8 @@ while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
 		i)  echo "-i requires initrd list parameter"
 		    ;;
 		m)  echo "-m requires module list parameter"
+		    ;;
+		f)  echo "-f requires feature list parameter"
 		    ;;
 		b)  echo "-b requires boot dir parameter"
 		    ;;
@@ -180,6 +186,8 @@ while getopts :ehk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
 	    exit 1
 	    ;;
 	e)  use_static_binaries=1
+	    ;;
+	f)  feature_list=$OPTARG
 	    ;;
 	k)  kernel_images=$OPTARG
 	    ;;
@@ -1172,6 +1180,51 @@ mkinitrd_kernel() {
 	else
 	   echo -e "SELinux policy:\tnot found"
 	fi
+    fi
+
+    # Enable user-selected features
+    if [ "$feature_list" ] ; then
+	for f in "$feature_list" ; do
+	    case $f in
+		iscsi)
+		    add_module iscsi_tcp
+		    ;;
+		mpath)
+		    add_module dm-multipath
+		    add_module dm-round-robin
+		    add_module dm-emc
+		    root_mpath=1
+		    root_dm=1
+		    ;;
+		lvm2)
+		    add_module dm-snapshot
+		    add_module dm-crypt
+		    add_module dm-zero
+		    add_module dm-mirror
+		    root_lvm2=1
+		    root_dm=1
+		    ;;
+		lvm)
+		    add_module lvm-mod
+		    root_lvm=1
+		    ;;
+		evms)
+		    add_module dm-mirror
+		    add_module dm-snapshot
+		    root_evms=1
+		    root_dm=1
+		    ;;
+		md)
+		    add_module raid0
+		    add_module raid1
+		    add_module raid5
+		    add_module linear
+		    ;;
+		*)
+		    error 6 "invalid feature $f"
+		    ;;
+	    esac
+	done
     fi
 
     if [ ! -z "$vendor_init_script" ] ; then
