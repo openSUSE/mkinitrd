@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.266 $
+# $Revision: 1.267 $
 
 usage() {
     cat<<EOF
@@ -1010,7 +1010,7 @@ s390_zfcp_sysfs() {
 
 s390_dasd_sysfs() {
     local type
-    local use_diag
+    local discipline
 
     if [ "$s390_enable_dasd" ]; then
 	# Root device is on a dasd device, enable all dasd disks
@@ -1024,20 +1024,20 @@ s390_dasd_sysfs() {
 		    case $type in
 			ECKD)
 			    add_module dasd_eckd_mod
-			    use_diag=0
+			    discipline=0
 			    ;;
 			FBA)
 			    add_module dasd_fba_mod
-			    use_diag=0
+			    discipline=1
 			    ;;
 			DIAG)
 			    add_module dasd_diag_mod
-			    use_diag=1
+			    discipline=1
 			    ;;
 			*)
 			    ;;
 		    esac
-		    s390_dasd_disks="$s390_dasd_disks $(basename $PWD):$use_diag"
+		    s390_dasd_disks="$s390_dasd_disks $(basename $PWD):$discipline"
 		fi
 	    fi
 	done
@@ -1944,14 +1944,22 @@ mkinitrd_kernel() {
 	s390_dasd_disk_num=0
 	for disk in $s390_dasd_disks; do
 	    set -- $(IFS=":"; echo $disk)
-	    if [ "$2" -eq 0 ]; then
-		echo -n " $1(ECKD)"
-	    else
-		echo -n " $1(DIAG)"
-	    fi
+	    use_diag=0
+	    case "$2" in
+		0)
+		    echo -n " $1(ECKD)"
+		    ;;
+		1)
+		    echo -n " $1(FBA)"
+		    ;;
+		2)
+		    echo -n " $1(DIAG)"
+		    use_diag=1
+		    ;;
+	    esac
 	    cat_linuxrc <<-EOF
 	|    echo -n " $disk"
-	|    /sbin/dasd_configure $1 1 $2
+	|    /sbin/dasd_configure $1 1 $use_diag
 	EOF
 	    s390_dasd_disk_num=$(expr $s390_dasd_disk_num + 1)
 	done

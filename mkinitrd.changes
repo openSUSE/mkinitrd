@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 22 11:23:43 CET 2006 - hare@suse.de
+
+- Display correct DASD discipline (#156152 - LTC22264)
+
+-------------------------------------------------------------------
 Mon Mar 20 09:38:15 CET 2006 - hare@suse.de
 
 - Add '-f' option to enable additional features
