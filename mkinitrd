@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.267 $
+# $Revision: 1.268 $
 
 usage() {
     cat<<EOF
@@ -1305,7 +1305,7 @@ mkinitrd_kernel() {
     echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
     echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
     # copy needed rules
-    for rule in 05-udev-early.rules 50-udev-default.rules 60-persistent-disk.rules; do
+    for rule in 05-udev-early.rules 50-udev-default.rules 60-persistent-storage.rules; do
 	if [ -f /etc/udev/rules.d/$rule ]; then
 	    cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
 	fi
