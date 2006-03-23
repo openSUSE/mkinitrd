@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.268 $
+# $Revision: 1.269 $
 
 usage() {
     cat<<EOF
@@ -96,7 +96,7 @@ default_kernel_images() {
     esac
 
     # user mode linux
-    if grep -q UML /proc/cpuinfo; then
+    if [ -d /proc ] && grep -q UML /proc/cpuinfo; then
 	    regex='linux'
     fi
 

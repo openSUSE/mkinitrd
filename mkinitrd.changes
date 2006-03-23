@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 23 11:42:39 CET 2006 - hare@suse.de
+
+- Do not assume /proc is always mounted (#151879)
+
+-------------------------------------------------------------------
 Wed Mar 22 11:23:43 CET 2006 - hare@suse.de
 
 - Display correct DASD discipline (#156152 - LTC22264)
