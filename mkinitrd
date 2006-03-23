@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.269 $
+# $Revision: 1.270 $
 
 usage() {
     cat<<EOF
@@ -96,7 +96,7 @@ default_kernel_images() {
     esac
 
     # user mode linux
-    if [ -d /proc ] && grep -q UML /proc/cpuinfo; then
+    if grep -q UML /proc/cpuinfo; then
 	    regex='linux'
     fi
 
@@ -265,6 +265,20 @@ if [ $(set -- $kernel_images ; echo $#) -ne \
     exit 1
 fi
 
+# Mount /proc if not already done so
+mounted_proc=
+if [ ! -e /proc/mounts ]; then
+  mounted_proc=/proc
+  mount -n -t proc proc $mounted_proc
+fi
+
+# And /sys likewise
+mounted_sys=
+if [ ! -e /sys/devices ] ; then
+    mounted_sys=/sys
+    mount -n -t sysfs none /sys
+fi
+
 if [ -z "$kernel_images" -o -z "$initrd_images" ]; then
     default_kernel_images
 fi
@@ -357,8 +371,10 @@ is_mounted=
 is_mounted_small=
 
 umount_proc() {
-    [ "$mounted_proc" ] && umount $mounted_proc
+    [ "$mounted_proc" ] && umount -n $mounted_proc
     mounted_proc=
+    [ "$mounted_sys" ] && umount -n $mounted_sys
+    mounted_sys=
 }
 
 cleanup() {
@@ -2751,12 +2767,6 @@ mkinitrd_kernel() {
 # working directories
 tmp_initrd=$work_dir/initrd
 tmp_initrd_small=${tmp_initrd}_small
-
-mounted_proc=
-if [ ! -r /proc/mounts ]; then
-  mounted_proc=/proc
-  mount -t proc proc $mounted_proc
-fi
 
 if [ -z "$rootdev" ] ; then
   # no rootdev specified, get current root from /etc/fstab
