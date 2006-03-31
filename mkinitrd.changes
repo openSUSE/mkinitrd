@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 31 09:13:31 CEST 2006 - hare@suse.de
+
+- Get splash sizes from framebuffer, too (#141098)
+
+-------------------------------------------------------------------
 Thu Mar 23 11:42:39 CET 2006 - hare@suse.de
 
 - Always check for mounted /proc and /sys (#151879)

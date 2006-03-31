@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.270 $
+# $Revision: 1.271 $
 
 usage() {
     cat<<EOF
@@ -344,6 +344,13 @@ auto)
 			2>/dev/null)
 		 eval splash_size_$size=1 ;;
         esac
+    done
+    # Get current modes from fb
+    for fb in /sys/class/graphics/fb* ; do
+	if [ -d $fb ] ; then
+	    size=$(sed -ne 's/,/x/p' $fb/virtual_size)
+	    eval splash_size_$size=1
+	fi
     done
     splashsizes="$(for x in ${!splash_size_*}; do
 			echo ${x#splash_size_}
