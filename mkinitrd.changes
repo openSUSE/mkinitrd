@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr  4 15:43:05 CEST 2006 - garloff@suse.de
+
+- Put DOMU_INITRD_MODULES into xen initrds and load them rather
+  than driver_modules in a Xen domU.
+
+-------------------------------------------------------------------
 Fri Mar 31 09:13:31 CEST 2006 - hare@suse.de
 
 - Get splash sizes from framebuffer, too (#141098)

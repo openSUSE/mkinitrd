@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.271 $
+# $Revision: 1.272 $
 
 usage() {
     cat<<EOF
@@ -45,6 +45,9 @@ usage() {
 			   all kernels found in /boot.
           -m "module list" Modules to include in initrd. Defaults to the
                            INITRD_MODULES variable in /etc/sysconfig/kernel.
+          -u "DomU module list" Modules to include in initrd. Defaults to
+                           the DOMU_INITRD_MODULES variable in
+                           /etc/sysconfig/kernel.
           -f "feature list" Features to be enabled when generating initrd.
                            Available features are:
                            iscsi, md, mpath, lvm, lvm2, evms
@@ -132,6 +135,8 @@ kernel_images=
 initrd_images=
 modules=
 modules_set=
+domu_modules=
+domu_modules_set=
 feature_list=
 boot_dir=
 splash="auto"
@@ -195,6 +200,9 @@ while getopts :ef:hk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
 	    ;;
 	m)  modules=$OPTARG
 	    modules_set=1
+	    ;;
+	u)  domu_modules=$OPTARG
+	    domu_modules_set=1
 	    ;;
 	b)  boot_dir=$OPTARG
 	    ;;
@@ -416,6 +424,20 @@ oops() {
     exit_code=$1
     shift
     echo "$@" >&2
+}
+
+is_xen_kernel() {
+    local kversion=$1
+    local cfg
+
+    for cfg in ${root_dir}/boot/config-$kversion $root_dir/lib/modules/$kversion/build/.config
+    do
+	test -r $cfg || continue
+	grep -q "^CONFIG_XEN=y\$" $cfg
+	return
+    done
+    test $kversion != "${kversion%-xen*}"
+    return 
 }
 
 # Check if module $1 is listed in $modules.
@@ -1124,7 +1146,7 @@ mkinitrd_kernel() {
     local need_mdadm
     local need_mdconf
     local -a features
-    local fs_modules drv_modules uld_modules
+    local fs_modules drv_modules uld_modules xen_modules
 
     tmp_mnt=$work_dir/mnt
     tmp_mnt_small=${tmp_mnt}_small
@@ -1785,8 +1807,12 @@ mkinitrd_kernel() {
 	resolved_modules="$(resolve_modules $kernel_version $modules)"
     fi
 
+    if is_xen_kernel $kernel_version; then
+	xenu_modules="$(resolve_modules $kernel_version $domu_modules)"
+    fi
+
     # Copy all modules into the initrd
-    for module in $resolved_modules; do
+    for module in $resolved_modules $xenu_modules; do
 	if [ ! -r $root_dir/$module ]; then
 	    oops 9 "Module $module not found."
 	    continue
@@ -1825,6 +1851,8 @@ mkinitrd_kernel() {
     for module in $resolved_modules; do
 	if [ "$module" != "${module#*/kernel/fs/}" ]; then
 	    fs_modules="$fs_modules $module"
+	elif is_xen_kernel $kernel_version && [ "$module" != "${module#*/kernel/drivers/xen/*/xen}" ]; then
+	    xen_modules="$xen_modules $module"
 	else
 	    drv_modules="$drv_modules $module"
 	fi
@@ -1834,6 +1862,16 @@ mkinitrd_kernel() {
 
     echo -ne "Driver modules:\t"
     initrd_is_using_modules=
+
+    if is_xen_kernel $kernel_version; then
+	# NOTE: We use the same settings as the dom0 initrd, except
+	# for the different module list. So we share fsck, dm, ... support.
+	cat_linuxrc <<-EOF
+	|caps="\$(</proc/xen/capabilities)"
+	|if [ "\$caps" != "\${caps%control_d*}" ]; then
+	EOF
+    fi
+
     for modpath in $drv_modules; do
 	module=${modpath##*/}
 	module=${module%.ko}
@@ -1950,10 +1988,42 @@ mkinitrd_kernel() {
 
 	initrd_is_using_modules=1
     done
-    echo
+
+    if is_xen_kernel $kernel_version; then
+	cat_linuxrc <<-EOF
+	|else
+	EOF
+	echo -ne "\nXen domU modules:\t"
+
+	for modpath in $xenu_modules $xen_modules; do
+	    module=${modpath##*/}
+	    module=${module%.ko}
+	    echo -n "${module} "
+	    cat_linuxrc <<-EOF
+		|params=
+		|for p in \$(cat /proc/cmdline) ; do
+		|  case \$p in
+		|    $module.*)
+		|      params="\$params \${p#$module.}"
+		|      ;;
+		|  esac
+		|done
+		|echo "Loading $module"
+		|modprobe $module \$params
+		EOF
+
+	    initrd_is_using_modules=1
+	done
+
+	cat_linuxrc <<-EOF
+	|fi
+	EOF
+    fi
 
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
+    else
+	echo
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
@@ -2873,6 +2943,12 @@ if [ -z "$modules_set" ]; then
     modules="$INITRD_MODULES"
 fi
 
+if [ -z "$domu_modules_set" ]; then
+    # get DOMU_INITRD_MODULES from system configuration
+    . $root_dir/etc/sysconfig/kernel
+    domu_modules="$DOMU_INITRD_MODULES"
+fi
+
 ###################################################################
 # add modules required by features
 if [ -n "$root_lvm" ] ; then
@@ -2963,7 +3039,7 @@ initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
 
 boot_modules="$modules"
-echo -e "Module list:\t$boot_modules"
+echo -e "Module list:\t$boot_modules ($domu_modules)"
 for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     echo
     modules="$boot_modules"
