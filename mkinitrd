@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.272 $
+# $Revision: 1.273 $
 
 usage() {
     cat<<EOF
@@ -1077,7 +1077,7 @@ s390_dasd_sysfs() {
 			    ;;
 			DIAG)
 			    add_module dasd_diag_mod
-			    discipline=1
+			    discipline=2
 			    ;;
 			*)
 			    ;;
