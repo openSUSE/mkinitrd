@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.273 $
+# $Revision: 1.274 $
 
 usage() {
     cat<<EOF
@@ -1343,6 +1343,7 @@ mkinitrd_kernel() {
 
     cp_bin /sbin/udevd $tmp_mnt/sbin/
     cp_bin /sbin/udevtrigger $tmp_mnt/sbin/
+    cp_bin /sbin/udevsettle $tmp_mnt/sbin/
     cp_bin /usr/bin/udevinfo $tmp_mnt/sbin/
 
     mkdir -p $tmp_mnt/etc/udev/rules.d
@@ -1751,12 +1752,7 @@ mkinitrd_kernel() {
 	|
 	|echo "Creating devices"
 	|/sbin/udevtrigger
-	|loop=300
-	|while test -d /dev/.udev/queue; do
-	|    sleep 0.1;
-	|    test "\$loop" -gt 0 || break
-	|    loop=\$((\$loop - 1))
-	|done
+	|/sbin/udevsettle timeout=$udev_timeout
 	|
 	|# workaround chicken/egg bug in mdadm
 	|# they do the ioctl on the not yet existing device node...
@@ -2253,26 +2249,6 @@ mkinitrd_kernel() {
 
     cat_linuxrc <<-'EOF'
 	|
-	|# Wait for udev to settle
-	|udev_settle() {
-	|    local retval=1
-	|    local timeout=$udev_timeout
-	|    [ ! -d /dev/.udev/queue ] && return 0;
-	|    echo -n "Waiting for udev to settle: "
-	|    while [ $timeout -gt 0 ]; do
-	|        if test ! -d /dev/.udev/queue ; then
-	|		echo " ok"
-	|		retval=0
-	|		break;
-	|	 fi
-	|        sleep 1;
-	|	 echo -n "."
-	|        timeout=$(( $timeout - 1 ))
-	|    done
-	| 
-	|    return $retval;
-	|}
-	|
 	|# Waiting for a device to appear
 	|# device node will be created by udev
 	|udev_check_for_device() {
@@ -2355,8 +2331,7 @@ mkinitrd_kernel() {
 	|    esac
 	|done
 	|
-	|# wait udev to settle
-	|udev_settle
+	|/sbin/udevsettle --timeout=$udev_timeout
 	|
 	EOF
 
@@ -2407,7 +2382,7 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-EOF
 	|# Rescan for multipath
 	|/sbin/multipath -v0
-	|udev_settle
+	|/sbin/udevsettle --timeout=$udev_timeout
 	EOF
     fi
 
@@ -2602,7 +2577,7 @@ mkinitrd_kernel() {
 
     cat_linuxrc <<-'EOF'
 	|# Wait for udev to settle
-	|udev_settle
+	|/sbin/udevsettle --timeout=$udev_timeout
 	|# Check for a resume device
 	|udev_discover_resume
 	EOF
@@ -2620,8 +2595,7 @@ mkinitrd_kernel() {
 	|
 	|    # And restart them again
 	|    /sbin/mdadm --assemble --scan \$mdconf
-	|    # Wait for udev to settle
-	|    udev_settle
+	|    /sbin/udevsettle --timeout=$udev_timeout
 	|fi
 	EOF
     fi

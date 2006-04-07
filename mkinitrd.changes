@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr  7 12:11:27 CEST 2006 - hare@suse.de
+
+- Use the udevsettle program instead of shell scripts (#163010)
+
+-------------------------------------------------------------------
 Wed Apr  5 12:42:07 CEST 2006 - hare@suse.de
 
 - Fixed typo in s390_dasd_sysfs (#156152)
