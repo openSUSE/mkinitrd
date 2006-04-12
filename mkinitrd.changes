@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Apr 12 13:49:17 CEST 2006 - hare@suse.de
+
+- consistent usage of iscsi_root (#165456)
+
+-------------------------------------------------------------------
+Tue Apr 11 11:55:29 CEST 2006 - hare@suse.de
+
+- Increase udev timeout to 30 seconds.
+
+-------------------------------------------------------------------
 Fri Apr  7 12:11:27 CEST 2006 - hare@suse.de
 
 - Use the udevsettle program instead of shell scripts (#163010)

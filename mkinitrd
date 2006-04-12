@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.274 $
+# $Revision: 1.275 $
 
 usage() {
     cat<<EOF
@@ -1576,6 +1576,9 @@ mkinitrd_kernel() {
 	|
 	|kernel_cmdline="\$@"
 	|
+	|# Default timeout is 30 seconds
+	|udev_timeout=30
+	|
 	|for o in \$(cat /proc/cmdline); do
 	|    if [ "\$z_arg" ] ; then
 	|	init_args="\$init_args \$o"
@@ -1649,8 +1652,13 @@ mkinitrd_kernel() {
 	|	set -- \$(IFS== ; echo \$o)
 	|	init=\$2
 	|	;;
+	|    udev_timeout=*)
+	|	set -- \$(IFS== ; echo $\o)
+	|	udev_timeout=\$2
+	|	;;
 	|    esac
 	|done
+	|
 	|if [ -z "\$rootdev" ]; then
 	|    rootdev=$rootdev
 	|else
@@ -2319,18 +2327,6 @@ mkinitrd_kernel() {
 	|    fi
 	|}
 	|
-	|# Default timeout is 10 seconds
-	|udev_timeout=10
-	|# Override timeout from commandline
-	|for o in $(cat /proc/cmdline); do
-	|    case $o in
-	|    udev_timeout=*)
-	|	set -- $(IFS== ; echo $o)
-	|	udev_timeout=$2
-	|	;;
-	|    esac
-	|done
-	|
 	|/sbin/udevsettle --timeout=$udev_timeout
 	|
 	EOF
@@ -2861,7 +2857,7 @@ case "$rootdev" in
     /dev/sd*)
 	# Check for iSCSI
 	sid=$(check_iscsi_root $rootdev)
-	root_iscsi="$sid"
+	iscsi_root="$sid"
 	;;
     LABEL=*|UUID=*)
 	# get real root via fsck hack
@@ -2907,7 +2903,7 @@ fi
 
 x="$rootdev"
 [ "$rootfstype" = "nfs" ] && x="nfs-root"
-[ "$root_iscsi" ] && x="$(cat /sys/class/iscsi_session/$root_iscsi/targetname)"
+[ "$iscsi_root" ] && x="$(cat /sys/class/iscsi_session/$iscsi_root/targetname)"
 [ "$rootdev" != "$realrootdev" ] && x="$x ($realrootdev)"
 echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 
@@ -2959,7 +2955,7 @@ if [ -n "$root_dm" ] ; then
     fi
 fi
 
-if [ -n "$root_iscsi" ] ; then
+if [ -n "$iscsi_root" ] ; then
     add_module scsi_transport_iscsi
     add_module iscsi_tcp
 fi
