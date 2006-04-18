@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.275 $
+# $Revision: 1.276 $
 
 usage() {
     cat<<EOF
@@ -2849,7 +2849,7 @@ case "$rootdev" in
 	;;
     /dev/md*)
 	# get md UUID
-	md_uuid=$(mdadm -Db /dev/md0 | head -1 | cut -f 5 -d ' ')
+	md_uuid=$(mdadm -Db /dev/md0 | xargs -n1 echo | awk -F = '/^UUID/ { print $2 }')
 	md_uuid=${md_uuid#UUID=}
 	md_minor=${rootdev#/dev/md}
 	md_dev=$rootdev
