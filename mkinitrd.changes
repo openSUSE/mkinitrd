@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 13 17:28:35 CEST 2006 - trenn@suse.de
+
+- added sysvinit and reiserfs to "Requires" packages
+
+-------------------------------------------------------------------
 Wed Apr 12 13:49:17 CEST 2006 - hare@suse.de
 
 - consistent usage of iscsi_root (#165456)
