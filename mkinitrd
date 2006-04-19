@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.276 $
+# $Revision: 1.277 $
 
 usage() {
     cat<<EOF
@@ -1760,7 +1760,7 @@ mkinitrd_kernel() {
 	|
 	|echo "Creating devices"
 	|/sbin/udevtrigger
-	|/sbin/udevsettle timeout=$udev_timeout
+	|/sbin/udevsettle --timeout=$udev_timeout
 	|
 	|# workaround chicken/egg bug in mdadm
 	|# they do the ioctl on the not yet existing device node...
