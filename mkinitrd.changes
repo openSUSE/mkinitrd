@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Tue Apr 18 19:30:21 CEST 2006 - olh@suse.de
 
-- handle unexpected mdadm -Db /dev/md0 correctly for raid5 (#164600)
+- handle unexpected mdadm -Db /dev/md0 output correctly for raid5 (#164600)
 
 -------------------------------------------------------------------
 Thu Apr 13 17:28:35 CEST 2006 - trenn@suse.de
