@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 19 15:13:02 CEST 2006 - olh@suse.de
+
+- escape udev_timeout variable
+
+-------------------------------------------------------------------
 Wed Apr 19 15:05:28 CEST 2006 - olh@suse.de
 
 - use correct udevsettle option syntax
