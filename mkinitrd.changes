@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 20 23:45:36 CEST 2006 - olh@suse.de
+
+- remove dead code in /init script, rootdevn serves no purpose
+
+-------------------------------------------------------------------
 Thu Apr 20 23:44:00 CEST 2006 - olh@suse.de
 
 - fix typo in lvm2 detection, better lvdisplay output parsing
