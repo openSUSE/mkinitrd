@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 20 23:44:00 CEST 2006 - olh@suse.de
+
+- fix typo in lvm2 detection, better lvdisplay output parsing
+
+-------------------------------------------------------------------
 Thu Apr 20 23:39:11 CEST 2006 - olh@suse.de
 
 - remove hardcoded /dev/md0 to allow root on md1 and above (#164600)

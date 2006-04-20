@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.279 $
+# $Revision: 1.280 $
 
 usage() {
     cat<<EOF
@@ -2966,7 +2966,7 @@ if [ -n "$root_dm" ] ; then
     done
     # Check whether we are using LVM2
     rootmajor=$(devmajor $rootdevn)
-    rootminor=$(devminor $roodevn)
+    rootminor=$(devminor $rootdevn)
     vg_line=$(lvdisplay -c 2> /dev/null | grep ":$rootmajor:$rootminor")
     if [ "$vg_line" ] ; then
 	root_lvm2=1
