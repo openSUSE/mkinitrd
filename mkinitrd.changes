@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 20 23:39:11 CEST 2006 - olh@suse.de
+
+- remove hardcoded /dev/md0 to allow root on md1 and above (#164600)
+
+-------------------------------------------------------------------
 Wed Apr 19 15:13:02 CEST 2006 - olh@suse.de
 
 - escape udev_timeout variable

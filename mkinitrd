@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.278 $
+# $Revision: 1.279 $
 
 usage() {
     cat<<EOF
@@ -2848,11 +2848,31 @@ case "$rootdev" in
 	rootfstype=nfs
 	;;
     /dev/md*)
+	rootcpio=`echo $root_dir/ | cpio --quiet -o -H newc`
+	rootmajor=0x${rootcpio:62:8}
+	rootminor=0x${rootcpio:70:8}
+	mm=
+	for i in /sys/block/*/dev /sys/block/*/*/dev
+	do
+	  if test -f $i
+	  then
+	    read mm < $i
+	    if test "$mm" = "$((rootmajor)):$((rootminor))"
+	    then
+	      /bin/mknod -m600 ${work_dir}/rootdev b $((rootmajor)) $((rootminor))
+	      mm=${i%/dev}
+	      mm=${mm##*/}
+	      break
+	    fi
+	  else
+	    break
+	  fi
+	done
 	# get md UUID
-	md_uuid=$(mdadm -Db /dev/md0 | xargs -n1 echo | awk -F = '/^UUID/ { print $2 }')
-	md_uuid=${md_uuid#UUID=}
-	md_minor=${rootdev#/dev/md}
+	md_uuid=$(mdadm -Db ${work_dir}/rootdev | xargs -n1 echo | awk -F = '/^UUID/ { print $2 }')
+	md_minor=${mm#md}
 	md_dev=$rootdev
+	unset mm
 	;;
     /dev/sd*)
 	# Check for iSCSI
