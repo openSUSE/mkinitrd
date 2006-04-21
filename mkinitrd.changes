@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 21 11:24:14 CEST 2006 - olh@suse.de
+
+- consider bootsplash only on DOS compatibles
+
+-------------------------------------------------------------------
 Thu Apr 20 23:45:36 CEST 2006 - olh@suse.de
 
 - remove dead code in /init script, rootdevn serves no purpose

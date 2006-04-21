@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.281 $
+# $Revision: 1.282 $
 
 usage() {
     cat<<EOF
@@ -139,7 +139,7 @@ domu_modules=
 domu_modules_set=
 feature_list=
 boot_dir=
-splash="auto"
+splash=off
 use_static_binaries=
 acpi_dsdt=
 use_selinux=
@@ -148,8 +148,8 @@ journaldev=
 
 # architecture dependend changes:
 case "$(uname -m)" in
-    s390|s390x)
-	splash=off
+    i?86|x86_64)
+	splash="auto"
 	;;
 esac
 
