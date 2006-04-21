@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.285 $
+# $Revision: 1.286 $
 
 usage() {
     cat<<EOF
@@ -272,6 +272,17 @@ if [ $(set -- $kernel_images ; echo $#) -ne \
     exit 1
 fi
 
+# Mount /usr, required for ldd and other tools to create the initrd tree
+mounted_usr=
+if [ ! -x /usr/bin/ldd ]; then
+  mounted_usr=/usr
+  if ! mount -n -v /usr ; then
+    echo "/usr/bin/ldd not available and mount /usr failed." \
+         "mkinitrd does not work without it." >&2
+    exit 1
+  fi
+fi
+
 # Mount /proc if not already done so
 mounted_proc=
 if [ ! -e /proc/mounts ]; then
@@ -389,6 +400,8 @@ umount_proc() {
     mounted_proc=
     [ "$mounted_sys" ] && umount -n $mounted_sys
     mounted_sys=
+    [ "$mounted_usr" ] && umount -v -n $mounted_usr
+    mounted_usr=
 }
 
 cleanup() {
