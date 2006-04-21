@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 21 15:45:45 CEST 2006 - olh@suse.de
+
+- remove +s bits from mount to allow mkinitrd as unprivileged user
+
+-------------------------------------------------------------------
 Fri Apr 21 13:06:42 CEST 2006 - olh@suse.de
 
 - include fsck binary if fstab root mountpoint contains colons
