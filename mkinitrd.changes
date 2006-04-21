@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Apr 22 01:13:27 CEST 2006 - olh@suse.de
+
+- remove the requirement for expr, except for evms, bash does math
+
+-------------------------------------------------------------------
 Sat Apr 22 01:10:34 CEST 2006 - olh@suse.de
 
 - mkinitrd does not work if /usr is unavailable, exit early
