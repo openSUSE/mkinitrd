@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.284 $
+# $Revision: 1.285 $
 
 usage() {
     cat<<EOF
@@ -64,7 +64,6 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
           -e               Use static binaries where possible.
-	  -S               Load policy file for SELinux if exist.
 	  -V script        Vendor specific script to run in linuxrc.
 	  -M map           System.map file to use.
 EOF
@@ -1212,21 +1211,6 @@ mkinitrd_kernel() {
 	EOF
     chmod +x $tmp_mnt/bin/true
  
-    # SELinux: Binary policy file and load_policy utility for loading it.
-    if [ -n "$use_selinux" ] ; then
-	if [ -f /etc/security/selinux/policy.15 -a \
-	     -f /usr/sbin/load_policy ] ; then
-	   echo -e "SELinux policy:\tadded"
-	   mkdir -p $tmp_mnt/selinux
-	   mkdir -p $tmp_mnt/etc/security/selinux
-	   cp -p /etc/security/selinux/policy.15 \
-	       $tmp_mnt/etc/security/selinux
-	   cp_bin /usr/sbin/load_policy $tmp_mnt/sbin/load_policy
-	else
-	   echo -e "SELinux policy:\tnot found"
-	fi
-    fi
-
     # Enable user-selected features
     if [ "$feature_list" ] ; then
 	for f in "$feature_list" ; do
@@ -2638,19 +2622,6 @@ mkinitrd_kernel() {
 	|    fi
 	|fi
 	EOF
-
-    if [ -n "$use_selinux" -a -d $tmp_mnt/selinux ]; then
-	cat_linuxrc <<-'EOF'
-	|echo -n "Loading SELinux policy	"
-	|if mount -t selinuxfs none /selinux >/dev/null 2>/dev/null ; then
-	|  /sbin/load_policy /etc/security/selinux/policy.15
-	|  umount /selinux
-	|  echo "successful"
-	|else
-	|  echo "skipped"
-	|fi
-	EOF
-    fi
 
     cat_linuxrc <<-'EOF'
 	|opt="-o ro"

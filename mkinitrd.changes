@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 21 23:32:41 CEST 2006 - olh@suse.de
+
+- remove selinux support, it references non-existant files in /usr
+
+-------------------------------------------------------------------
 Fri Apr 21 15:45:45 CEST 2006 - olh@suse.de
 
 - remove +s bits from mount to allow mkinitrd as unprivileged user
