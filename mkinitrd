@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.287 $
+# $Revision: 1.288 $
 
 usage() {
     cat<<EOF
@@ -392,8 +392,6 @@ if [ $? -ne 0 ]; then
 	echo "$0: Can't create temp dir, exiting." >&2
 	exit 1
 fi
-is_mounted=
-is_mounted_small=
 
 umount_proc() {
     [ "$mounted_proc" ] && umount -n $mounted_proc
