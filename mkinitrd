@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.282 $
+# $Revision: 1.283 $
 
 usage() {
     cat<<EOF
@@ -2838,6 +2838,8 @@ fi
 
 realrootdev="$rootdev"
 case "$rootdev" in
+    /*:*)
+	;;
     *:*)
 	rootdev=
 	rootfstype=nfs

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 21 13:06:42 CEST 2006 - olh@suse.de
+
+- include fsck binary if fstab root mountpoint contains colons
+
+-------------------------------------------------------------------
 Fri Apr 21 11:24:14 CEST 2006 - olh@suse.de
 
 - consider bootsplash only on DOS compatibles
