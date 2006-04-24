@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.288 $
+# $Revision: 1.289 $
 
 usage() {
     cat<<EOF
@@ -1984,16 +1984,17 @@ mkinitrd_kernel() {
     done
 
     if is_xen_kernel $kernel_version; then
-	cat_linuxrc <<-EOF
-	|else
-	EOF
-	echo -ne "\nXen domU modules:\t"
-
-	for modpath in $xenu_modules $xen_modules; do
-	    module=${modpath##*/}
-	    module=${module%.ko}
-	    echo -n "${module} "
+	if [ "$xenu_modules" -o "$xen_modules" ]; then
 	    cat_linuxrc <<-EOF
+		|else
+		EOF
+	    echo -ne "\nXen domU modules:\t"
+
+	    for modpath in $xenu_modules $xen_modules; do
+		module=${modpath##*/}
+		module=${module%.ko}
+		echo -n "${module} "
+		cat_linuxrc <<-EOF
 		|params=
 		|for p in \$(cat /proc/cmdline) ; do
 		|  case \$p in
@@ -2006,9 +2007,9 @@ mkinitrd_kernel() {
 		|modprobe $module \$params
 		EOF
 
-	    initrd_is_using_modules=1
-	done
-
+		initrd_is_using_modules=1
+	    done
+	fi
 	cat_linuxrc <<-EOF
 	|fi
 	EOF
