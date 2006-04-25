@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.289 $
+# $Revision: 1.290 $
 
 usage() {
     cat<<EOF
@@ -2929,6 +2929,26 @@ fi
 if [ -n "$root_dm" ] ; then
     add_module dm-mod
     add_module dm-snapshot
+fi
+# check if there is or was more than on raid type active
+if [ -f /proc/mdstat -a -z "$root_dir" ] ; then
+    loaded_personalities=`cat /proc/mdstat | sed 's@Personalities : @@;q'`
+    if [ -n "$loaded_personalities" ] ; then
+	for i in `cat /proc/mdstat | \
+	sed -n '/active[[:blank:]]/s@\(^.*[[:blank:]]\)\(raid[0-9]\+\)\([[:blank:]]\)\(.*\)@\2@p'`
+	do
+	    add_module $i
+	done
+    fi
+fi
+if [ -f $root_dir/etc/mdadm.conf ] ; then
+    # add all listed personality drivers
+    for i in `
+    sed -n '/^ARRAY[[:blank:]]/s@\(^.*[[:blank:]]level=\)\([^[:blank:]]\+\)\(.*\)@\2@p' $root_dir/etc/mdadm.conf
+    `
+    do
+	add_module $i
+    done
 fi
 
 if [ -n "$root_dm" ] ; then

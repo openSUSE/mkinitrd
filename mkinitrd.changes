@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 25 20:07:14 CEST 2006 - olh@suse.de
+
+- add more raid personalities based on mdstat and mdadm.conf
+  (#168518, #166239)
+
+-------------------------------------------------------------------
 Mon Apr 24 10:16:35 CEST 2006 - hare@suse.de
 
 - Generate correct initrd for Xen (#168115)
