@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun May  7 21:07:37 CEST 2006 - olh@suse.de
+
+- use the sysfs modalias file when looking for a network driver
+  the driver symlink does not always match the kernel module name
+
+-------------------------------------------------------------------
 Sun May  7 20:59:49 CEST 2006 - olh@suse.de
 
 - add nfs module if nfsroot is detected

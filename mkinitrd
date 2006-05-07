@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.291 $
+# $Revision: 1.292 $
 
 usage() {
     cat<<EOF
@@ -2988,7 +2988,11 @@ fi
 if [ -n "$interface" ] ; then
     # Pull in network module
     if [ -d /sys/class/net/$interface/device ] ; then
-	drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
+	if [ -f /sys/class/net/$interface/device/modalias ] ; then
+	    read drvlink  < /sys/class/net/$interface/device/modalias
+	else
+	    drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
+	fi
 	add_module ${drvlink##*/}
     fi
 fi
