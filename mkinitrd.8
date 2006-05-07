@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.15 2006/04/21 22:36:14 olh Exp $
+.\"$Id: mkinitrd.8,v 1.16 2006/05/07 19:32:59 olh Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -17,11 +17,11 @@ This Text.
 .TP
 \fB-k  "kernel list"\fR
 list of kernel images for which initrd files are created (relative to
-boot_dir), defaults to "vmlinuz vmlinuz.shipped"
+boot_dir), defaults to "vmlinux" on powerpc, "image" on s390 and "vmlinuz" for everything else.
 .TP
 \fB-i "initrd list"\fR 
 list of file names (relativ to boot_dir) for the initrd; positions have to
-match the "kernel list",  defaults to "initrd initrd.shipped"
+match the "kernel list",  defaults to "initrd"
 .TP
 \fB-m "module list"\fR 
 modules to include in initrd, defaults to INITRD_MODULES variable in
