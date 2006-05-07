@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun May  7 21:59:44 CEST 2006 - olh@suse.de
+
+- add some hints about nfsroot to the manpage
+
+-------------------------------------------------------------------
 Sun May  7 21:44:53 CEST 2006 - olh@suse.de
 
 - update the description of mkinitrd in the man page

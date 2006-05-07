@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.17 2006/05/07 19:45:22 olh Exp $
+.\"$Id: mkinitrd.8,v 1.18 2006/05/07 20:00:49 olh Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -148,6 +148,18 @@ Add support for EVMS
 .TP
 \fBlvm\fR
 Add support for LVM1
+
+.SH Using NFS as root filesystem
+To configure an initrd for an NFS client, specify these options to add nfs and network driver support into the initrd:
+.TP
+mkinitrd \fB-m "nfs e1000" -D eth0\fR
+This will add the required kernel modules and a dhcp client to the initrd, which will try to get an IP address via eth0.
+Boot the NFS client with these additional command line options to mount the server: \fBnfsroot=1.2.3.4:/exported/directory\fR
+
+.TP
+mkinitrd \fB-m "nfs e1000" -I eth0\fR
+This will add the required kernel modules to the initrd, a static IP address must be specified on the kernel cmdline.
+Boot the NFS client with these additional command line options to mount the server: \fBnfsroot=1.2.3.4:/exported/directory ip=1.2.3.42:1.2.3.4:1.2.3.1:255.255.255.0:clienthostname:eth0:none\fR . See the ip= description above for details about the ip= option.
 
 .SH NOTE
 \fBmk_initrd\fR is now a symbolic link to \fBmkinitrd\fR.
