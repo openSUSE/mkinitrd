@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun May  7 21:44:53 CEST 2006 - olh@suse.de
+
+- update the description of mkinitrd in the man page
+
+-------------------------------------------------------------------
 Sun May  7 21:32:22 CEST 2006 - olh@suse.de
 
 - update -k and -i description in manpage

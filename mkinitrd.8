@@ -1,15 +1,25 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.16 2006/05/07 19:32:59 olh Exp $
+.\"$Id: mkinitrd.8,v 1.17 2006/05/07 19:45:22 olh Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
 .SH SYNOPSIS
 \fBmkinitrd\fR [options] [root_dir]
 .SH DESCRIPTION
-\fBmkinitrd\fR creates initial ramdisk images for booting linux
-         with enviroments which need loading modules 
-         before mounting the root device (e.g SCSI 
-         controller)
+\fBmkinitrd\fR creates initial ramdisk images for booting Linux.
+The "/init" script in the compressed cpio archive loads all driver modules,
+creates all device nodes currently know by the kernel, does a filesystem check
+on the root filesystem and finally passes control to /sbin/init.
+udev is used to create the device nodes in a tmpfs mounted /dev directory.
+This directory is moved over to the final root filesystem, essentially hiding the 
+on-disk content below /dev on the root filesystem.
+
+A few options can be specified via the kernel command line to modify some hardcoded
+values in the "/init" script. They are read from /proc/cmdline.
+
+While in the old days the Linux kernel was responsible for mounting the rootfilesystem
+and running /sbin/init, all the work is now done by the "/init" script.
+
 .SH OPTIONS
 .TP
 \fB-h\fR
