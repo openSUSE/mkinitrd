@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun May  7 20:59:49 CEST 2006 - olh@suse.de
+
+- add nfs module if nfsroot is detected
+
+-------------------------------------------------------------------
 Tue Apr 25 20:07:14 CEST 2006 - olh@suse.de
 
 - add more raid personalities based on mdstat and mdadm.conf

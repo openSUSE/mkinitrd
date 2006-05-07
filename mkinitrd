@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.290 $
+# $Revision: 1.291 $
 
 usage() {
     cat<<EOF
@@ -2922,6 +2922,10 @@ fi
 
 ###################################################################
 # add modules required by features
+if [ "$rootfstype" = "nfs" ] ; then
+    add_module nfs
+fi
+
 if [ -n "$root_lvm" ] ; then
     add_module lvm-mod
 fi
