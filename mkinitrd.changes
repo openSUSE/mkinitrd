@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May  8 02:29:19 CEST 2006 - garloff@suse.de
+
+- Add option u: also to the getopts call (#166921).
+
+-------------------------------------------------------------------
 Sun May  7 21:59:44 CEST 2006 - olh@suse.de
 
 - add some hints about nfsroot to the manpage

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.292 $
+# $Revision: 1.293 $
 
 usage() {
     cat<<EOF
@@ -152,7 +152,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :ef:hk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
+while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:j: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -160,6 +160,8 @@ while getopts :ef:hk:i:m:b:d:s:St:D:I:V:a:M:j: a ; do
 		i)  echo "-i requires initrd list parameter"
 		    ;;
 		m)  echo "-m requires module list parameter"
+		    ;;
+		u)  echo "-u requires module list parameter"
 		    ;;
 		f)  echo "-f requires feature list parameter"
 		    ;;
