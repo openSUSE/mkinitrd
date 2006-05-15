@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 15 10:24:23 CEST 2006 - hare@suse.de
+
+- Fix improper condition in mkinitrd (#94586).
+
+-------------------------------------------------------------------
 Mon May  8 02:29:19 CEST 2006 - garloff@suse.de
 
 - Add option u: also to the getopts call (#166921).

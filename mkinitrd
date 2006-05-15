@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.293 $
+# $Revision: 1.294 $
 
 usage() {
     cat<<EOF
@@ -2750,8 +2750,8 @@ mkinitrd_kernel() {
 	    echo "No bootsplash for kernel flavor ${kernel_version##*-}"
 	else
 	    echo -ne "Bootsplash:\t"
-	    if [ -n "$themes_dir" -a \
-		 -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
+	    if [ -n "$themes_dir" ] && \
+		 [ -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
 		for size in $splashsizes; do
 		    bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
 		    cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
