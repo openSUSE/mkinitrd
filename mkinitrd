@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.294 $
+# $Revision: 1.295 $
 
 usage() {
     cat<<EOF
@@ -894,8 +894,9 @@ check_iscsi_root() {
     cd -P device
     cd ../..
 
-    if [ -d session* ]; then
-	echo session*
+    if [ -d iscsi_session:session* ]; then
+	cd -P iscsi_session:session*
+	echo $(basename $PWD)
     fi
 }
 
@@ -2870,6 +2871,12 @@ case "$rootdev" in
 	if [ -z "$realrootdev" ] ; then
 	    error 1 "Could not expand $rootdev to real device"
 	fi
+	;;
+    /dev/disk/*)
+	realrootdev=$(/usr/bin/readlink -m $rootdev)
+	# Check for iSCSI
+	sid=$(check_iscsi_root $realrootdev)
+	iscsi_root="$sid"
 	;;
 esac
 
