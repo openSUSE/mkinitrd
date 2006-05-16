@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.295 $
+# $Revision: 1.296 $
 
 usage() {
     cat<<EOF
@@ -1227,7 +1227,7 @@ mkinitrd_kernel() {
  
     # Enable user-selected features
     if [ "$feature_list" ] ; then
-	for f in "$feature_list" ; do
+	for f in $feature_list ; do
 	    case $f in
 		iscsi)
 		    add_module iscsi_tcp

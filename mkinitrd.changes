@@ -2,6 +2,7 @@
 Tue May 16 11:55:25 CEST 2006 - hare@suse.de
 
 - Fix iSCSI root (#175191)
+- Fix feature list expansion (#175602)
 
 -------------------------------------------------------------------
 Mon May 15 10:24:23 CEST 2006 - hare@suse.de
