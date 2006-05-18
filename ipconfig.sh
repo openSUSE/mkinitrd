@@ -12,12 +12,12 @@ calc_prefix() {
 
     # Analyze each block
     prefix=0
-    while (( $1 == 255 )); do
+    while [ "$1" ] && (( $1 == 255 )); do
 	prefix=$(($prefix + 8))
 	shift
     done
     # Bit-shift first non-zero block
-    if (( $1 > 0 )); then
+    if [ "$1" ] && (( $1 > 0 )); then
 	mask=$1
 	prefix=$(($prefix + 8))
 	while (( ($mask & 0x1) == 0 )) ; do
@@ -35,7 +35,7 @@ set -- $(IFS=: ; echo $ipcfg )
 client=$1
 shift
 if [ "$1" != "_" ] ; then
-    server=$1
+    peer=$1
     shift
 fi
 if [ "$1" != "_" ] ; then
@@ -76,7 +76,11 @@ if [ "$prefix" == "$client" ] ; then
 fi
 
 # Configure the interface
-/sbin/ip addr add ${client}/${prefix} dev $dev
+if [ "$peer" ] ; then
+    /sbin/ip addr add ${client} peer ${peer}/$prefix dev $dev
+else
+    /sbin/ip addr add ${client}/${prefix} dev $dev
+fi
 /sbin/ip link set $dev up
 
 if [ "$gateway" ]; then

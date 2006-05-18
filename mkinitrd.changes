@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 18 16:50:30 CEST 2006 - hare@suse.de
+
+- Configure S/390 CTC devices properly.
+- Start iSCSI connections properly (#176804)
+
+-------------------------------------------------------------------
 Tue May 16 11:55:25 CEST 2006 - hare@suse.de
 
 - Fix iSCSI root (#175191)
