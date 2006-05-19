@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.297 $
+# $Revision: 1.298 $
 
 usage() {
     cat<<EOF
@@ -903,6 +903,26 @@ check_iscsi_root() {
 	cd -P iscsi_session:session*
 	echo $(basename $PWD)
     fi
+
+}
+
+get_default_interface() {
+    local ifname
+
+    # Determine the default network interface
+    for cfg in /etc/sysconfig/network/ifcfg-*; do
+	if [ $(basename $cfg) = "ifcfg-lo" ] ; then
+	    continue;
+	fi
+	eval $(grep STARTMODE $cfg)
+	if [ "$STARTMODE" = "nfsroot" ]; then
+	    cfgname=$(basename $cfg)
+	    ifname=$(getcfg-interface ${cfg#*/ifcfg-})
+	    eval $(grep BOOTPROTO $cfg)
+	    break;
+	fi
+    done
+    echo $ifname/$BOOTPROTO
 }
 
 ###################################################################
@@ -3054,6 +3074,16 @@ fi
 if [ -n "$iscsi_root" ] ; then
     add_module scsi_transport_iscsi
     add_module iscsi_tcp
+    if [ -z "$interface" ] ; then
+	ifspec=$(get_default_interface)
+	interface=${ifspec%%/*}
+	bootproto=${ifspec##*/}
+	if [ "$bootproto" = "dhcp" ] ; then
+	    use_dhcp=1
+	else
+	    use_ipconfig=1
+	fi
+    fi
 fi
 
 if [ -n "$interface" ] ; then
