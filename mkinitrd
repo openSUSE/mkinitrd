@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.299 $
+# $Revision: 1.300 $
 
 usage() {
     cat<<EOF
@@ -1664,6 +1664,9 @@ mkinitrd_kernel() {
 	|    rw)
 	|       read_write=1
 	|       ;;
+	|    ro)
+	|       read_only=1
+	|       ;;
 	|    esac
 	|done
 	|
@@ -2721,8 +2724,13 @@ mkinitrd_kernel() {
 	|        echo "fsck failed. Mounting root device read-only."
 	|        read_write=
 	|    else
-	|        echo "fsck succeeded. Mounting root device read-write."
-	|        read_write=1
+	|        if [ "$read_only" ]; then
+	|            echo "fsck succeeded. Mounting root device read-only."
+	|            read_write=
+	|        else
+	|            echo "fsck succeeded. Mounting root device read-write."
+	|            read_write=1
+	|        fi
 	|    fi
 	|fi
 	EOF
@@ -3031,6 +3039,7 @@ fi
 if [ -n "$root_dm" ] ; then
     add_module dm-mod
     add_module dm-snapshot
+    domu_modules="$domu_modules dm-mod dm-snapshot"
 fi
 # check if there is or was more than on raid type active
 if [ -f /proc/mdstat -a -z "$root_dir" ] ; then

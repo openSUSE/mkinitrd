@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 22 17:05:18 CEST 2006 - hare@suse.de
+
+- Add dm-mod to domu-modules if required (#177467)
+- Parse 'ro' commandline option (#177599)
+
+-------------------------------------------------------------------
 Mon May 22 09:58:22 CEST 2006 - hare@suse.de
 
 - Handle persistent device names correctly if
