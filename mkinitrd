@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.298 $
+# $Revision: 1.299 $
 
 usage() {
     cat<<EOF
@@ -1718,30 +1718,30 @@ mkinitrd_kernel() {
 	|	    ;;
 	|	LABEL=*)
 	|	    label=\${rootdev#LABEL=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" > /etc/udev/rules.d/01-label.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK=\"root\"" >> /etc/udev/rules.d/01-label.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/01-label.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/01-label.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	UUID=*)
 	|	    uuid=\${rootdev#UUID=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" > /etc/udev/rules.d/02-uuid.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/02-uuid.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x0\$rootdev >> 8))
 	|	    min=\$((0x0\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x\$rootdev >> 8))
 	|	    min=\$((0x\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	0x[0-9a-fA-F][0-9a-fA-F]*)
 	|	    maj=\$((\$rootdev >> 8))
 	|	    min=\$((\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	*:*)
 	|	    rootfstype="nfs"
@@ -2556,6 +2556,13 @@ mkinitrd_kernel() {
 	|
 	|for o in \$(cat /proc/cmdline); do
 	|  case \$o in
+	|    root=/dev/disk/by-*/*)
+	|       vg_root=
+	|       ;;
+	|    root=/dev/mapper/*)
+	|       set -- \$(IFS=- ; echo \$o)
+	|       vg_root=\$2
+	|       ;;
 	|    root=/dev/*)
 	|       set -- \$(IFS=/ ; echo \$o)
 	|       vg_root=\$3

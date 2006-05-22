@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 22 09:58:22 CEST 2006 - hare@suse.de
+
+- Handle persistent device names correctly if
+  LVM is activated (#175972)
+
+-------------------------------------------------------------------
 Fri May 19 17:04:38 CEST 2006 - hare@suse.de
 
 - Configure network interfaces automatically if
