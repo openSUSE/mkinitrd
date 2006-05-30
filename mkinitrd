@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.301 $
+# $Revision: 1.302 $
 
 usage() {
     cat<<EOF
@@ -1447,6 +1447,7 @@ mkinitrd_kernel() {
 	cp_bin /sbin/kpartx $tmp_mnt/sbin
 	cp_bin /sbin/dmsetup $tmp_mnt/sbin
 	cp_bin /sbin/mpath_id $tmp_mnt/sbin
+	cp_bin /sbin/kpartx_id $tmp_mnt/sbin
 	if [ -f /etc/multipath.conf ] ; then
 	    cp -a /etc/multipath.conf $tmp_mnt/etc
 	fi
