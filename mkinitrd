@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.300 $
+# $Revision: 1.301 $
 
 usage() {
     cat<<EOF
@@ -294,7 +294,7 @@ fi
 
 # And /sys likewise
 mounted_sys=
-if [ ! -e /sys/devices ] ; then
+if [ ! -d /sys/devices ] ; then
     mounted_sys=/sys
     mount -n -t sysfs none /sys
 fi
@@ -885,14 +885,19 @@ check_iscsi_root() {
     local devname=$1
     local sysfs_path
 
-    sysfs_path=$(udevinfo -q path -n $rootdev)
-    cd /sys$sysfs_path
+    sysfs_path=$(udevinfo -q path -n $rootdev 2> /dev/null)
+    if [ -z "$sysfs_path" ]; then
+	return;
+    fi
+
+    pushd /sys$sysfs_path > /dev/null
     if [ ! -d device ] ; then
 	cd ..
     fi
 
     if [ ! -d device ] ; then
 	# no device link; return
+	popd > /dev/null
 	return;
     fi
 
@@ -903,7 +908,7 @@ check_iscsi_root() {
 	cd -P iscsi_session:session*
 	echo $(basename $PWD)
     fi
-
+    popd > /dev/null
 }
 
 get_default_interface() {
@@ -1065,7 +1070,7 @@ s390_zfcp_sysfs() {
 	# Root is on SCSI, detect all SCSI devices
 	for dev_dir in /sys/class/scsi_device/*; do
 	    if [ -d "$dev_dir" ] && [ -e "$dev_dir/device" ]; then
-		cd $dev_dir;
+		pushd $dev_dir > /dev/null;
 		cd $(readlink device);
 		if [ -r ./hba_id ]; then
 		    read fcp_disk_hba < ./hba_id
@@ -1081,6 +1086,7 @@ s390_zfcp_sysfs() {
 		    done
 		    [ "$fcp_disk_hba" ] && s390_zfcp_hbas="$s390_zfcp_hbas $fcp_disk_hba"
 		fi
+		popd > /dev/null
 	    fi
 	done
 	if [ "$s390_zfcp_hbas" ]; then
@@ -1099,7 +1105,7 @@ s390_dasd_sysfs() {
 	# Root device is on a dasd device, enable all dasd disks
 	for dir in /sys/block/dasd*; do
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
-		cd $dir
+		pushd $dir > /dev/null
 		cd $(readlink device)
 		if [ -r ./discipline ]; then
 		    read type < ./discipline
@@ -1122,6 +1128,7 @@ s390_dasd_sysfs() {
 		    esac
 		    s390_dasd_disks="$s390_dasd_disks $(basename $PWD):$discipline"
 		fi
+		popd > /dev/null
 	    fi
 	done
 
