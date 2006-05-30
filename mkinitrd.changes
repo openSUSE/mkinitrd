@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May 30 16:27:35 CEST 2006 - hare@suse.de
+
+- Overhaul root on multipath (#176818)
+
+-------------------------------------------------------------------
 Mon May 22 17:05:18 CEST 2006 - hare@suse.de
 
 - Add dm-mod to domu-modules if required (#177467)
