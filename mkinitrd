@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.305 $
+# $Revision: 1.306 $
 
 usage() {
     cat<<EOF
@@ -1693,24 +1693,22 @@ mkinitrd_kernel() {
 	|	rootdev_cmdline=1
 	|	;;
 	|    resume=*)
-	|	set -- \$(IFS== ; echo \$o)
-	|	resumedev=\$2
+	|	resumedev=\${o#resume=}
 	|	;;
 	|    journal=*)
-	|	set -- \$(IFS== ; echo \$o)
-	|	journaldev=\$2
+	|	journaldev=\${o#journal=}
 	|	;;
 	|    mduuid=*)
-	|	set -- \$(IFS== ; echo \$o)
-	|	md_uuid=\$2
+	|	md_uuid=\${o#mduuid=}
 	|	;;
 	|    init=*)
-	|	set -- \$(IFS== ; echo \$o)
-	|	init=\$2
+	|	init=\${o#init=}
 	|	;;
 	|    udev_timeout=*)
-	|	set -- \$(IFS== ; echo $\o)
-	|	udev_timeout=\$2
+	|	udev_timeout=\${o#udev_timeout=}
+	|	;;
+	|    rootflags=*)
+	|	rootfsflags=\${o#rootflags=}
 	|	;;
 	|    esac
 	|done
@@ -2769,6 +2767,7 @@ mkinitrd_kernel() {
 	|echo "Mounting root $rootdev"
 	|# check external journal
 	|[ "$rootfstype" = "xfs" -a -n "$journaldev" ] && opt="${opt},logdev=$journaldev"
+	|[ "$rootfstype" = "xfs" -a -n "$rootfsflags" ] && opt="${opt},$rootfsflags"
 	|[ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && opt="${opt},jdev=$journaldev"
 	|[ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
 	|if [ -x /bin/nfsmount -a "$rootfstype" = "nfs" ]; then
@@ -2792,14 +2791,30 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|if [ -z "$init" ] ; then
-	|    echo "No init found. Try passing init= optino to the kernel."
+	|    echo "No init found. Try passing init= option to the kernel."
 	|    die 1
 	|fi
 	|
 	|# Parse root mount options
 	|if [ -f /root/etc/fstab ] ; then
 	|    fsoptions=$(cat /root/etc/fstab | while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done)
-	|    if [ "$fsoptions" ] && [ "$fsoptions" != "defaults" ] ; then
+	|    set -- $(IFS=,; echo $fsoptions)
+	|    fsoptions=
+	|    while [ "$1" ] ; do
+	|        case $1 in
+	|        *quota) ;;
+	|        defaults) ;;
+	|        *)
+	|            if [ "$fsoptions" ] ; then
+	|                fsoptions="$fsoptions,$1"
+	|            else
+	|                fsoptions="$1"
+	|            fi
+	|            ;;
+	|        esac
+	|        shift
+	|    done
+	|    if [ "$fsoptions" ] ; then
 	|        mount -o remount,$fsoptions $rootdev /root
 	|    fi
 	|fi

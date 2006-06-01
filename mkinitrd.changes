@@ -3,6 +3,7 @@ Thu Jun  1 09:10:10 CEST 2006 - hare@suse.de
 
 - Fix script error for root on iSCSI (#178054)
 - Build additional initrds for kdump (#176908)
+- Do not pass xfs quota options on remount (#177096)
 
 -------------------------------------------------------------------
 Tue May 30 16:27:35 CEST 2006 - hare@suse.de
