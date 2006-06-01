@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.306 $
+# $Revision: 1.307 $
 
 usage() {
     cat<<EOF
@@ -1900,7 +1900,7 @@ mkinitrd_kernel() {
     done
 
     # Filter modules into fs and non-fs (driver) modules.
-    # We do this to avoid loading xfs when doing a resule: xfs had
+    # We do this to avoid loading xfs when doing a resume: xfs had
     # (or still has) a bug that slows down resume a lot.
     # FIXME: get rid of this split crap again.
     for module in $resolved_modules; do
