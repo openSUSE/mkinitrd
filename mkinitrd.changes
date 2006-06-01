@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun  1 09:10:10 CEST 2006 - hare@suse.de
+
+- Fix script error for root on iSCSI (#178054)
+
+-------------------------------------------------------------------
 Tue May 30 16:27:35 CEST 2006 - hare@suse.de
 
 - Overhaul root on multipath (#176818)

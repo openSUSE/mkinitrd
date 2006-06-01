@@ -36,30 +36,30 @@ client=$1
 shift
 if [ "$1" != "_" ] ; then
     peer=$1
-    shift
 fi
+shift
 if [ "$1" != "_" ] ; then
     gateway=$1
-    shift
 fi
+shift
 if [ "$1" != "_" ] ; then
     netmask=$1
-    shift
 fi
+shift
 if [ "$1" != "_" ] ; then
     hostname=$1
-    shift
 fi
+shift
 if [ "$1" != "_" ] ; then
     dev=$1
-    shift
 else
     dev=eth0
 fi
+shift
 if [ "$1" != "_" ] ; then
     mode=$1
-    shift
 fi
+shift
 
 if [ "$mode" ] ; then
     echo "Ignoring mode $mode, using static configuration"

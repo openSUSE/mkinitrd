@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.303 $
+# $Revision: 1.304 $
 
 usage() {
     cat<<EOF
@@ -2275,6 +2275,7 @@ mkinitrd_kernel() {
 	|        iscsi_sid=\$(/sbin/iscsiadm -m node | grep \$iscsitarget | grep \$iscsiserver | sed 's@\[\(.*\)\] .*@\1@g')
 	|      else
 	|        iscsi_sid=\$(/sbin/iscsiadm -m node | grep \$iscsitarget | sed 's@\[\(.*\)\] .*@\1@g')
+	|      fi
 	|    else
 	|      if [ -n "\$iscsiserver" ] ; then 
 	|        iscsi_sid=\$(/sbin/iscsiadm -m node | grep \$iscsiserver | sed 's@\[\(.*\)\] .*@\1@g')
