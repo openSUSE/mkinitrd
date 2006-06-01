@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.307 $
+# $Revision: 1.308 $
 
 usage() {
     cat<<EOF
@@ -2177,6 +2177,8 @@ mkinitrd_kernel() {
 	|      echo \$o > /etc/initiatorname.iscsi ;;
 	|  esac
 	|done
+	|# Always enable DHCP for iSCSI
+	|dhcp_mode=1
 	EOF
     fi
 
@@ -2282,7 +2284,7 @@ mkinitrd_kernel() {
 	|    if [ -z "\$iscsi_sid" ] ; then
 	|        iscsi_sid=$iscsi_sid
 	|    fi
-	|    
+	|
 	|    NODE=`/sbin/iscsiadm -m node -r \$iscsi_sid | grep "node.name" | cut -d' ' -f3`
 	|    echo -n "Logging into \$NODE: "
 	|    if /sbin/iscsiadm -m node -r \$iscsi_sid -l ; then
