@@ -8,6 +8,7 @@ Thu Jun  1 09:10:10 CEST 2006 - hare@suse.de
 - Fix spelling errors (#177918)
 - Enable DHCP mode for root on iSCSI.
 - Include 64bit EVMS modules, too (#179860)
+- Add 64-device-mapper.rules for udev (#175972)
 
 -------------------------------------------------------------------
 Tue May 30 16:27:35 CEST 2006 - hare@suse.de
