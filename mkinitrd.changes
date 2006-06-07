@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  7 12:08:58 CEST 2006 - hare@suse.de
+
+- Revert changes for kdump; broke default installation
+  (#182341)
+
+-------------------------------------------------------------------
 Thu Jun  1 09:10:10 CEST 2006 - hare@suse.de
 
 - Fix script error for root on iSCSI (#178054)
