@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.311 $
+# $Revision: 1.312 $
 
 usage() {
     cat<<EOF
@@ -915,6 +915,11 @@ get_default_interface() {
     local ifname
 
     # Determine the default network interface
+    if [ -f /etc/install.inf ] ; then
+	# Get info from install.inf during installation
+	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' /etc/install.inf)
+	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' /etc/install.inf)
+    else
     for cfg in /etc/sysconfig/network/ifcfg-*; do
 	if [ $(basename $cfg) = "ifcfg-lo" ] ; then
 	    continue;
@@ -927,6 +932,7 @@ get_default_interface() {
 	    break;
 	fi
     done
+    fi
     echo $ifname/$BOOTPROTO
 }
 

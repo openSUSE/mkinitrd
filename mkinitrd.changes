@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 13 13:46:20 CEST 2006 - hare@suse.de
+
+- Get correct network parameter during installation
+  of root on iSCSI (#184393)
+
+-------------------------------------------------------------------
 Wed Jun  7 12:08:58 CEST 2006 - hare@suse.de
 
 - Revert changes for kdump; broke default installation
