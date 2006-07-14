@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 14 11:58:59 CEST 2006 - olh@suse.de
+
+- remove real-root-dev usage
+  its a writeonly variable for unused prepare_namespace()
+
+-------------------------------------------------------------------
 Tue Jun 13 13:46:20 CEST 2006 - hare@suse.de
 
 - Get correct network parameter during installation

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312 $
+# $Revision: 1.313 $
 
 usage() {
     cat<<EOF
@@ -2205,7 +2205,6 @@ mkinitrd_kernel() {
 	|  dhcpcd -R -Y -N -t 100000000 $interface
 	|  [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] || {
 	|    echo "no response from dhcp server."
-	|    echo 256 > /proc/sys/kernel/real-root-dev
 	|    die 0
 	|  }
 	|  . /var/lib/dhcpcd/dhcpcd-$interface.info
@@ -2336,7 +2335,6 @@ mkinitrd_kernel() {
 	|   if [ -z "$rootdev" ]; then
 	|	echo "no local root= kernel option given and no root" \
 	|	     "server set by the dhcp server."
-	|	echo 256 > /proc/sys/kernel/real-root-dev
 	|	die 0
 	|   fi
 	|fi
@@ -2422,9 +2420,6 @@ mkinitrd_kernel() {
 	|	minor=$(devminor $devn)
 	|    fi
 	|    if [ -n "$devn" ]; then
-	|	echo "rootfs: major=$major minor=$minor" \
-	|	    "devn=$devn"
-	|	echo $devn > /proc/sys/kernel/real-root-dev
 	|	return 0
 	|    else
 	|	return 1
@@ -2684,10 +2679,9 @@ mkinitrd_kernel() {
 	|	fix_evms_root_node /mnt \$rootdev
 	|	remove_evms_fstab \$FSTAB_ITEMS
 	|	umount /mnt
-	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
+	|	;;
 	|    *)
-	|	# hex number or major:minor pair
-	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
+	|	;;
 	|    esac
 	|fi
 	EOF
@@ -2776,8 +2770,6 @@ mkinitrd_kernel() {
 	|[ -n "$read_write" ] && opt="-o rw"
 	|[ "$rootfstype" = "nfs" ] && opt="${opt},nolock"
 	|
-	|# tell kernel root is /dev/ram0, prevents remount after initrd
-	|echo 256 > /proc/sys/kernel/real-root-dev
 	|# mount the actual root device below /root
 	|echo "Mounting root $rootdev"
 	|# check external journal
