@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.314 $
+# $Revision: 1.315 $
 
 usage() {
     cat<<EOF
@@ -1429,11 +1429,6 @@ mkinitrd_kernel() {
     echo '#!/bin/sh' > $tmp_mnt/lib/udev/mount.sh
     echo 'exit 0' >> $tmp_mnt/lib/udev/mount.sh
 
-    # udev *_id programs
-    for prog in ata_id scsi_id usb_id vol_id dasd_id edd_id path_id; do
-	cp_bin /sbin/$prog $tmp_mnt/sbin
-    done
-
     # scsi_id config file
     cp /etc/scsi_id.config $tmp_mnt/etc/scsi_id.config
 
@@ -2723,7 +2718,7 @@ mkinitrd_kernel() {
 
     cat_linuxrc <<-'EOF'
 	|if [ -z "$rootfstype" ]; then
-	|    rootfstype=$(/sbin/vol_id -t $rootdev)
+	|    rootfstype=$(/lib/udev/vol_id -t $rootdev)
 	|    [ $? -ne 0 ] && rootfstype=
 	|    [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
 	|fi

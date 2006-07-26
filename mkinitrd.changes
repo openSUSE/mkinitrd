@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Mi Jul 26 16:29:20 CEST 2006 - hare@suse.de
+Wed Jul 26 16:29:20 CEST 2006 - hare@suse.de
 
 - Add udev requirement for correct update (#189713)
 - Fixup udev rules for lilo etc. (#192725)
@@ -24,6 +24,11 @@ Tue Jun 13 13:46:20 CEST 2006 - hare@suse.de
 
 - Get correct network parameter during installation
   of root on iSCSI (#184393)
+
+-------------------------------------------------------------------
+Tue Jun 13 13:34:22 CEST 2006 - hare@suse.de
+
+- Fixup path names for udev helper binaries.
 
 -------------------------------------------------------------------
 Wed Jun  7 12:08:58 CEST 2006 - hare@suse.de
