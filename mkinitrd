@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.41 $
+# $Revision: 1.124.2.42 $
 
 #
 # Print usage and exit
@@ -2133,13 +2133,26 @@ mkinitrd_kernel() {
 
     cat_linuxrc <<-EOF
 	|case "\$rootdev" in
-	|	LABEL=*)
-	|	    rootdev=\$(/sbin/blkid -t \$rootdev)
-	|	    rootdev=\${rootdev%%:*}
-	|	    ;;
-	|	UUID=*)
-	|	    rootdev=\$(/sbin/blkid -t \$rootdev)
-	|	    rootdev=\${rootdev%%:*}
+	|	LABEL=*|UUID=*)
+	|	    id=\${rootdev##*=}
+	|	    type=\${rootdev%%=*}
+	|	    i=0
+	|	    echo -n "Waiting to identify device with \$type \"\$id\": "
+	|	    while [ \$i -lt 5 ]; do
+	|		dev=\$(/sbin/blkid -t \$rootdev)
+	|		if [ -n "\$dev" ]; then
+	|		    rootdev=\${dev%%:*}
+	|		    echo "\$rootdev"
+	|		    break
+	|		fi
+	|		sleep 1
+	|		i=\$(expr \$i + 1)
+	|		echo -n "."
+	|	    done
+	|	    if [ -z "$dev" ]; then
+	|		rootdev=
+	|		echo " failed."
+	|	    fi
 	|	    ;;
 	|esac
 	|if [ -z "\$rootdev" ]; then

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 26 15:22:46 CEST 2006 - hare@suse.de
+
+- Wait for blkid to actually return before checking
+  the disk label (#186435)
+
+-------------------------------------------------------------------
 Wed Jan 18 10:49:54 CET 2006 - hare@suse.de
 
 - Add parameter '-x' to specify the additional space
