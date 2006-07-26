@@ -1,8 +1,23 @@
 -------------------------------------------------------------------
+Mi Jul 26 16:29:20 CEST 2006 - hare@suse.de
+
+- Add udev requirement for correct update (#189713)
+- Fixup udev rules for lilo etc. (#192725)
+
+-------------------------------------------------------------------
 Fri Jul 14 11:58:59 CEST 2006 - olh@suse.de
 
 - remove real-root-dev usage
   its a writeonly variable for unused prepare_namespace()
+
+-------------------------------------------------------------------
+Tue Jun 27 15:53:46 CEST 2006 - hare@suse.de
+
+- Check for nfs last; persistent device names might
+  contain ':'.
+- Use 'module' link to get the correct module name for
+  network modules
+- Fixup detection of EVMS installations (#188511)
 
 -------------------------------------------------------------------
 Tue Jun 13 13:46:20 CEST 2006 - hare@suse.de

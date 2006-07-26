@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.313 $
+# $Revision: 1.314 $
 
 usage() {
     cat<<EOF
@@ -367,7 +367,7 @@ auto)
     done
     # Get current modes from fb
     for fb in /sys/class/graphics/fb* ; do
-	if [ -d $fb ] ; then
+	if [ -d $fb ] && [ -f $fb/virtual_size ] ; then
 	    size=$(sed -ne 's/,/x/p' $fb/virtual_size)
 	    eval splash_size_$size=1
 	fi
@@ -913,12 +913,13 @@ check_iscsi_root() {
 
 get_default_interface() {
     local ifname
+    local inffile="/etc/install.inf"
 
     # Determine the default network interface
-    if [ -f /etc/install.inf ] ; then
+    if [ -f $inffile ] ; then
 	# Get info from install.inf during installation
-	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' /etc/install.inf)
-	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' /etc/install.inf)
+	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' $inffile)
+	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' $inffile)
     else
     for cfg in /etc/sysconfig/network/ifcfg-*; do
 	if [ $(basename $cfg) = "ifcfg-lo" ] ; then
@@ -1346,6 +1347,7 @@ mkinitrd_kernel() {
 	cp /var/lib/open-iscsi/discovery.db $tmp_mnt/var/lib/open-iscsi
 	cp /var/lib/open-iscsi/node.db $tmp_mnt/var/lib/open-iscsi
 	cp_bin /bin/usleep $tmp_mnt/bin/usleep
+	cp_bin /bin/basename $tmp_mnt/bin/basename
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
@@ -1743,30 +1745,28 @@ mkinitrd_kernel() {
 	|	    ;;
 	|	LABEL=*)
 	|	    label=\${rootdev#LABEL=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/01-label.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/01-label.rules
+	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_LABEL_SAFE}==\"\$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-label.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	UUID=*)
 	|	    uuid=\${rootdev#UUID=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/02-uuid.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
+	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_LABEL_SAFE}==\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-uuid.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x0\$rootdev >> 8))
 	|	    min=\$((0x0\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x\$rootdev >> 8))
 	|	    min=\$((0x\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	0x[0-9a-fA-F][0-9a-fA-F]*)
 	|	    maj=\$((\$rootdev >> 8))
 	|	    min=\$((\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	*:*)
 	|	    rootfstype="nfs"
@@ -2967,12 +2967,6 @@ fi
 
 realrootdev="$rootdev"
 case "$rootdev" in
-    /*:*)
-	;;
-    *:*)
-	rootdev=
-	rootfstype=nfs
-	;;
     /dev/md*)
 	rootcpio=`echo $root_dir/ | cpio --quiet -o -H newc`
 	rootmajor=0x${rootcpio:62:8}
@@ -3013,12 +3007,17 @@ case "$rootdev" in
 	if [ -z "$realrootdev" ] ; then
 	    error 1 "Could not expand $rootdev to real device"
 	fi
+	realrootdev=$(/usr/bin/readlink -m $realrootdev)
 	;;
     /dev/disk/*)
 	realrootdev=$(/usr/bin/readlink -m $rootdev)
 	# Check for iSCSI
 	sid=$(check_iscsi_root $realrootdev)
 	iscsi_root="$sid"
+	;;
+    *:*)
+	rootdev=
+	rootfstype=nfs
 	;;
 esac
 
@@ -3047,8 +3046,15 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	&& root_lvm=1
     [ "$(block_driver "$root_dir/${realrootdev#/}")" = device-mapper ] \
     	&& root_dm=1
-    [ "${realrootdev:0:10}" = /dev/evms/ ] \
-    	&& root_evms=1
+    if [ "$root_dm" ] ; then
+	major=$(devmajor $rootdevn)
+	minor=$(devminor $rootdevn)
+	region=$(dmsetup info -c --noheadings -o name -j $major -m $minor | tr '|' '/')
+	if echo "q:r,r=$region" | evms -s > /dev/null; then
+	    root_evms=1
+	    realrootdev=/dev/evms/$region
+	fi
+    fi
 fi
 
 ###################################################################
@@ -3152,6 +3158,8 @@ if [ -n "$interface" ] ; then
     if [ -d /sys/class/net/$interface/device ] ; then
 	if [ -f /sys/class/net/$interface/device/modalias ] ; then
 	    read drvlink  < /sys/class/net/$interface/device/modalias
+	elif [ -f /sys/class/net/$interface/device/driver/module ] ; then
+	    drvlink=$(cd /sys/class/net/$interface/device/driver; readlink module)
 	else
 	    drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
 	fi
