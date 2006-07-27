@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.315 $
+# $Revision: 1.316 $
 
 usage() {
     cat<<EOF
@@ -1745,7 +1745,7 @@ mkinitrd_kernel() {
 	|	    ;;
 	|	UUID=*)
 	|	    uuid=\${rootdev#UUID=}
-	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_LABEL_SAFE}==\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-uuid.rules
+	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_UUID}==\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-uuid.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
