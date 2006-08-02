@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.1 $
+# $Revision: 1.312.2.2 $
 
 usage() {
     cat<<EOF
@@ -1495,27 +1495,32 @@ mkinitrd_kernel() {
 	fi
     fi
 
-    if [ -n "$md_list" ] ; then
+    if [ -n "$root_md" ] ; then
 	need_mdadm=1
-	echo "DEVICE partitions" > $tmp_mnt/etc/mdadm.conf
-	for md in $md_list ; do
-	    mdconf=$(eval echo \$md_conf_$md)
-	    md_mod=${mdconf#*level=}
-	    md_mod=${md_mod%% *}
-	    for mod in $md_mod_list ; do
-		if [ "$mod" == $"md_mod" ] ; then
-		    md_mod=
+	if [ -f /etc/mdadm.conf ] ; then
+	    cat /etc/mdadm.conf > $tmp_mnt/etc/mdadm.conf
+	    md_mod_list="mdconf"
+	else
+	    echo "DEVICE partitions" > $tmp_mnt/etc/mdadm.conf
+	    for md in $md_list ; do
+		mdconf=$(eval echo \$md_conf_$md)
+		md_mod=${mdconf#*level=}
+		md_mod=${md_mod%% *}
+		for mod in $md_mod_list ; do
+		    if [ "$mod" == $"md_mod" ] ; then
+			md_mod=
+		    fi
+		done
+		if [ "$md_mod" ] ; then
+		    if [ "$md_mod_list" ] ; then
+			md_mod_list="$md_mod $md_mod_list"
+		    else
+			md_mod_list="$md_mod"
+		    fi
 		fi
+		echo $mdconf >> $tmp_mnt/etc/mdadm.conf
 	    done
-	    if [ "$md_mod" ] ; then
-		if [ "$md_mod_list" ] ; then
-		    md_mod_list="$md_mod $md_mod_list"
-		else
-		    md_mod_list="$md_mod"
-		fi
-	    fi
-	    echo $mdconf >> $tmp_mnt/etc/mdadm.conf
-	done
+	fi
 	features=(${features[@]} md\($md_mod_list\))
     fi
 
@@ -3037,9 +3042,10 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	fi
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md
+	    md_list=
 	    pv_list=$(vgs --noheadings --options devices $vg_root | sed -n "s@  \(/dev/.*\)([0-9]*)@\1@p")
 	    for dev in $pv_list ; do
-		mdconf=$(mdadm --detail --brief $dev)
+		mdconf=$(mdadm -Db $dev)
 		md_dev=${dev##/dev/}
 		md_list="$md_dev $md_list"
 		eval md_conf_${md_dev}=\"$mdconf\"
@@ -3097,13 +3103,27 @@ if [ -n "$root_dm" ] ; then
     domu_modules="$domu_modules dm-mod dm-snapshot"
 fi
 
-# add all detected personality drivers
-for md in $md_list ; do
-    mdconf=$(eval echo \$md_conf_$md)
-    md_mod=${mdconf#*level=}
-    md_mod=${md_mod%% *}
-    add_module $md_mod
-done
+if [ -n "$md_list" ] ; then
+    if [ -f $root_dir/etc/mdadm.conf ] ; then
+        # add all listed personality drivers
+	for i in `
+    sed -n '/^ARRAY[[:blank:]]/s@\(^.*[[:blank:]]level=\)\([^[:blank:]]\+\)\(.*\)@\2@p' $root_dir/etc/mdadm.conf
+    `
+	  do
+	  add_module $i
+	done
+	md_list=
+	root_md=1
+    else 
+        # add all detected personality drivers
+	for md in $md_list ; do
+	    mdconf=$(eval echo \$md_conf_$md)
+	    md_mod=${mdconf#*level=}
+	    md_mod=${md_mod%% *}
+	    add_module $md_mod
+	done
+    fi
+fi
 
 if [ -n "$root_dm" ] ; then
     # Add all required dm modules
