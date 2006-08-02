@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.316 $
+# $Revision: 1.317 $
 
 usage() {
     cat<<EOF
@@ -1814,10 +1814,8 @@ mkinitrd_kernel() {
     # Start udev
     cat_linuxrc <<-EOF
 	|
-	|echo "Starting udevd"
+	|echo "Creating device nodes with udev"
 	|/sbin/udevd --daemon
-	|
-	|echo "Creating devices"
 	|/sbin/udevtrigger
 	|/sbin/udevsettle --timeout=\$udev_timeout
 	|

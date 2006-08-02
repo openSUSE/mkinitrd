@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug  2 08:25:36 CEST 2006 - olh@suse.de
+
+- remove redundant output in /init script
+
+-------------------------------------------------------------------
 Thu Jul 27 09:09:02 CEST 2006 - hare@suse.de
 
 - Fix cut&paste error in UUID= rules.
