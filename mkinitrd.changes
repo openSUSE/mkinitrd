@@ -1,25 +1,11 @@
 -------------------------------------------------------------------
-Wed Aug  2 08:25:36 CEST 2006 - olh@suse.de
+Wed Aug  2 15:47:58 CEST 2006 - hare@suse.de
 
-- remove redundant output in /init script
-
--------------------------------------------------------------------
-Thu Jul 27 09:09:02 CEST 2006 - hare@suse.de
-
-- Fix cut&paste error in UUID= rules.
-
--------------------------------------------------------------------
-Wed Jul 26 16:29:20 CEST 2006 - hare@suse.de
-
-- Add udev requirement for correct update (#189713)
-- Fixup udev rules for lilo etc. (#192725)
-
--------------------------------------------------------------------
-Fri Jul 14 11:58:59 CEST 2006 - olh@suse.de
-
-- remove real-root-dev usage
-  its a writeonly variable for unused prepare_namespace()
-
+- Fixup boot from md. Do not rely on the on-disk
+  mdadm.conf as the information might be errorneous.
+  Better create an internal one based upon the current
+  settings (#178199)
+- Fixup booting from lvm on top of lvm (#192039)
 -------------------------------------------------------------------
 Tue Jun 27 15:53:46 CEST 2006 - hare@suse.de
 
@@ -34,11 +20,6 @@ Tue Jun 13 13:46:20 CEST 2006 - hare@suse.de
 
 - Get correct network parameter during installation
   of root on iSCSI (#184393)
-
--------------------------------------------------------------------
-Tue Jun 13 13:34:22 CEST 2006 - hare@suse.de
-
-- Fixup path names for udev helper binaries.
 
 -------------------------------------------------------------------
 Wed Jun  7 12:08:58 CEST 2006 - hare@suse.de

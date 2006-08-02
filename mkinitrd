@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.317 $
+# $Revision: 1.312.2.1 $
 
 usage() {
     cat<<EOF
@@ -913,13 +913,12 @@ check_iscsi_root() {
 
 get_default_interface() {
     local ifname
-    local inffile="/etc/install.inf"
 
     # Determine the default network interface
-    if [ -f $inffile ] ; then
+    if [ -f /etc/install.inf ] ; then
 	# Get info from install.inf during installation
-	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' $inffile)
-	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' $inffile)
+	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' /etc/install.inf)
+	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' /etc/install.inf)
     else
     for cfg in /etc/sysconfig/network/ifcfg-*; do
 	if [ $(basename $cfg) = "ifcfg-lo" ] ; then
@@ -1216,7 +1215,6 @@ mkinitrd_kernel() {
     local kernel_version
     local need_raidstart
     local need_mdadm
-    local need_mdconf
     local -a features
     local fs_modules drv_modules uld_modules xen_modules
 
@@ -1317,6 +1315,7 @@ mkinitrd_kernel() {
 		    add_module raid1
 		    add_module raid5
 		    add_module linear
+		    need_mdadm=1
 		    ;;
 		*)
 		    error 6 "invalid feature $f"
@@ -1429,6 +1428,11 @@ mkinitrd_kernel() {
     echo '#!/bin/sh' > $tmp_mnt/lib/udev/mount.sh
     echo 'exit 0' >> $tmp_mnt/lib/udev/mount.sh
 
+    # udev *_id programs
+    for prog in ata_id scsi_id usb_id vol_id dasd_id edd_id path_id; do
+	cp_bin /sbin/$prog $tmp_mnt/sbin
+    done
+
     # scsi_id config file
     cp /etc/scsi_id.config $tmp_mnt/etc/scsi_id.config
 
@@ -1491,12 +1495,33 @@ mkinitrd_kernel() {
 	fi
     fi
 
-    if has_any_module raid0 raid1 raid5 linear multipath; then
-	cp_bin /sbin/mdadm $tmp_mnt/sbin
+    if [ -n "$md_list" ] ; then
 	need_mdadm=1
-	if [ -f /etc/mdadm.conf ] ; then
-	    cat /etc/mdadm.conf > $tmp_mnt/etc/mdadm.conf
-	fi
+	echo "DEVICE partitions" > $tmp_mnt/etc/mdadm.conf
+	for md in $md_list ; do
+	    mdconf=$(eval echo \$md_conf_$md)
+	    md_mod=${mdconf#*level=}
+	    md_mod=${md_mod%% *}
+	    for mod in $md_mod_list ; do
+		if [ "$mod" == $"md_mod" ] ; then
+		    md_mod=
+		fi
+	    done
+	    if [ "$md_mod" ] ; then
+		if [ "$md_mod_list" ] ; then
+		    md_mod_list="$md_mod $md_mod_list"
+		else
+		    md_mod_list="$md_mod"
+		fi
+	    fi
+	    echo $mdconf >> $tmp_mnt/etc/mdadm.conf
+	done
+	features=(${features[@]} md\($md_mod_list\))
+    fi
+
+    if [ -n "$need_mdadm" ] ; then
+	features=(${features[@]} mdadm)
+	cp_bin /sbin/mdadm $tmp_mnt/sbin
     fi
 
     if [ -n "$use_dhcp" ] ; then
@@ -1740,28 +1765,30 @@ mkinitrd_kernel() {
 	|	    ;;
 	|	LABEL=*)
 	|	    label=\${rootdev#LABEL=}
-	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_LABEL_SAFE}==\"\$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-label.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/01-label.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/01-label.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	UUID=*)
 	|	    uuid=\${rootdev#UUID=}
-	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_UUID}==\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-uuid.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/02-uuid.rules
+	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x0\$rootdev >> 8))
 	|	    min=\$((0x0\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x\$rootdev >> 8))
 	|	    min=\$((0x\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	0x[0-9a-fA-F][0-9a-fA-F]*)
 	|	    maj=\$((\$rootdev >> 8))
 	|	    min=\$((\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
+	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	*:*)
 	|	    rootfstype="nfs"
@@ -1814,18 +1841,12 @@ mkinitrd_kernel() {
     # Start udev
     cat_linuxrc <<-EOF
 	|
-	|echo "Creating device nodes with udev"
+	|echo "Starting udevd"
 	|/sbin/udevd --daemon
+	|
+	|echo "Creating devices"
 	|/sbin/udevtrigger
 	|/sbin/udevsettle --timeout=\$udev_timeout
-	|
-	|# workaround chicken/egg bug in mdadm
-	|# they do the ioctl on the not yet existing device node...
-	|i=0
-	|while [ \$((i)) -lt 32 ] ; do
-	|  mknod -m 660 /dev/md\$i b 9 \$i
-	|  i=\$((i + 1))
-	|done
 	|
 	EOF
 
@@ -2198,6 +2219,7 @@ mkinitrd_kernel() {
 	|  dhcpcd -R -Y -N -t 100000000 $interface
 	|  [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] || {
 	|    echo "no response from dhcp server."
+	|    echo 256 > /proc/sys/kernel/real-root-dev
 	|    die 0
 	|  }
 	|  . /var/lib/dhcpcd/dhcpcd-$interface.info
@@ -2328,6 +2350,7 @@ mkinitrd_kernel() {
 	|   if [ -z "$rootdev" ]; then
 	|	echo "no local root= kernel option given and no root" \
 	|	     "server set by the dhcp server."
+	|	echo 256 > /proc/sys/kernel/real-root-dev
 	|	die 0
 	|   fi
 	|fi
@@ -2413,6 +2436,9 @@ mkinitrd_kernel() {
 	|	minor=$(devminor $devn)
 	|    fi
 	|    if [ -n "$devn" ]; then
+	|	echo "rootfs: major=$major minor=$minor" \
+	|	    "devn=$devn"
+	|	echo $devn > /proc/sys/kernel/real-root-dev
 	|	return 0
 	|    else
 	|	return 1
@@ -2494,28 +2520,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$need_mdconf" ]; then
-	features=(${features[@]} mdconf)
-	cat_linuxrc <<-EOF
-	|echo -n "Assembling md raid: "
-	|for tab in /dev/shm/mdtab-* ; do
-	|    if [ -f "\$tab" ] ; then
-	|	if [ ! -f /etc/mdadm.conf ] ; then
-	|	    echo 'DEVICE /dev/hd* /dev/sd* /dev/dasd*' > /etc/mdadm.conf
-	|	    echo 'DEVICE /dev/disk/by-name/*' >> /etc/mdadm.conf
-	|	fi
-	|	cat $tab >> /etc/mdadm.conf
-	|	echo -n '.'
-	|	rm $tab
-	|    fi
-	|done
-	|echo 'ok.'
-	EOF
-    fi
-
     if [ -n "$need_mdadm" ]; then
-	features=(${features[@]} mdadm)
-
 	cat_linuxrc <<-EOF
 	|
 	|if [ -f /etc/mdadm.conf ] ; then
@@ -2531,9 +2536,6 @@ mkinitrd_kernel() {
 	|    md_dev="/dev/md\$md_minor"
 	|fi
 	|
-	|if [ -z "\$md_dev" -a -n "$md_dev" ] ; then
-	|    md_dev="$md_dev"
-	|fi
 	|if [ -z "\$md_uuid" -a -n "$md_uuid" ] ; then
 	|    mdarg="\$mdarg --uuid=$md_uuid"
 	|elif [ -z "\$md_minor" -a -n "$md_minor" ] ; then
@@ -2542,6 +2544,7 @@ mkinitrd_kernel() {
 	|
 	|case \$resumedev in
 	|    /dev/md*)
+	|        echo 1 > /sys/module/md_mod/parameters/start_ro
 	|        resumeminor="\${resumedev#/dev/md}"
 	|        mdadm -Ac partitions -m \$resumeminor --auto=md \$resumedev
 	|        ;;
@@ -2549,6 +2552,31 @@ mkinitrd_kernel() {
 	|
 	|/sbin/mdadm \$mdarg --auto=md \$md_dev
 	|
+	EOF
+    fi
+
+    cat_linuxrc <<-'EOF'
+	|# Wait for udev to settle
+	|/sbin/udevsettle --timeout=$udev_timeout
+	|# Check for a resume device
+	|udev_discover_resume
+	EOF
+
+    if [ -n "$need_mdadm" ]; then
+	cat_linuxrc <<-EOF
+	|if [ -n "\$resume_minor" ] ; then
+	|    # Stop all arrays
+	|    /sbin/mdadm --stop
+	|    # Switch md back to read-write mode
+	|    if [ -f /sys/module/md_mod/parameters/start_ro ]; then
+	|        # maybe should switch all arrays to rw/ but not really necessary
+	|        echo 0 > /sys/module/md_mod/parameters/start_ro
+	|    fi
+	|
+	|    # And restart them again
+	|    /sbin/mdadm \$mdarg --auto=md \$md_dev
+	|    /sbin/udevsettle --timeout=\$udev_timeout
+	|fi
 	EOF
     fi
 
@@ -2672,35 +2700,11 @@ mkinitrd_kernel() {
 	|	fix_evms_root_node /mnt \$rootdev
 	|	remove_evms_fstab \$FSTAB_ITEMS
 	|	umount /mnt
-	|	;;
+	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
 	|    *)
-	|	;;
+	|	# hex number or major:minor pair
+	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
 	|    esac
-	|fi
-	EOF
-    fi
-
-    cat_linuxrc <<-'EOF'
-	|# Wait for udev to settle
-	|/sbin/udevsettle --timeout=$udev_timeout
-	|# Check for a resume device
-	|udev_discover_resume
-	EOF
-
-    if [ -n "$need_mdadm" ]; then
-	cat_linuxrc <<-EOF
-	|if [ -n "\$resume_mode" ] ; then
-	|    # Stop all arrays
-	|    /sbin/mdadm --stop --scan \$mdconf
-	|    # Switch md back to read-write mode
-	|    if [ -f /sys/module/md_mod/parameters/start_ro ]; then
-	|        # maybe should switch all arrays to rw/ but not really necessary
-	|        echo 0 > /sys/module/md_mod/parameters/start_ro
-	|    fi
-	|
-	|    # And restart them again
-	|    /sbin/mdadm --assemble --scan \$mdconf
-	|    /sbin/udevsettle --timeout=\$udev_timeout
 	|fi
 	EOF
     fi
@@ -2716,7 +2720,7 @@ mkinitrd_kernel() {
 
     cat_linuxrc <<-'EOF'
 	|if [ -z "$rootfstype" ]; then
-	|    rootfstype=$(/lib/udev/vol_id -t $rootdev)
+	|    rootfstype=$(/sbin/vol_id -t $rootdev)
 	|    [ $? -ne 0 ] && rootfstype=
 	|    [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
 	|fi
@@ -2763,6 +2767,8 @@ mkinitrd_kernel() {
 	|[ -n "$read_write" ] && opt="-o rw"
 	|[ "$rootfstype" = "nfs" ] && opt="${opt},nolock"
 	|
+	|# tell kernel root is /dev/ram0, prevents remount after initrd
+	|echo 256 > /proc/sys/kernel/real-root-dev
 	|# mount the actual root device below /root
 	|echo "Mounting root $rootdev"
 	|# check external journal
@@ -2960,33 +2966,6 @@ fi
 
 realrootdev="$rootdev"
 case "$rootdev" in
-    /dev/md*)
-	rootcpio=`echo $root_dir/ | cpio --quiet -o -H newc`
-	rootmajor=0x${rootcpio:62:8}
-	rootminor=0x${rootcpio:70:8}
-	mm=
-	for i in /sys/block/*/dev /sys/block/*/*/dev
-	do
-	  if test -f $i
-	  then
-	    read mm < $i
-	    if test "$mm" = "$((rootmajor)):$((rootminor))"
-	    then
-	      /bin/mknod -m600 ${work_dir}/rootdev b $((rootmajor)) $((rootminor))
-	      mm=${i%/dev}
-	      mm=${mm##*/}
-	      break
-	    fi
-	  else
-	    break
-	  fi
-	done
-	# get md UUID
-	md_uuid=$(mdadm -Db ${work_dir}/rootdev | xargs -n1 echo | awk -F = '/^UUID/ { print $2 }')
-	md_minor=${mm#md}
-	md_dev=$rootdev
-	unset mm
-	;;
     /dev/sd*)
 	# Check for iSCSI
 	sid=$(check_iscsi_root $rootdev)
@@ -3032,6 +3011,7 @@ root_dm=
 root_lvm2=
 root_evms=
 root_mpath=
+root_md=
 if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
     rootdevn=$(devnumber $root_dir/${realrootdev#/})
 
@@ -3039,14 +3019,45 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	&& root_lvm=1
     [ "$(block_driver "$root_dir/${realrootdev#/}")" = device-mapper ] \
     	&& root_dm=1
+    [ "$(block_driver "$root_dir/${realrootdev#/}")" = md ] \
+    	&& root_md=1
     if [ "$root_dm" ] ; then
 	major=$(devmajor $rootdevn)
 	minor=$(devminor $rootdevn)
+	# Check whether we are using EVMS
 	region=$(dmsetup info -c --noheadings -o name -j $major -m $minor | tr '|' '/')
-	if echo "q:r,r=$region" | evms -s > /dev/null; then
+	if [ -b /dev/evms/$region ] ; then
 	    root_evms=1
 	    realrootdev=/dev/evms/$region
 	fi
+        # Check whether we are using LVM2
+	vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor | sed -n "s/ \(.*\) *$major *$minor/\1/p")
+	if [ "$vg_root" ] ; then
+	    root_lvm2=1
+	fi
+	if [ "$root_lvm2" ] ; then
+	    # Check for LVM2 on top of md
+	    pv_list=$(vgs --noheadings --options devices $vg_root | sed -n "s@  \(/dev/.*\)([0-9]*)@\1@p")
+	    for dev in $pv_list ; do
+		mdconf=$(mdadm --detail --brief $dev)
+		md_dev=${dev##/dev/}
+		md_list="$md_dev $md_list"
+		eval md_conf_${md_dev}=\"$mdconf\"
+	    done
+	    unset md_dev
+	    unset mdconf
+	fi
+    fi
+    if [ "$root_md" ] ; then
+	minor=$(devminor $rootdevn)
+	# get md configuration
+	mdconf=$(mdadm -Db $rootdev | sed -n "s@/dev/md[0-9]*@/dev/md$minor@p")
+	md_dev=${rootdev##/dev/}
+	md_list="$md_dev"
+	eval md_conf_${md_dev}=\"$mdconf\"
+	unset minor
+	unset md_dev
+	unset mdconf
     fi
 fi
 
@@ -3085,26 +3096,14 @@ if [ -n "$root_dm" ] ; then
     add_module dm-snapshot
     domu_modules="$domu_modules dm-mod dm-snapshot"
 fi
-# check if there is or was more than on raid type active
-if [ -f /proc/mdstat -a -z "$root_dir" ] ; then
-    loaded_personalities=`cat /proc/mdstat | sed 's@Personalities : @@;q'`
-    if [ -n "$loaded_personalities" ] ; then
-	for i in `cat /proc/mdstat | \
-	sed -n '/active[[:blank:]]/s@\(^.*[[:blank:]]\)\(raid[0-9]\+\)\([[:blank:]]\)\(.*\)@\2@p'`
-	do
-	    add_module $i
-	done
-    fi
-fi
-if [ -f $root_dir/etc/mdadm.conf ] ; then
-    # add all listed personality drivers
-    for i in `
-    sed -n '/^ARRAY[[:blank:]]/s@\(^.*[[:blank:]]level=\)\([^[:blank:]]\+\)\(.*\)@\2@p' $root_dir/etc/mdadm.conf
-    `
-    do
-	add_module $i
-    done
-fi
+
+# add all detected personality drivers
+for md in $md_list ; do
+    mdconf=$(eval echo \$md_conf_$md)
+    md_mod=${mdconf#*level=}
+    md_mod=${md_mod%% *}
+    add_module $md_mod
+done
 
 if [ -n "$root_dm" ] ; then
     # Add all required dm modules
@@ -3120,15 +3119,6 @@ if [ -n "$root_dm" ] ; then
 	    add_module dm-emc
 	fi
     done
-    # Check whether we are using LVM2
-    rootmajor=$(devmajor $rootdevn)
-    rootminor=$(devminor $rootdevn)
-    vg_line=$(lvdisplay -c 2> /dev/null | grep ":$rootmajor:$rootminor")
-    if [ "$vg_line" ] ; then
-	root_lvm2=1
-	lv_root=$(echo $vg_line | cut -f 1 -d :)
-	vg_root=$(echo $vg_line | cut -f 2 -d :)
-    fi
 fi
 
 if [ -n "$iscsi_root" ] ; then
