@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.2 $
+# $Revision: 1.312.2.3 $
 
 usage() {
     cat<<EOF
@@ -3030,15 +3030,18 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	major=$(devmajor $rootdevn)
 	minor=$(devminor $rootdevn)
 	# Check whether we are using EVMS
-	region=$(dmsetup info -c --noheadings -o name -j $major -m $minor | tr '|' '/')
-	if [ -b /dev/evms/$region ] ; then
+	region=$(echo "q:r" | evms -s | grep -B 2 "Minor: $minor" | sed -n 's@Region Name: \(.\)@\1@p')
+	if [ "$region" ] ; then
+	    volume=$(echo "q:v,r=$region" | evms -s | sed -n 's@Volume Name: \(.*\)@\1@p')
 	    root_evms=1
-	    realrootdev=/dev/evms/$region
+	    realrootdev=$volume
 	fi
         # Check whether we are using LVM2
-	vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor | sed -n "s/ \(.*\) *$major *$minor/\1/p")
-	if [ "$vg_root" ] ; then
-	    root_lvm2=1
+	if [ -z "$root_evms" ] ; then
+	    vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor | sed -n "s/ \(.*\) *$major *$minor/\1/p")
+	    if [ "$vg_root" ] ; then
+		root_lvm2=1
+	    fi
 	fi
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md
@@ -3104,24 +3107,15 @@ if [ -n "$root_dm" ] ; then
 fi
 
 if [ -n "$md_list" ] ; then
+    # load all md modules
+    add_module raid0
+    add_module raid1
+    add_module raid5
+    add_module linear
     if [ -f $root_dir/etc/mdadm.conf ] ; then
-        # add all listed personality drivers
-	for i in `
-    sed -n '/^ARRAY[[:blank:]]/s@\(^.*[[:blank:]]level=\)\([^[:blank:]]\+\)\(.*\)@\2@p' $root_dir/etc/mdadm.conf
-    `
-	  do
-	  add_module $i
-	done
+	# make sure we're overriding the default here
 	md_list=
 	root_md=1
-    else 
-        # add all detected personality drivers
-	for md in $md_list ; do
-	    mdconf=$(eval echo \$md_conf_$md)
-	    md_mod=${mdconf#*level=}
-	    md_mod=${md_mod%% *}
-	    add_module $md_mod
-	done
     fi
 fi
 
