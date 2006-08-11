@@ -23,6 +23,11 @@ Tue Jun 27 15:53:46 CEST 2006 - hare@suse.de
 - Fixup detection of EVMS installations (#188511)
 
 -------------------------------------------------------------------
+Wed Jul 26 16:29:20 CEST 2006 - hare@suse.de
+
+- Fixup udev rules for lilo etc. (#192725)
+
+-------------------------------------------------------------------
 Tue Jun 13 13:46:20 CEST 2006 - hare@suse.de
 
 - Get correct network parameter during installation

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.3 $
+# $Revision: 1.312.2.4 $
 
 usage() {
     cat<<EOF
@@ -1770,30 +1770,28 @@ mkinitrd_kernel() {
 	|	    ;;
 	|	LABEL=*)
 	|	    label=\${rootdev#LABEL=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/01-label.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -l %N\", RESULT=\"\$label\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/01-label.rules
+	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_LABEL_SAFE}==\"\$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-label.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	UUID=*)
 	|	    uuid=\${rootdev#UUID=}
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{start}=\"*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/02-uuid.rules
-	|	    echo "KERNEL=\"dm-[0-9]*\", PROGRAM=\"/sbin/vol_id -u %N\", RESULT=\"\$uuid\", SYMLINK+=\"root\"" >> /etc/udev/rules.d/02-uuid.rules
+	|	    echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_UUID}==\"\$uuid\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-uuid.rules
 	|	    rootdev=/dev/root
 	|	    ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x0\$rootdev >> 8))
 	|	    min=\$((0x0\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
 	|	    maj=\$((0x\$rootdev >> 8))
 	|	    min=\$((0x\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	0x[0-9a-fA-F][0-9a-fA-F]*)
 	|	    maj=\$((\$rootdev >> 8))
 	|	    min=\$((\$rootdev & 0xff))
-	|	    echo "SUBSYSTEM=\"block\", SYSFS{dev}=\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-lilo.rules
+	|	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"\$maj:\$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
 	|	    rootdev=/dev/root ;;
 	|	*:*)
 	|	    rootfstype="nfs"
