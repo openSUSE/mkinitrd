@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 28 15:00:37 CEST 2006 - hare@suse.de
+
+- Fix LVM2 detection (208417)
+
+-------------------------------------------------------------------
 Tue Aug  8 14:59:48 CEST 2006 - hare@suse.de
 
 - Always load all md modules if md is activated

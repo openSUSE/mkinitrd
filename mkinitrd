@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.4 $
+# $Revision: 1.312.2.5 $
 
 usage() {
     cat<<EOF
@@ -3028,43 +3028,57 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	major=$(devmajor $rootdevn)
 	minor=$(devminor $rootdevn)
 	# Check whether we are using EVMS
-	region=$(echo "q:r" | evms -s | grep -B 2 "Minor: $minor" | sed -n 's@Region Name: \(.\)@\1@p')
-	if [ "$region" ] ; then
-	    volume=$(echo "q:v,r=$region" | evms -s | sed -n 's@Volume Name: \(.*\)@\1@p')
-	    root_evms=1
-	    realrootdev=$volume
+	if [ -x /sbin/evms ] ; then
+	    region=$(echo "q:r" | evms -s | grep -B 2 "Minor: $minor" | sed -n 's@Region Name: \(.\)@\1@p')
+	    if [ "$region" ] ; then
+		volume=$(echo "q:v,r=$region" | evms -s | sed -n 's@Volume Name: \(.*\)@\1@p')
+		if [ -f "$volume" ] ; then
+		    root_evms=1
+		    realrootdev=$volume
+		fi
+	    fi
+	else
+	    root_evms=
 	fi
         # Check whether we are using LVM2
-	if [ -z "$root_evms" ] ; then
-	    vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor | sed -n "s/ \(.*\) *$major *$minor/\1/p")
+	if [ -z "$root_evms" ] && [ -x /sbin/lvs ] ; then
+	    vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor 2> /dev/null | sed -n "s/ \(.*\) *$major *$minor/\1/p")
 	    if [ "$vg_root" ] ; then
 		root_lvm2=1
 	    fi
+	else
+	    root_lvm2=
 	fi
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md
 	    md_list=
-	    pv_list=$(vgs --noheadings --options devices $vg_root | sed -n "s@  \(/dev/.*\)([0-9]*)@\1@p")
+	    pv_list=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed -n "s@  \(/dev/.*\)([0-9]*)@\1@p")
 	    for dev in $pv_list ; do
 		mdconf=$(mdadm -Db $dev)
-		md_dev=${dev##/dev/}
-		md_list="$md_dev $md_list"
-		eval md_conf_${md_dev}=\"$mdconf\"
+		if [ -n "$mdconf" ] ; then
+		    md_dev=${dev##/dev/}
+		    md_list="$md_dev $md_list"
+		    eval md_conf_${md_dev}=\"$mdconf\"
+		fi
 	    done
 	    unset md_dev
 	    unset mdconf
 	fi
     fi
-    if [ "$root_md" ] ; then
+    if [ "$root_md" ] && [ -x /sbin/mdadm ] ; then
 	minor=$(devminor $rootdevn)
 	# get md configuration
-	mdconf=$(mdadm -Db $rootdev | sed -n "s@/dev/md[0-9]*@/dev/md$minor@p")
-	md_dev=${rootdev##/dev/}
-	md_list="$md_dev"
-	eval md_conf_${md_dev}=\"$mdconf\"
+	mdconf=$(mdadm -Db $rootdev 2> /dev/null | sed -n "s@/dev/md[0-9]*@/dev/md$minor@p")
+	if [ -n "$mdconf" ] ; then
+	    md_dev=${rootdev##/dev/}
+	    md_list="$md_dev"
+	    eval md_conf_${md_dev}=\"$mdconf\"
+	fi
 	unset minor
 	unset md_dev
 	unset mdconf
+    else
+	root_md=
     fi
 fi
 
