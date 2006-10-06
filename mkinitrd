@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.5 $
+# $Revision: 1.312.2.6 $
 
 usage() {
     cat<<EOF
@@ -3054,7 +3054,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	    md_list=
 	    pv_list=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed -n "s@  \(/dev/.*\)([0-9]*)@\1@p")
 	    for dev in $pv_list ; do
-		mdconf=$(mdadm -Db $dev)
+		mdconf=$(mdadm -Db $dev 2> /dev/null)
 		if [ -n "$mdconf" ] ; then
 		    md_dev=${dev##/dev/}
 		    md_list="$md_dev $md_list"
