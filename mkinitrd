@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.7 $
+# $Revision: 1.312.2.8 $
 
 usage() {
     cat<<EOF
@@ -863,12 +863,12 @@ get_ip_config() {
 	shift
 
 	ipaddr=${1%%/*}
+	prefix=${1##*/}
 	shift 
 	if [ "$1" == "peer" ] ; then
 	    shift
 	    peeraddr=${1%%/*}
 	fi
-	prefix=${1##*/}
 	netmask=$(calc_netmask $prefix)
 	bcast=$3
     fi
