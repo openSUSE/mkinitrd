@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.12 $
+# $Revision: 1.312.2.13 $
 
 usage() {
     cat<<EOF
@@ -1118,7 +1118,7 @@ s390_dasd_sysfs() {
 
     if [ "$s390_enable_dasd" ]; then
 	# Root device is on a dasd device, enable all dasd disks
-	for dir in /sys/block/dasd*; do
+	for dir in /sys/block/dasd[a-z][[:digit:]] /sys/block/dasd[a-z][a-z][[:digit:]] /sys/block/dasd[a-z][a-z][[:digit:]] ; do
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
 		pushd $dir > /dev/null
 		cd $(readlink device)
