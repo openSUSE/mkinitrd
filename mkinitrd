@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.10 $
+# $Revision: 1.312.2.11 $
 
 usage() {
     cat<<EOF
@@ -1458,6 +1458,9 @@ mkinitrd_kernel() {
 	cp_bin /sbin/dmsetup $tmp_mnt/sbin
 	cp_bin /sbin/mpath_id $tmp_mnt/sbin
 	cp_bin /sbin/kpartx_id $tmp_mnt/sbin
+	for pp in /sbin/mpath_prio_* ; do
+	    cp_bin $pp $tmp_mnt/sbin
+	done
 	if [ -f /etc/multipath.conf ] ; then
 	    cp -a /etc/multipath.conf $tmp_mnt/etc
 	fi
@@ -2532,7 +2535,8 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-EOF
 	|
 	|if [ -f /etc/mdadm.conf ] ; then
-	|    mdarg="-Ac /etc/mdadm.conf --scan"
+	|    mdarg="-Ac /etc/mdadm.conf"
+	|    [ -z "\$md_dev" ] && md_dev="--scan"
 	|else
 	|    mdarg="-Ac partitions"
 	|fi
@@ -2558,8 +2562,9 @@ mkinitrd_kernel() {
 	|        ;;
 	|esac
 	|
-	|/sbin/mdadm \$mdarg --auto=md \$md_dev
-	|
+	|if [ "\$md_dev" ] ; then
+	|    /sbin/mdadm \$mdarg --auto=md \$md_dev
+	|fi
 	EOF
     fi
 

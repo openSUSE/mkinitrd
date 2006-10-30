@@ -5,6 +5,8 @@ Mon Oct 30 09:17:13 CET 2006 - hare@suse.de
 - Fixup netmask generation for static IP setup.
 - Enable md detection when booting from lilo (#211089)
 - Fixup zfcp device ordering (#213641)
+- Include all multipath prio callout programs (#211863)
+- Check for arguments when calling mdadm (#211081)
 
 -------------------------------------------------------------------
 Thu Sep 28 15:00:37 CEST 2006 - hare@suse.de
