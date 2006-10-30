@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.11 $
+# $Revision: 1.312.2.12 $
 
 usage() {
     cat<<EOF
@@ -707,10 +707,19 @@ check_ide_modules() {
 
     for pci_id in $ide_slots; do
 	set -- $(/sbin/lspci -nm -s $pci_id)
+	if [ -z "$4" ] ; then
+	    continue;
+	fi
 	eval id=$4
 	pci_id_vendor=$(printf "0x%x" $((0x$id)))
+	if [ -z "$5" ] ; then
+	    continue;
+	fi
 	eval id=$5
 	pci_id_device=$(printf "0x%x" $((0x$id)))
+	if [ -z "$6" ] ; then
+	    continue;
+	fi
 	id=${6#-r}
 	pci_revision=$(printf "0x%x" $((0x$id)))
 	case "$7" in
@@ -3052,7 +3061,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	fi
         # Check whether we are using LVM2
 	if [ -z "$root_evms" ] && [ -x /sbin/lvs ] ; then
-	    vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor 2> /dev/null | sed -n "s/ \(.*\) *$major *$minor/\1/p")
+	    vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor 2> /dev/null | sed -n "s/ *\(.*\) *$major *$minor/\1/p")
 	    if [ "$vg_root" ] ; then
 		root_lvm2=1
 	    fi
@@ -3062,7 +3071,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md
 	    md_list=
-	    pv_list=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed -n "s@  \(/dev/.*\)([0-9]*) *@\1@p" | sort | uniq)
+	    pv_list=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed -n "s@ *\(/dev/.*\)([0-9]*) *@\1@p" | sort | uniq)
 	    for dev in $pv_list ; do
 		mdconf=$(mdadm -Db $dev 2> /dev/null)
 		if [ -n "$mdconf" ] ; then
