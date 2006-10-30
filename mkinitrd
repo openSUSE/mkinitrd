@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.8 $
+# $Revision: 1.312.2.9 $
 
 usage() {
     cat<<EOF
@@ -1800,6 +1800,11 @@ mkinitrd_kernel() {
 	|	    rootdev=/dev/\$rootdev
 	|	    ;;
 	|    esac
+	|    md_major=\$(sed -ne 's/\s*\([0-9]\+\)\s*md$/\1/p' /proc/devices)
+	|    if [ -n "\$md_major" -a "\$md_major" = "\$maj" ]; then
+	|        md_minor="\$min"
+	|        md_dev="/dev/md\$md_minor"
+	|    fi
 	|fi
 	|
 	|# Verify manual resume mode
