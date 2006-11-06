@@ -10,6 +10,7 @@ Mon Oct 30 09:17:13 CET 2006 - hare@suse.de
 - Check return values from lspci (#213400)
 - Properly check for whitespaces in output of 'lvs' (#216117)
 - Fixup DASD device ordering (#202182)
+- Add multipath compat rules for udev (#218172)
 
 -------------------------------------------------------------------
 Thu Sep 28 15:00:37 CEST 2006 - hare@suse.de

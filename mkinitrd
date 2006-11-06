@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.16 $
+# $Revision: 1.312.2.17 $
 
 usage() {
     cat<<EOF
@@ -1474,6 +1474,7 @@ mkinitrd_kernel() {
 	    cp -a /etc/multipath.conf $tmp_mnt/etc
 	fi
 	cp /etc/udev/rules.d/71-multipath.rules $tmp_mnt/etc/udev/rules.d
+	cp /etc/udev/rules.d/72-multipath-compat.rules $tmp_mnt/etc/udev/rules.d
     fi
 
     if [ -n "$root_lvm2" ] ; then
