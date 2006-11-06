@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.17 $
+# $Revision: 1.312.2.18 $
 
 usage() {
     cat<<EOF
@@ -706,36 +706,15 @@ check_ide_modules() {
     done < <(/sbin/lspci -n)
 
     for pci_id in $ide_slots; do
-	set -- $(/sbin/lspci -nm -s $pci_id)
-	if [ -z "$4" ] ; then
-	    continue;
+	eval $(/sbin/lspci -nmv -s $pci_id | sed '/Class.*/d' | sed 's/:[[:blank:]]/=/g')
+	pci_id_vendor=$(printf "0x%x" $((0x$Vendor)))
+	pci_id_device=$(printf "0x%x" $((0x$Device)))
+	pci_revision=$(printf "0x%x" $((0x$Rev)))
+	if [ "$SVendor" ] ; then
+	    pci_subid_vendor=$(printf "0x%x" $((0x$SVendor)))
 	fi
-	eval id=$4
-	pci_id_vendor=$(printf "0x%x" $((0x$id)))
-	if [ -z "$5" ] ; then
-	    continue;
-	fi
-	eval id=$5
-	pci_id_device=$(printf "0x%x" $((0x$id)))
-	if [ -z "$6" ] ; then
-	    continue;
-	fi
-	id=${6#-r}
-	pci_revision=$(printf "0x%x" $((0x$id)))
-	case "$7" in
-	    -*)
-		shift
-		;;
-	    *)
-		;;
-	esac
-	if [ "$7" ] ; then
-	    eval id=$7
-	    pci_subid_vendor=$(printf "0x%x" $((0x$id)))
-	fi
-	if [ "$8" ] ; then
-	    eval id=$8
-	    pci_subid_device=$(printf "0x%x" $((0x$id)))
+	if [ "$SDevice" ] ; then
+	    pci_subid_device=$(printf "0x%x" $((0x$SDevice)))
 	fi
 	: Slot ${pci_id}: $pci_id_vendor $pci_id_device $pci_subid_vendor $pci_subid_device
 	ide_modules=$(check_ide_modules_hwinfo $pci_id_vendor $pci_id_device $pci_revision $pci_subid_vendor $pci_subid_device)
