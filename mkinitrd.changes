@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov 30 10:44:17 CET 2006 - hare@suse.de
+
+- Do not change the scan order for zfcp and DASD devices (#213641)
+
+-------------------------------------------------------------------
 Wed Jul 26 15:22:46 CEST 2006 - hare@suse.de
 
 - Wait for blkid to actually return before checking

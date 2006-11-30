@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.124.2.42 $
+# $Revision: 1.124.2.43 $
 
 #
 # Print usage and exit
@@ -977,7 +977,7 @@ s390_zfcp_sysfs() {
 
     if [ "$s390_enable_zfcp" ] ; then
 	# Root is on SCSI, detect all SCSI devices
-	for dev_dir in /sys/class/scsi_device/*; do
+	for dev_dir in /sys/block/sd? /sys/block/sd?? /sys/block/sd??? /sys/block/sd???? ; do
 	    if [ -d "$dev_dir" ] && [ -e "$dev_dir/device" ]; then
 		cd $dev_dir;
 		cd $(readlink device);
@@ -1011,7 +1011,7 @@ s390_dasd_sysfs() {
 
     if [ "$s390_enable_dasd" ]; then
 	# Root device is on a dasd device, enable all dasd disks
-	for dir in /sys/block/dasd? /sys/block/dasd?? /sys/block/dasd???; do
+	for dir in /sys/block/dasd[a-z] /sys/block/dasd[a-z][a-z] /sys/block/dasd[a-z][a-z][a-z] ; do
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
 		pushd $dir > /dev/null
 		cd $(readlink device)
