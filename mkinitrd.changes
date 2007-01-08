@@ -2,6 +2,7 @@
 Mon Jan  8 15:45:12 CET 2007 - hare@suse.de
 
 - Include Adaptec AIC94xx firmware (#227949)
+- Require xfsprogs (#211632)
 
 -------------------------------------------------------------------
 Mon Oct 30 09:17:13 CET 2006 - hare@suse.de

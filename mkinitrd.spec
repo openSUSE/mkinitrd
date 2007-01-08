@@ -14,8 +14,7 @@ Name:           mkinitrd
 License:        GPL
 Group:          System/Base
 Provides:       aaa_base:/sbin/mk_initrd
-Requires:       coreutils modutils util-linux grep e2fsprogs gzip sed gawk cpio udev pciutils sysvinit reiserfs
-Requires:       udev >= udev-096
+Requires:       coreutils modutils util-linux grep e2fsprogs gzip sed gawk cpio udev pciutils sysvinit reiserfs xfsprogs
 # bootsplash required only if creating splash initrd's.
 Autoreqprov:    on
 Version:        1.2
