@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 18 16:34:41 CET 2007 - hare@suse.de
+
+- Use iSCSI information from iBFT tables if possible (FATE 301309)
+
+-------------------------------------------------------------------
 Thu Jan 18 10:14:01 CET 2007 - hare@suse.de
 
 - Fixup EVMS detection (#226429)
