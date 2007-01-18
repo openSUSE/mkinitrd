@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.19 $
+# $Revision: 1.312.2.20 $
 
 usage() {
     cat<<EOF
@@ -1364,7 +1364,11 @@ mkinitrd_kernel() {
 	cp_bin /bin/$bin $tmp_mnt/bin
     done
 
-    cp_bin /lib/mkinitrd/bin/run-init $tmp_mnt/bin/run-init
+    for file in /lib/mkinitrd/bin/* ; do
+	if [ -x $file ] ; then
+	    cp_bin $file $tmp_mnt/bin
+	fi
+    done
 
     # all dev nodes belong to root, but some may be
     # owned by a group other than root
@@ -3031,7 +3035,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	    region=$(echo "q:r" | evms -s | grep -B 2 "Minor: $minor" | sed -n 's@Region Name: \(.\)@\1@p')
 	    if [ "$region" ] ; then
 		volume=$(echo "q:v,r=$region" | evms -s | sed -n 's@Volume Name: \(.*\)@\1@p')
-		if [ -f "$volume" ] ; then
+		if [ -e "$volume" ] ; then
 		    root_evms=1
 		    realrootdev=$volume
 		fi
