@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.22 $
+# $Revision: 1.312.2.23 $
 
 usage() {
     cat<<EOF
@@ -1205,6 +1205,7 @@ mkinitrd_kernel() {
     local kernel_version
     local need_raidstart
     local need_mdadm
+    local is_kdump
     local -a features
     local fs_modules drv_modules uld_modules xen_modules
     local i
@@ -1234,9 +1235,21 @@ mkinitrd_kernel() {
         return
     fi
 
+    # Check whether this is the kdump kernel
+    if [ "${kernel_image%%-kdump}" != "${kernel_image}" ] ; then
+	if [ ! -f /etc/sysconfig/kdump ] ; then
+	    oops 2 "kdump kernel is not configured correctly. Please install kexec-tools"
+	    return
+	else
+	    . /etc/sysconfig/kdump
+	    dumpdev=$KDUMP_DUMPDEV
+	fi
+	features=(${features[@]} kdump)
+    fi
+
     # Make sure to always include the module for the root filesystem
     # if the root filesystem is modularized.
-    if ! has_module "$rootfstype" && \
+    if [ -z "$is_kdump" ] && ! has_module "$rootfstype" && \
        grep -qe "$rootfstype\.ko:" $modules_dep; then
 	echo "Adding the root filesystem module ($rootfstype)"
 	add_module $rootfstype
@@ -1316,6 +1329,9 @@ mkinitrd_kernel() {
 		    add_module linear
 		    need_mdadm=1
 		    ;;
+		kdump)
+		    is_kdump=1
+		    ;;
 		*)
 		    error 6 "invalid feature $f"
 		    ;;
@@ -1372,7 +1388,7 @@ mkinitrd_kernel() {
     features=(${features[@]} initramfs)
 
     # Programs /sbin
-    for prog in killall5; do
+    for prog in killall5 halt reboot; do
 	cp_bin /sbin/$prog $tmp_mnt/sbin
     done
 
@@ -1690,7 +1706,6 @@ mkinitrd_kernel() {
 	|ln -s fd/0 /dev/stdin
 	|ln -s fd/1 /dev/stdout
 	|ln -s fd/2 /dev/stderr
-	|
 	|echo "" > /proc/sys/kernel/hotplug
 	|
 	|kernel_cmdline=(\$@)
@@ -1780,11 +1795,17 @@ mkinitrd_kernel() {
 	|    rootflags=*)
 	|	rootfsflags=\${o#rootflags=}
 	|	;;
+	|    dumpdev=*)
+	|	dumpdev=\${o#dumpdev=}
+	|	;;
 	|    esac
 	|done
 	|
 	|if [ -z "\$rootdev" ]; then
 	|    rootdev=$rootdev
+	|fi
+	|if [ -z "\$dumpdev" ]; then
+	|    dumpdev=$dumpdev
 	|fi
 	|# lilo strips off the /dev/prefix from device names!
 	|case \$rootdev in
@@ -1834,6 +1855,12 @@ mkinitrd_kernel() {
 	|if [ -n "\$md_major" -a "\$md_major" = "\$maj" ]; then
 	|    md_minor="\$min"
 	|    md_dev="/dev/md\$md_minor"
+	|fi
+	|
+	|# Do not attempt resuming when running under kdump
+	|if [ "$dumpdev" ] ; then
+	|    resume_mode=off
+	|    unset resumedev
 	|fi
 	|
 	|# Verify manual resume mode
@@ -2503,6 +2530,32 @@ mkinitrd_kernel() {
 	|    fi
 	|}
 	|
+	|udev_discover_dump() {
+	|    local root
+	|    case "$dumpdev" in
+	|	*:*) root= ;;
+	|	/dev/nfs) root= ;;
+	|	/dev/*)	root=${rootdev#/dev/} ;;
+	|    esac
+	|    if [ -z "$root" ]; then
+	|	return 0
+	|    fi
+	|    if udev_check_for_device $dumpdev  ; then
+	|	# Get major:minor number of the device node
+	|	devn=$(devnumber $rootdev)
+	|	major=$(devmajor $devn)
+	|	minor=$(devminor $devn)
+	|    fi
+	|    if [ -n "$devn" ]; then
+	|	echo "rootfs: major=$major minor=$minor" \
+	|	    "devn=$devn"
+	|	echo $devn > /proc/sys/kernel/real-root-dev
+	|	return 0
+	|    else
+	|	return 1
+	|    fi
+	|}
+	|
 	|udev_discover_root() {
 	|    local root
 	|    case "$rootdev" in
@@ -2641,12 +2694,14 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    cat_linuxrc <<-'EOF'
+    if [ -z "$is_kdump" ] ; then
+	cat_linuxrc <<-'EOF'
 	|# Wait for udev to settle
 	|/sbin/udevsettle --timeout=$udev_timeout
 	|# Check for a resume device
 	|udev_discover_resume
 	EOF
+    fi
 
     if [ -n "$need_mdadm" ]; then
 	cat_linuxrc <<-EOF
@@ -2795,6 +2850,25 @@ mkinitrd_kernel() {
 	EOF
     fi
 
+    if [ "$is_kdump" ] ; then
+	cat_linuxrc <<-'EOF'
+	|# And now for the real thing
+	|if udev_discover_dump ; then
+	|    if [ ! -e /proc/vmcore ] ; then
+	|        echo "no /proc/vmcore -- continue with booting"
+	|    else
+	|        echo "ok, dumping to $dumpdev"
+	|        cp --sparse=always /proc/vmcore $dumpdev
+	|        if [ $? -eq 0 ] ; then
+	|            echo "Dump saved. Rebooting."
+	|            /sbin/reboot -d -f
+	|        fi
+	|        echo "Dumping failed, continue with booting"
+	|    fi
+	|fi
+	EOF
+    fi
+
     cat_linuxrc <<-'EOF'
 	|# And now for the real thing
 	|if ! udev_discover_root ; then
@@ -2832,7 +2906,7 @@ mkinitrd_kernel() {
 	|        # reboot needed
 	|        echo "fsck succeeded, but reboot is required."
 	|        echo "Rebooting system."
-	|        /bin/reboot -d -f
+	|        /sbin/reboot -d -f
 	|    elif [ $ROOTFS_FSCK -gt 3 ] ; then
 	|        echo "fsck failed. Mounting root device read-only."
 	|        read_write=
@@ -2969,6 +3043,7 @@ mkinitrd_kernel() {
 	fi
 
 	no_splash=
+	[ "$SPLASH" = "no" ] && no_splash=1
 	case ${kernel_version##*-} in
 	    kdump|um|xen*)
 		no_splash=1

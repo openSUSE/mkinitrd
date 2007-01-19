@@ -5,6 +5,8 @@ Fri Jan 19 09:14:10 CET 2007 - hare@suse.de
 - Start discovery for iSCSI devices if a target name has been
   specified on the commandline or retrieved from the iBFT tables
   (FATE 301555)
+- Save kdump core during initrd run (FATE 301538)
+- Obey settings from /etc/sysconfig/bootsplash (#230839)
 
 -------------------------------------------------------------------
 Thu Jan 18 16:34:41 CET 2007 - hare@suse.de
