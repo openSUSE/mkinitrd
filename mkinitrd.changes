@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jan 19 09:14:10 CET 2007 - hare@suse.de
+
+- Backport bugfixes from 10.2
+- Start discovery for iSCSI devices if a target name has been
+  specified on the commandline or retrieved from the iBFT tables
+  (FATE 301555)
+
+-------------------------------------------------------------------
 Thu Jan 18 16:34:41 CET 2007 - hare@suse.de
 
 - Use iSCSI information from iBFT tables if possible (FATE 301309)
