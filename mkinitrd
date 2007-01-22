@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.23 $
+# $Revision: 1.312.2.24 $
 
 usage() {
     cat<<EOF
@@ -1245,6 +1245,7 @@ mkinitrd_kernel() {
 	    dumpdev=$KDUMP_DUMPDEV
 	fi
 	features=(${features[@]} kdump)
+	is_kdump=1
     fi
 
     # Make sure to always include the module for the root filesystem
@@ -1393,7 +1394,7 @@ mkinitrd_kernel() {
     done
 
     # Programs /bin
-    for prog in sed sleep cat ln ls pidof mount umount; do
+    for prog in sed sleep cat cp ln ls pidof mount umount; do
 	cp_bin /bin/$prog $tmp_mnt/bin
     done
 
@@ -1792,7 +1793,7 @@ mkinitrd_kernel() {
 	|    udev_timeout=*)
 	|	udev_timeout=\${o#udev_timeout=}
 	|	;;
-	|    rootflags=*)
+	|    rootfsflags=*)
 	|	rootfsflags=\${o#rootflags=}
 	|	;;
 	|    dumpdev=*)

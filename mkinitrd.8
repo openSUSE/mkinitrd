@@ -1,5 +1,5 @@
 .\" Copyright (C) 2003 SuSE Linux AG
-.\"$Id: mkinitrd.8,v 1.18 2006/05/07 20:00:49 olh Exp $
+.\"$Id: mkinitrd.8,v 1.18.2.1 2007/01/22 07:38:30 hare Exp $
 .TH mkinitrd 8
 .SH NAME
 mkinitrd, mk_initrd \- create initrd disk image
@@ -100,9 +100,19 @@ Enable sysrq
 \fBresume=<device>\fR
 Resume from device \fI<device>\fR
 .TP
+\fBrootfstype=<fstype>\fR
+Use filesystem \fI<fstype>\fR to mount the root filesystem.
+.TP
+\fBrootflags=<flags>\fR
+Use additional filesystem options \fI<flags>\fR to mount the
+root filesystem.
+.TP
 \fBjournal=<device>\fR
 Use device \fI<device>\fR as external journal device.
 This is only valid for reiser and xfs filesystems.
+.TP
+\fBdumpdev=<device>\fR
+[kdump] Use device \fI<device>\fR as a dump device for kdump.
 .TP
 \fBmduuid=<UUID>\fR
 Mount md RAID with uuid \fI<UUID\fR as the root filesystem.
@@ -148,6 +158,9 @@ Add support for EVMS
 .TP
 \fBlvm\fR
 Add support for LVM1
+.TP
+\fBkdump\fR
+Add support for kdump
 
 .SH Using NFS as root filesystem
 To configure an initrd for an NFS client, specify these options to add nfs and network driver support into the initrd:
