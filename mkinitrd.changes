@@ -3,6 +3,7 @@ Mon Jan 22 08:37:50 CET 2007 - hare@suse.de
 
 - Fix kdump support (#236799)
 - Update manpage
+- Generate initrds for kdump kernels, too (#236708)
 
 -------------------------------------------------------------------
 Fri Jan 19 09:14:10 CET 2007 - hare@suse.de
