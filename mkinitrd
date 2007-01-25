@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.25 $
+# $Revision: 1.312.2.26 $
 
 usage() {
     cat<<EOF
@@ -1623,6 +1623,27 @@ mkinitrd_kernel() {
 	    [ -L $root_dir/$lib ] || echo -n "$lib "
 	    ( cd ${root_dir:-/} ; cp -dp --parents $lib $tmp_mnt )
 	done
+	lib_files=
+	# no symlinks, most point into the running system
+	for i in `LANG=C LC_ALL=C file -b $tmp_mnt/{,usr/}{lib*/udev/,{,s}bin}/* | awk '/^ELF ..-bit/ { print $2 }' | sort -u`
+	do
+		case "$i" in
+			32-bit)
+				mkdir -p $tmp_mnt/lib
+				lib_files="$lib_files `echo $root_dir/lib/libnss_files* $root_dir/lib/libgcc_s.so*`"
+				;;
+			64-bit)
+				mkdir -p $tmp_mnt/lib64
+				lib_files="$lib_files `echo $root_dir/lib64/libnss_files* $root_dir/lib64/libgcc_s.so*`"
+				;;
+		esac
+	done
+	for lib in $lib_files ; do
+	    if [ -f $lib ] ; then
+		echo -n "${lib##$root_dir/} "
+		cp -dp --parents $lib $tmp_mnt
+	    fi
+	done
 	echo
     else
 	echo "none"
@@ -1898,6 +1919,8 @@ mkinitrd_kernel() {
     type devminor | sed -e '1d' >> $linuxrc
     echo >> $linuxrc
     type block_driver | sed -e '1d' >> $linuxrc
+    echo >> $linuxrc
+    type readlink | sed -e '1d' >> $linuxrc
     echo >> $linuxrc
     if [ -z "$use_static_binaries" ]; then
 	type devnumber | sed -e '1d' >> $linuxrc
@@ -2798,16 +2821,16 @@ mkinitrd_kernel() {
 	|    done
 	|    }
 	|
-	|get_fstab_entries()
-	|    {
-	|    FSTLIST=\$(sed -n "\:^/dev/:p" <\$1 | sed -e "\:/media/:d" -e "s:/dev/::" -e "s:[   ].*::" -e "s:/:|:g")
-	|    for i in \$FSTLIST
-	|    do
-	|	LINES=\$(dmsetup ls | sed -n "\:^\$i:p")
-	|        [ -n "\$LINES" ] && RETLIST="\$RETLIST \$i"
+	|get_fstab_entries() {
+	|    DEVLIST=$(while read d m t o x; do if [ "$d" != "#" ] ; then echo $d; fi; done < $1 | sed -n "\:^/dev/:p" | sed -e "\:/media/:d")
+	|    for i in $DEVLIST
+	|      do
+	|      dev=$(readlink -m $i | sed -e "s:/dev/::" -e "s:/:|:g")
+	|      LINES=$(dmsetup ls | sed -n "\:^\$dev:p")
+	|      [ -n "$LINES" ] && RETLIST="$RETLIST \$i"
 	|    done
-	|    echo \$RETLIST
-	|    }
+	|    echo $RETLIST
+	|}
 	|
 	|create_evms_save_table()
 	|    {
