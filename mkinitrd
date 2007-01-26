@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.26 $
+# $Revision: 1.312.2.27 $
 
 usage() {
     cat<<EOF
@@ -2822,14 +2822,14 @@ mkinitrd_kernel() {
 	|    }
 	|
 	|get_fstab_entries() {
-	|    DEVLIST=$(while read d m t o x; do if [ "$d" != "#" ] ; then echo $d; fi; done < $1 | sed -n "\:^/dev/:p" | sed -e "\:/media/:d")
+	|    DEVLIST=\$(while read d m t o x; do if [ "\$d" != "#" ] ; then echo \$d; fi; done < \$1 | sed -n "\:^/dev/:p" | sed -e "\:/media/:d")
 	|    for i in $DEVLIST
 	|      do
-	|      dev=$(readlink -m $i | sed -e "s:/dev/::" -e "s:/:|:g")
-	|      LINES=$(dmsetup ls | sed -n "\:^\$dev:p")
-	|      [ -n "$LINES" ] && RETLIST="$RETLIST \$i"
+	|      dev=\$(readlink -m \$i | sed -e "s:/dev/::" -e "s:/:|:g")
+	|      LINES=\$(dmsetup ls | sed -n "\:^\$dev:p")
+	|      [ -n "\$LINES" ] && RETLIST="\$RETLIST \$dev"
 	|    done
-	|    echo $RETLIST
+	|    echo \$RETLIST
 	|}
 	|
 	|create_evms_save_table()
