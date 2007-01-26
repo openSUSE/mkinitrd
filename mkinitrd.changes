@@ -3,6 +3,7 @@ Thu Jan 25 11:12:53 CET 2007 - hare@suse.de
 
 - Fixup EVMS booting for persistent device names (#237117)
 - Include libgcc_s for EVMS.
+- Do not return an error if kdump is not configured (#238682)
 
 -------------------------------------------------------------------
 Mon Jan 22 08:37:50 CET 2007 - hare@suse.de

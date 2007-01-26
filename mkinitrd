@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.27 $
+# $Revision: 1.312.2.28 $
 
 usage() {
     cat<<EOF
@@ -1238,10 +1238,7 @@ mkinitrd_kernel() {
 
     # Check whether this is the kdump kernel
     if [ "${kernel_image%%-kdump}" != "${kernel_image}" ] ; then
-	if [ ! -f /etc/sysconfig/kdump ] ; then
-	    oops 2 "kdump kernel is not configured correctly. Please install kexec-tools"
-	    return
-	else
+	if [ -f /etc/sysconfig/kdump ] ; then
 	    . /etc/sysconfig/kdump
 	    dumpdev=$KDUMP_DUMPDEV
 	fi
