@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.31 $
+# $Revision: 1.312.2.32 $
 
 usage() {
     cat<<EOF
@@ -569,7 +569,7 @@ resolve_modules() {
 	    --set-version $kernel_version --ignore-install \
 	    --show-depends $module 2> /dev/null \
 	    | sed -ne 's:.*insmod /\?::p' )
-	if [ -z "$module_list" ]; then
+	if [ "$module" != "af_packet" ] && [ -z "$module_list" ]; then
 	    oops 7 "Cannot determine dependencies of module $module." \
 		"Is modules.dep up to date?"
 	fi
@@ -854,7 +854,7 @@ get_ip_config() {
 	shift
 
 	ipaddr=${1%%/*}
-	prefix=${1##*/}
+	prefix=${3##*/}
 	shift 
 	if [ "$1" == "peer" ] ; then
 	    shift
@@ -1082,11 +1082,14 @@ s390_zfcp_sysfs() {
 			fi
 		    done
 		    [ "$fcp_disk_hba" ] && s390_zfcp_hbas="$s390_zfcp_hbas $fcp_disk_hba"
+		else
+		    s390_zfcp_hbas="iSCSI"
+		    s390_zfcp_disks="iSCSI"
 		fi
 		popd > /dev/null
 	    fi
 	done
-	if [ "$s390_zfcp_hbas" ]; then
+	if [ "$s390_zfcp_hbas" ] && [ "$s390_zfcp_hbas" != "iSCSI" ] ; then
 	    add_module sd_mod
 	    add_module zfcp
 	fi
@@ -1362,7 +1365,8 @@ mkinitrd_kernel() {
 	# Check for open-iscsi in SLES10 SP1
 	if [ -d /etc/iscsi ] ; then
 	    mkdir -p $tmp_mnt/etc/iscsi
-	    cp -r /etc/iscsi $tmp_mnt/etc/iscsi
+	    cp -r /etc/iscsi $tmp_mnt/etc
+	    mkdir -p $tmp_mnt/var/lock/iscsi
 	else
 	    cat /etc/initiatorname.iscsi > $tmp_mnt/etc/initiatorname.iscsi
 	    mkdir -p $tmp_mnt/var/lib/open-iscsi
@@ -2242,7 +2246,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -n "$s390_zfcp_disks" ]; then
+    if [ -n "$s390_zfcp_disks" ] && [ "$s390_zfcp_hbas" != "iSCSI" ] ; then
 	echo -e -n "zfcp HBAs:\t"
 	for hba in $s390_zfcp_hbas; do
 	    echo -n "$hba "
@@ -2279,10 +2283,21 @@ mkinitrd_kernel() {
 
     if [ -n "$use_dhcp" ] ; then
 	cat_linuxrc <<-'EOF'
-	|case $rootdev in
-	|/dev/nfs|*:/*|"")
-	|   dhcp_mode=1 ;;
-	|esac
+	|# configure interface
+	|for o in \$(cat /proc/cmdline); do
+	|  case \$o in
+	|    dhcp=*)
+	|      if [ "\${o#dhcp=}" ] && [ "\${o#dhcp=}" = "off"] ; then
+	|          dhcp_mode=
+	|      else
+	|          interface="\${o#dhcp=}"
+	|          dhcp_mode=1
+	|      fi ;;
+	|  esac
+	|done
+	|if [ -z "\$dhcp_mode" ] ; then
+	|   dhcp_mode=1
+	|fi
 	EOF
     fi
 
