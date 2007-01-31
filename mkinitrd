@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.30 $
+# $Revision: 1.312.2.31 $
 
 usage() {
     cat<<EOF
@@ -112,7 +112,7 @@ default_kernel_images() {
 	# packages, and rpm does not allow recursive calls.
 
 	[ -L "/boot/$kernel_image" ] && continue
-	[ ${kernel_image%%.gz} !- "$kernel_image" ] && continue
+	[ "${kernel_image%%.gz}" !- "$kernel_image" ] && continue
 	kernel_version=$(/sbin/get_kernel_version \
 			 /boot/$kernel_image 2> /dev/null)
 	initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
