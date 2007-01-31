@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.32 $
+# $Revision: 1.312.2.33 $
 
 usage() {
     cat<<EOF
@@ -2284,18 +2284,18 @@ mkinitrd_kernel() {
     if [ -n "$use_dhcp" ] ; then
 	cat_linuxrc <<-'EOF'
 	|# configure interface
-	|for o in \$(cat /proc/cmdline); do
-	|  case \$o in
+	|for o in $(cat /proc/cmdline); do
+	|  case $o in
 	|    dhcp=*)
-	|      if [ "\${o#dhcp=}" ] && [ "\${o#dhcp=}" = "off"] ; then
+	|      if [ "${o#dhcp=}" ] && [ "${o#dhcp=}" = "off"] ; then
 	|          dhcp_mode=
 	|      else
-	|          interface="\${o#dhcp=}"
+	|          interface="${o#dhcp=}"
 	|          dhcp_mode=1
 	|      fi ;;
 	|  esac
 	|done
-	|if [ -z "\$dhcp_mode" ] ; then
+	|if [ -z "$dhcp_mode" ] ; then
 	|   dhcp_mode=1
 	|fi
 	EOF
