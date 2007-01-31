@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.29 $
+# $Revision: 1.312.2.30 $
 
 usage() {
     cat<<EOF
@@ -1818,6 +1818,9 @@ mkinitrd_kernel() {
 	|    dumpdev=*)
 	|	dumpdev=\${o#dumpdev=}
 	|	;;
+	|    CRASH=*)
+	|	kdump_kernel=\${o#CRASH=}
+	|	;;
 	|    esac
 	|done
 	|
@@ -1877,8 +1880,15 @@ mkinitrd_kernel() {
 	|    md_dev="/dev/md\$md_minor"
 	|fi
 	|
+	|# Check whether kdump is enabled
+	|if [ -e /proc/vmcore ] ; then
+	|    kdump_kernel=1
+	|fi
+	|if [ "\$kdump_kernel" != "1" ] ; then
+	|    kdump_kernel=
+	|fi
 	|# Do not attempt resuming when running under kdump
-	|if [ "$dumpdev" ] ; then
+	|if [ "\$dumpdev" -a "\$kdump_kernel" ] ; then
 	|    resume_mode=off
 	|    unset resumedev
 	|fi
@@ -2289,28 +2299,28 @@ mkinitrd_kernel() {
 	|for o in \$(cat /proc/cmdline); do
 	|  case \$o in
 	|    TargetAddress=*)
-	|      if [ "\$o" = "default" ] ; then
+	|      if [ "\${o#TargetAddress=}" = "default" ] ; then
 	|          unset iSCSI_TARGET_IPADDR
 	|      else
 	|          iscsiserver="\${o#TargetAddress=}"
 	|      fi ;;
 	|    TargetName=*)
-	|      if [ "\$o" = "default" ] ; then
+	|      if [ "\${o#TargetName=}" = "default" ] ; then
 	|          unset iSCSI_TARGET_NAME
 	|      else
 	|          iscsitarget="\${o#TargetName=}"
 	|      fi ;;
 	|    TargetPort=*)
-	|      if [ "\$o" = "default" ] ; then
+	|      if [ "\${o#TargetPort=}" = "default" ] ; then
 	|          unset iSCSI_TARGET_PORT
 	|      else
 	|          iscsiport="\${o#TargetPort=}"
 	|      fi ;;
 	|    InitiatorName=*)
-	|      if [ "\$o" = "default" ] ; then
+	|      if [ "\${o#InitiatorName=}" = "default" ] ; then
 	|          rm -f /tmp/initiatorname.iscsi
 	|      else
-	|          echo \$o > /tmp/initiatorname.iscsi
+	|          echo \${o#InitiatorName=} > /tmp/initiatorname.iscsi
 	|      fi ;;
 	|  esac
 	|done
@@ -2718,10 +2728,12 @@ mkinitrd_kernel() {
 
     if [ -z "$is_kdump" ] ; then
 	cat_linuxrc <<-'EOF'
-	|# Wait for udev to settle
-	|/sbin/udevsettle --timeout=$udev_timeout
-	|# Check for a resume device
-	|udev_discover_resume
+	|if [ -z "$kdump_kernel" ]; then
+	|  # Wait for udev to settle
+	|  /sbin/udevsettle --timeout=$udev_timeout
+	|  # Check for a resume device
+	|  udev_discover_resume
+	|fi
 	EOF
     fi
 
@@ -2880,18 +2892,14 @@ mkinitrd_kernel() {
     if [ "$is_kdump" ] ; then
 	cat_linuxrc <<-'EOF'
 	|# And now for the real thing
-	|if udev_discover_dump ; then
-	|    if [ ! -e /proc/vmcore ] ; then
-	|        echo "no /proc/vmcore -- continue with booting"
-	|    else
-	|        echo "ok, dumping to $dumpdev"
-	|        cp --sparse=always /proc/vmcore $dumpdev
-	|        if [ $? -eq 0 ] ; then
-	|            echo "Dump saved. Rebooting."
-	|            /sbin/reboot -d -f
-	|        fi
-	|        echo "Dumping failed, continue with booting"
+	|if [ "kdump_kernel" ] && udev_discover_dump ; then
+	|    echo "ok, dumping to $dumpdev"
+	|    cp --sparse=always /proc/vmcore $dumpdev
+	|    if [ $? -eq 0 ] ; then
+	|        echo "Dump saved. Rebooting."
+	|        /sbin/reboot -d -f
 	|    fi
+	|    echo "Dumping failed, continue with booting"
 	|fi
 	EOF
     fi
