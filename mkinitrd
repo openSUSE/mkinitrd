@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.34 $
+# $Revision: 1.312.2.35 $
 
 usage() {
     cat<<EOF
@@ -1630,14 +1630,19 @@ mkinitrd_kernel() {
 	do
 		case "$i" in
 			32-bit)
-				mkdir -p $tmp_mnt/lib
-				lib_files="$lib_files `echo $root_dir/lib/libnss_files* $root_dir/lib/libgcc_s.so*`"
+				lib_dir=lib
 				;;
 			64-bit)
-				mkdir -p $tmp_mnt/lib64
-				lib_files="$lib_files `echo $root_dir/lib64/libnss_files* $root_dir/lib64/libgcc_s.so*`"
+				lib_dir=lib64
 				;;
 		esac
+		if [ $(uname -m) = "ia64" ] ; then
+		    lib_dir=lib
+		fi
+		if [ ! -d $tmp_mnt/$lib ] ; then
+		    mkdir -p $tmp_mnt/lib
+		fi
+		lib_files="$lib_files `echo $root_dir/$lib_dir/libnss_files* $root_dir/$lib_dir/libgcc_s.so*`"
 	done
 	for lib in $lib_files ; do
 	    if [ -f $lib ] ; then
