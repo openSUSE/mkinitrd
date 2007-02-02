@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.35 $
+# $Revision: 1.312.2.36 $
 
 usage() {
     cat<<EOF
@@ -1639,8 +1639,8 @@ mkinitrd_kernel() {
 		if [ $(uname -m) = "ia64" ] ; then
 		    lib_dir=lib
 		fi
-		if [ ! -d $tmp_mnt/$lib ] ; then
-		    mkdir -p $tmp_mnt/lib
+		if [ ! -d $tmp_mnt/$lib_dir ] ; then
+		    mkdir -p $tmp_mnt/$lib_dir
 		fi
 		lib_files="$lib_files `echo $root_dir/$lib_dir/libnss_files* $root_dir/$lib_dir/libgcc_s.so*`"
 	done
