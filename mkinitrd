@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.37 $
+# $Revision: 1.312.2.38 $
 
 usage() {
     cat<<EOF
@@ -2694,6 +2694,9 @@ mkinitrd_kernel() {
 	|  # Rescan for multipath
 	|  echo -n "Setup multipath devices: "
 	|  /sbin/multipath -v0
+	|  /sbin/udevsettle --timeout=\$udev_timeout
+	|  # On larger setups udev might time out prematurely
+	|  /sbin/dmsetup ls --target multipath --exec "/sbin/kpartx -a -p -part"
 	|  /sbin/udevsettle --timeout=\$udev_timeout
 	|  echo 'ok.'
 	|fi
