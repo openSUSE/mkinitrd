@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb  9 09:15:55 CET 2007 - hare@suse.de
+
+- Add fallback for incorrect mdadm.conf (#239944)
+
+-------------------------------------------------------------------
 Fri Jan 26 14:40:25 CET 2007 - hare@suse.de
 
 - Fix kdump detection on IA64 (#238609)

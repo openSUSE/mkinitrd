@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.36 $
+# $Revision: 1.312.2.37 $
 
 usage() {
     cat<<EOF
@@ -2713,21 +2713,18 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-EOF
 	|
 	|if [ -f /etc/mdadm.conf ] ; then
-	|    mdarg="-Ac /etc/mdadm.conf"
+	|    mdconf="-Ac /etc/mdadm.conf"
 	|    [ -z "\$md_dev" ] && md_dev="--scan"
-	|else
-	|    mdarg="-Ac partitions"
 	|fi
 	|
 	|if [ -n "\$md_uuid" ] ; then
-	|    mdarg="\$mdarg --uuid=\$md_uuid"
-	|elif [ -n "\$md_minor" ] ; then
+	|    mdarg="--uuid=\$md_uuid"
+	|elif [ -n "$md_uuid" ] ; then
+	|    mdarg="\$mdarg --uuid=$md_uuid"
+	|fi
+	|if [ -n "\$md_minor" ] ; then
 	|    mdarg="\$mdarg --super-minor=\$md_minor"
 	|    md_dev="/dev/md\$md_minor"
-	|fi
-	|
-	|if [ -z "\$md_uuid" -a -n "$md_uuid" ] ; then
-	|    mdarg="\$mdarg --uuid=$md_uuid"
 	|elif [ -z "\$md_minor" -a -n "$md_minor" ] ; then
 	|    mdarg="\$mdarg --super-minor=$md_minor"
 	|fi
@@ -2741,7 +2738,7 @@ mkinitrd_kernel() {
 	|esac
 	|
 	|if [ "\$md_dev" ] ; then
-	|    /sbin/mdadm \$mdarg --auto=md \$md_dev
+	|    /sbin/mdadm \$mdconf --auto=md \$md_dev || /sbin/mdadm -Ac partitions \$mdarg --auto=md \$md_dev
 	|fi
 	EOF
     fi
