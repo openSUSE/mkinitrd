@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.38 $
+# $Revision: 1.312.2.39 $
 
 usage() {
     cat<<EOF
@@ -1471,7 +1471,7 @@ mkinitrd_kernel() {
 
     # HBA firmware
     mkdir -p $tmp_mnt/lib/firmware
-    for fw in /lib/firmware/ql*.bin /lib/firmware/adaptec* ; do
+    for fw in /lib/firmware/ql*.bin /lib/firmware/aic94xx* ; do
 	if [ -f "$fw" ] ; then
 	    cp -a $fw $tmp_mnt/lib/firmware
 	fi
