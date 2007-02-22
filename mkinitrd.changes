@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 22 11:50:54 CET 2007 - hare@suse.de
+
+- Wait until all device-mapper partitions are present (#235434)
+
+-------------------------------------------------------------------
 Fri Feb 16 20:34:27 CET 2007 - hare@suse.de
 
 - Add fallback for incorrect mdadm.conf (#239944)

@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.39 $
+# $Revision: 1.312.2.40 $
 
 usage() {
     cat<<EOF
@@ -2683,7 +2683,52 @@ mkinitrd_kernel() {
 
     if [ -n "$root_mpath" ] ; then
 	cat_linuxrc <<-EOF
-	|# check for IDE parameter in /proc/cmdline
+	|# wait for all multipath partitions to appear
+	|mpath_check_for_partitions() {
+	|    local num=0
+	|
+	|    for link in \$(ls /dev/disk/by-id/scsi-*); do
+	|	[ -L "\$link" ] || continue
+	|	node=\$(ls -l \$link | sed -ne 's/.*\.\.\/\(.*\)/\1/p')
+	|	if [ "\$link" = "\${link%%-part*}" ] ; then
+	|	    dev=\$link
+	|	    case "\$node" in
+	|		dm-*)
+	|		    dev=\$link;;
+	|		*)
+	|		    dev=none;;
+	|	    esac
+	|	else
+	|	    if [ "\$link" != "\${link#\$dev}" ] ; then
+	|		case "\$node" in
+	|		    dm-*)
+	|			: this node is okay
+	|			;;
+	|		    *)
+	|			num=\$((num + 1))
+	|			;;
+	|		esac
+	|	    fi
+	|	fi
+	|    done
+	|    return \$num
+	|}
+	|mpath_wait_for_partitions() {
+	|  local timeout=\$udev_timeout
+	|  local retval=1
+	|  while [ \$timeout -gt 0 ] ; do
+	|    if mpath_check_for_partitions; then
+	|      retval=0
+	|      break;
+	|    fi
+	|    /sbin/udevsettle --timeout=\$udev_timeout
+	|    sleep 1
+	|    echo -n "."
+	|    timeout=\$(( \$timeout - 1 ))
+	|  done
+	|  return \$retval
+	|}
+	|# check for multipath parameter in /proc/cmdline
 	|for o in \$(cat /proc/cmdline) ; do
 	|  case \$o in
 	|    multipath=*)
@@ -2697,7 +2742,11 @@ mkinitrd_kernel() {
 	|  /sbin/udevsettle --timeout=\$udev_timeout
 	|  # On larger setups udev might time out prematurely
 	|  /sbin/dmsetup ls --target multipath --exec "/sbin/kpartx -a -p -part"
-	|  /sbin/udevsettle --timeout=\$udev_timeout
+	|  if ! mpath_wait_for_partitions; then
+	|      echo "not found -- exiting to /bin/sh"
+	|      cd /
+	|      PATH=$PATH PS1='$ ' /bin/sh -i
+	|  fi
 	|  echo 'ok.'
 	|fi
 	EOF
