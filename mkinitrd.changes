@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar  5 16:47:04 CET 2007 - hare@suse.de
+
+- Correct typo in resume_mode
+- Unify rootfsflags and rootflags cmdline option
+- Include dasdinfo and new DASD udev rules (#222326, #245342)
+
+-------------------------------------------------------------------
 Thu Feb 22 11:50:54 CET 2007 - hare@suse.de
 
 - Wait until all device-mapper partitions are present (#235434)

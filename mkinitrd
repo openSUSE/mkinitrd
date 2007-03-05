@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.40 $
+# $Revision: 1.312.2.41 $
 
 usage() {
     cat<<EOF
@@ -1381,6 +1381,9 @@ mkinitrd_kernel() {
     if [ -n "$s390_dasd_disks" ]; then
 	cp_bin /sbin/dasd_configure $tmp_mnt/sbin
 	cp_bin /sbin/dasdview $tmp_mnt/sbin
+	if [ -x /sbin/dasdinfo ] ; then
+	    cp_bin /sbin/dasdinfo $tmp_mnt/sbin
+	fi
     fi
 
     if [ -n "$s390_zfcp_disks" ]; then
@@ -1445,7 +1448,7 @@ mkinitrd_kernel() {
     echo "udev_root=\"/dev\"" > $tmp_mnt/etc/udev/udev.conf
     echo "udev_rules=\"/etc/udev/rules.d\"" >> $tmp_mnt/etc/udev/udev.conf
     # copy needed rules
-    for rule in 05-udev-early.rules 50-udev-default.rules 60-persistent-storage.rules 64-device-mapper.rules; do
+    for rule in 05-udev-early.rules 50-udev-default.rules 59-dasd.rules 60-persistent-storage.rules 64-device-mapper.rules; do
 	if [ -f /etc/udev/rules.d/$rule ]; then
 	    cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
 	fi
@@ -1799,8 +1802,8 @@ mkinitrd_kernel() {
 	|    rootfstype=*)
 	|	rootfstype=\${o#rootfstype=}
 	|	;;
-	|    rootflags=*)
-	|	rootflags=\${o#rootflags=}
+	|    rootfsflags=*)
+	|	rootflags=\${o#rootfsflags=}
 	|	;;
 	|    nfsroot=*)
 	|	rootdev=\${o#nfsroot=}
@@ -1821,8 +1824,8 @@ mkinitrd_kernel() {
 	|    udev_timeout=*)
 	|	udev_timeout=\${o#udev_timeout=}
 	|	;;
-	|    rootfsflags=*)
-	|	rootfsflags=\${o#rootflags=}
+	|    rootflags=*)
+	|	rootflags=\${o#rootflags=}
 	|	;;
 	|    dumpdev=*)
 	|	dumpdev=\${o#dumpdev=}
@@ -1903,7 +1906,7 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|# Verify manual resume mode
-	|if [ "$resume_mode" != "off" -a -n "\$resumedev" ]; then
+	|if [ "\$resume_mode" != "off" -a -n "\$resumedev" ]; then
 	|    if [ -w /sys/power/resume ]; then
 	|	echo "Trying manual resume from \$resumedev"
 	|	resume_mode=1
@@ -3037,7 +3040,6 @@ mkinitrd_kernel() {
 	|echo "Mounting root $rootdev"
 	|# check external journal
 	|[ "$rootfstype" = "xfs" -a -n "$journaldev" ] && opt="${opt},logdev=$journaldev"
-	|[ "$rootfstype" = "xfs" -a -n "$rootfsflags" ] && opt="${opt},$rootfsflags"
 	|[ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && opt="${opt},jdev=$journaldev"
 	|[ -n "$rootflags" ] && opt="${opt},$rootflags"
 	|[ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
