@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar  6 16:12:05 CET 2007 - hare@suse.de
+
+- Add /sbin/scsi_tur to the list of udev programs (#251647)
+
+-------------------------------------------------------------------
 Mon Mar  5 16:47:04 CET 2007 - hare@suse.de
 
 - Correct typo in resume_mode
