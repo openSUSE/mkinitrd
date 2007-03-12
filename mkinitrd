@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.43 $
+# $Revision: 1.312.2.44 $
 
 usage() {
     cat<<EOF
@@ -792,7 +792,7 @@ block_driver() {
 
     [ -z "$devn" ] && return 1
     major=$(devmajor $devn)
-    driver=$(cat /proc/devices | sed -n "s/^[ ]*$major \(.*\)/\1/p;/Block/p" | tail -1)
+    driver=$(cat /proc/devices | sed -n "s/^[ ]*$major \(.*\)/\1/p;/Block/d")
     case "$driver" in
 	Block*)
 	    return 1

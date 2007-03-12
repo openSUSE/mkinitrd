@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 12 16:54:51 CET 2007 - hare@suse.de
+
+- Do not use /usr/bin/tail for the block_driver function (#244148)
+
+-------------------------------------------------------------------
 Mon Mar 12 11:12:03 CET 2007 - hare@suse.de
 
 - Rewrite EVMS handling to fix initialisation errors (#244148)
