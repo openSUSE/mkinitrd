@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 12 11:12:03 CET 2007 - hare@suse.de
+
+- Rewrite EVMS handling to fix initialisation errors (#244148)
+
+-------------------------------------------------------------------
 Tue Mar  6 16:12:05 CET 2007 - hare@suse.de
 
 - Add /sbin/scsi_tur to the list of udev programs (#251647)

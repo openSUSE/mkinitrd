@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.42 $
+# $Revision: 1.312.2.43 $
 
 usage() {
     cat<<EOF
@@ -1516,9 +1516,8 @@ mkinitrd_kernel() {
 
     if [ -n "$root_evms" ] ; then
 	features=(${features[@]} dm/evms2)
-	cp_bin /sbin/{evms_activate,dmsetup} $tmp_mnt/sbin
+	cp_bin /sbin/{evms_activate,dmsetup,evms} $tmp_mnt/sbin
 	cp_bin /bin/{sed,mkdir,mknod,rm} $tmp_mnt/bin
-	cp_bin /usr/bin/expr $tmp_mnt/bin
 	mkdir -p $tmp_mnt/mnt
 	cp -a /etc/evms.conf $tmp_mnt/etc
 	[ -d /lib/evms ] && evms_lib="/lib/evms"
@@ -2880,83 +2879,103 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$root_evms" ] ; then
-	cat_linuxrc <<-EOF
-	|fix_evms_root_node()
-	|    {
-	|    CURDEV=\$(devnumber \$2)
-	|    OLDDEV=\$(devnumber \$1\$2)
-	|    if [ ! -b \$1\$2 -o "\$CURDEV" -ne "\$OLDDEV" ]
-	|    then
-	|	mount -oremount,rw \$2 \$1
-	|	rm -f \$1\$2
-	|	mknod -m 0640 \$1\$2 b \$(devmajor \$CURDEV) \$(devminor \$CURDEV)
-	|	mount -oremount,ro \$2 \$1
+	cat_linuxrc <<-'EOF'
+	|get_evms_devices() {
+	|    local evms_cmd
+	|    local evms_reg
+	|    local evms_cont
+	|    local evms_seg
+	|    local evms_dsk
+	|
+	|    if [ ! -x /sbin/evms ]; then
+	|	return 1
 	|    fi
-	|    }
 	|
-	|remove_evms_fstab()
-	|    {
-	|    for i in \$*
-	|    do
-	|	dmsetup remove "\$i"
-	|    done
-	|    }
+	|    if [ -n "$1" ]; then
+	|	evms_cmd="q:r,v=$1"
 	|
-	|get_fstab_entries() {
-	|    DEVLIST=\$(while read d m t o x; do if [ "\$d" != "#" ] ; then echo \$d; fi; done < \$1 | sed -n "\:^/dev/:p" | sed -e "\:/media/:d")
-	|    for i in \$DEVLIST
-	|      do
-	|        case \$i in
-	|          /dev/disk/*)
-	|             dev=\$(readlink \$i | sed -e "s:.*/::" ) ;;
-	|          /dev/*)
-	|             dev=\$(echo \$i | sed -n "s:/dev/::p" | sed -e "s:/:|:g");;
-	|        esac
-	|      LINES=\$(dmsetup ls | sed -n "\:^\$dev:p")
-	|      [ -n "\$LINES" ] && RETLIST="\$RETLIST \$dev"
+	|	while read a b c d; do
+	|	    if [ "$a $b" = "Region Name:" ]; then
+	|		evms_reg="$evms_reg $c"
+	|	    fi
+	|	done < <( echo "$evms_cmd" | /sbin/evms -s )
+	|    fi
+	|
+	|    : EVMS Region: $evms_reg
+	|
+	|    for reg in $evms_reg; do
+	|	evms_cmd="q:c,r=$reg"
+	|	
+	|	while read a b c d; do
+	|	    if [ "$a $b" = "Container Name:" ]; then
+	|		evms_cont="$evms_cont $c"
+	|	    fi
+	|	done < <(echo "$evms_cmd" | /sbin/evms -s )
 	|    done
-	|    echo \$RETLIST
+	|
+	|    : EVMS Container: $evms_cont
+	|
+	|    for cont in $evms_cont; do
+	|	evms_cmd="q:s,c=$cont"
+	|	
+	|	while read a b c d; do
+	|	    if [ "$a $b" = "Segment Name:" ]; then
+	|		if [ "$evms_seg" ] ; then
+	|		    for seg in $evms_seg; do
+	|			if [ "$c" = "$seg" ] ; then
+	|			    unset c
+	|			    break;
+	|			fi
+	|		    done
+	|		    if [ "$c" ] ; then
+	|			evms_seg="$evms_seg $c"
+	|		    fi
+	|		else
+	|		    evms_seg="$c"
+	|		fi
+	|	    fi
+	|	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	|    done
+	|
+	|    echo "$evms_seg"
 	|}
 	|
-	|create_evms_save_table()
-	|    {
-	|    TNAME=\$1
+	|create_evms_save_table() {
+	|    local tblfile=$1
+	|    local num=0
 	|    shift
-	|    COUNT=0
-	|    rm -f /table_file
-	|    for i in \$*
-	|    do
-	|	dd=\$(echo \$i | sed "s:|:/:g")
-	|	echo \$(expr \$COUNT "*" 100) 100 linear /dev/\$dd 0 >> /table_file
-	|	COUNT=\$(expr \$COUNT + 1)
+	|
+	|    rm -f $tblfile
+	|    
+	|    dmdevs=$(dmsetup info -c --noheadings -o name)
+	|    for d in $dmdevs ; do
+	|	# Check if device exists (ie is a partition)
+	|	if [ ! -e /dev/$d ] ; then
+	|	    unset d
+	|	fi
+	|	# Filter out devices used by EVMS region
+	|	for e in $*; do
+	|	    if [ "$d" = "$e" ] ; then
+	|		unset d
+	|	    fi
+	|	done
+	|	# Create temp table
+	|	if [ "$d" ] ; then
+	|	    echo $(( num * 100 )) 100 linear /dev/$d 0 >> $tblfile
+	|	    num=$(( num + 1 ))
+	|	fi
 	|    done
-	|    dmsetup create \$TNAME </table_file
-	|    rm -f /table_file
-	|    }
+	|    echo $num
+	|}
 	|
 	|/sbin/evms_activate
-	|mkdir -p /mnt
-	|mount -oro \$rootdev /mnt
-	|FSTAB_ITEMS=\$(get_fstab_entries /mnt/etc/fstab)
-	|umount /mnt
-	|dmsetup remove_all
-	|create_evms_save_table wrzlbrnft \$FSTAB_ITEMS
-	|/sbin/evms_activate
-	|dmsetup remove wrzlbrnft
-	|# set the right root device if user specified a lvm root
-	|if [ "\$(block_driver "\$rootdev")" = device-mapper ]; then
-	|    case \$rootdev in
-	|    /dev/*)
-	|	mkdir -p /mnt
-	|	mount -oro \$rootdev /mnt
-	|	fix_evms_root_node /mnt \$rootdev
-	|	remove_evms_fstab \$FSTAB_ITEMS
-	|	umount /mnt
-	|	echo \$(devnumber \$rootdev) > /proc/sys/kernel/real-root-dev ;;
-	|    *)
-	|	# hex number or major:minor pair
-	|	echo \$rootdev > /proc/sys/kernel/real-root-dev ;;
-	|    esac
+	|evmsdevs=$(get_evms_devices \$rootdev)
+	|evmsnum=$(create_evms_save_table /tmp/evms_save_table \$evmsdevs)
+	|if [ $evmsnum -gt 0 ] ; then
+	|    /sbin/dmsetup remove_all
+	|    /sbin/dmsetup create evms_save < /tmp/evms_save_table
+	|    /sbin/evms_activate
+	|    /sbin/dmsetup remove evms_save
 	|fi
 	EOF
     fi
