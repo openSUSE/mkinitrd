@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 19 08:53:32 CET 2007 - hare@suse.de
+
+- Fixup regex for block_driver (#255384)
+- Login into all iSCSI ports (#248495)
+- Disable asynchronous target scan for FC (#241945)
+
+-------------------------------------------------------------------
 Mon Mar 12 16:54:51 CET 2007 - hare@suse.de
 
 - Do not use /usr/bin/tail for the block_driver function (#244148)

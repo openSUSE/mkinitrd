@@ -29,6 +29,7 @@ calc_prefix() {
 }
 
 ipcfg=$(echo $1 | sed 's/::/:_:/g')
+ipcfg=$(echo $ipcfg | sed 's/::/:_:/g')
 
 set -- $(IFS=: ; echo $ipcfg )
 

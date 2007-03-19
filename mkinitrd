@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.44 $
+# $Revision: 1.312.2.45 $
 
 usage() {
     cat<<EOF
@@ -792,7 +792,7 @@ block_driver() {
 
     [ -z "$devn" ] && return 1
     major=$(devmajor $devn)
-    driver=$(cat /proc/devices | sed -n "s/^[ ]*$major \(.*\)/\1/p;/Block/d")
+    driver=$(cat /proc/devices | sed -n "/^Block devices:/{n;: n;s/^[ ]*$major \(.*\)/\1/p;n;b n}")
     case "$driver" in
 	Block*)
 	    return 1
@@ -854,11 +854,12 @@ get_ip_config() {
 	shift
 
 	ipaddr=${1%%/*}
-	prefix=${3##*/}
+	prefix=${1##*/}
 	shift 
 	if [ "$1" == "peer" ] ; then
 	    shift
 	    peeraddr=${1%%/*}
+	    prefix=${1##*/}
 	fi
 	netmask=$(calc_netmask $prefix)
 	bcast=$3
@@ -895,9 +896,14 @@ check_iscsi_root() {
     cd -P device
     cd ../..
 
-    if [ -d iscsi_session:session* ]; then
-	cd -P iscsi_session:session*
-	echo $(basename $PWD)
+    if [ -d connection* ]; then
+	cd -P connection*
+	cid=${PWD#*connection}
+	sid=${cid%%:*}
+	if [ -d /sys/class/iscsi_session/session$sid ]; then
+	    cd -P /sys/class/iscsi_session/session$sid
+	    echo $(basename $PWD)
+	fi
     fi
     popd > /dev/null
 }
@@ -1374,6 +1380,7 @@ mkinitrd_kernel() {
 	    cp /var/lib/open-iscsi/node.db $tmp_mnt/var/lib/open-iscsi
 	fi
 	mkdir -p $tmp_mnt/var/run
+	cp_bin /bin/mv $tmp_mnt/bin/mv
 	cp_bin /bin/usleep $tmp_mnt/bin/usleep
 	cp_bin /bin/basename $tmp_mnt/bin/basename
     fi
@@ -1569,7 +1576,7 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_dhcp" ] ; then
-	features=(${features[@]} dhcp\($interface\))
+	features=(${features[@]} dhcp\($macaddress\))
 	cp_bin /sbin/dhcpcd $tmp_mnt/bin
 	cp_bin /bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
@@ -2169,6 +2176,15 @@ mkinitrd_kernel() {
 		|fi
 		EOF
 		;;
+	    qla2*|lpfc|mptfc)
+		# Disable asynchronous scanning
+		cat_linuxrc <<-EOF
+		|# Disable asynchronous scanning
+		|if [ -e /sys/module/scsi_transport_fc/parameters/rport_scan_timeout ] ; then
+		|  echo \$udev_timeout > /sys/module/scsi_transport_fc/parameters/rport_scan_timeout
+		|fi
+		EOF
+		;;
 	esac
 	cat_linuxrc <<-EOF
 	|echo "Loading $module"
@@ -2371,16 +2387,23 @@ mkinitrd_kernel() {
 	|# run dhcp
 	|if [ -n "\$dhcp_mode" ]; then
 	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
-	|  # portmap
-	|  echo "running dhcpcd on interface $interface"
-	|  dhcpcd -R -Y -N -t 100000000 $interface
-	|  [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] || {
+	|  if [ "$macaddress" ] ; then
+	|    for dev in /sys/class/net/* ; do
+	|      read tmpmac < \$dev/address
+	|      if [ "\$tmpmac" == "$macaddress" ] ; then
+	|        interface=\${dev##*/}
+	|        echo "using interface \$interface"
+	|      fi
+	|    done
+	|  fi
+	|  echo "running dhcpcd on interface \$interface"
+	|  dhcpcd -R -Y -N -t 60 \$interface
+	|  if [ -s /var/lib/dhcpcd/dhcpcd-\$interface.info ] ; then
+	|    . /var/lib/dhcpcd/dhcpcd-\$interface.info
+	|  else
 	|    echo "no response from dhcp server."
-	|    echo 256 > /proc/sys/kernel/real-root-dev
-	|    die 0
-	|  }
-	|  . /var/lib/dhcpcd/dhcpcd-$interface.info
-	|  kill -9 \$(cat /var/run/dhcpcd-$interface.pid)
+	|  fi
+	|  kill -9 \$(cat /var/run/dhcpcd-\$interface.pid)
 	|  if [ -n "\$DNS" ]; then
 	|    oifs="\$IFS"
 	|    IFS=","
@@ -2449,33 +2472,19 @@ mkinitrd_kernel() {
 	iscsi_tgtaddr=$(cat /sys/class/iscsi_connection/connection${iscsi_root#session}:0/address)
 	iscsi_sid=$(/sbin/iscsiadm -m node | grep "$iscsi_tgtname" | grep "$iscsi_tgtaddr" | sed 's@\[\(.*\)\] .*@\1@g')
 	cat_linuxrc <<-EOF
-	|iscsi_login_root_node()
+	|iscsi_mark_root_nodes()
 	|{
-	|    local NODE
-	|    local iscsi_sid
+	|    local iscsi_tgts
 	|
-	|    if [ -n "\$iscsitarget" ] ; then 
-	|      if [ -n "\$iscsiserver" ] ; then 
-	|        iscsi_sid=\$(/sbin/iscsiadm -m node | grep \$iscsitarget | grep \$iscsiserver | sed 's@\[\(.*\)\] .*@\1@g')
-	|      else
-	|        iscsi_sid=\$(/sbin/iscsiadm -m node | grep \$iscsitarget | sed 's@\[\(.*\)\] .*@\1@g')
-	|      fi
+	|    if [ -z "\$iscsitarget" ] ; then
+	|        iscsi_tgts=\$(/sbin/iscsiadm -m node | sed -n "s/.*\$iscsiserver:\$iscsiport,.* \(iqn.*\)/\1/p")
 	|    else
-	|      if [ -n "\$iscsiserver" ] ; then 
-	|        iscsi_sid=\$(/sbin/iscsiadm -m node | grep \$iscsiserver | sed 's@\[\(.*\)\] .*@\1@g')
-	|      fi
-	|    fi
-	|    if [ -z "\$iscsi_sid" ] ; then
-	|        iscsi_sid=$iscsi_sid
+	|        iscsi_tgts="\$iscsitarget"
 	|    fi
 	|
-	|    NODE=`/sbin/iscsiadm -m node -r \$iscsi_sid | grep "node.name" | cut -d' ' -f3`
-	|    echo -n "Logging into \$NODE: "
-	|    if /sbin/iscsiadm -m node -r \$iscsi_sid -l ; then
-	|	echo "ok."
-	|    else
-	|	echo "failed."
-	|    fi
+	|    for tgt in \$iscsi_tgts ; do
+	|        /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport -T \$tgt -o update -n node.conn[0].startup -v automatic
+	|    done
 	|}
 	|
 	|echo "Starting iSCSI daemon"
@@ -2489,8 +2498,9 @@ mkinitrd_kernel() {
 	|    else
 	|        echo "failed."
 	|    fi
+	|    iscsi_mark_root_nodes
 	|fi
-	|iscsi_login_root_node
+	|/sbin/iscsiadm -m node -L automatic
 	|
 	EOF
     fi
@@ -3457,6 +3467,7 @@ if [ -n "$interface" ] ; then
 	    drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
 	fi
 	add_module ${drvlink##*/}
+	read macaddress < /sys/class/net/$interface/address
     fi
 fi
 
