@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 21 11:22:53 CET 2007 - hare@suse.de
+
+- Call evms with -b to omit error messages (#246631)
+
+-------------------------------------------------------------------
 Mon Mar 19 08:53:32 CET 2007 - hare@suse.de
 
 - Fixup regex for block_driver (#255384)

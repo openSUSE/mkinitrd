@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.45 $
+# $Revision: 1.312.2.46 $
 
 usage() {
     cat<<EOF
@@ -978,7 +978,7 @@ s390_check_evms() {
 	    if [ "$a $b" = "Region Name:" ]; then
 		evms_reg="$evms_reg $c"
 	    fi
-	done < <( echo "$evms_cmd" | /sbin/evms -s )
+	done < <( echo "$evms_cmd" | /sbin/evms -s -b )
     fi
 
     for reg in $evms_reg; do
@@ -988,7 +988,7 @@ s390_check_evms() {
 	    if [ "$a $b" = "Container Name:" ]; then
 		evms_cont="$evms_cont $c"
 	    fi
-	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	done < <(echo "$evms_cmd" | /sbin/evms -s -b )
     done
     
     for cont in $evms_cont; do
@@ -998,7 +998,7 @@ s390_check_evms() {
 	    if [ "$a $b" = "Segment Name:" ]; then
 		evms_seg="$evms_seg $c"
 	    fi
-	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	done < <(echo "$evms_cmd" | /sbin/evms -s -b )
     done
 
     for seg in $evms_seg; do
@@ -1007,7 +1007,7 @@ s390_check_evms() {
 	    if [ "$a $b $c" = "Logical Disk Name:" ]; then
 		evms_dsk="$evms_dsk $d"
 	    fi
-	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	done < <(echo "$evms_cmd" | /sbin/evms -s -b )
     done
 
     for dsk in $evms_dsk; do
@@ -2908,7 +2908,7 @@ mkinitrd_kernel() {
 	|	    if [ "$a $b" = "Region Name:" ]; then
 	|		evms_reg="$evms_reg $c"
 	|	    fi
-	|	done < <( echo "$evms_cmd" | /sbin/evms -s )
+	|	done < <( echo "$evms_cmd" | /sbin/evms -s -b )
 	|    fi
 	|
 	|    : EVMS Region: $evms_reg
@@ -2920,7 +2920,7 @@ mkinitrd_kernel() {
 	|	    if [ "$a $b" = "Container Name:" ]; then
 	|		evms_cont="$evms_cont $c"
 	|	    fi
-	|	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	|	done < <(echo "$evms_cmd" | /sbin/evms -s -b )
 	|    done
 	|
 	|    : EVMS Container: $evms_cont
@@ -2944,7 +2944,7 @@ mkinitrd_kernel() {
 	|		    evms_seg="$c"
 	|		fi
 	|	    fi
-	|	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	|	done < <(echo "$evms_cmd" | /sbin/evms -s -b )
 	|    done
 	|
 	|    echo "$evms_seg"
@@ -3323,9 +3323,9 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	minor=$(devminor $rootdevn)
 	# Check whether we are using EVMS
 	if [ -x /sbin/evms ] ; then
-	    region=$(echo "q:r" | evms -s | grep -B 2 "Minor: $minor" | sed -n 's@Region Name: \(.\)@\1@p')
+	    region=$(echo "q:r" | evms -s -b | grep -B 2 "Minor: $minor" | sed -n 's@Region Name: \(.\)@\1@p')
 	    if [ "$region" ] ; then
-		volume=$(echo "q:v,r=$region" | evms -s | sed -n 's@Volume Name: \(.*\)@\1@p')
+		volume=$(echo "q:v,r=$region" | evms -s -b | sed -n 's@Volume Name: \(.*\)@\1@p')
 		if [ -e "$volume" ] ; then
 		    root_evms=1
 		    realrootdev=$volume
