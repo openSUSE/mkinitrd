@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.46 $
+# $Revision: 1.312.2.47 $
 
 usage() {
     cat<<EOF
@@ -2646,6 +2646,11 @@ mkinitrd_kernel() {
 	|    fi
 	|}
 	|
+	|# Enable asynchronous scanning again
+	|if [ -e /sys/module/scsi_transport_fc/parameters/rport_scan_timeout ] ; then
+	|  echo 0 > /sys/module/scsi_transport_fc/parameters/rport_scan_timeout
+	|fi
+	|
 	|/sbin/udevsettle --timeout=$udev_timeout
 	|
 	EOF
@@ -2871,12 +2876,14 @@ mkinitrd_kernel() {
 	|       vg_root=
 	|       ;;
 	|    root=/dev/mapper/*)
-	|       set -- \$(IFS=- ; echo \$o)
-	|       vg_root=\$2
+	|       vg_name=\${o##root=/dev/mapper/}
+	|       vg_root=\${vg_name%%-*}
 	|       ;;
 	|    root=/dev/*)
 	|       set -- \$(IFS=/ ; echo \$o)
-	|       vg_root=\$3
+	|       if [ "\$#" = "3" ] && [ "\$2" != "cciss" ] ; then
+	|           vg_root=\$2
+	|       fi
 	|       ;;
 	|  esac
 	|done
@@ -3335,10 +3342,14 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	    root_evms=
 	fi
         # Check whether we are using LVM2
-	if [ -z "$root_evms" ] && [ -x /sbin/lvs ] ; then
-	    vg_root=$(lvs --noheadings -o vg_name,lv_kernel_major,lv_kernel_minor 2> /dev/null | sed -n "s/ *\(.*\) *$major *$minor/\1/p")
+	if [ -z "$root_evms" ] && [ -x /sbin/lvdisplay ] ; then
+	    vg_name=$(lvdisplay -c 2> /dev/null | sed -n "/.*:$major:$minor/p")
+	    vg_dev=${vg_name%%:*}
+	    vg_name=${vg_name#*:}
+	    vg_root=${vg_name%%:*}
 	    if [ "$vg_root" ] ; then
 		root_lvm2=1
+		realrootdev=${vg_dev##  }
 	    fi
 	else
 	    root_lvm2=

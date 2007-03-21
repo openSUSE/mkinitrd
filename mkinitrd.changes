@@ -2,6 +2,8 @@
 Wed Mar 21 11:22:53 CET 2007 - hare@suse.de
 
 - Call evms with -b to omit error messages (#246631)
+- Enable asynchronous target scan again after initrd is finished
+- Detect LVM2 volume group correctly (#256285)
 
 -------------------------------------------------------------------
 Mon Mar 19 08:53:32 CET 2007 - hare@suse.de
