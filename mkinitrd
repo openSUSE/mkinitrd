@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.48 $
+# $Revision: 1.312.2.49 $
 
 usage() {
     cat<<EOF
@@ -3000,7 +3000,7 @@ mkinitrd_kernel() {
     if [ "$is_kdump" ] ; then
 	cat_linuxrc <<-'EOF'
 	|# And now for the real thing
-	|if [ "kdump_kernel" ] && udev_discover_dump ; then
+	|if [ "$kdump_kernel" ] && [ "$dumpdev" ] && udev_discover_dump ; then
 	|    echo "ok, dumping to $dumpdev"
 	|    cp --sparse=always /proc/vmcore $dumpdev
 	|    if [ $? -eq 0 ] ; then

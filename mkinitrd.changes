@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 28 11:52:04 CEST 2007 - bwalle@suse.de
+
+- check if $dumpdev is empty before copying /proc/vmcore
+  to dump device to omit strange error message (#257488)
+
+-------------------------------------------------------------------
 Wed Mar 28 11:27:04 CEST 2007 - hare@suse.de
 
 - Fix EVMS detection to handle cciss devices correctly.
