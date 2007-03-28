@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.47 $
+# $Revision: 1.312.2.48 $
 
 usage() {
     cat<<EOF
@@ -2964,7 +2964,7 @@ mkinitrd_kernel() {
 	|
 	|    rm -f $tblfile
 	|    
-	|    dmdevs=$(dmsetup info -c --noheadings -o name)
+	|    dmdevs=$(dmsetup info -c --noheadings -o name | sed -e 's.|./.g')
 	|    for d in $dmdevs ; do
 	|	# Check if device exists (ie is a partition)
 	|	if [ ! -e /dev/$d ] ; then

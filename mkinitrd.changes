@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 28 11:27:04 CEST 2007 - hare@suse.de
+
+- Fix EVMS detection to handle cciss devices correctly.
+  (#230935)
+
+-------------------------------------------------------------------
 Wed Mar 21 11:22:53 CET 2007 - hare@suse.de
 
 - Call evms with -b to omit error messages (#246631)
