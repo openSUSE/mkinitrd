@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr  5 12:42:39 CEST 2007 - hare@suse.de
+
+- Include all directories under /lib/mkinitrd (FATE 300884)
+
+-------------------------------------------------------------------
 Wed Mar 28 11:52:04 CEST 2007 - bwalle@suse.de
 
 - check if $dumpdev is empty before copying /proc/vmcore
