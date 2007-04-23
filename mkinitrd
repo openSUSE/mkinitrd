@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.51 $
+# $Revision: 1.312.2.52 $
 
 usage() {
     cat<<EOF
@@ -1548,7 +1548,7 @@ mkinitrd_kernel() {
 	fi
     fi
 
-    if [ -n "$root_md" ] ; then
+    if [ "$root_md" -o "$md_list" ] ; then
 	need_mdadm=1
 	if [ -f /etc/mdadm.conf ] ; then
 	    cat /etc/mdadm.conf > $tmp_mnt/etc/mdadm.conf
@@ -3337,7 +3337,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	minor=$(devminor $rootdevn)
 	# Check whether we are using EVMS
 	if [ -x /sbin/evms ] ; then
-	    region=$(echo "q:r" | evms -s -b | grep -B 2 "Minor: $minor" | sed -n 's@Region Name: \(.\)@\1@p')
+	    region=$(echo "q:r" | evms -s -b | grep -B 2 "Minor: $minor" | grep -B 1 "Major: $major" | sed -n 's@Region Name: \(.\)@\1@p')
 	    if [ "$region" ] ; then
 		volume=$(echo "q:v,r=$region" | evms -s -b | sed -n 's@Volume Name: \(.*\)@\1@p')
 		if [ -e "$volume" ] ; then
@@ -3360,6 +3360,41 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	    fi
 	else
 	    root_lvm2=
+	fi
+	if [ "$root_evms" ] ; then
+	    # Check for EVMS on top of md
+	    md_list=
+	    tblname=$(echo $region | sed 's./.|.g')
+	    evmsparam=$(dmsetup deps $tblname)
+	    evmsparam=${evmsparam##*:}
+	    evmsparam=$(echo $evmsparam | sed 's/, /,/g')
+	    for dev in $evmsparam ; do
+		evmsmajor=$(echo $dev | sed -n 's/(\(.*\),.*/\1/p')
+		evmsminor=$(echo $dev | sed -n 's/.*,\(.*\))/\1/p')
+		line=$(sed -n "/ *$evmsmajor *$evmsminor .*/p" /proc/partitions)
+		evms_dev=${line##* }
+		if [ "$evms_list" ] ; then
+		    for ed in $evms_list; do
+			if [ "$ed" = "$evms_dev" ] ; then
+			    unset evms_dev
+			fi
+		    done
+		    if [ "$evms_dev" ] ; then
+			evms_list="$evms_list $evms_dev"
+		    fi
+		else
+		    evms_list=$evms_dev
+		fi
+	    done
+	    for dev in $evms_list ; do
+		mdconf=$(mdadm -Db /dev/$dev 2> /dev/null)
+		if [ -n "$mdconf" ] ; then
+		    md_list="$dev $md_list"
+		    eval md_conf_${dev}=\"$mdconf\"
+		fi
+	    done
+	    unset md_dev
+	    unset mdconf
 	fi
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md

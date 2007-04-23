@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Apr 23 14:50:49 CEST 2007 - hare@suse.de
+
+- Fix detection of EVMS on top of MD (#266538)
+
+-------------------------------------------------------------------
 Mon Apr 23 12:06:37 CEST 2007 - hare@suse.de
 
 - Do not fail on empty directories (#266956)
