@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.52 $
+# $Revision: 1.312.2.53 $
 
 usage() {
     cat<<EOF
@@ -1424,7 +1424,11 @@ mkinitrd_kernel() {
     for dir in /lib/mkinitrd/* ; do
 	if [ -d "$dir" -a "$dir" != "/lib/mkinitrd/bin" ] ; then
 	    [ -d ${tmp_mnt}${dir#/lib/mkinitrd} ] || mkdir ${tmp_mnt}${dir#/lib/mkinitrd}
-	    cp -a $dir ${tmp_mnt}${dir#/lib/mkinitrd}
+	    for f in $dir/* ; do
+		if [ -f "$f" ] ; then
+		    cp -a $f ${tmp_mnt}${dir#/lib/mkinitrd}
+		fi
+	    done
 	fi
     done
 
