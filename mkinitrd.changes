@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Apr 23 12:06:37 CEST 2007 - hare@suse.de
+
+- Do not fail on empty directories (#266956)
+
+-------------------------------------------------------------------
 Thu Apr  5 12:42:39 CEST 2007 - hare@suse.de
 
 - Include all directories under /lib/mkinitrd (FATE 300884)
