@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.53 $
+# $Revision: 1.312.2.54 $
 
 usage() {
     cat<<EOF
@@ -3364,41 +3364,6 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	    fi
 	else
 	    root_lvm2=
-	fi
-	if [ "$root_evms" ] ; then
-	    # Check for EVMS on top of md
-	    md_list=
-	    tblname=$(echo $region | sed 's./.|.g')
-	    evmsparam=$(dmsetup deps $tblname)
-	    evmsparam=${evmsparam##*:}
-	    evmsparam=$(echo $evmsparam | sed 's/, /,/g')
-	    for dev in $evmsparam ; do
-		evmsmajor=$(echo $dev | sed -n 's/(\(.*\),.*/\1/p')
-		evmsminor=$(echo $dev | sed -n 's/.*,\(.*\))/\1/p')
-		line=$(sed -n "/ *$evmsmajor *$evmsminor .*/p" /proc/partitions)
-		evms_dev=${line##* }
-		if [ "$evms_list" ] ; then
-		    for ed in $evms_list; do
-			if [ "$ed" = "$evms_dev" ] ; then
-			    unset evms_dev
-			fi
-		    done
-		    if [ "$evms_dev" ] ; then
-			evms_list="$evms_list $evms_dev"
-		    fi
-		else
-		    evms_list=$evms_dev
-		fi
-	    done
-	    for dev in $evms_list ; do
-		mdconf=$(mdadm -Db /dev/$dev 2> /dev/null)
-		if [ -n "$mdconf" ] ; then
-		    md_list="$dev $md_list"
-		    eval md_conf_${dev}=\"$mdconf\"
-		fi
-	    done
-	    unset md_dev
-	    unset mdconf
 	fi
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md
