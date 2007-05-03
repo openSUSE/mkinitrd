@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  3 15:57:31 CEST 2007 - hare@suse.de
+
+- Do not rediscover existing iSCSI targets (#256227)
+- Fix typo in EVMS detection
+
+-------------------------------------------------------------------
 Mon Apr 23 14:50:49 CEST 2007 - hare@suse.de
 
 - Fix detection of EVMS on top of MD (#266538)

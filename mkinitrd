@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.54 $
+# $Revision: 1.312.2.55 $
 
 usage() {
     cat<<EOF
@@ -2498,16 +2498,32 @@ mkinitrd_kernel() {
 	|    done
 	|}
 	|
-	|echo "Starting iSCSI daemon"
-	|/sbin/iscsid
-	|usleep 5000000
-	|
-	|if [ "\$iscsiserver" -a "\$iscsiport" ] ; then
+	|iscsi_discover_nodes()
+	|{
 	|    echo -n "Starting discovery on \${iscsiserver},\${iscsiport}: "
 	|    if /sbin/iscsiadm -m discovery -t st -p \${iscsiserver}:\${iscsiport} 2> /dev/null ; then
 	|        echo "ok."
 	|    else
 	|        echo "failed."
+	|    fi
+	|}
+	|
+	|echo "Starting iSCSI daemon"
+	|/sbin/iscsid
+	|usleep 5000000
+	|
+	|if [ "\$iscsiserver" -a "\$iscsiport" ] ; then
+	|    if [ "\$iscsitarget" ] ; then
+	|        if ! /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport -T \$iscsitarget ; then
+	|            do_iscsi_discovery=yes
+	|        fi
+	|    else
+	|        if ! /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport ; then
+	|            do_iscsi_discovery=yes
+	|        fi
+	|    fi
+	|    if [ "\$do_iscsi_discovery" ] ; then
+	|        iscsi_discover_nodes
 	|    fi
 	|    iscsi_mark_root_nodes
 	|fi
@@ -2997,8 +3013,8 @@ mkinitrd_kernel() {
 	|}
 	|
 	|/sbin/evms_activate
-	|evmsdevs=$(get_evms_devices \$rootdev)
-	|evmsnum=$(create_evms_save_table /tmp/evms_save_table \$evmsdevs)
+	|evmsdevs=$(get_evms_devices $rootdev)
+	|evmsnum=$(create_evms_save_table /tmp/evms_save_table $evmsdevs)
 	|if [ $evmsnum -gt 0 ] ; then
 	|    /sbin/dmsetup remove_all
 	|    /sbin/dmsetup create evms_save < /tmp/evms_save_table
