@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May  9 17:53:15 CEST 2007 - hare@suse.de
+
+- Implement EVMS disk handling policies (#230935)
+
+-------------------------------------------------------------------
 Thu May  3 15:57:31 CEST 2007 - hare@suse.de
 
 - Do not rediscover existing iSCSI targets (#256227)

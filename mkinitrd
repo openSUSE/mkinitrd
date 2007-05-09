@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.55 $
+# $Revision: 1.312.2.56 $
 
 usage() {
     cat<<EOF
@@ -1533,7 +1533,7 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$root_evms" ] ; then
-	features=(${features[@]} dm/evms2)
+	features=(${features[@]} dm/evms2 evms2/$evms_policy)
 	cp_bin /sbin/{evms_activate,dmsetup,evms} $tmp_mnt/sbin
 	cp_bin /bin/{sed,mkdir,mknod,rm} $tmp_mnt/bin
 	mkdir -p $tmp_mnt/mnt
@@ -1850,6 +1850,9 @@ mkinitrd_kernel() {
 	|    CRASH=*)
 	|	kdump_kernel=\${o#CRASH=}
 	|	;;
+	|    evms=*)
+	|	evms_policy=\${o#evms=}
+	|	;;
 	|    esac
 	|done
 	|
@@ -1858,6 +1861,9 @@ mkinitrd_kernel() {
 	|fi
 	|if [ -z "\$dumpdev" ]; then
 	|    dumpdev=$dumpdev
+	|fi
+	|if [ -z "\$evms_policy" ]; then
+	|    evms_policy=$evms_policy
 	|fi
 	|# lilo strips off the /dev/prefix from device names!
 	|case \$rootdev in
@@ -3013,8 +3019,12 @@ mkinitrd_kernel() {
 	|}
 	|
 	|/sbin/evms_activate
-	|evmsdevs=$(get_evms_devices $rootdev)
-	|evmsnum=$(create_evms_save_table /tmp/evms_save_table $evmsdevs)
+	|if [ "$evms_policy" != "disk" ] ; then
+	|    evmsdevs=$(get_evms_devices $rootdev)
+	|    evmsnum=$(create_evms_save_table /tmp/evms_save_table $evmsdevs)
+	|else
+	|    evmsnum=0
+	|fi
 	|if [ $evmsnum -gt 0 ] ; then
 	|    /sbin/dmsetup remove_all
 	|    /sbin/dmsetup create evms_save < /tmp/evms_save_table
@@ -3363,6 +3373,13 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 		if [ -e "$volume" ] ; then
 		    root_evms=1
 		    realrootdev=$volume
+		    line=$(sed -ne '/^[ \t]*#/d;/boot/p' /etc/fstab)
+		    case "$line" in
+			*/evms/*)
+			    evms_policy=disk ;;
+			*)
+			    evms_policy=part ;;
+		    esac
 		fi
 	    fi
 	else
