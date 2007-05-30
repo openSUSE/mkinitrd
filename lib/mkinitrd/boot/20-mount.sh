@@ -82,4 +82,9 @@ echo "Mounting root $rootdev"
 [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && opt="${opt},jdev=$journaldev"
 [ -n "$rootflags" ] && opt="${opt},$rootflags"
 [ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
-mount $opt $rootdev /root || die 1
+mount $opt $rootdev /root
+if [ $? -ne 0 ] ; then
+    echo "could not mount root filesystem -- exiting to /bin/sh"
+    cd /
+    PATH=$PATH PS1='$ ' /bin/sh -i
+fi
