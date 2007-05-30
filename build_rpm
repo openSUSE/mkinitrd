@@ -1,0 +1,16 @@
+#!/bin/bash
+
+DIR="mkinitrd-2.0"
+if [ -d "$DIR" ] ; then
+    echo "directory $DIR exists, cannot continue"
+    exit 1
+fi
+
+mkdir $DIR
+for d in lib sbin src man ; do
+    find $d -print | cpio -pdmav $DIR
+done
+
+tar czf mkinitrd.tgz $DIR
+
+rm -rf $DIR
