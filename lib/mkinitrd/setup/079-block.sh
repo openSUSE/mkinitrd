@@ -71,7 +71,7 @@ else
 	    case $bd in # only include devices
 	      /dev*) 
 		update_blockdev $bd
-		curmodule="$(get_devmodule ${bd##*/})"
+		curmodule="$(get_devmodule ${bd##/dev/})"
 		[ $? -eq 0 ] || return 1
 		for curmodule_i in $curmodule; do
 		    verbose "[BLOCK] $bd -> $curmodule_i"
