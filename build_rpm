@@ -1,16 +1,31 @@
 #!/bin/bash
 
-DIR="mkinitrd-2.0"
-if [ -d "$DIR" ] ; then
-    echo "directory $DIR exists, cannot continue"
+if [ "$1" ] ; then
+    DESTDIR=$1
+else
+    DESTDIR="/tmp/mkinitrd"
+fi
+
+if [ -d "$DESTDIR" ] ; then
+    echo "directory $DESTDIR exists, cannot continue"
     exit 1
 fi
 
-mkdir $DIR
+mkdir $DESTDIR
+
+DIR="mkinitrd-2.0"
+
+mkdir $DESTDIR/$DIR
 for d in lib sbin src man ; do
-    find $d -print | cpio -pdmav $DIR
+    find $d -name '*~' -delete -o -print | cpio -pdma $DESTDIR/$DIR
 done
 
-tar czf mkinitrd.tgz $DIR
+(cd $DESTDIR; tar czf mkinitrd.tgz $DIR)
 
-rm -rf $DIR
+rm -rf $DESTDIR/$DIR
+
+cp mkinitrd.spec $DESTDIR
+cp mkinitrd.changes $DESTDIR
+cp hotplug.sh $DESTDIR
+
+echo "mkinitrd src rpm copied to $DESTDIR"
