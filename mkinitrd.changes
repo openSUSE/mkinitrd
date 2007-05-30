@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed May 30 16:38:44 CEST 2007 - hare@suse.de
+
+- Simplify shared library detection
+- Revamp module setup
+- Fixup error paths
+- Fix cciss detection
+- Fix typo in lvm2 setup
+- Fix module detection
+
+-------------------------------------------------------------------
 Tue May 29 17:33:51 CEST 2007 - agraf@suse.de
 
 - Include optional busybox support (activate with -f busybox)
