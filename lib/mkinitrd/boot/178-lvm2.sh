@@ -40,6 +40,6 @@ if [ -n "$root_lvm2" ] ; then
 fi
 
 # initialize remebered and parameterized devices
-for $vgr in $lvm $vg_root; do
+for vgr in $lvm $vg_root; do
 	vgchange -a y $vgr
 done
