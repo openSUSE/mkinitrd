@@ -12,8 +12,9 @@ shared_object_files() {
     fi
 
     initrd_libs=( $(
-	for i in "$@" ; do $LDD "$i" ; done \
-	| sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p'
+	$LDD "$@" \
+	| sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p' \
+	| sort | uniq
     ) )
 
     # Evil hack: On some systems we have generic as well as optimized
@@ -21,16 +22,16 @@ shared_object_files() {
     # kernel versions (e.g., the NPTL glibc libraries don't work with
     # a 2.4 kernel). Use the generic versions of the libraries in the
     # initrd (and guess the name).
-    local n optimized
-    for ((n=0; $n<${#initrd_libs[@]}; n++)); do
-	lib=${initrd_libs[$n]}
-	optimized="$(echo "$lib" | sed -e 's:.*/\([^/]\+/\)[^/]\+$:\1:')"
-	lib=${lib/$optimized/}
-	if [ "${optimized:0:3}" != "lib" -a -f "$lib" ]; then
-	    #echo "[Using $lib instead of ${initrd_libs[$n]}]" >&2
-	    initrd_libs[$n]="${lib/$optimized/}"
-	fi
-    done
+#    local n optimized
+#    for ((n=0; $n<${#initrd_libs[@]}; n++)); do
+#	lib=${initrd_libs[$n]}
+#	optimized="$(echo "$lib" | sed -e 's:.*/\([^/]\+/\)[^/]\+$:\1:')"
+#	lib=${lib/$optimized/}
+#	if [ "${optimized:0:3}" != "lib" -a -f "$lib" ]; then
+#	    #echo "[Using $lib instead of ${initrd_libs[$n]}]" >&2
+#	    initrd_libs[$n]="${lib/$optimized/}"
+#	fi
+#    done
 
     for lib in "${initrd_libs[@]}"; do
 	case "$lib" in
@@ -57,15 +58,14 @@ shared_object_files() {
 	    fi
 	done
 	echo $lib
-    done \
-    | sort -u
+    done
 }
 
 # binary files
 declare -i script_counter
 script_counter=100
 
-for script in $INITRD_PATH/boot/*; do
+for script in $INITRD_PATH/boot/*.sh; do
     if use_script "$script"; then # only include the programs if the script gets used
     	# add the script to the feature list if no #%dontshow line was given
 	feature="${script##*/}"
@@ -90,7 +90,6 @@ for script in $INITRD_PATH/boot/*; do
 			SOURCE=$(which "$file")
 			DEST="./bin/"
 		fi
-#		echo "copying $SOURCE => $DEST ..."
 		cp_bin "$SOURCE" "$DEST"
 	    done
 	done
