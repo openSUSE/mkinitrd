@@ -145,7 +145,7 @@ resolve_device() {
     local x="$2"
     local realrootdev="$2"
 
-    [ "$2" ] || exit 1
+    [ "$2" ] || exit 0
 
     case "$rootdev" in
       LABEL=*|UUID=*)

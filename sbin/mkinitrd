@@ -58,6 +58,7 @@ usage() {
 			   variable if set.
 	  -s size          Add splash animation and bootscreen to initrd.
 	  -t tmp_dir       Temporary directory. Defaults to /var/tmp.
+          -l lib_dir       mkinitrd directory. Defaults to /lib/mkinitrd.
 	  -D interface     Run dhcp on the specified interface.
 	  -I interface     Configure the specified interface statically.
 	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
@@ -141,13 +142,14 @@ build_day=@BUILD_DAY@
 scan_pci_bus=
 create_monster_initrd=
 verbose=
+INITRD_PATH=/lib/mkinitrd
 
 # read the sysconfig configs
 if [ -e "/etc/sysconfig/initrd" ]; then
     . /etc/sysconfig/initrd
 fi
 
-while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
+while getopts :ef:hk:i:l:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -180,6 +182,8 @@ while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
 		    ;;	
 		j)  echo "-j requires the journal device"
 		    ;;	
+		l)  echo "-l requires mkinitrd directory parameter"
+		    ;;
 		*)  echo "Unknown option: -$OPTARG"
 		    echo "Try mkinitrd -h"
 		    ;;
@@ -193,6 +197,8 @@ while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
 	k)  kernel_images=$OPTARG
 	    ;;
 	i)  initrd_images=$OPTARG
+	    ;;
+	l)  INITRD_PATH=$OPTARG
 	    ;;
 	m)  modules=$OPTARG
 	    modules_set=1
@@ -366,6 +372,7 @@ error() {
 oops() {
     echo "$2" >&2
     cleanup
+    exit_code=$1
     exit $1
 }
 
@@ -393,8 +400,6 @@ verbose() {
 	[ "$verbose" ] && echo -e "$@"
 }
 
-INITRD_PATH=/lib/mkinitrd
-
 # creates an initrd image using small modules called "setup scripts"
 # the actual creation of the initrd is contained within these scripts
 mkinitrd_kernel() {
@@ -402,12 +407,13 @@ mkinitrd_kernel() {
 	shebang=/bin/bash
 	oldpwd="$(pwd)"
 	
-	for setupfile in $INITRD_PATH/setup/*; do
+	for setupfile in $INITRD_PATH/setup/*.sh; do
 		[ -d "$tmp_mnt" ] && cd "$tmp_mnt" # process setup files in the initrd root dir
 		if [ ! -d "$setupfile" ]; then
-		    curscript="${setupfile#*-}"
+		    curscript="${setupfile##*-}"
 #		    echo "[$curscript] $blockdev"
 		    source $setupfile
+		    [ $? -ne 0 ] && return 1
 		fi
 	done
 	cd "$oldpwd"
@@ -442,7 +448,7 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     	&& initrd_image=$boot_dir/$initrd_image
 
     mkinitrd_kernel $kernel_image $initrd_image
-    [ $? -eq 0 ] || exit 1
+    [ $? -eq 0 ] || return 1
 
     # If the current $kernel_image has a symlink without "-<version>" (e.g.
     # "vmlinuz") pointing to it, create an "initrd" symlink for the
@@ -454,6 +460,7 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     fi
     cleanup
     )
+    exit_code=$?
     [ -e "$work_dir/error" ] && break
 done
 
