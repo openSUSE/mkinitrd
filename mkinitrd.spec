@@ -22,6 +22,7 @@ Release:        12
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tgz
+Source1:        hotplug.sh
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk
@@ -52,24 +53,18 @@ Authors:
 %setup
 
 %build
-gcc $RPM_OPT_FLAGS -Wall -Os -o run-init run-init.c
+gcc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/run-init src/run-init.c
+sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitrd
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 cp -a lib $RPM_BUILD_ROOT/
+make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
-#chown -R root:root $RPM_BUILD_ROOT/lib/mkinitrd
-install -D -m 755 run-init $RPM_BUILD_ROOT/lib/mkinitrd/bin/run-init
-install -D -m 755 mkinitrd $RPM_BUILD_ROOT/sbin/mkinitrd
-sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" $RPM_BUILD_ROOT/sbin/mkinitrd
-#diff -u %{S:0} $RPM_BUILD_ROOT/sbin/mkinitrd || :
-install -D -m 755 installkernel $RPM_BUILD_ROOT/sbin/installkernel
-install -D -m 755 module_upgrade $RPM_BUILD_ROOT/sbin/module_upgrade
-install -D -m 755 hotplug.sh $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
-install -D -m 755 ipconfig.sh $RPM_BUILD_ROOT/lib/mkinitrd/bin/ipconfig.sh
+install -D -m 755 %{S:1} $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
+install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
-install -D -m 644 mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 
 %files
 %defattr(-,root,root)
@@ -82,13 +77,12 @@ install -D -m 644 mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 /lib/mkinitrd/linuxrc
 /lib/mkinitrd/boot/*
 /lib/mkinitrd/setup/*
-/lib/mkinitrd/bin/run-init
-%config /lib/mkinitrd/bin/ipconfig.sh
-%config /sbin/mkinitrd
+/lib/mkinitrd/bin/*
+/sbin/mkinitrd
 /sbin/mk_initrd
 /sbin/module_upgrade
 /sbin/installkernel
-%config /usr/share/mkinitrd/hotplug.sh
+/usr/share/mkinitrd/hotplug.sh
 %doc %{_mandir}/man8/mkinitrd.8.gz
 
 %changelog
