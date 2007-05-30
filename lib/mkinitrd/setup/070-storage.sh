@@ -244,7 +244,7 @@ if [ ! "$rootfstype" ]; then
     error 1 "Could not find the filesystem type for root device $rootdev"
 fi
 
-if ! modprobe -q $rootfstype; then
+if ! modprobe --set-version $kernel_version -q $rootfstype; then
     error 1 "Could not find the filesystem module for root device $rootdev ($rootfstype)"
 fi
 
