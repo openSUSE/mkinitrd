@@ -1,0 +1,73 @@
+#!/bin/bash
+
+##################################################
+# add_module_param $kernelmodule $value
+# remembers parameters for the given kernel module 
+# e.g. add_module_param rtl8193too debug=1
+##################################################
+add_module_param() {
+    echo "options $1 $2" >> /etc/modprobe.d/options
+}
+
+##################################################
+# load_modules
+# loads all kernelmodules that belong to the 
+# current init module
+# this is also done automatically when the
+# init module is done
+# e.g. load_modules
+##################################################
+load_modules() {
+    for file in $(eval echo $modules); do
+	opt=$(eval echo \${opt_${file/-/_}})
+	modprobe $file $opt
+    done
+    modules=""
+}
+
+##################################################
+# dont_load_modules
+# stops automatic loading of modules for the
+# current init module
+# e.g. dont_load_modules
+##################################################
+dont_load_modules() {
+    modules=""
+}
+
+##################################################
+# get_param $key
+# returns the kernel commandline parameter value
+# that is identified by the key
+# e.g. get_param root
+#      => /dev/hda1
+##################################################
+get_param() {
+    echo $(eval echo \${cmd_${1/-/_}}) 2>/dev/null
+}
+
+for file in boot/*; do
+    echo "preping $file"
+    # load config for the current module
+    config="config/${file#*-}"
+    [ -e "$config" ] && . "$config"
+
+    # check if we should run the module
+    condition="$(cat $file | grep '%if: ')"
+    condition="${condition#*if: }"
+    if [ "$condition" ]; then
+	if ! eval test $condition; then
+	    continue
+	fi
+    fi
+    # remember dependent modules
+    modules=$(cat $file | grep '%modules: ')
+    modules="${modules#*les: }"
+
+    # run the module
+    echo "running $file"
+    source $file
+    
+    # if the module did not load its modules, we do
+    [ "$modules" ] && load_modules
+done

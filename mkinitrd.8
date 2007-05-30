@@ -1,0 +1,177 @@
+.\" Copyright (C) 2003 SuSE Linux AG
+.\"$Id: mkinitrd.8,v 1.21 2006/11/07 16:38:33 bwalle Exp $
+.TH mkinitrd 8
+.SH NAME
+mkinitrd, mk_initrd \- create initrd disk image
+.SH SYNOPSIS
+\fBmkinitrd\fR [options] [root_dir]
+.SH DESCRIPTION
+\fBmkinitrd\fR creates initial ramdisk images for booting Linux.
+The "/init" script in the compressed cpio archive loads all driver modules,
+creates all device nodes currently know by the kernel, does a filesystem check
+on the root filesystem and finally passes control to /sbin/init.
+udev is used to create the device nodes in a tmpfs mounted /dev directory.
+This directory is moved over to the final root filesystem, essentially hiding the 
+on-disk content below /dev on the root filesystem.
+
+A few options can be specified via the kernel command line to modify some hardcoded
+values in the "/init" script. They are read from /proc/cmdline.
+
+While in the old days the Linux kernel was responsible for mounting the rootfilesystem
+and running /sbin/init, all the work is now done by the "/init" script.
+
+.SH OPTIONS
+.TP
+\fB-h\fR
+This Text.
+.TP
+\fB-k  "kernel list"\fR
+list of kernel images for which initrd files are created (relative to
+boot_dir), defaults to "vmlinux" on powerpc, "image" on s390 and "vmlinuz" for everything else.
+.TP
+\fB-i "initrd list"\fR 
+list of file names (relativ to boot_dir) for the initrd; positions have to
+match the "kernel list",  defaults to "initrd"
+.TP
+\fB-m "module list"\fR 
+modules to include in initrd, defaults to INITRD_MODULES variable in
+/etc/sysconfig/kernel 
+.TP
+\fB-f "feature list"\fR 
+features to be enabled for the initrd. In general mkinitrd configures
+the initrd for the root device it is started from. With this option
+additional feature can be enabled.
+.TP
+\fB-b boot_dir\fR
+boot dir, defaults to "/boot", where the initrd is created.
+.TP
+\fB-d root_device\fR
+root device, defaults to the device from which the root_dir is mounted; 
+overwrites the rootdev enviroment variable if set
+.TP
+\fB-s size\fR       
+Add splash animation and bootscreen to initrd.
+.TP
+\fB-D interface\fR
+Run dhcp on the specified interface.
+.TP
+\fB-I interface\fR
+Configure the specified interface statically.
+.TP
+\fB-a acpi_dsdt\fR
+Attach compiled ACPI DSDT (Differentiated System Description Table)
+to initrd. This replaces the DSDT of the BIOS. Defaults to the ACPI_DSDT
+variable in /etc/sysconfig/kernel.
+.TP
+\fB-t tmp_dir\fR 
+tmp dir, defaults to "/tmp".
+.TP
+\fB-e\fR
+Use static binaries where possible. (currently unavailable)
+.TP
+\fB-P\fR
+Include modules for all IDE devices on the PCI bus.
+.TP
+\fB-V script\fR
+Vendor specific script to run in linuxrc.
+.TP
+\fB-M map\fR
+System.map file to use.
+.TP
+\fB-j device\fR
+External journal device to use for the root filesystem.
+.TP
+\fBroot_dir\fR
+the directory the root partition is mounted to defaults to "/"
+
+.SH KERNEL COMMAND-LINE PARAMETER
+\fBmkinitrd\fR implements a set of additional kernel command-line
+parameters which are interpreted by the generated \fBinit\fR script.
+In addition to the standard kernel parameters the following parameter
+are supported:
+.TP
+\fBlinuxrc=trace\fR
+Enabling command tracing of the init script
+.TP
+\fBnoresume\fR
+Do not check for a resume device
+.TP
+\fBsysrq=yes\fR
+\fBsysrq=1\fR
+Enable sysrq
+.TP
+\fBresume=<device>\fR
+Resume from device \fI<device>\fR
+.TP
+\fBjournal=<device>\fR
+Use device \fI<device>\fR as external journal device.
+This is only valid for reiser and xfs filesystems.
+.TP
+\fBmduuid=<UUID>\fR
+Mount md RAID with uuid \fI<UUID\fR as the root filesystem.
+.TP
+\fBTargetAddress=<IP Address>\fR
+[iSCSI] IP Address of the iSCSI Target
+.TP
+\fBInitiatorName=<iqn>\fR
+[iSCSI] Use \fI<iqn>\fR as the iSCIS initiatorname.
+.TP
+\fBip=<ipspec>\fR
+Use \fI<ipspec>\fR to configure the network interface. Format of the
+\fI<ipspec>\fR is
+<client>:<server>:<gateway>:<netmask>:<hostname>:<device>:<proto>.
+<client>, <server>, <gateway>, <netmask> are in the standard
+dotted-decimal IP notation. <proto> is currently ignored.
+.TP
+\fBudev_timeout=<secs>\fR
+Set the timeout for root device detection to \fI<secs>\fR
+seconds. Default is 10.
+
+.SH FEATURES
+Normally \fBmkinitrd\fR detects all required features automatically,
+based upon the current root filesystem. If additional features should
+be enabled, the \fB-f\fR option can be specified.
+
+Currently, the following features can be selected:
+.TP
+\fBiscsi\fR
+Include iSCSI support
+.TP
+\fBmpath\fR
+Add support for multipathing
+.TP
+\fBmd\fR
+Add support for Software RAID (md)
+.TP
+\fBlvm2\fR
+Add support for LVM2
+.TP
+\fBevms\fR
+Add support for EVMS
+.TP
+\fBlvm\fR
+Add support for LVM1
+
+.SH Using NFS as root filesystem
+To configure an initrd for an NFS client, specify these options to add nfs and network driver support into the initrd:
+.TP
+mkinitrd \fB-m "nfs e1000" -D eth0\fR
+This will add the required kernel modules and a dhcp client to the initrd, which will try to get an IP address via eth0.
+Boot the NFS client with these additional command line options to mount the server: \fBnfsroot=1.2.3.4:/exported/directory\fR
+
+.TP
+mkinitrd \fB-m "nfs e1000" -I eth0\fR
+This will add the required kernel modules to the initrd, a static IP address must be specified on the kernel cmdline.
+Boot the NFS client with these additional command line options to mount the server: \fBnfsroot=1.2.3.4:/exported/directory ip=1.2.3.42:1.2.3.4:1.2.3.1:255.255.255.0:clienthostname:eth0:none\fR . See the ip= description above for details about the ip= option.
+
+.SH NOTE
+\fBmk_initrd\fR is now a symbolic link to \fBmkinitrd\fR.
+.SH ENVIRONMENT VARIABLES
+You can specify the root device via the environment variable rootdev (e.g.
+"rootdev=/dev/hda mk_initrd").
+.BR 
+.SH AUTHOR
+Steffen Winterfeldt <wfeldt@suse.de>, Susanne Oberhauser
+<froh@suse.de>, Andreas Gruenbacher <agruen@suse.de>, Hannes Reinecke
+<hare@suse.de>
+.BR 

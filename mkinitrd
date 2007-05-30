@@ -1,0 +1,491 @@
+#! /bin/bash
+
+# mkinitrd - create the initramfs images
+# usage: see below usage() or call with -h
+#
+# Copyright (C) 1999-2006 SuSE Linux Products GmbH, Nuernberg, Germany
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+# USA.
+
+# This file is kept in the following CVS repository:
+#
+# $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
+# $Revision: 1.386 $
+
+usage() {
+    cat<<EOF
+	Create initial ramdisk images that contain all kernel modules
+	needed in the early boot process, before the root file system
+	becomes available. This usually includes SCSI and/or RAID
+	modules, a file system module for the root file system, or
+	a network interface driver module for dhcp.
+
+        mkinitrd [options]
+
+        options:
+          -h               This Text.
+	  -v               Verbose mode.
+          -k "kernel list" List of kernel images for which initrd files
+                           are created. Defaults to all kernels found
+			   in /boot.
+          -i "initrd list" List of file names for the initrd; position
+	  		   have match to "kernel list". Defaults to all
+			   all kernels found in /boot.
+          -m "module list" Modules to include in initrd. Defaults to the
+                           INITRD_MODULES variable in /etc/sysconfig/kernel.
+          -u "DomU module list" Modules to include in initrd. Defaults to
+                           the DOMU_INITRD_MODULES variable in
+                           /etc/sysconfig/kernel.
+          -f "feature list" Features to be enabled when generating initrd.
+                           Available features are:
+                           iscsi, md, mpath, lvm, lvm2, evms
+          -b boot_dir      Boot directory. Defaults to /boot.
+          -d root_device   Root device. Defaults to the device from which
+                           / is mounted. Overrides the rootdev enviroment
+			   variable if set.
+	  -s size          Add splash animation and bootscreen to initrd.
+	  -t tmp_dir       Temporary directory. Defaults to /var/tmp.
+	  -D interface     Run dhcp on the specified interface.
+	  -I interface     Configure the specified interface statically.
+	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
+	  		   Description Table) to initrd. This replaces the
+			   DSDT of the BIOS. Defaults to the ACPI_DSDT
+			   variable in /etc/sysconfig/kernel.
+          -e               Use static binaries where possible (currently unavailable)
+          -P               Include modules for IDE devices on the PCI bus
+	  -V script        Vendor specific script to run in linuxrc.
+	  -M map           System.map file to use.
+	  -A               Create a so called "monster initrd" which includes
+			   all features and modules possible.
+EOF
+    exit
+}
+
+default_kernel_images() {
+    local regex kernel_image kernel_version version_version initrd_image
+    local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
+
+    case "$(uname -m)" in
+	s390|s390x)
+	    regex='image'
+	    ;;
+	ppc|ppc64)
+	    regex='vmlinux'
+	    ;;
+	*)  regex='vmlinu.'
+	    ;;
+    esac
+
+    # user mode linux
+    if grep -q UML /proc/cpuinfo; then
+	    regex='linux'
+    fi
+
+    kernel_images=""
+    initrd_images=""
+    for kernel_image in $(ls /boot \
+	    | sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
+
+	# Note that we cannot check the RPM database here -- this
+	# script is itself called from within the binary kernel
+	# packages, and rpm does not allow recursive calls.
+
+	[ -L "/boot/$kernel_image" ] && continue
+	[ "${kernel_image%%.gz}" != "$kernel_image" ] && continue
+	kernel_version=$(/sbin/get_kernel_version \
+			 /boot/$kernel_image 2> /dev/null)
+	initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
+	if [ "$kernel_image" != "$initrd_image" -a \
+	     -n "$kernel_version" -a \
+	     -d "/lib/modules/$kernel_version" ]; then
+		kernel_images="$kernel_images /boot/$kernel_image"
+		initrd_images="$initrd_images /boot/$initrd_image"
+	fi
+    done
+}
+
+# You can specify the root device via the environment variable rootdev (e.g.
+# "rootdev=/dev/hda mkinitrd").
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# general configurable parameters
+
+kernel_images=
+initrd_images=
+modules=
+modules_set=
+domu_modules=
+domu_modules_set=
+feature_list=
+boot_dir=
+splash=offbydefault
+use_static_binaries=ignored
+acpi_dsdt=
+use_selinux=
+sysmap=
+journaldev=
+build_day=@BUILD_DAY@
+scan_pci_bus=
+create_monster_initrd=
+verbose=
+
+# read the sysconfig configs
+if [ -e "/etc/sysconfig/initrd" ]; then
+    . /etc/sysconfig/initrd
+fi
+
+while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
+    case $a in
+	\:|\?)	case $OPTARG in
+		k)  echo "-k requires kernel list parameter"
+		    ;;
+		i)  echo "-i requires initrd list parameter"
+		    ;;
+		m)  echo "-m requires module list parameter"
+		    ;;
+		u)  echo "-u requires module list parameter"
+		    ;;
+		f)  echo "-f requires feature list parameter"
+		    ;;
+		b)  echo "-b requires boot dir parameter"
+		    ;;
+		d)  echo "-d requires root device parameter"
+		    ;;
+		s)  echo "-s requires image size(s)"
+		    ;;
+		t)  echo "-t requires tmp dir parameter"
+		    ;;
+		D)  echo "-D requires dhcp interface parameter"
+		    ;;
+		I)  echo "-I requires network interface parameter"
+		    ;;
+		a)  echo "-a requires a DSDT parameter"
+		    ;;
+		V)  echo "-V requires an executable to run inside linuxrc"
+		    ;;
+		M)  echo "-M requires the System.map file"
+		    ;;	
+		j)  echo "-j requires the journal device"
+		    ;;	
+		*)  echo "Unknown option: -$OPTARG"
+		    echo "Try mkinitrd -h"
+		    ;;
+	    esac
+	    exit 1
+	    ;;
+	e)  use_static_binaries=ignored
+	    ;;
+	f)  ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES $OPTARG"
+	    ;;
+	k)  kernel_images=$OPTARG
+	    ;;
+	i)  initrd_images=$OPTARG
+	    ;;
+	m)  modules=$OPTARG
+	    modules_set=1
+	    ;;
+	u)  domu_modules=$OPTARG
+	    domu_modules_set=1
+	    ;;
+	b)  boot_dir=$OPTARG
+	    ;;
+	d)  rootdev=$OPTARG
+	    ;;
+	s)  splash=$OPTARG
+	    ;;
+	t)  tmp_dir=$OPTARG
+	    ;;
+	D)  interface=$OPTARG
+	    interface=${interface#/dev/}
+	    use_dhcp=1
+	    scan_pci_bus=
+	    ;;
+ 	I)  interface=$OPTARG
+ 	    interface=${interface#/dev/}
+ 	    use_ipconfig=1
+	    scan_pci_bus=
+	    ;;
+	a)  acpi_dsdt="$OPTARG"
+	    ;;
+	S)  use_selinux=1
+	    ;;
+	V)  vendor_init_script="$OPTARG"
+	    ;;
+	M)  sysmap="$OPTARG"
+	    ;;
+	P)  scan_pci_bus=1
+	    ;;
+	A)  create_monster_initrd=1
+	    ;;
+	v)  verbose=1
+	    ;;
+	j)  journaldev="$OPTARG"
+	    ;;
+	h)  usage
+	    ;;
+    esac
+done
+shift $(( $OPTIND - 1 ))
+
+mkinit_name="mkinitramfs"
+
+if [ -n "$1" ]; then
+    root_dir=${1%/}  # strip trailing slash
+else
+    root_dir=
+fi
+
+if [ -n "$boot_dir" ]; then
+    boot_dir="${boot_dir#/}"
+    boot_dir="/${boot_dir%/}"
+else
+    boot_dir="/boot"
+fi
+if [ ! -d "$boot_dir" ]; then
+    echo "$boot_dir is not a directory" >&2
+    exit 1
+fi
+
+if [ -n "$tmp_dir" ]; then
+    tmp_dir="/${tmp_dir#/}"  # make sure it is an absolute path
+else
+    tmp_dir=/var/tmp
+fi
+if [ ! -d "$tmp_dir" ]; then
+    echo "$tmp_dir is not a directory" >&2
+    exit 1
+fi
+
+# Check if the -k and -i settings are valid.
+if [ $(set -- $kernel_images ; echo $#) -ne \
+     $(set -- $initrd_images ; echo $#) ]; then
+    echo "You have to specify -k and -i, or none of both. The -k" \
+         "and -i options must each contain the same number of items." >&2
+    exit 1
+fi
+
+# Mount /usr, required for ldd and other tools to create the initrd tree
+mounted_usr=
+if [ ! -x /usr/bin/ldd ]; then
+  mounted_usr=/usr
+  if ! mount -n -v /usr ; then
+    echo "/usr/bin/ldd not available and mount /usr failed." \
+         "mkinitrd does not work without it." >&2
+    exit 1
+  fi
+fi
+
+# Mount /proc if not already done so
+mounted_proc=
+if [ ! -e /proc/mounts ]; then
+  mounted_proc=/proc
+  mount -n -t proc proc $mounted_proc
+fi
+
+# And /sys likewise
+mounted_sys=
+if [ ! -d /sys/devices ] ; then
+    mounted_sys=/sys
+    mount -n -t sysfs none /sys
+fi
+
+if [ -z "$kernel_images" -o -z "$initrd_images" ]; then
+    default_kernel_images
+fi
+
+initrd_insmod=/sbin/insmod
+initrd_modprobe=/sbin/modprobe
+
+# maximum initrd size
+image_blocks=40960
+image_inodes=2048
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# should be nothing to change below...
+
+PATH=/sbin:/usr/sbin:$PATH
+
+# Fixup old installations
+unset CDPATH
+
+work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
+if [ $? -ne 0 ]; then
+	echo "$0: Can't create temp dir, exiting." >&2
+	exit 1
+fi
+
+umount_proc() {
+    [ "$mounted_proc" ] && umount -n $mounted_proc
+    mounted_proc=
+    [ "$mounted_sys" ] && umount -n $mounted_sys
+    mounted_sys=
+    [ "$mounted_usr" ] && umount -v -n $mounted_usr
+    mounted_usr=
+}
+
+cleanup() {
+    rm -f $tmp_initrd $tmp_initrd.gz
+    [ -d "$tmp_mnt" ] && rm -rf "$tmp_mnt"
+    initrd_bins=()
+}
+
+cleanup_finish() {
+    umount_proc
+    [ -d "$work_dir" ] && rm -rf $work_dir
+}
+
+handle_terminate() {
+    echo "(received signal)
+
+Interrupted, cleaning up." >&2
+    cleanup
+    cleanup_finish
+    exit 255
+}
+
+trap handle_terminate 1 2 3 15
+
+error() {
+    touch "$work_dir/error"
+    oops "$@"
+}
+
+oops() {
+    echo "$2" >&2
+    cleanup
+    exit $1
+}
+
+##################################################
+
+# saves an environment variable in the config file of the current script
+# usage: save_var <variable name> [default value]
+save_var() {
+	# sysconfig options override dynamically generated options
+	if [ -e "/etc/sysconfig/initrd" ]; then
+		local override="$(cat /etc/sysconfig/initrd | egrep \"^$1=\")"
+		if [ "$override" ]; then
+			eval $override
+		fi
+	fi
+	# only overwrite variables if not defined previously (e.g. by the kernel commandline)
+	if [ "$(eval echo \$$1)" ]; then
+		echo "[ \"\$$1\" ] || $1='$(eval echo \$$1)'" >> config/$curscript
+	elif [ "$2" ]; then
+		echo "[ \"\$$1\" ] || $1='$2'" >> config/$curscript
+	fi
+}
+
+verbose() {
+	[ "$verbose" ] && echo -e "$@"
+}
+
+INITRD_PATH=/lib/mkinitrd
+
+# creates an initrd image using small modules called "setup scripts"
+# the actual creation of the initrd is contained within these scripts
+mkinitrd_kernel() {
+	local kernel_image=$1 initrd_image=$2
+	shebang=/bin/bash
+	oldpwd="$(pwd)"
+	
+	for setupfile in $INITRD_PATH/setup/*; do
+		[ -d "$tmp_mnt" ] && cd "$tmp_mnt" # process setup files in the initrd root dir
+		if [ ! -d "$setupfile" ]; then
+		    curscript="${setupfile#*-}"
+#		    echo "[$curscript] $blockdev"
+		    source $setupfile
+		fi
+	done
+	cd "$oldpwd"
+}
+
+###################################################################
+
+# working directories
+tmp_initrd=$work_dir/initrd
+tmp_initrd_small=${tmp_initrd}_small
+
+###################################################################
+
+exit_code=0
+
+initrd_images=( $initrd_images )
+kernel_images=( $kernel_images )
+
+#boot_modules="$modules"
+#echo -e "User-defined Module list:\t$boot_modules ($domu_modules)"
+for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
+    ( # start in a subshell so the different mkinitrd build processes
+      # don't interfere
+    echo
+#    modules="$boot_modules"
+    kernel_image=${kernel_images[$i]}
+    [ ${kernel_image:0:1} != '/' ] \
+    	&& kernel_image=$boot_dir/$kernel_image
+
+    initrd_image=${initrd_images[$i]}
+    [ ${initrd_image:0:1} != '/' ] \
+    	&& initrd_image=$boot_dir/$initrd_image
+
+    mkinitrd_kernel $kernel_image $initrd_image
+    [ $? -eq 0 ] || exit 1
+
+    # If the current $kernel_image has a symlink without "-<version>" (e.g.
+    # "vmlinuz") pointing to it, create an "initrd" symlink for the
+    # corresponding $initrd_image.
+    if [ $exit_code -eq 0 -a "$(readlink ${kernel_image%%-*})" = \
+	 "${kernel_image#$boot_dir/}" ]; then
+	rm -f $root_dir/$boot_dir/initrd
+	ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
+    fi
+    cleanup
+    )
+    [ -e "$work_dir/error" ] && break
+done
+
+cleanup_finish
+
+if [ -e $root_dir/etc/sysconfig/bootloader ]; then
+    . $root_dir/etc/sysconfig/bootloader
+fi
+case $LOADER_TYPE in
+  lilo)
+    echo "
+Run lilo now to update the boot loader configuration."
+    ;;
+  elilo)
+    if [ -x /sbin/elilo ]; then
+      /sbin/elilo
+    else
+      echo "
+You may now have to update the elilo boot loader configuration."
+    fi
+    ;;
+  grub)
+    ;;
+  *)
+    if [ -f "$root_dir/etc/zipl.conf" ]; then
+	echo "
+initrd updated, zipl needs to update the IPL record before IPL!"
+    else
+	echo "
+You may now have to update your boot loader configuration."
+    fi
+    ;;
+esac
+
+exit $exit_code
