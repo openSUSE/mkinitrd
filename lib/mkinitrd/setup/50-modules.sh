@@ -78,6 +78,9 @@ for script in $INITRD_PATH/boot/*.sh; do
 done
 
 resolved_modules="$(resolve_modules $kernel_version $modules)"
+if [ $? -ne 0 ] ; then
+    return 1
+fi
 
 echo -ne "Kernel Modules:\t"
 for mod in $resolved_modules ; do

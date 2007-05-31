@@ -448,7 +448,7 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     	&& initrd_image=$boot_dir/$initrd_image
 
     mkinitrd_kernel $kernel_image $initrd_image
-    [ $? -eq 0 ] || return 1
+    [ $? -eq 0 ] || exit 1
 
     # If the current $kernel_image has a symlink without "-<version>" (e.g.
     # "vmlinuz") pointing to it, create an "initrd" symlink for the
