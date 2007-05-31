@@ -23,6 +23,7 @@ Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tgz
 Source1:        hotplug.sh
+Source2:        build_rpm
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk

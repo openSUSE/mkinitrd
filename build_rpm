@@ -13,16 +13,8 @@ fi
 
 mkdir $DESTDIR
 
-DIR="mkinitrd-2.0"
-
-mkdir $DESTDIR/$DIR
-for d in lib sbin src man ; do
-    find $d -name '*~' -delete -o -print | cpio -pdma $DESTDIR/$DIR
-done
-
-(cd $DESTDIR; tar czf mkinitrd.tgz $DIR)
-
-rm -rf $DESTDIR/$DIR
+git archive --format=tar --prefix=mkinitrd-2.0/ HEAD \
+    | gzip > $DESTDIR/mkinitrd.tgz
 
 cp mkinitrd.spec $DESTDIR
 cp mkinitrd.changes $DESTDIR
