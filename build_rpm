@@ -13,11 +13,10 @@ fi
 
 mkdir $DESTDIR
 
-git archive --format=tar --prefix=mkinitrd-2.0/ HEAD \
+git archive --format=tar --prefix=mkinitrd-2.0/ master \
     | gzip > $DESTDIR/mkinitrd.tgz
 
 cp mkinitrd.spec $DESTDIR
 cp mkinitrd.changes $DESTDIR
-cp hotplug.sh $DESTDIR
 
 echo "mkinitrd src rpm copied to $DESTDIR"

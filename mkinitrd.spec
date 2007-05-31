@@ -22,8 +22,6 @@ Release:        12
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tgz
-Source1:        hotplug.sh
-Source2:        build_rpm
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk
@@ -63,7 +61,7 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 cp -a lib $RPM_BUILD_ROOT/
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
-install -D -m 755 %{S:1} $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
+install -D -m 755 hotplug.sh $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
 install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 
