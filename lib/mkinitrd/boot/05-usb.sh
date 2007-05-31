@@ -1,6 +1,6 @@
 #!/bin/bash
 #%requires: firewire
-#%udevmodules: usbcore hci_usb ohci_hcd uhci-hcd ehci_hcd usbhid hid
+#%udevmodules: usbcore ohci_hcd uhci-hcd ehci_hcd usbhid
 #%if: "$use_usb"
 #
 ##### usb module helper
