@@ -4,7 +4,7 @@
 rootfsck="/sbin/fsck.${rootfstype}"
 if [ ! -x "$rootfsck" ]; then
     rootfsck=
-    if [ "$rootfstype" != "nfs" ]; then
+    if [ "$rootfstype" != "nfs" ] || [ "$rootfstype" != "xfs" ]; then
 	echo "****************************"
 	echo "*        WARNING           "
 	echo "* No fsck for your rootfs  "
