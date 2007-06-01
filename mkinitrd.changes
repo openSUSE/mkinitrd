@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun  1 15:34:27 CEST 2007 - hare@suse.de
+
+- Handle built-in filesystems correctly (#278981)
+- Fixup handling of xfs (#278192)
+- Update NFS mount handling
+
+-------------------------------------------------------------------
 Wed May 30 16:38:44 CEST 2007 - hare@suse.de
 
 - Simplify shared library detection
