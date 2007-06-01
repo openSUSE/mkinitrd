@@ -40,15 +40,12 @@ if [ "$rootfstype" = "nfs" ]; then
 	# load the nfs module before using it
 	load_modules
 	
-	opt="-t nfs -o ro,nolock"
-	# mount the actual nfs root device on /root
-	echo "Mounting root $rootdev"
-	[ -n "$rootflags" ] && opt="${opt},$rootflags"
-	
-	mount $opt $rootdev /root || die 1
-	
-	# keep the mount module from mounting the root device again
-	[ "$(cat /proc/mounts | grep /root)" ] && root_already_mounted=1
+	rootfsmod=
+	if [ -n "$rootflags" ] ; then
+	    rootflags="${rootflags},nolock"
+	else
+	    rootflags="nolock"
+	fi
 else
 	dont_load_modules
 fi

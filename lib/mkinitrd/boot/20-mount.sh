@@ -1,7 +1,7 @@
 #!/bin/bash
 #%requires: resume
 #%programs: /sbin/fsck $rootfsck
-#%modules: $rootfstype 
+#%modules: $rootfsmod
 #%if: ! "$root_already_mounted"
 #%dontshow
 #

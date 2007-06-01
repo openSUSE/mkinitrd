@@ -244,8 +244,15 @@ if [ ! "$rootfstype" ]; then
     error 1 "Could not find the filesystem type for root device $rootdev"
 fi
 
+# Check if we have to load a module for the rootfs type
 if ! modprobe --set-version $kernel_version -q $rootfstype; then
-    error 1 "Could not find the filesystem module for root device $rootdev ($rootfstype)"
+    if ! grep -q $rootfstype /proc/filesystems ; then
+	error 1 "Could not find the filesystem module for root device $rootdev ($rootfstype)"
+    else
+	rootfsmod=
+    fi
+else
+    rootfsmod=$rootfstype
 fi
 
 # blockdev is the current block device depending on the layered storage script we are in
