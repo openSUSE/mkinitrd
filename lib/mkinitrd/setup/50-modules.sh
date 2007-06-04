@@ -43,9 +43,10 @@ resolve_modules() {
 	    --set-version $kernel_version --ignore-install \
 	    --show-depends $module 2> /dev/null \
 	    | sed -ne 's:.*insmod /\?::p' )
-	if [ "$module" != "af_packet" ] && [ -z "$module_list" ]; then
-	    oops 7 "Cannot determine dependencies of module $module." \
-		"Is modules.dep up to date?"
+	if [ ! "$module_list" ]; then
+	    echo \
+"WARNING Cannot determine dependencies of kernel module '$module'.
+	Does it exist? If it does, try depmod -a. Continuing without $module." >&2
 	fi
 	for mod in $module_list ; do
 	    if ! $(echo $resolved_modules | grep -q $mod) ; then
@@ -81,6 +82,20 @@ resolved_modules="$(resolve_modules $kernel_version $modules)"
 if [ $? -ne 0 ] ; then
     return 1
 fi
+
+# cut out all modules which have a minus preceding them
+modules=$(
+for module in $modules; do
+    skip=
+    for m2 in $modules; do
+	if [ "-$module" = "$m2" ]; then
+	    skip=1
+        fi
+    done
+    [ ${module:0:1} = "-" ] && continue
+    [ "$skip" ] || echo "$module"
+done
+)
 
 echo -ne "Kernel Modules:\t"
 for mod in $resolved_modules ; do
