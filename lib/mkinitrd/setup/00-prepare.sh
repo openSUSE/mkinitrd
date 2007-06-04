@@ -98,6 +98,19 @@ use_script() {
         return
     fi
 
+    # And run depmod to ensure proper loading
+    if [ "$sysmap" ] ; then
+	map="$sysmap"
+    else
+	map=$root_dir/boot/System.map-$kernel_version
+    fi
+    if [ ! -f $map ]; then
+	map=$root_dir/boot/System.map
+    fi
+    if [ ! -f $map ]; then
+	oops 9 "Could not find map $map, please specify a correct file with -M."
+    fi
+
     # create an empty initrd
     if ! mkdir $tmp_mnt ; then
 	error 1 "could not create temporary directory"

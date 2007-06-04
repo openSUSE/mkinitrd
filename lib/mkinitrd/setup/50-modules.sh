@@ -117,21 +117,6 @@ for module in $resolved_modules; do
     fi
 done
 
-# And run depmod to ensure proper loading
-if [ "$sysmap" ] ; then
-    map="$sysmap"
-else
-    map=$root_dir/boot/System.map-$kernel_version
-fi
-if [ ! -f $map ]; then
-    map=$root_dir/boot/System.map
-fi
-if [ ! -f $map ]; then
-    oops 9 "Could not find map $map, please specify a correct file with -M."
-    rm -rf $tmp_mnt
-    return 1
-fi
-
 if [ "$resolved_modules" ] ; then
     [ ! -d $tmp_mnt/lib/modules/$kernel_version ] && oops 10 "No modules have been installed"
     ( cd $tmp_mnt; /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version )

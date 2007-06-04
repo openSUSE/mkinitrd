@@ -245,8 +245,8 @@ if [ ! "$rootfstype" ]; then
 fi
 
 # Check if we have to load a module for the rootfs type
-if ! modprobe --set-version $kernel_version -q $rootfstype; then
-    if ! grep -q $rootfstype /proc/filesystems ; then
+if [ ! "$(find $root_dir/lib/modules/$kernel_version/ -name $rootfstype.ko)" ]; then
+    if ! grep -q ${rootfstype}_fs_type $map ; then
 	error 1 "Could not find the filesystem module for root device $rootdev ($rootfstype)"
     else
 	rootfsmod=
