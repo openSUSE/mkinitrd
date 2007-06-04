@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun  4 13:53:53 CEST 2007 - agraf@suse.de
+
+- Made missing modules a warning. This may happen on custom kernels. (#279516)
+- Added: If a kernel module preceding a minus sign was given, this module is
+  excluded from the initrd
+
+-------------------------------------------------------------------
 Fri Jun  1 15:34:27 CEST 2007 - hare@suse.de
 
 - Handle built-in filesystems correctly (#278981)
@@ -13,7 +20,7 @@ Wed May 30 16:38:44 CEST 2007 - hare@suse.de
 - Fixup error paths
 - Fix cciss detection
 - Fix typo in lvm2 setup
-- Fix module detection
+- Fix module detection (#279611)
 
 -------------------------------------------------------------------
 Tue May 29 17:33:51 CEST 2007 - agraf@suse.de
