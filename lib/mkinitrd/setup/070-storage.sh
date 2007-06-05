@@ -226,7 +226,7 @@ done
 case "$rootdev" in
       /dev/*)
         if [ ! -e "$rootdev" ]; then
-	    error 1 "Root device not found"
+	    error 1 "Root device ($rootdev) not found"
 	fi
 	;;
       *:*)
