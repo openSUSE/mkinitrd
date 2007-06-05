@@ -1,4 +1,5 @@
 #!/bin/bash
+#%dontshow
 ##### kdump
 ##
 ## This dumps the crash core of a previously crashed kernel
