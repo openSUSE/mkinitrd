@@ -137,12 +137,12 @@ echo $features
 
 	for lib in $lib_files ; do
 	    if [ -f $lib ] ; then
-#		echo -n "${lib##$root_dir/} "
+		verbose -n "${lib##$root_dir/} "
 		cp -dp --parents $lib $tmp_mnt
 	    fi
 	done
-#	echo
-#    else
-#	echo "none"
+	verbose
+    else
+	verbose "none"
     fi
 
