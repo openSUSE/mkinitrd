@@ -13,7 +13,7 @@ fi
 
 mkdir $DESTDIR
 
-git archive --format=tar --prefix=mkinitrd-2.0/ master \
+git archive --format=tar --prefix=mkinitrd-2.0/ local \
     | gzip > $DESTDIR/mkinitrd.tgz
 
 cp mkinitrd.spec $DESTDIR
