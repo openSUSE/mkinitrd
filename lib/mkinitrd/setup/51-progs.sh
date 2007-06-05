@@ -101,14 +101,14 @@ echo $features
 
 [ -e "bin/sh" ] || ln -s /bin/bash bin/sh
 
-#    echo -ne "Shared libs:\t"
+    verbose -ne "Shared libs:\t"
     # Copy all required shared libraries and the symlinks that
     # refer to them.
     lib_files=$(shared_object_files "${initrd_bins[@]}")
     [ $? -eq 0 ] || return 1
     if [ -n "$lib_files" ]; then
 	for lib in $lib_files; do
-#	    [ -L $root_dir/$lib ] || echo -n "$lib "
+	    [ -L $root_dir/$lib ] || verbose -n "$lib "
 	    ( cd ${root_dir:-/} ; cp -dp --parents $lib $tmp_mnt )
 	done
 	lib_files=
