@@ -1,19 +1,74 @@
 #!/bin/bash
+#
+# Build a mkinitrd source rpm 
+#
 
-if [ "$1" ] ; then
-    DESTDIR=$1
-else
-    DESTDIR="/tmp/mkinitrd"
-fi
+DESTDIR="/tmp/mkinitrd"
 
-if [ -d "$DESTDIR" ] ; then
-    echo "directory $DESTDIR exists, cannot continue"
+while [ $# -gt 0 ] ; do
+    case "$1" in
+	-d)
+	    DESTDIR=$2;
+	    shift 2;
+	    ;;
+	--destdir)
+	    DESTDIR=${$1#*=};
+	    shift;
+	    ;;
+	-b)
+	    BRANCH=$2;
+	    shift 2;
+	    ;;
+	--branch=)
+	    BRANCH=${1##*=};
+	    shift;
+	    ;;
+	-f|--force)
+	    force=1;
+	    shift;
+	    ;;
+	*)
+	    echo "Usage: build_rpm [-f] [-d dir|--destdir=DIR] [-b BRANCH|--branch=BRANCH]"
+	    exit 1;
+	    ;;
+    esac
+done
+
+if ! which git-archive > /dev/null ; then
+    echo "git-archive not found, cannot continue"
     exit 1
 fi
 
-mkdir $DESTDIR
+if [ -z "$BRANCH" ] ; then
+    BRANCH="HEAD"
+    echo "Branch is not set, checking out from $BRANCH"
+fi
 
-git archive --format=tar --prefix=mkinitrd-2.0/ local \
+if [ -d "$DESTDIR" ] ; then
+    if [ -z "$force" ] ; then
+	echo "directory $DESTDIR exists, cannot continue"
+	exit 1
+    else
+	if ! rm -rf "$DESTDIR" ; then
+	    echo "Cannot remove directory $DESTDIR"
+	    exit 1
+	fi
+    fi
+fi
+
+if ! git branch | grep -q "$BRANCH" ; then
+    echo "Branch \"$BRANCH\" does not exist"
+    exit 1
+else
+    echo "Checking out from $BRANCH"
+fi
+
+if ! mkdir $DESTDIR ; then
+    echo "Cannot create directory $DESTDIR"
+    exit 1
+fi
+
+git archive --format=tar --prefix=mkinitrd-2.0/ "$BRANCH" \
     | gzip > $DESTDIR/mkinitrd.tgz
 
 cp mkinitrd.spec $DESTDIR
