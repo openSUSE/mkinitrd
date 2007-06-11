@@ -21,6 +21,16 @@ if use_script busybox; then
 	    rm -f sbin/$busyfile
 	    verbose "[BUSYBOX] replacing $DIR/$busyfile"
 	fi
+	# we have to remove the copied program files from the
+	# internal list so we only get shared libs that are
+	# actually used
+	declare -i binc
+	for ((binc=0 ; $binc<${#initrd_bins[@]} ; binc++)); do
+	${A##*/}
+	    if [ "${initrd_bins[$binc]##*/}}" = "$busyfile" ]; then
+	    	initrd_bins[$binc]=''
+	    fi
+	done
 	ln -s ../bin/busybox "$DIR/$busyfile"
       done
     fi
