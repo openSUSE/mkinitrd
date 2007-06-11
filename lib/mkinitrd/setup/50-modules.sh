@@ -42,7 +42,7 @@ resolve_modules() {
 	module_list=$(/sbin/modprobe $with_modprobe_conf \
 	    --set-version $kernel_version --ignore-install \
 	    --show-depends $module 2> /dev/null \
-	    | sed -ne 's:.*insmod /\?::p' )
+	    | sed -ne 's:.*insmod /\?::p' | sed -ne 's:\ .*\?::p' )
 	if [ ! "$module_list" ]; then
 	    echo \
 "WARNING Cannot determine dependencies of kernel module '$module'.
