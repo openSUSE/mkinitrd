@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun 11 11:52:02 CEST 2007 - agraf@suse.de
+
+- Cut off module parameters from modprobe --show-depends output (#282665)
+- Seperate program copy module from shared library detection, so
+  programs can get replaced without having their shared libs included
+
+-------------------------------------------------------------------
 Mon Jun  4 13:53:53 CEST 2007 - agraf@suse.de
 
 - Made missing modules a warning. This may happen on custom kernels. (#279516)
