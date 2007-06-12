@@ -397,7 +397,9 @@ save_var() {
 }
 
 verbose() {
-	[ "$verbose" ] && echo -e "$@"
+	if [ "$verbose" ] ; then
+	    echo -e "$@"
+	fi
 }
 
 # creates an initrd image using small modules called "setup scripts"
