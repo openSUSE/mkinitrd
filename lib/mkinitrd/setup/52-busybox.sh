@@ -7,12 +7,20 @@ if use_script busybox; then
       for i in `busybox | grep Curr -A 200 | grep -v "Currently defined f"`; do 
 	DIR=bin
 	busyfile="${i/,/}"
-	# skip programs that do not work properly
-	case $busyfile in
-	    modprobe|fsck|umount|mount)
-		continue
-		;;
-	esac
+	# skip programs that do not work properly (if they exist)
+	if [ -e "bin/$busyfile" -o -e "sbin/$busyfile" ]; then
+	    case $busyfile in
+		# modprobe: breaks udev
+		# fsck: breaks fsck.ext3
+		# umount: does not know -f
+		# sleep: can only use full integers (no floats)
+		# init: no need for init in initrd (breaks bootchart)
+		# cp: missing -v (breaks bootchart)
+		modprobe|fsck|umount|mount|sleep|init|cp)
+		    continue
+		    ;;
+	    esac
+	fi
 	if [ -h "bin/$busyfile" ]; then
 	    # don't process symlinks
     	    continue
