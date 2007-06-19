@@ -13,7 +13,10 @@ if use_script busybox; then
 		continue
 		;;
 	esac
-	if [ -e "bin/$busyfile" ]; then
+	if [ -h "bin/$busyfile" ]; then
+	    # don't process symlinks
+    	    continue
+	elif [ -e "bin/$busyfile" ]; then
 	    verbose "[BUSYBOX] replacing $DIR/$busyfile"
 	    rm -f bin/$busyfile
 	elif [ -e "sbin/$busyfile" ]; then
