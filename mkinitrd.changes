@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun 12 16:03:46 CEST 2007 - hare@suse.de
+
+- Fixup verbose() to not change the return value
+
+-------------------------------------------------------------------
 Mon Jun 11 11:52:02 CEST 2007 - agraf@suse.de
 
 - Cut off module parameters from modprobe --show-depends output (#282665)

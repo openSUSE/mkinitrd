@@ -397,7 +397,7 @@ save_var() {
 }
 
 verbose() {
-	if [ "$verbose" ]; then
+	if [ "$verbose" ] ; then
 	    echo -e "$@"
 	fi
 }
@@ -415,7 +415,7 @@ mkinitrd_kernel() {
 		    curscript="${setupfile##*-}"
 #		    echo "[$curscript] $blockdev"
 		    source $setupfile
-		    [ $? -ne 0 ] && oops "Script $setupfile failed!"
+		    [ $? -ne 0 ] && return 1
 		fi
 	done
 	cd "$oldpwd"
