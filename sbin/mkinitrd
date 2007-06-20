@@ -415,7 +415,7 @@ mkinitrd_kernel() {
 		    curscript="${setupfile##*-}"
 #		    echo "[$curscript] $blockdev"
 		    source $setupfile
-		    [ $? -ne 0 ] && return 1
+		    [ $? -ne 0 ] && oops 1 "Script $setupfile failed!"
 		fi
 	done
 	cd "$oldpwd"
