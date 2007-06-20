@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 20 13:04:08 CEST 2007 - agraf@suse.de
+
+- Fixed blogd killing to not use sleep
+- If a script failed, throw out an error message
+
+-------------------------------------------------------------------
 Tue Jun 12 16:03:46 CEST 2007 - hare@suse.de
 
 - Fixup verbose() to not change the return value
