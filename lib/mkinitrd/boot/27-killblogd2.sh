@@ -1,4 +1,5 @@
 #!/bin/bash
+#%programs: usleep
 #%dontshow
 #
 ##### blogd end2
@@ -11,6 +12,8 @@
 
 if test -n "$blogd_pid" ; then
     kill -QUIT "$blogd_pid"
-    wait "$blogd_pid"
+    while [ -d "/proc/$blogd_pid" ]; do
+	usleep 300000
+    done
     umount -t devpts /root/dev/pts
 fi
