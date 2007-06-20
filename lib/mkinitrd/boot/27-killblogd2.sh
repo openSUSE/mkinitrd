@@ -1,5 +1,4 @@
 #!/bin/bash
-#%programs: wait
 #%dontshow
 #
 ##### blogd end2
