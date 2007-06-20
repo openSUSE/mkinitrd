@@ -17,7 +17,6 @@
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-devpts=no
 die() {
     umount /proc
     umount /sys
@@ -104,7 +103,6 @@ if test -n "$REDIRECT" ; then
     ln -sf /dev/shm/initrd.msg /var/log/boot.msg
     mkdir -p /var/run
     mount -t devpts devpts /dev/pts
-    devpts=yes
     /sbin/blogd $REDIRECT
 fi
 

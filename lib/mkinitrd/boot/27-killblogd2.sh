@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: killiscsi
+#%programs: wait
 #%dontshow
 #
 ##### blogd end2
@@ -12,8 +12,6 @@
 
 if test -n "$blogd_pid" ; then
     kill -QUIT "$blogd_pid"
-    sleep 1
-    rm -f /var/log/boot.msg
-    test "$devpts" = "no" || umount -t devpts /root/dev/pts
-    devpts=no
+    wait "$blogd_pid"
+    umount -t devpts /root/dev/pts
 fi
