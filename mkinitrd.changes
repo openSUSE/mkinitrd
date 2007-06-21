@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun 19 08:45:50 CEST 2007 - hare@suse.de
+
+- Ignore commented lines in /etc/fstab (#230222)
+
+-------------------------------------------------------------------
 Wed May  9 17:53:15 CEST 2007 - hare@suse.de
 
 - Implement EVMS disk handling policies (#230935)

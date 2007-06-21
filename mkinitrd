@@ -23,7 +23,7 @@
 # This file is kept in the following CVS repository:
 #
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.312.2.56 $
+# $Revision: 1.312.2.57 $
 
 usage() {
     cat<<EOF
@@ -3143,7 +3143,7 @@ mkinitrd_kernel() {
 	|
 	|# Parse root mount options
 	|if [ -f /root/etc/fstab ] ; then
-	|    fsoptions=$(cat /root/etc/fstab | while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done)
+	|    fsoptions=$(sed -e'/^[ 	]*#/d' /root/etc/fstab | while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done)
 	|    set -- $(IFS=,; echo $fsoptions)
 	|    fsoptions=
 	|    while [ "$1" ] ; do
@@ -3291,7 +3291,7 @@ if [ -z "$rootdev" ] ; then
   done < <( sed -e '/^[ 	]*#/d' < $root_dir/etc/fstab)
 else
   # get type from /etc/fstab or /proc/mounts (actually not needed)
-  x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
+  x1=$(sed -e'/^[ 	]*#/d' $root_dir/etc/fstab /proc/mounts 2>/dev/null \
        | grep -E "$rootdev[[:space:]]" | tail -n 1)
   rootfstype=$(echo $x1 | cut -f 3 -d " ")
 fi
