@@ -22,7 +22,9 @@ if [ -x /sbin/dmsetup ]; then
 	    fi
 	done
 
-	cp /etc/udev/rules.d/70-kpartx.rules $tmp_mnt/etc/udev/rules.d
+	if [ "$root_kpartx" ]; then 
+	    cp /etc/udev/rules.d/70-kpartx.rules $tmp_mnt/etc/udev/rules.d
+	fi
 	blockdev="$kpartx_blockdev"
 fi
 
