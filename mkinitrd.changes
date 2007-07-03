@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul  3 12:54:52 CEST 2007 - hare@suse.de
+
+- Include /var/lib/multipath/bindings to support
+  option 'user_friendly_names' for multipath (#288046)
+
+-------------------------------------------------------------------
 Tue Jun 19 08:45:50 CEST 2007 - hare@suse.de
 
 - Ignore commented lines in /etc/fstab (#230222)
