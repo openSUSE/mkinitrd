@@ -2,7 +2,7 @@
 #%requires: kpartx
 #%programs: /sbin/multipath /sbin/mpath_id /sbin/mpath_prio_*
 #%if: "$root_mpath"
-#%modules: dm-multipath
+#%modules: dm-multipath dm-emc dm-hp_sw dm-rdac
 #
 ##### Multipath
 ##
