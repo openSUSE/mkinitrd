@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: md
+#%stage: volumemanager
 #%programs: /sbin/evms_activate /sbin/evms
 #%if: "$root_evms"
 #

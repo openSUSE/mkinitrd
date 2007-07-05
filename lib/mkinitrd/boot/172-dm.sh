@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: nfs
+#%stage: block
 #%modules: $dm_modules dm-mod dm-snapshot
 #%programs: /sbin/dmsetup
 # dm-crypt dm-zero dm-mirror

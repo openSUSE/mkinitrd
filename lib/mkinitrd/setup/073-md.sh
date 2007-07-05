@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: softraid
+#
 mdblockdev=
 
 for bd in $blockdev ; do

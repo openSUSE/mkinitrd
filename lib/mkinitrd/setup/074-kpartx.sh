@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: partitions
+#
 if [ -x /sbin/dmsetup ]; then
 	kpartx_blockdev=
 

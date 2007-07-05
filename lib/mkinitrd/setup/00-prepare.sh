@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: setup
+#
 ###### Additional options
 ##
 ## Script inclusion may be overriden by

@@ -1,5 +1,6 @@
 #!/bin/bash
-#%requires: zfcp
+#%stage: boot
+#%depends: start
 #%programs: /sbin/udevd /sbin/udevtrigger /sbin/udevsettle udevinfo /sbin/udevcontrol
 #%dontshow
 #

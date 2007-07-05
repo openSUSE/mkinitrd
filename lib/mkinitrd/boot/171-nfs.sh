@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: storage
+#%stage: block
 #%modules: nfs
 #%if: "$rootfstype" = "nfs" -o "$interface"
 #

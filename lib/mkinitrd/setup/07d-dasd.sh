@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: device
+#
 if [ "$(echo $blockdev | grep dasd)" ]; then
 	root_dasd=1
 fi

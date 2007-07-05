@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: block
+#%stage: block
 #%programs: /sbin/dasdview /sbin/dasdinfo /sbin/dasd_configure
 #%if: "$root_dasd"
 #

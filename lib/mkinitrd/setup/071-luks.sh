@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+#%stage: crypto
+#
 
 if [ -x /sbin/cryptsetup -a -x /sbin/dmsetup ] ; then
     luks_blockdev=

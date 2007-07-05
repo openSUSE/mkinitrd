@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: block
+#%depends: partition
+#
 handle_scsi() {
     local dev=$1
 

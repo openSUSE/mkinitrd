@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: block
+#%provides: partition
+#
 blockpart_blockdev=
 
 for bd in $blockdev; do

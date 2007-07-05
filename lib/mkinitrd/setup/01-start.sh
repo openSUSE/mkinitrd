@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: setup
+#%depends: prepare
+#
 shebang=/bin/bash
 
 is_xen_kernel() {

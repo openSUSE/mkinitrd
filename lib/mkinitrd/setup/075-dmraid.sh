@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: devicemapper
+#%provides: dmroot
+#
 if [ -x /sbin/dmraid -a -x /sbin/dmsetup ] ; then
 	for bd in $blockdev ; do
 	    update_blockdev $bd

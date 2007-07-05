@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: devicemapper
+#%depends: dmroot
+#
 
 # no dmsetup -> no dm
 if [ -x /sbin/dmsetup ]; then	

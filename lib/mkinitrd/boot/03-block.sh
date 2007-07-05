@@ -1,5 +1,6 @@
 #!/bin/bash
-#%requires: devfunctions
+#%stage: block
+#%provides: ideoptions scsioptions
 #%udevmodules: $block_modules
 #%if: "$block_modules"
 #

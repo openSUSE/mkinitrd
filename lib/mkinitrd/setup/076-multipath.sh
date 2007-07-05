@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: devicemapper
+#%provides: dmroot
+#
 # force multipath and kpartx usage if multipath was forced
 if use_script multipath; then
     root_mpath=1

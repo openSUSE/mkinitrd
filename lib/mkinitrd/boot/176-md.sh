@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: multipath
+#%stage: softraid
 #%programs: /sbin/mdadm
 #%modules: raid0 raid1 raid5
 #%if: -n "$need_mdadm" -a -z "$root_evms"

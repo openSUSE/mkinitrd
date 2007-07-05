@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: device
+#
 if [ "$(echo $block_modules | grep zfcp)" ]; then
 	root_zfcp=1
 fi

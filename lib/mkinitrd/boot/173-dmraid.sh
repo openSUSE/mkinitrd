@@ -1,5 +1,7 @@
 #!/bin/bash
-#%requires: dm
+#%stage: block
+#%depends: dm
+#%provides: dmroot
 #%programs: /sbin/dmraid
 #%if: -n "$root_dmraid"
 #

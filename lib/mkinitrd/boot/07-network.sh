@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: usb
+#%stage: device
 #%programs: /sbin/dhcpcd /sbin/ip
 # dhcpcd reqires the af_packet module
 #%modules: af_packet 

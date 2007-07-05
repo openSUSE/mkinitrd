@@ -1,5 +1,6 @@
 #!/bin/bash
-#%requires: xen
+#%stage: device
+#%depends: network
 #%programs: /sbin/iscsid /sbin/iscsiadm /sbin/fwparam_ibft usleep
 #%modules: iscsi_tcp crc32c scsi_transport_iscsi
 #%if: "$root_iscsi" -o "$TargetAddress"

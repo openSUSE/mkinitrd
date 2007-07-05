@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: volumemanager
+#%depends: evms
+#
 # get information about the current blockdev
 update_blockdev
 

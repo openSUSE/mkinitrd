@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: device
+#
 if [ "$(echo $block_modules | grep sbp2)" ]; then
 	root_firewire=1
 fi

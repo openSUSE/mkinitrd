@@ -1,5 +1,6 @@
 #!/bin/bash
-#%requires: udev
+#%stage: boot
+#%depends: udev
 #%programs: showconsole /sbin/blogd
 #%if: -x /sbin/blogd
 #%dontshow

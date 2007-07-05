@@ -1,5 +1,7 @@
 #!/bin/bash
-#%requires: iscsi
+#
+#%stage: device
+#%requires: network
 #%modules: netconsole
 #%programs: ping arp awk
 #%if: "$interface" -a "$NETCONSOLE"

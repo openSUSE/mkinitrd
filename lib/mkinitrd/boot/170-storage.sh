@@ -1,4 +1,5 @@
 #!/bin/bash
+#%stage: boot
 #%dontshow
 #%requires: devinit_done
 #

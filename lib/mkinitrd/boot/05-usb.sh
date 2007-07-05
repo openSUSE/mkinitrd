@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: firewire
+#%stage: device
 #%udevmodules: usbcore ohci_hcd uhci-hcd ehci_hcd usbhid
 #%if: "$use_usb"
 #

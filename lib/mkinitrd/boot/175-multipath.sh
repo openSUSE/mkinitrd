@@ -1,5 +1,6 @@
 #!/bin/bash
-#%requires: kpartx
+#%stage: block
+#%provides: dmroot
 #%programs: /sbin/multipath /sbin/mpath_id /sbin/mpath_prio_*
 #%if: "$root_mpath"
 #%modules: dm-multipath dm-emc dm-hp_sw dm-rdac

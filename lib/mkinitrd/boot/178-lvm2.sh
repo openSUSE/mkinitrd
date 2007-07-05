@@ -1,5 +1,6 @@
 #!/bin/bash
-#%requires: evms
+#%stage: volumemanager
+#%depends: evms
 #%programs: /sbin/vgscan /sbin/vgchange /sbin/lvm
 #%modules: linear
 #%if: -n "$root_lvm2"

@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: volumemanager
+#
 get_evms_devices() {
     local evms_cmd
     local evms_reg

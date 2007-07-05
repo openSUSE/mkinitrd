@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: lvm2
+#%stage: crypto
 #%programs: /sbin/cryptsetup
 #%udevmodules: dm-crypt $cryptmodules
 #%if: "$root_luks" -o "$luks"

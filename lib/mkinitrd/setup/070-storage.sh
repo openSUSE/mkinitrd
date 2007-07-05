@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: filesystem
+#
 # usage: block_driver <major id>
 block_driver() {
     sed -n "/^Block devices:/{n;: n;s/^[ ]*$1 \(.*\)/\1/p;n;b n}" < /proc/devices

@@ -1,5 +1,7 @@
 #!/bin/bash
-#%requires: mount
+#
+#%stage: setup
+#
 #%dontshow
 #
 ##### debug shell

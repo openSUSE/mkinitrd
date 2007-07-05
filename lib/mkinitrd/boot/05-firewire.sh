@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: blogd
+#%stage: device
 #%udevmodules: ohci1394
 #%if: "$root_firewire"
 #

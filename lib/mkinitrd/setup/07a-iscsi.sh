@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: device
+#
 check_iscsi_root() {
     local devname=$1
     local sysfs_path

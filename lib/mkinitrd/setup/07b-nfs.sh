@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: device
+#
 case "$rootdev" in
     *:*)
 	rootfstype=nfs
