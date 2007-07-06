@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+#%stage: boot
+#
 # TODO: generate module deps and copy them to the initrd
 # 	take xen into account
 

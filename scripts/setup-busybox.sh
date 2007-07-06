@@ -1,5 +1,9 @@
 #!/bin/bash
-
+#
+#%stage: boot
+#%depends: progs
+#%provides: progs
+#
 if use_script busybox; then
     if [ ! -x "/usr/bin/busybox" ]; then
 	echo "[BUSYBOX] No Busybox executable was found"

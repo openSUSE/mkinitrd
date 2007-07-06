@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: boot
+#
 # Attach ACPI DSDT if necessary.
 attach_dsdt() {
     local initrd_image=$1
@@ -40,15 +42,15 @@ attach_dsdt() {
     done
 }
 
-    attach_dsdt
+attach_dsdt
 
-    pushd . > /dev/null 2>&1
-    cd $tmp_mnt
-    find bin sbin -type f -print0 | xargs -0 chmod 0755 
-    find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
-    popd > /dev/null 2>&1
-    if ! cp -f $tmp_initrd.gz $initrd_image ; then
-	oops 8 "Failed to install initrd"
-    fi
-    rm -rf $tmp_mnt
+pushd . > /dev/null 2>&1
+cd $tmp_mnt
+find bin sbin -type f -print0 | xargs -0 chmod 0755 
+find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
+popd > /dev/null 2>&1
+if ! cp -f $tmp_initrd.gz $initrd_image ; then
+    oops 8 "Failed to install initrd"
+fi
+rm -rf $tmp_mnt
 

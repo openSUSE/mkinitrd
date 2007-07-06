@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+#%stage: boot
+#%depends: progs
+#
 # copy shared libraries to the initrd (dynamically resolved)
 
 # Resolve dynamic library dependencies. Returns a list of symbolic links

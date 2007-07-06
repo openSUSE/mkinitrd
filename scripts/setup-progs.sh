@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+#%stage: boot
+#
 # copy programs to the initrd
 
 for script in $INITRD_PATH/boot/*.sh; do

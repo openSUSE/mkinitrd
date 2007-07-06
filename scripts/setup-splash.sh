@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+#%stage: boot
+#
 # architecture dependend changes from default:
 if [ "$splash" = "offbydefault" ]; then
     case "$(uname -m)" in
@@ -58,62 +60,62 @@ auto)
 esac
 
 
-    [ ${#features[@]} -gt 0 ] \
-	&& echo -e "Including:\t${features[@]}"
+[ ${#features[@]} -gt 0 ] \
+    && echo -e "Including:\t${features[@]}"
 
-    splash_bin=
-    [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
-    [ -x /bin/splash ] && splash_bin=/bin/splash
-    splash_image=
-    if [ -n "$splashsizes" -a -n "$splash_bin" ]; then
-	if [ -f /etc/sysconfig/bootsplash ]; then
-	    . /etc/sysconfig/bootsplash
-	fi
-
-	themes_dir=
-	if [ -d "$root_dir/etc/bootsplash/themes" ]; then
-	    themes_dir="$root_dir/etc/bootsplash/themes"
-	elif [ -d "$root_dir/usr/share/splash/themes" ]; then
-	    themes_dir="$root_dir/usr/share/splash/themes"
-	fi
-
-	no_splash=
-	[ "$SPLASH" = "no" ] && no_splash=1
-	case ${kernel_version##*-} in
-	    kdump|um|xen*)
-		no_splash=1
-		;;
-	esac
-
-	echo -ne "Bootsplash:\t"
-	if [ -n "$no_splash" ]; then
-	    echo "No bootsplash for kernel flavor ${kernel_version##*-}"
-	else
-	    if [ -n "$themes_dir" ] && \
-		 [ -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
-		for size in $splashsizes; do
-		    bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
-		    cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
-		    if [ ! -r $cfgname ] ; then
-			echo "disabled for resolution $size"
-		    elif [ ! -r $bootsplash_picture ] ; then
-			echo "no image for resolution $size"
-		    else
-			echo -n "${splash_image:+, }$THEME ($size)"
-			splash_image="$splash_image $cfgname"
-		    fi
-		done
-		echo
-	    else
-		echo "no theme selected"
-	    fi
-	fi
+splash_bin=
+[ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
+[ -x /bin/splash ] && splash_bin=/bin/splash
+splash_image=
+if [ -n "$splashsizes" -a -n "$splash_bin" ]; then
+    if [ -f /etc/sysconfig/bootsplash ]; then
+	. /etc/sysconfig/bootsplash
     fi
 
-    # Include bootsplash image
-    for image in $splash_image; do
-	$splash_bin -s -f $image >> $tmp_mnt/bootsplash
-    done
+    themes_dir=
+    if [ -d "$root_dir/etc/bootsplash/themes" ]; then
+	themes_dir="$root_dir/etc/bootsplash/themes"
+    elif [ -d "$root_dir/usr/share/splash/themes" ]; then
+	themes_dir="$root_dir/usr/share/splash/themes"
+    fi
+
+    no_splash=
+    [ "$SPLASH" = "no" ] && no_splash=1
+    case ${kernel_version##*-} in
+	kdump|um|xen*)
+	    no_splash=1
+	    ;;
+    esac
+
+    echo -ne "Bootsplash:\t"
+    if [ -n "$no_splash" ]; then
+	echo "No bootsplash for kernel flavor ${kernel_version##*-}"
+    else
+	if [ -n "$themes_dir" ] && \
+	    [ -d "$themes_dir/$THEME" -o -L "$themes_dir/$THEME" ]; then
+	    for size in $splashsizes; do
+		bootsplash_picture="$themes_dir/$THEME/images/bootsplash-$size.jpg"
+		cfgname="$themes_dir/$THEME/config/bootsplash-$size.cfg"
+		if [ ! -r $cfgname ] ; then
+		    echo "disabled for resolution $size"
+		elif [ ! -r $bootsplash_picture ] ; then
+		    echo "no image for resolution $size"
+		else
+		    echo -n "${splash_image:+, }$THEME ($size)"
+		    splash_image="$splash_image $cfgname"
+		fi
+	    done
+	    echo
+	else
+	    echo "no theme selected"
+	fi
+    fi
+fi
+
+# Include bootsplash image
+for image in $splash_image; do
+    $splash_bin -s -f $image >> $tmp_mnt/bootsplash
+done
 
 save_var no_splash
 save_var splash

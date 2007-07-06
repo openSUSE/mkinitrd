@@ -1,5 +1,8 @@
 #!/bin/bash
-
+#
+#%stage: device
+#%depends: iscsi nfs
+#
 # Calculate the netmask for a given prefix
 calc_netmask() {
     local prefix=$1

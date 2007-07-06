@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+#%stage: boot
+#
 # don't include a non-existant fsck
 
 rootfsck="/sbin/fsck.${rootfstype}"
