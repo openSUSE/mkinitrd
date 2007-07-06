@@ -14,12 +14,10 @@
 ## Command line parameters
 ## -----------------------
 ##
-## rw		mount the root device read/write
 ## ro		mount the root device read-only
 ## 
 
-[ "$( ( set -u; echo $rw >/dev/null; echo 1 ) 2>/dev/null )" = "1" ] && read_write=1
-[ "$( ( set -u; echo $ro >/dev/null; echo 1 ) 2>/dev/null )" = "1" ] && read_write=
+[ "$( ( set -u; echo $ro >/dev/null; echo 1 ) 2>/dev/null )" = "1" ] && read_only=1
 
 # And now for the real thing
 if ! udev_discover_root ; then
@@ -60,20 +58,18 @@ elif [ -x "$rootfsck" ]; then
         /bin/reboot -d -f
     elif [ $ROOTFS_FSCK -gt 3 ] ; then
         echo "fsck failed. Mounting root device read-only."
-        read_write=
+        read_only=1
     else
         if [ "$read_only" ]; then
             echo "fsck succeeded. Mounting root device read-only."
-            read_write=
         else
             echo "fsck succeeded. Mounting root device read-write."
-            read_write=1
         fi
     fi
 fi
 
-opt="-o ro"
-[ -n "$read_write" ] && opt="-o rw"
+opt="-o rw"
+[ "$read_only" ] && opt="-o ro"
 
 # mount the actual root device on /root
 echo "Mounting root $rootdev"
