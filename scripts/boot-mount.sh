@@ -1,5 +1,8 @@
 #!/bin/bash
-#%requires: resume
+#
+#%stage: filesystem
+#%depends: resume
+#
 #%programs: /sbin/fsck $rootfsck
 #%modules: $rootfsmod
 #%if: ! "$root_already_mounted"

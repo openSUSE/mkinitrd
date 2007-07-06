@@ -2,7 +2,6 @@
 #
 #%stage: boot
 #%depends: progs
-#%provides: progs
 #
 if use_script busybox; then
     if [ ! -x "/usr/bin/busybox" ]; then

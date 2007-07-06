@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+#%stage: filesystem
+#%provides: resume
+#%depends: dump
+#
 #%if: -z "$is_kdump" -a -z "$kdump_kernel" -a '(' -x /usr/sbin/resume -o -x /sbin/resume ')'
 #%programs: /sbin/resume
 #

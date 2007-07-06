@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+#%stage: setup
+#%depends: killblogd
+#%provides: killprogs
+#
 #%programs: usleep
 #%dontshow
 #

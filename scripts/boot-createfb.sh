@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: shell
+#%stage: setup
 #%dontshow
 #
 ##### framebuffer device node creator

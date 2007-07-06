@@ -1,6 +1,7 @@
 #!/bin/bash
+#
 #%stage: boot
-#%depends: start
+#
 #%dontshow
 #
 ##### Device functions

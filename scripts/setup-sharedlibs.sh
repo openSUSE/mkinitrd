@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #%stage: boot
-#%depends: progs
+#%depends: progs busybox
 #
 # copy shared libraries to the initrd (dynamically resolved)
 

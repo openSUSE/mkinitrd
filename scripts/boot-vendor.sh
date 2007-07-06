@@ -1,5 +1,7 @@
 #!/bin/bash
-#%requires: killblogd
+#
+#%stage: boot
+#
 #%if: "$vendor_init_script"
 #
 ##### vendor script
@@ -13,4 +15,7 @@
 ##
 
 # Call vendor-specific init script
-/vendor_init.sh
+if [ -x /vendor_init.sh ] ; then
+    /vendor_init.sh
+fi
+

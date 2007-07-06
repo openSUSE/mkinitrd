@@ -1,4 +1,5 @@
 #!/bin/bash
+#%stage: setup
 #%if: 1 = 2
 #%programs: busybox
 

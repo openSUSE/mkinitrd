@@ -1,5 +1,6 @@
 #!/bin/bash
 #%stage: block
+#%depends: dm
 #%provides: dmroot
 #%programs: /sbin/multipath /sbin/mpath_id /sbin/mpath_prio_*
 #%if: "$root_mpath"

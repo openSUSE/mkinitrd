@@ -1,5 +1,8 @@
 #!/bin/bash
-#%requires: vendor
+#
+#%stage: setup
+#%provides: killprogs
+#
 #%dontshow
 #
 ##### kill udev
