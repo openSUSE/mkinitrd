@@ -1,5 +1,5 @@
 #!/bin/bash
-#%requires: block
+#%stage: device
 #%if: "$root_zfcp"
 #
 ##### S390: zfcp module loader

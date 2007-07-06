@@ -1,5 +1,8 @@
 #!/bin/bash
-#%requires: createfb
+#
+#%stage: filesystem
+#%depends: mount
+#
 #%dontshow
 #
 ##### remount root fs if neccessary

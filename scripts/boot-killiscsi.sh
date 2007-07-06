@@ -1,5 +1,8 @@
 #!/bin/bash
-#%requires: killudev
+#
+#%stage: setup
+#%provides: killprogs
+#
 #%if: "$iscsi_root"
 #%dontshow
 #

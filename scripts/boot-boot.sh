@@ -1,5 +1,7 @@
 #!/bin/bash
-#%requires: killblogd2
+#
+#%stage: setup
+#%depends: killprogs
 #%programs: 
 #%modules: 
 #%dontshow
@@ -12,6 +14,8 @@
 ## -----------------------
 ##
 
+# Move device nodes
+/bin/mount --move /dev /root/dev
 # ready to leave
 cd /root
 umount /proc

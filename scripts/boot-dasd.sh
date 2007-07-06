@@ -1,5 +1,5 @@
 #!/bin/bash
-#%stage: block
+#%stage: device
 #%programs: /sbin/dasdview /sbin/dasdinfo /sbin/dasd_configure
 #%if: "$root_dasd"
 #

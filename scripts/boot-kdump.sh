@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+#%stage: filesystem
+#%provides: dump
+#
 #%dontshow
 ##### kdump
 ##

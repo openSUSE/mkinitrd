@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 #%stage: boot
+#%depends: progs sharedlibs
 #
 # Attach ACPI DSDT if necessary.
 attach_dsdt() {

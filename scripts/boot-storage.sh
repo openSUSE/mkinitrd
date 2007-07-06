@@ -1,7 +1,9 @@
 #!/bin/bash
+#
 #%stage: boot
+#%depends: start
+#
 #%dontshow
-#%requires: devinit_done
 #
 ##### Storage parameter parsing
 ##

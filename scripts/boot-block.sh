@@ -1,5 +1,5 @@
 #!/bin/bash
-#%stage: block
+#%stage: device
 #%provides: ideoptions scsioptions
 #%udevmodules: $block_modules
 #%if: "$block_modules"

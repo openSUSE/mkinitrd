@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+#%stage: filesystem
+#%provides: resume
+#%depends: resume.userspace
+#
 #%if: -z "$is_kdump" -a -z "$kdump_kernel"
 #
 ##### software suspend resume

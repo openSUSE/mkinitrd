@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 #%stage: device
-#%requires: network
+#%depends: network
+#
 #%modules: netconsole
 #%programs: ping arp awk
 #%if: "$interface" -a "$NETCONSOLE"

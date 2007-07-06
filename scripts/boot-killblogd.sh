@@ -1,5 +1,7 @@
 #!/bin/bash
-#%requires: remount
+#
+#%stage: setup
+#
 #%dontshow
 #
 ##### blogd end
@@ -15,6 +17,3 @@ blogd_pid=$(pidof blogd)
 if test -n "$blogd_pid" ; then
     kill -IO "$blogd_pid"
 fi
-
-# not actually anything to do with the blogd but was after the script in the old version
-/bin/mount --move /dev /root/dev
