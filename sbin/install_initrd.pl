@@ -3,19 +3,36 @@
 # Install initrd scripts
 #
 
-my %depends = ();
-my %providedby = ();
+use strict 'refs';
+
+my %level_boot = ();
+my %level_setup = ();
+my %depends_boot = ();
+my %depends_setup = ();
+my %providedby_boot = ();
+my %providedby_setup = ();
 
 sub resolve_dependency
 {
     my $section = shift(@_);
     my $name = shift(@_);
-    my $oldlevel = $level{$name};
+    my $oldlevel;
 
-    foreach $elem (split(' ',$depends{$name})) {
+    if ( $section eq "setup" ) {
+	$level = \%level_setup;
+	$depends = \%depends_setup;
+	$providedby= \%providedby_setup;
+    } else {
+	$level = \%level_boot;
+	$depends = \%depends_boot;
+	$providedby= \%providedby_boot;
+    }
+    $oldlevel = $$level{$name};
+
+    foreach $elem (split(' ',$$depends{$name})) {
 	my $newlevel = -1;
 
-	foreach $n (split(' ',$providedby{$elem})) {
+	foreach $n (split(' ',$$providedby{$elem})) {
 	    $newlevel = resolve_dependency($section, $n);
 	    if ( $oldlevel <= $newlevel) {
 		$oldlevel = $newlevel + 1;
@@ -27,7 +44,7 @@ sub resolve_dependency
 	}
     }
     print "$name ($oldlevel) ";
-    $level{$name} = $oldlevel;
+    $$level{$name} = $oldlevel;
 
     return $oldlevel;
 }
@@ -36,9 +53,9 @@ sub scan_section
 {
     my $section = shift(@_);
     my @scrlist = ();
-
-    %depends = ();
-    %providedby = ();
+    my $depends;
+    my $level;
+    my $providedby;
 
     SCAN: foreach $_ (@scripts) {
 	my $provides;
@@ -51,6 +68,16 @@ sub scan_section
 	    $scriptname = $2;
 	} else {
 	    next SCAN;
+	}
+
+	if ( $section eq "setup" ) {
+	    $level = \%level_setup;
+	    $depends = \%depends_setup;
+	    $providedby= \%providedby_setup;
+	} else {
+	    $level = \%level_boot;
+	    $depends = \%depends_boot;
+	    $providedby= \%providedby_boot;
 	}
 
 	print "scanning script $_ (name $scriptname)\n";
@@ -68,15 +95,15 @@ sub scan_section
 		    next SCAN;
 		}
 		if ($section eq "setup") {
-		    $level{$scriptname} = ($stages{$1} * 10) + 1;
+		    $$level{$scriptname} = ($stages{$1} * 10) + 1;
 		} else {
-		    $level{$scriptname} = 91 - ($stages{$1} * 10);
+		    $$level{$scriptname} = 91 - ($stages{$1} * 10);
 		}
-		printf "\tstage %s: %d\n", $1, $level{$scriptname};
+		printf "\tstage %s: %d\n", $1, $$level{$scriptname};
 	    }
 	    if ( /^\#%depends: (.*)/ ) {
 		printf "\tdepends on %s\n", $1;
-		$depends{$scriptname} = $1;
+		$$depends{$scriptname} = $1;
 	    }
 	    if ( /\#%provides: (.*)/ ) {
 		$provides = join(' ',$provides,$1);
@@ -89,7 +116,7 @@ sub scan_section
 
 	printf "\tprovides %s\n", $provides;
 	foreach $elem (split(' ',$provides)) {
-	    $providedby{$elem} = join(' ', $providedby{$elem},$scriptname);
+	    $$providedby{$elem} = join(' ', $$providedby{$elem},$scriptname);
 	}
     }
 
@@ -132,9 +159,10 @@ foreach $scr (@setup) {
 
 # Print result
 foreach $name (@setup) {
-    my $level = $level{$name};
+    my $level = \%level_setup;
+    my $lvl = $$level{$name};
 
-    printf "%s/%02d-$name.sh\n", $section, $level, $name;
+    printf "%s/%02d-$name.sh\n", $section, $lvl, $name;
 }
 
 # Second round: boot scripts
@@ -149,8 +177,9 @@ foreach $scr (@boot) {
 
 # Print result
 foreach $name (@boot) {
-    my $level = $level{$name};
+    my $level = \%level_boot;
+    my $lvl = $$level{$name};
 
-    printf "%s/%02d-$name.sh\n", $section, $level, $name;
+    printf "%s/%02d-$name.sh\n", $section, $lvl, $name;
 }
 
