@@ -147,39 +147,33 @@ opendir(DIR, $scriptdir);
 @scripts = grep { /.*\.sh$/ && -f "$scriptdir/$_" } readdir(DIR);
 closedir DIR;
 
-# First round: setup scripts
-$section = "setup";
-@setup = scan_section($section);
+# Scan scripts
+@setup = scan_section("setup");
+@boot = scan_section("boot");
 
 # Resolve dependencies
 foreach $scr (@setup) {
-    resolve_dependency($section, $scr);
+    resolve_dependency("section", $scr);
     print "\n";
 }
+
+foreach $scr (@boot) {
+    resolve_dependency("boot", $scr);
+    print "\n";
+}
+
 
 # Print result
 foreach $name (@setup) {
     my $level = \%level_setup;
     my $lvl = $$level{$name};
 
-    printf "%s/%02d-$name.sh\n", $section, $lvl, $name;
+    printf "setup/%02d-$name.sh\n", $lvl, $name;
 }
-
-# Second round: boot scripts
-$section = "boot";
-@boot = scan_section($section);
-
-# Resolve dependencies
-foreach $scr (@boot) {
-    resolve_dependency($section, $scr);
-    print "\n";
-}
-
-# Print result
 foreach $name (@boot) {
     my $level = \%level_boot;
     my $lvl = $$level{$name};
 
-    printf "%s/%02d-$name.sh\n", $section, $lvl, $name;
+    printf "boot/%02d-$name.sh\n", $lvl, $name;
 }
 
