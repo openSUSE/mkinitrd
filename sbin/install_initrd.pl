@@ -5,6 +5,8 @@
 
 use strict 'refs';
 
+my @scripts_boot = ();
+my @scripts_setup = ();
 my %level_boot = ();
 my %level_setup = ();
 my %depends_boot = ();
@@ -51,7 +53,7 @@ sub resolve_dependency
 
 sub scan_section
 {
-    my $section = shift(@_);
+    my @scripts = @_;
     my @scrlist = ();
     my $depends;
     my $level;
@@ -61,7 +63,7 @@ sub scan_section
 	my $provides;
 
 	if (/(.*)-(.*)\.sh$/) {
-	    if ($1 ne $section ) {
+	    if (($1 ne "setup" ) && ($1 ne "boot")) {
 		next SCAN;
 	    }
 	    $section = $1;
@@ -74,10 +76,12 @@ sub scan_section
 	    $level = \%level_setup;
 	    $depends = \%depends_setup;
 	    $providedby= \%providedby_setup;
+	    $scrlist = \@scripts_setup;
 	} else {
 	    $level = \%level_boot;
 	    $depends = \%depends_boot;
 	    $providedby= \%providedby_boot;
+	    $scrlist = \@scripts_boot;
 	}
 
 	print "scanning script $_ (name $scriptname)\n";
@@ -112,15 +116,13 @@ sub scan_section
 	}
 	close SCR;
 
-	@scrlist = (@scrlist,$scriptname);
+	@$scrlist = (@$scrlist,$scriptname);
 
 	printf "\tprovides %s\n", $provides;
 	foreach $elem (split(' ',$provides)) {
 	    $$providedby{$elem} = join(' ', $$providedby{$elem},$scriptname);
 	}
     }
-
-    return @scrlist;
 }
 
 $offset=1;
@@ -148,29 +150,28 @@ opendir(DIR, $scriptdir);
 closedir DIR;
 
 # Scan scripts
-@setup = scan_section("setup");
-@boot = scan_section("boot");
+scan_section(@scripts);
 
 # Resolve dependencies
-foreach $scr (@setup) {
+foreach $scr (@scripts_setup) {
     resolve_dependency("section", $scr);
     print "\n";
 }
 
-foreach $scr (@boot) {
+foreach $scr (@scripts_boot) {
     resolve_dependency("boot", $scr);
     print "\n";
 }
 
-
 # Print result
-foreach $name (@setup) {
+foreach $name (@scripts_setup) {
     my $level = \%level_setup;
     my $lvl = $$level{$name};
 
     printf "setup/%02d-$name.sh\n", $lvl, $name;
 }
-foreach $name (@boot) {
+
+foreach $name (@scripts_boot) {
     my $level = \%level_boot;
     my $lvl = $$level{$name};
 
