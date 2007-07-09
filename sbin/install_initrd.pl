@@ -8,15 +8,15 @@ my %providedby = ();
 
 sub resolve_dependency
 {
+    my $section = shift(@_);
     my $name = shift(@_);
-    my $oldname = shift(@_);
     my $oldlevel = $level{$name};
 
     foreach $elem (split(' ',$depends{$name})) {
 	my $newlevel = -1;
 
 	foreach $n (split(' ',$providedby{$elem})) {
-	    $newlevel = resolve_dependency($n, $name);
+	    $newlevel = resolve_dependency($section, $n);
 	    if ( $oldlevel <= $newlevel) {
 		$oldlevel = $newlevel + 1;
 	    }
@@ -126,7 +126,7 @@ $section = "setup";
 
 # Resolve dependencies
 foreach $scr (@setup) {
-    resolve_dependency($scr);
+    resolve_dependency($section, $scr);
     print "\n";
 }
 
@@ -143,7 +143,7 @@ $section = "boot";
 
 # Resolve dependencies
 foreach $scr (@boot) {
-    resolve_dependency($scr);
+    resolve_dependency($section, $scr);
     print "\n";
 }
 
