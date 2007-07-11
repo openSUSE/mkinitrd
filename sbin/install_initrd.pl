@@ -14,6 +14,15 @@ my %depends_setup = ();
 my %providedby_boot = ();
 my %providedby_setup = ();
 
+my $debug = 1;
+
+sub dprintf
+{
+    if ($debug > 0) {
+	printf @_;
+    }
+}
+
 sub resolve_dependency
 {
     my $section = shift(@_);
@@ -42,10 +51,10 @@ sub resolve_dependency
 	}
 
 	if ($newlevel == -1) {
-	    print "Unresolved dependency \"$elem\" ";
+	    dprintf "Unresolved dependency \"%s\" ", $elem;
 	}
     }
-    print "$name ($oldlevel) ";
+    dprintf "%s/%s (%s) ", $section, $name, $oldlevel;
     $$level{$name} = $oldlevel;
 
     return $oldlevel;
@@ -84,8 +93,8 @@ sub scan_section
 	    $scrlist = \@scripts_boot;
 	}
 
-	print "scanning script $_ (name $scriptname)\n";
-	printf "\tsection: %s\n", $section;
+	dprintf "scanning script %s (name %s)\n", $_, $scriptname;
+	dprintf "\tsection: %s\n", $section;
 	$provides = $scriptname;
 
 	open(SCR, "$scriptdir/$_");
@@ -94,7 +103,7 @@ sub scan_section
 	    chomp;
 	    if ( /^\#%stage: (.*)/ ) {
 		if (!defined ($stages{$1})) {
-		    printf "%s: Invalid stage \"%s\"\n", $scriptname, $1;
+		    dprintf "%s: Invalid stage \"%s\"\n", $scriptname, $1;
 		    close(SCR);
 		    next SCAN;
 		}
@@ -103,10 +112,10 @@ sub scan_section
 		} else {
 		    $$level{$scriptname} = 91 - ($stages{$1} * 10);
 		}
-		printf "\tstage %s: %d\n", $1, $$level{$scriptname};
+		dprintf "\tstage %s: %d\n", $1, $$level{$scriptname};
 	    }
 	    if ( /^\#%depends: (.*)/ ) {
-		printf "\tdepends on %s\n", $1;
+		dprintf "\tdepends on %s\n", $1;
 		$$depends{$scriptname} = $1;
 	    }
 	    if ( /\#%provides: (.*)/ ) {
@@ -118,7 +127,7 @@ sub scan_section
 
 	@$scrlist = (@$scrlist,$scriptname);
 
-	printf "\tprovides %s\n", $provides;
+	dprintf "\tprovides %s\n", $provides;
 	foreach $elem (split(' ',$provides)) {
 	    $$providedby{$elem} = join(' ', $$providedby{$elem},$scriptname);
 	}
@@ -132,6 +141,7 @@ $scriptdir="scripts";
 $stagefile = "$installdir/stages";
 open(STAGE, $stagefile) or die "Can't open $stagefile";
 
+print "Generating levels ...\n";
 # Generate levels
 $level=0;
 while(<STAGE>) {
@@ -140,11 +150,12 @@ while(<STAGE>) {
     my ($name,$comment) = split / /;
     next if $name eq "";
     $stages{$name} = $level;
-    printf "Found stage %s: %d\n", $name, $stages{$name} ;
+    dprintf "Found stage %s: %d\n", $name, $stages{$name} ;
     $level++;
 }
 close(STAGE);
 
+print "Scanning scripts ...\n";
 opendir(DIR, $scriptdir);
 @scripts = grep { /.*\.sh$/ && -f "$scriptdir/$_" } readdir(DIR);
 closedir DIR;
@@ -152,29 +163,46 @@ closedir DIR;
 # Scan scripts
 scan_section(@scripts);
 
+print "Resolve dependencies ...\n";
 # Resolve dependencies
 foreach $scr (@scripts_setup) {
-    resolve_dependency("section", $scr);
-    print "\n";
+    resolve_dependency("setup", $scr);
+    dprintf "\n";
 }
 
 foreach $scr (@scripts_boot) {
     resolve_dependency("boot", $scr);
-    print "\n";
+    dprintf "\n";
 }
 
-# Print result
+print "Install symlinks in $installdir ...\n";
+chdir "$installdir/setup" || die "Can't chdir to $installdir/setup : $!";
 foreach $name (@scripts_setup) {
     my $level = \%level_setup;
     my $lvl = $$level{$name};
+    my $linkname, $target;
 
-    printf "setup/%02d-$name.sh\n", $lvl, $name;
+    $linkname = sprintf "%02d-%s.sh", $lvl, $name;
+    $target = sprintf "../scripts/setup-%s.sh", $name;
+    printf "Linking %s to %s\n", $target, $linkname;
+    $ret = symlink($target, $linkname);
+    if ( $ret < 1 ) {
+	printf "Failed to create symlink %s: %s\n", $linkname, $!;
+    }
 }
 
+chdir "../boot" || die "Can't chdir to $installdir/boot: $!";
 foreach $name (@scripts_boot) {
     my $level = \%level_boot;
     my $lvl = $$level{$name};
+    my $linkname, $target;
 
-    printf "boot/%02d-$name.sh\n", $lvl, $name;
+    $linkname = sprintf "%02d-%s.sh", $lvl, $name;
+    $target = sprintf "../scripts/boot-%s.sh", $name;
+    printf "Linking %s to %s\n", $target, $linkname;
+    $ret = symlink($target, $linkname);
+    if ( $ret < 1 ) {
+	printf "Failed to create symlink %s: %s\n", $linkname, $!;
+    }
 }
 
