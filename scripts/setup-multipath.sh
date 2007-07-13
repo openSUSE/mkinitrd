@@ -23,7 +23,7 @@ if [ -x /sbin/multipath -a -x /sbin/dmsetup ] ; then
     done
 fi
 
-if [ -n "$root_mpath" ] ; then
+if use_script multipath; then
     if [ -f /etc/multipath.conf ] ; then
 	cp -a /etc/multipath.conf $tmp_mnt/etc
     fi
