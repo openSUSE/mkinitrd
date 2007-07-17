@@ -38,13 +38,17 @@ get_devmodule() {
 		cat $devpath/modalias
 		echo ide-disk
 		;;
-	    cciss* | dasd* | ps3d*)
-		devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)
-		cat $devpath/modalias
-		;;
 	    *)
-		echo "Device $blkdev not handled" >&2
-		return 1
+		if [ ! -d /sys/block/$blkdev/device ] ; then
+		    echo "Device $blkdev not handled" >&2
+		    return 1
+		fi
+		devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)
+		if [ ! -f "$devpath/modalias" ] ; then
+		    echo "No modalias for device $blkdev" >&2
+		    return 1
+		fi
+		cat $devpath/modalias
 		;;
 	esac
 	return 0
