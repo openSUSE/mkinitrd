@@ -17,7 +17,7 @@ Provides:       aaa_base:/sbin/mk_initrd
 #!BuildIgnore:  module-init-tools e2fsprogs udev pciutils reiserfs
 Requires:       coreutils modutils util-linux grep gzip sed gawk cpio udev pciutils sysvinit file perl
 Autoreqprov:    on
-Version:        2.0
+Version:        2.1
 Release:        12
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
