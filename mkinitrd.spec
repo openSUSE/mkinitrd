@@ -58,10 +58,13 @@ sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitr
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
-cp -a lib $RPM_BUILD_ROOT/
+mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
+mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
+mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
+cp -a scripts $RPM_BUILD_ROOT/lib/mkinitrd/scripts
+cp -a lib/mkinitrd/bin $RPM_BUILD_ROOT/lib/mkinitrd/bin
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
-install -D -m 755 hotplug.sh $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
 install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 
@@ -73,15 +76,13 @@ ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 %dir /lib/mkinitrd/bin
 %dir /lib/mkinitrd/boot
 %dir /lib/mkinitrd/setup
-/lib/mkinitrd/linuxrc
-/lib/mkinitrd/boot/*
-/lib/mkinitrd/setup/*
+/lib/mkinitrd/scripts/*
 /lib/mkinitrd/bin/*
 /sbin/mkinitrd
 /sbin/mk_initrd
+/sbin/mkinitrd_setup
 /sbin/module_upgrade
 /sbin/installkernel
-/usr/share/mkinitrd/hotplug.sh
 %doc %{_mandir}/man8/mkinitrd.8.gz
 
 %changelog

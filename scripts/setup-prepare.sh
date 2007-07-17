@@ -119,7 +119,7 @@ use_script() {
     fi
 
     # fill the initrd
-    cp $INITRD_PATH/linuxrc $linuxrc
+    cp $INITRD_PATH/bin/linuxrc $linuxrc
     mkdir "$tmp_mnt/boot"
 
     mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys,root,config}
