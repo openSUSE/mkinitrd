@@ -39,13 +39,17 @@ fi
 
 # Parse root mount options
 if [ -f /root/etc/fstab ] ; then
-    fsoptions=$(while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done < /root/etc/fstab)
+    fsoptions=$(while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done < <(sed -e '/^[ \t]*#/d' < /root/etc/fstab))
     set -- $(IFS=,; echo $fsoptions)
     fsoptions=
+    if [ "$read_only" ]; then
+	fsoptions=ro
+    fi
     while [ "$1" ] ; do
         case $1 in
         *quota) ;;
         defaults) ;;
+	rw) ;;
         *)
             if [ "$fsoptions" ] ; then
                 fsoptions="$fsoptions,$1"

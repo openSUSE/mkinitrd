@@ -3,6 +3,8 @@
 #%stage: devicemapper
 #%provides: dmroot
 #
+
+newbd=
 if [ -x /sbin/dmraid -a -x /sbin/dmsetup ] ; then
 	for bd in $blockdev ; do
 	    update_blockdev $bd
@@ -12,9 +14,13 @@ if [ -x /sbin/dmraid -a -x /sbin/dmsetup ] ; then
 		if [ "$dm_creator" = "dmraid" ]; then
 		    tmp_root_dm=1 # dmraid needs dm
 		    root_dmraid=1
+		    newbd="$newbd $(echo $bd | sed 's/[0-9]*$//')"
+		else
+		    newbd="$newbd $bd"
 		fi
 	    fi
 	done
 fi
- 
+blockdev="$newbd"
+
 save_var root_dmraid

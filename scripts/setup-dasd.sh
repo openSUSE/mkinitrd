@@ -8,7 +8,7 @@ fi
 
 save_var root_dasd
 
-if [ "$root_dasd" ]; then
+if use_script dasd; then
     for dasd in $blockdev; do
     	update_blockdev $dasd
 	if [ "$blockdriver" = "dasd" ]; then

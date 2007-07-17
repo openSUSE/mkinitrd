@@ -31,7 +31,7 @@ if [ -z "$root_evms" ] && [ -x /sbin/lvdisplay ] ; then
   blockdev="$lvm_blockdev"
 fi
 
-if [ -n "$root_lvm2" ] ; then
+if use_script lvm2; then
     tmp_root_dm=1 # lvm needs dm
     mkdir -p $tmp_mnt/etc/lvm
     mkdir -p $tmp_mnt/var/lock/lvm

@@ -36,7 +36,7 @@ if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then
 	ip=$nfsaddrs
 fi
 
-if [ "$ip" -a ! "$(echo $ip | grep :)" ]; then
+if [ "$ip" -a ! "$(echo $ip | sed '/:/P;d')" ]; then
 	echo "[NETWORK] using dhcp on $interface based on ip=$ip"
 	use_dhcp=1
 	use_ipconfig=
