@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Jul 17 16:10:43 CEST 2007 - hare@suse.de
+
+- Implemented dynamic script enumeration
+
+-------------------------------------------------------------------
+Mon Jul 16 10:33:43 CEST 2007 - sassmann@suse.de
+
+- PS3 devicename was not handled correctly (/dev/ps3dX)
+
+-------------------------------------------------------------------
 Wed Jun 20 13:04:08 CEST 2007 - agraf@suse.de
 
 - Fixed blogd killing to not use sleep
