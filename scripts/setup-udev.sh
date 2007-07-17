@@ -21,7 +21,7 @@ if [ -f /sbin/vol_id ] ; then
     ln -s ../../sbin/vol_id ${tmp_mnt}/lib/udev/vol_id
 fi
 for script in /lib/udev/* /sbin/*_id ; do
-    if [ -x "$script" ] ; then
+    if [ ! -d "$script" ] && [ -x "$script" ] ; then
 	cp_bin $script ${tmp_mnt}${script}
     elif [ -f "$script" ] ; then
 	cp -pL $script ${tmp_mnt}${script}
