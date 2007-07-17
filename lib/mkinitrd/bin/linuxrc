@@ -53,7 +53,7 @@ for file in boot/*; do
     [ -e "$config" ] && . "$config"
 
     # check if we should run the module
-    condition="$(cat $file | grep '%if: ')"
+    condition="$(cat $file | sed -n '/%if: /p')"
     condition="${condition#*if: }"
     if [ "$condition" ]; then
 	if ! eval test $condition; then
@@ -61,7 +61,7 @@ for file in boot/*; do
 	fi
     fi
     # remember dependent modules
-    modules=$(cat $file | grep '%modules: ')
+    modules=$(cat $file | sed -n '/%modules: /p')
     modules="${modules#*les: }"
 
     # run the module
