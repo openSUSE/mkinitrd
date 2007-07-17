@@ -16,6 +16,19 @@ my %providedby_setup = ();
 
 my $debug = 1;
 
+my %stages = (
+    setup => 0,
+    filesystem => 1,
+    crypto => 2,
+    volumemanager => 3,
+    softraid => 4,
+    partitions => 5,
+    devicemapper => 6,
+    block => 7,
+    device => 8,
+    boot => 9,
+);
+
 sub dprintf
 {
     if ($debug > 0) {
@@ -102,7 +115,7 @@ sub scan_section
 	while (<SCR>) {
 	    chomp;
 	    if ( /^\#%stage: (.*)/ ) {
-		if (!defined ($stages{$1})) {
+		if (! defined $stages{$1}) {
 		    dprintf "%s: Invalid stage \"%s\"\n", $scriptname, $1;
 		    close(SCR);
 		    next SCAN;
@@ -137,24 +150,6 @@ sub scan_section
 $offset=1;
 $installdir="lib/mkinitrd";
 $scriptdir="scripts";
-
-$stagefile = "$installdir/stages";
-
-open(STAGE, $stagefile) or die "Can't open $stagefile";
-
-print "Generating levels ...\n";
-# Generate levels
-$level=0;
-while(<STAGE>) {
-    chomp;
-    next if ( /\#.*/ );
-    my ($name,$comment) = split / /;
-    next if $name eq "";
-    $stages{$name} = $level;
-    dprintf "Found stage %s: %d\n", $name, $stages{$name} ;
-    $level++;
-}
-close(STAGE);
 
 print "Scanning scripts ...\n";
 opendir(DIR, $scriptdir);
