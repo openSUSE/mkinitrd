@@ -139,6 +139,7 @@ $installdir="lib/mkinitrd";
 $scriptdir="scripts";
 
 $stagefile = "$installdir/stages";
+
 open(STAGE, $stagefile) or die "Can't open $stagefile";
 
 print "Generating levels ...\n";
@@ -177,6 +178,15 @@ foreach $scr (@scripts_boot) {
 
 print "Install symlinks in $installdir ...\n";
 chdir "$installdir/setup" || die "Can't chdir to $installdir/setup : $!";
+
+opendir(DIR, ".");
+@links = grep { -l "$_" } readdir(DIR);
+closedir DIR;
+
+foreach $_ (@links) {
+    unlink || printf "Can't unlink %s: %s\n", $_, $!;
+}
+
 foreach $name (@scripts_setup) {
     my $level = \%level_setup;
     my $lvl = $$level{$name};
@@ -184,6 +194,8 @@ foreach $name (@scripts_setup) {
 
     $linkname = sprintf "%02d-%s.sh", $lvl, $name;
     $target = sprintf "../scripts/setup-%s.sh", $name;
+    # Strictly speaking not required, but ...
+    next if -l $linkname;
     printf "Linking %s to %s\n", $target, $linkname;
     $ret = symlink($target, $linkname);
     if ( $ret < 1 ) {
@@ -192,6 +204,15 @@ foreach $name (@scripts_setup) {
 }
 
 chdir "../boot" || die "Can't chdir to $installdir/boot: $!";
+
+opendir(DIR, ".");
+@links = grep { -l "$_" } readdir(DIR);
+closedir DIR;
+
+foreach $_ (@links) {
+    unlink || printf "Can't unlink %s: %s\n", $_, $!;
+}
+
 foreach $name (@scripts_boot) {
     my $level = \%level_boot;
     my $lvl = $$level{$name};
@@ -199,6 +220,8 @@ foreach $name (@scripts_boot) {
 
     $linkname = sprintf "%02d-%s.sh", $lvl, $name;
     $target = sprintf "../scripts/boot-%s.sh", $name;
+    # Strictly speaking not required, but ...
+    next if -l $linkname;
     printf "Linking %s to %s\n", $target, $linkname;
     $ret = symlink($target, $linkname);
     if ( $ret < 1 ) {
