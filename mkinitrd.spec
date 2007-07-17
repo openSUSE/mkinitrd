@@ -15,7 +15,7 @@ License:        GNU General Public License (GPL)
 Group:          System/Base
 Provides:       aaa_base:/sbin/mk_initrd
 #!BuildIgnore:  module-init-tools e2fsprogs udev pciutils reiserfs
-Requires:       coreutils modutils util-linux grep gzip sed gawk cpio udev pciutils sysvinit file
+Requires:       coreutils modutils util-linux grep gzip sed gawk cpio udev pciutils sysvinit file perl
 Autoreqprov:    on
 Version:        2.0
 Release:        12
@@ -57,6 +57,7 @@ sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitr
 
 %install
 rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
@@ -67,15 +68,28 @@ make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
 install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
+mkdir -p $RPM_BUILD_ROOT/etc/rpm
+cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
+#
+# Update links for mkinitrd scripts
+#
+%install_mkinitrd   /usr/bin/perl /sbin/mkinitrd_setup
+EOF
+
+%post
+/sbin/mkinitrd_setup
 
 %files
 %defattr(-,root,root)
+%dir /etc/rpm
 %dir /usr/share/mkinitrd
 %dir /lib/mkinitrd
 %dir /lib/mkinitrd/dev
 %dir /lib/mkinitrd/bin
+%dir /lib/mkinitrd/scripts
 %dir /lib/mkinitrd/boot
 %dir /lib/mkinitrd/setup
+%config /etc/rpm/macros.mkinitrd
 /lib/mkinitrd/scripts/*
 /lib/mkinitrd/bin/*
 /sbin/mkinitrd
