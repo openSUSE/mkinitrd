@@ -164,11 +164,11 @@ sub scan_section
 sub usage {
     print <<EOF;
 usage:
-	install_initrd [-s|--scriptdir <scriptdir>]
+	mkinitrd_setup [-s|--scriptdir <scriptdir>]
 		[-i|--installdir <installdir>]
 		[-d|--debug] [-o|--offset <offset>] [-h|--help]
 
-	Install initrd scripts. Options are:
+	Install mkinitrd scripts. Options are:
 	-s|--scriptdir	Install initrd script in dir <scriptdir>
 	-i|--installdir	Install initrd script in dir <installdir>
 	-d|--debug	Enable debug output
