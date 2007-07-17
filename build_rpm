@@ -68,7 +68,7 @@ if ! mkdir $DESTDIR ; then
     exit 1
 fi
 
-git archive --format=tar --prefix=mkinitrd-2.0/ "$BRANCH" \
+git archive --format=tar --prefix=mkinitrd-2.1/ "$BRANCH" \
     | gzip > $DESTDIR/mkinitrd.tgz
 
 cp mkinitrd.spec $DESTDIR
