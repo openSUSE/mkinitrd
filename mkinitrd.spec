@@ -62,7 +62,7 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
-cp -a scripts $RPM_BUILD_ROOT/lib/mkinitrd/scripts
+cp -a scripts $RPM_BUILD_ROOT/lib/mkinitrd
 cp -a lib/mkinitrd/bin $RPM_BUILD_ROOT/lib/mkinitrd/bin
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
