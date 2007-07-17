@@ -3,7 +3,8 @@
 # Install initrd scripts
 #
 
-use strict 'refs';
+use strict;
+use Getopt::Long;
 
 my @scripts_boot = ();
 my @scripts_setup = ();
@@ -14,7 +15,11 @@ my %depends_setup = ();
 my %providedby_boot = ();
 my %providedby_setup = ();
 
-my $debug = 1;
+my $debug = 0;
+my $offset = 0;
+my $installdir = "/lib/mkinitrd";
+my $scriptdir = "$installdir/scripts";
+my $dohelp = 0;
 
 my %stages = (
     setup => 0,
@@ -41,6 +46,9 @@ sub resolve_dependency
     my $section = shift(@_);
     my $name = shift(@_);
     my $oldlevel;
+    my $level;
+    my $depends;
+    my $providedby;
 
     if ( $section eq "setup" ) {
 	$level = \%level_setup;
@@ -53,10 +61,10 @@ sub resolve_dependency
     }
     $oldlevel = $$level{$name};
 
-    foreach $elem (split(' ',$$depends{$name})) {
+    foreach my $elem (split(' ',$$depends{$name})) {
 	my $newlevel = -1;
 
-	foreach $n (split(' ',$$providedby{$elem})) {
+	foreach my $n (split(' ',$$providedby{$elem})) {
 	    $newlevel = resolve_dependency($section, $n);
 	    if ( $oldlevel <= $newlevel) {
 		$oldlevel = $newlevel + 1;
@@ -83,6 +91,12 @@ sub scan_section
 
     SCAN: foreach $_ (@scripts) {
 	my $provides;
+	my $section;
+	my $scriptname;
+	my $level;
+	my $depends;
+	my $providedby;
+	my $scrlist;
 
 	if (/(.*)-(.*)\.sh$/) {
 	    if (($1 ne "setup" ) && ($1 ne "boot")) {
@@ -141,19 +155,63 @@ sub scan_section
 	@$scrlist = (@$scrlist,$scriptname);
 
 	dprintf "\tprovides %s\n", $provides;
-	foreach $elem (split(' ',$provides)) {
+	foreach my $elem (split(' ',$provides)) {
 	    $$providedby{$elem} = join(' ', $$providedby{$elem},$scriptname);
 	}
     }
 }
 
-$offset=1;
-$installdir="lib/mkinitrd";
-$scriptdir="scripts";
+sub usage {
+    print <<EOF;
+usage:
+	install_initrd [-s|--scriptdir <scriptdir>]
+		[-i|--installdir <installdir>]
+		[-d|--debug] [-o|--offset <offset>] [-h|--help]
+
+	Install initrd scripts. Options are:
+	-s|--scriptdir	Install initrd script in dir <scriptdir>
+	-i|--installdir	Install initrd script in dir <installdir>
+	-d|--debug	Enable debug output
+	-o|--offset	Use <offset> between script numbers.
+
+EOF
+}
+
+Getopt::Long::Configure('no_ignore_case');
+
+if (!GetOptions('scriptdir|s=s' => \$scriptdir,
+		'installdir|i=s' => \$installdir,
+		'debug|d' => \$debug,
+		'offset|o' => \$offset,
+		'help|h' => \$dohelp
+		)) {
+    usage();
+    exit 1;
+}
+if ( ! -d $installdir ) {
+    print "Installation directory $installdir does not exist!\n";
+    $dohelp++;
+}
+if ( $dohelp == 0 && ! -d "$installdir/setup" ) {
+    print "Installation directory $installdir/setup does not exist!\n";
+    $dohelp++;
+}
+if ( $dohelp == 0 && ! -d "$installdir/boot" ) {
+    print "Installation directory $installdir/boot does not exist!\n";
+    $dohelp++;
+}
+if ( $dohelp == 0 && ! -d $scriptdir ) {
+    print "Script directory $scriptdir does not exist!\n";
+    $dohelp++;
+}
+if ($dohelp > 0) {
+    usage();
+    exit 0;
+}
 
 print "Scanning scripts ...\n";
 opendir(DIR, $scriptdir);
-@scripts = grep { /.*\.sh$/ && -f "$scriptdir/$_" } readdir(DIR);
+my @scripts = grep { /.*\.sh$/ && -f "$scriptdir/$_" } readdir(DIR);
 closedir DIR;
 
 # Scan scripts
@@ -161,43 +219,46 @@ scan_section(@scripts);
 
 print "Resolve dependencies ...\n";
 # Resolve dependencies
-foreach $scr (@scripts_setup) {
+foreach my $scr (@scripts_setup) {
     resolve_dependency("setup", $scr);
     dprintf "\n";
 }
 
-foreach $scr (@scripts_boot) {
+foreach my $scr (@scripts_boot) {
     resolve_dependency("boot", $scr);
     dprintf "\n";
 }
 
-print "Install symlinks in $installdir ...\n";
+print "Install symlinks in $installdir/setup ...\n";
 chdir "$installdir/setup" || die "Can't chdir to $installdir/setup : $!";
 
 opendir(DIR, ".");
-@links = grep { -l "$_" } readdir(DIR);
+my @links = grep { -l "$_" } readdir(DIR);
 closedir DIR;
 
 foreach $_ (@links) {
     unlink || printf "Can't unlink %s: %s\n", $_, $!;
 }
 
-foreach $name (@scripts_setup) {
+foreach (@scripts_setup) {
     my $level = \%level_setup;
-    my $lvl = $$level{$name};
-    my $linkname, $target;
+    my $lvl = $$level{$_};
+    my $linkname;
+    my $target;
+    my $ret;
 
-    $linkname = sprintf "%02d-%s.sh", $lvl, $name;
-    $target = sprintf "../scripts/setup-%s.sh", $name;
+    $linkname = sprintf "%02d-%s.sh", $lvl, $_;
+    $target = sprintf "../scripts/setup-%s.sh", $_;
     # Strictly speaking not required, but ...
     next if -l $linkname;
-    printf "Linking %s to %s\n", $target, $linkname;
+    dprintf "Linking %s to %s\n", $target, $linkname;
     $ret = symlink($target, $linkname);
     if ( $ret < 1 ) {
 	printf "Failed to create symlink %s: %s\n", $linkname, $!;
     }
 }
 
+print "Install symlinks in $installdir/boot ...\n";
 chdir "../boot" || die "Can't chdir to $installdir/boot: $!";
 
 opendir(DIR, ".");
@@ -208,16 +269,18 @@ foreach $_ (@links) {
     unlink || printf "Can't unlink %s: %s\n", $_, $!;
 }
 
-foreach $name (@scripts_boot) {
+foreach (@scripts_boot) {
     my $level = \%level_boot;
-    my $lvl = $$level{$name};
-    my $linkname, $target;
+    my $lvl = $$level{$_};
+    my $linkname;
+    my $target;
+    my $ret;
 
-    $linkname = sprintf "%02d-%s.sh", $lvl, $name;
-    $target = sprintf "../scripts/boot-%s.sh", $name;
+    $linkname = sprintf "%02d-%s.sh", $lvl, $_;
+    $target = sprintf "../scripts/boot-%s.sh", $_;
     # Strictly speaking not required, but ...
     next if -l $linkname;
-    printf "Linking %s to %s\n", $target, $linkname;
+    dprintf "Linking %s to %s\n", $target, $linkname;
     $ret = symlink($target, $linkname);
     if ( $ret < 1 ) {
 	printf "Failed to create symlink %s: %s\n", $linkname, $!;
