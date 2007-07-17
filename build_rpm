@@ -40,7 +40,7 @@ if ! which git-archive > /dev/null ; then
 fi
 
 if [ -z "$BRANCH" ] ; then
-    BRANCH="HEAD"
+    BRANCH="master"
     echo "Branch is not set, checking out from $BRANCH"
 fi
 
