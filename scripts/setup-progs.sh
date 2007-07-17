@@ -14,7 +14,7 @@ for script in $INITRD_PATH/boot/*.sh; do
 	    features="$features $feature"
     	fi
 	# copy the script itself
-	cp_bin "$script" boot/
+	cp -pL "$script" boot/
 	# and all programs it needs
 	for files in $(cat $script | grep '%programs: ' | sed 's/^#%programs: \(.*\)$/\1/'); do
 	    for file in $(eval echo $files); do
