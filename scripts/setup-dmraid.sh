@@ -4,8 +4,8 @@
 #%provides: dmroot
 #
 
-newbd=
 if [ -x /sbin/dmraid -a -x /sbin/dmsetup ] ; then
+	newbd=
 	for bd in $blockdev ; do
 	    update_blockdev $bd
 	    if [ $blockdriver = device-mapper ]; then
@@ -18,9 +18,11 @@ if [ -x /sbin/dmraid -a -x /sbin/dmsetup ] ; then
 		else
 		    newbd="$newbd $bd"
 		fi
+	    else
+		newbd="$newbd $bd"
 	    fi
 	done
+	blockdev="$newbd"
 fi
-blockdev="$newbd"
 
 save_var root_dmraid
