@@ -14,7 +14,7 @@
 ##
 ## root_lvm2=1		use LVM
 ## root=/dev/mapper/... use this device as Volume Group
-## vg_root		use this group as Volume Group
+## vg_roots		use this group as Volume Group
 ## 
 
 # load the necessary module before we initialize the raid system
@@ -41,6 +41,6 @@ if [ -n "$root_lvm2" ] ; then
 fi
 
 # initialize remebered and parameterized devices
-for vgr in $lvm $vg_root; do
+for vgr in $lvm $vg_root $vg_roots; do
 	vgchange -a y $vgr
 done
