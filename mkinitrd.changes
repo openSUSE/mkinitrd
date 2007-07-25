@@ -1,8 +1,14 @@
 -------------------------------------------------------------------
+Wed Jul 25 11:44:59 CEST 2007 - hare@suse.de
+
+- Do not emit warnings for built-in modules
+
+-------------------------------------------------------------------
 Tue Jul 24 12:05:32 CEST 2007 - hare@suse.de
 
 - Only enable kpartx feature if root is on device-mapper
 - Add vg_root to the list of vgs to activate
+- Add sd_mod correctly (#293045)
 
 -------------------------------------------------------------------
 Sat Jul 21 11:41:23 CEST 2007 - coolo@suse.de
