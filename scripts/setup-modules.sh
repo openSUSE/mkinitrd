@@ -47,9 +47,13 @@ resolve_modules() {
 	    --show-depends $module 2> /dev/null \
 	    | sed -ne 's:.*insmod /\?::p' | sed -ne 's:\ .*\?::p' )
 	if [ ! "$module_list" ]; then
-	    echo \
+	    # Check for build-in modules
+	    modname=$(echo $module | sed 's/-/_/g')
+	    if [ ! -d /sys/module/$modname ] ; then
+		echo \
 "WARNING Cannot determine dependencies of kernel module '$module'.
 	Does it exist? If it does, try depmod -a. Continuing without $module." >&2
+	    fi
 	fi
 	for mod in $module_list ; do
 	    if ! $(echo $resolved_modules | grep -q $mod) ; then
