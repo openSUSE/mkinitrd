@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 26 16:06:38 CEST 2007 - agraf@suse.de
+
+- Include fallback boot device (#287047)
+- Fixed resolve_device, so it works with devices other than
+  $rootdev
+
+-------------------------------------------------------------------
 Wed Jul 25 11:44:59 CEST 2007 - hare@suse.de
 
 - Do not emit warnings for built-in modules

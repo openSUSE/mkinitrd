@@ -105,11 +105,25 @@ udev_discover_root() {
 	# Get major:minor number of the device node
 	devn=$(devnumber $rootdev)
     fi
-    if [ -n "$devn" ]; then
-	return 0
-    else
-	return 1
+    if [ ! "$devn" ]; then
+	if [ ! "$1" ]; then
+	    # try the stored fallback device
+	    echo \
+"Could not find $rootdev.
+Want me to fall back to $fallback_rootdev? (Y/n) "
+	    read y
+	    if [ "$y" = n ]; then
+		return 1
+	    fi
+	    rootdev="$fallback_rootdev"
+	    if ! udev_discover_root x ; then
+	        return 1
+	    fi
+    	else
+	    return 1
+    	fi
     fi
+    return 0
 }
 
 # Check for debugging

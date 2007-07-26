@@ -149,20 +149,20 @@ resolve_device() {
 
     [ "$2" ] || exit 0
 
-    case "$rootdev" in
+    case "$realrootdev" in
       LABEL=*|UUID=*)
 	# get real root via fsck hack
 	realrootdev=$(fsck -N "$rootdev" \
 		      | sed -ne '2s/.* \/dev/\/dev/p' \
 		      | sed -e 's/  *//g')
 	if [ -z "$realrootdev" ] ; then
-	    echo "Could not expand $rootdev to real device" >&2
+	    echo "Could not expand $x to real device" >&2
 	    exit 1
 	fi
 	realrootdev=$(/usr/bin/readlink -m $realrootdev)
 	;;
       /dev/disk/*)
-	realrootdev=$(/usr/bin/readlink -m $rootdev)
+	realrootdev=$(/usr/bin/readlink -m $realrootdev)
 	;;
       *:*)
         if [ "$type" = "Root" ]; then
@@ -172,7 +172,7 @@ resolve_device() {
 	;;
     esac
 
-    [ "$2" != "$realrootdev" ] && x="$x ($realrootdev)"
+    [ "$x" != "$realrootdev" ] && x="$x ($realrootdev)"
 
     echo -en "$type device:\t$x" >&2
     if [ "$type" = "Root" ]; then
@@ -261,5 +261,7 @@ fi
 # It will get replaced through its way of abstraction, starting at the information mount tell us
 # and ending at the block device
 
+fallback_rootdev="$(resolve_device Root $rootdev)"
+save_var fallback_rootdev
 blockdev="$(resolve_device Root $rootdev) $(resolve_device Resume $resumedev) $(resolve_device Journal $journaldev) $(resolve_device Dump $dumpdev)"
 
