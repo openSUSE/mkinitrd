@@ -31,5 +31,4 @@ if [ -n "$root_md" ] ; then
 fi
 
 save_var need_mdadm
-save_var md_dev
 save_var root_md

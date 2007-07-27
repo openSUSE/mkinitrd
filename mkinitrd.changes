@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 27 13:25:19 CEST 2007 - agraf@suse.de
+
+- fix md booting (md_dev should be autodetected by the boot
+  script)
+
+-------------------------------------------------------------------
 Thu Jul 26 16:06:38 CEST 2007 - agraf@suse.de
 
 - Include fallback boot device (#287047)
