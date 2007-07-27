@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul 27 15:20:16 CEST 2007 - hare@suse.de
+
+- Fix detection of I2O devices
+
+-------------------------------------------------------------------
 Fri Jul 27 13:25:19 CEST 2007 - agraf@suse.de
 
 - fix md booting (md_dev should be autodetected by the boot
