@@ -38,6 +38,9 @@ get_devmodule() {
 		cat $devpath/modalias
 		echo ide-disk
 		;;
+	    i2o*)
+		echo i2o_block i2o_config
+		;;
 	    *)
 		if [ ! -d /sys/block/$blkdev/device ] ; then
 		    echo "Device $blkdev not handled" >&2
