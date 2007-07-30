@@ -95,13 +95,13 @@ dm_resolvedeps() {
 			dm_deps=${dm_deps//(/}
 			dm_deps=${dm_deps//)/}
 			for dm_dep in $dm_deps; do
-				majorminor2blockdev $dm_dep
+				dm_resolvedeps $(majorminor2blockdev $dm_dep)
 			done
 		else
-			echo $bd
+			echo -n "$bd "
 		fi
 	done
-	return 0
+	[ "$root_dm" = 1 ]
 }
 
 # this receives information about the current blockdev so each storage layer has access to it for its current blockdev
@@ -193,7 +193,7 @@ if [ -z "$rootdev" ] ; then
   rootmajor="$(echo $(( 0x${rootcpio:62:8} )) )"
   rootminor="$(echo $(( 0x${rootcpio:70:8} )) )"
   if [ $((rootmajor)) -ne 0 ] ; then
-    rootdev="$(majorminor2blockdev $rootmajor $rootminor)"
+    rootdev="$(beautify_blockdev $(majorminor2blockdev $rootmajor $rootminor))"
   fi
 
   # get opts from fstab and device too if stat failed

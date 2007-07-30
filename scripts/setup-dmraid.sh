@@ -14,7 +14,7 @@ if [ -x /sbin/dmraid -a -x /sbin/dmsetup ] ; then
 		if [ "$dm_creator" = "dmraid" ]; then
 		    tmp_root_dm=1 # dmraid needs dm
 		    root_dmraid=1
-		    newbd="$newbd $(echo $bd | sed 's/[0-9]*$//')"
+		    newbd="$newbd $(echo $bd | sed 's/\([a-z]\)[0-9]*$/\1/')"
 		else
 		    newbd="$newbd $bd"
 		fi

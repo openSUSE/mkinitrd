@@ -22,7 +22,7 @@ get_devmodule() {
 
 	if [ ! -d /sys/block/$blkdev ] ; then
 	    blkpart=$blkdev
-	    blkdev=$(echo $blkpart | sed 's/[0-9]*$//')
+	    blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/')
 	    if [ ! -d /sys/block/$blkdev/$blkpart ] ; then
 		error 1 "Device $blkdev not found in sysfs"
 	    fi
