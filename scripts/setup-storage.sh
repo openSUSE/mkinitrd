@@ -186,17 +186,35 @@ resolve_device() {
 #######################################################################################
 
 if [ -z "$rootdev" ] ; then
-  # no rootdev specified, get current root from /etc/fstab
+  # no rootdev specified, get current root opts from /etc/fstab and device from stat
   
+  # get rootdev via stat
+  rootcpio=`echo / | /bin/cpio --quiet -o -H newc`
+  rootmajor="$(echo $(( 0x${rootcpio:62:8} )) )"
+  rootminor="$(echo $(( 0x${rootcpio:70:8} )) )"
+  if [ $((rootmajor)) -ne 0 ] ; then
+    rootdev="$(majorminor2blockdev $rootmajor $rootminor)"
+  fi
+
+  # get opts from fstab and device too if stat failed
   while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
     if [ "$fstab_mountpoint" = "/" ]; then
-      rootdev="$fstab_device"
+      [ "$rootdev" ] || rootdev="$fstab_device"
       rootfstype="$fstab_type"
       rootfsopts="$fstab_options"
       break
     fi
   done < <(sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab)
-else
+
+  # no fstype found, so we will try to get it via vol_id
+  if [ ! "$rootfstype" ]; then
+    eval $(/lib/udev/vol_id | grep ID_FS_TYPE)
+    rootfstype=$ID_FS_TYPE
+  fi
+fi
+
+#if we don't know where the root device belongs to
+if [ -z "$rootdev" ] ; then
   # get type from /etc/fstab or /proc/mounts (actually not needed)
   x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
        | grep -E "$rootdev[[:space:]]" | tail -n 1)
