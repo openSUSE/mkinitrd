@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 30 15:20:13 CEST 2007 - hare@suse.de
+
+- Enable all disks in a LVM2 volume group
+
+-------------------------------------------------------------------
 Fri Jul 27 15:20:16 CEST 2007 - hare@suse.de
 
 - Fix detection of I2O devices
