@@ -60,9 +60,6 @@ auto)
 esac
 
 
-[ ${#features[@]} -gt 0 ] \
-    && echo -e "Including:\t${features[@]}"
-
 splash_bin=
 [ -x /sbin/splash.bin ] && splash_bin=/sbin/splash.bin
 [ -x /bin/splash ] && splash_bin=/bin/splash

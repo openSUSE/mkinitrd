@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jul 30 16:01:55 CEST 2007 - agraf@suse.de
+- Fixed booting on dmraid w/o kpartx (recursive resolution of dm
+  devices)
+- Removed Including: line
+- Resolve root device using stat on /
+
+-------------------------------------------------------------------
 Mon Jul 30 15:20:13 CEST 2007 - hare@suse.de
 
 - Enable all disks in a LVM2 volume group

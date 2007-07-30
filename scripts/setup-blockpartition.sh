@@ -7,7 +7,7 @@ blockpart_blockdev=
 
 for bd in $blockdev; do
 	update_blockdev $bd
-	if [ "$(echo $bd | egrep '[0-9]$')" ]; then
+	if [ "$(echo $bd | egrep '[a-z][0-9]*$')" ]; then
 	    if [ "${blockdriver%%[0-9]*}" = "cciss" ] ; then
 		blkpart="cciss!${bd##*/}"
 		blkdev="${blkpart%%p[0-9]}"
