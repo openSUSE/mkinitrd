@@ -2,6 +2,19 @@
 #
 #%stage: filesystem
 #
+# usage: update_list <id> <list>
+update_list() {
+    local elem=$1
+
+    shift
+    case " $@ " in
+	*" $elem "*)
+	    echo "$@"
+	    return 0;;
+    esac
+    echo "$@ $elem"
+}
+
 # usage: block_driver <major id>
 block_driver() {
     sed -n "/^Block devices:/{n;: n;s/^[ ]*$1 \(.*\)/\1/p;n;b n}" < /proc/devices

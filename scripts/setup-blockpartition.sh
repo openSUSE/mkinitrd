@@ -17,13 +17,10 @@ for bd in $blockdev; do
 	    fi
 	    if [ -d /sys/block/$blkdev/$blkpart ] ; then
 		blkdev=$(echo $blkdev | sed 's.!./.g')
-		blockpart_blockdev="$blockpart_blockdev /dev/$blkdev"
-	    else
-		blockpart_blockdev="$blockpart_blockdev $bd"
+		bd="/dev/$blkdev"
 	    fi
-	else
-	    blockpart_blockdev="$blockpart_blockdev $bd"
 	fi
+	blockpart_blockdev="$(update_list $bd $blockpart_blockdev)"
 done
 
 blockdev="$blockpart_blockdev"
