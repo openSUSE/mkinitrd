@@ -17,11 +17,17 @@ for script in $INITRD_PATH/boot/*.sh; do
 	cp -pL "$script" boot/
 	# add an entry to the boot wrapping script
 	echo "echo preping $file" >> run_all.sh
+	# -- load config for the current module
+	[ -e "config/${file#*-}" ] && cat "config/${file#*-}" >> run_all.sh
+	# echo "[ -e "config/${file#*-}" ] && . \"config/${file#*-}\"" >> run_all.sh
+	# -- check if we should run the module
 	condition="$(sed -n 's/^#%if:\(.*\)$/if [ \1 ]; then/p' "$script")"
-	echo "$condition" >> run_all.sh
-	sed -n 's/^#%modules:\(.*\)$/modules="\1"/p' $script >> run_all.sh
-	echo "echo running $file
-source boot/$file" >> run_all.sh
+	  echo "$condition" >> run_all.sh
+	  # -- remember dependent modules
+	  sed -n 's/^#%modules:\(.*\)$/modules="\1"/p' $script >> run_all.sh
+	  echo "echo running $file
+source boot/$file
+[ \"\$modules\" ] && load_modules" >> run_all.sh
 	[ "$condition" ] && echo "fi" >> run_all.sh
 	# and all programs it needs
 	for files in $(cat $script | grep '%programs: ' | sed 's/^#%programs: \(.*\)$/\1/'); do
