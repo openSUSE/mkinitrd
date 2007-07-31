@@ -108,6 +108,30 @@ dm_resolvedeps() {
 			dm_deps=${dm_deps//(/}
 			dm_deps=${dm_deps//)/}
 			for dm_dep in $dm_deps; do
+				majorminor2blockdev $dm_dep
+			done
+		else
+			echo -n "$bd "
+		fi
+	done
+	return 0	
+}
+
+dm_resolvedeps_recursive() {
+	local dm_uuid dm_deps dm_dep bd
+	local bds="$@"
+	[ ! "$bds" ] && bds=$blockdev
+	# resolve dependencies
+	for bd in $bds ; do
+		update_blockdev $bd >&2
+		if [ "$blockdriver" = device-mapper ]; then
+			root_dm=1
+			dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor)
+			dm_deps=${dm_deps#*: }
+			dm_deps=${dm_deps//, /:}
+			dm_deps=${dm_deps//(/}
+			dm_deps=${dm_deps//)/}
+			for dm_dep in $dm_deps; do
 				dm_resolvedeps $(majorminor2blockdev $dm_dep)
 			done
 		else

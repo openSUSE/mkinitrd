@@ -11,7 +11,7 @@ if [ -x /sbin/dmsetup ]; then
     # if any device before was on dm we have to activate it
     [ "$tmp_root_dm" ] && root_dm=1
 	
-    blockdev="$(dm_resolvedeps $blockdev)"
+    blockdev="$(dm_resolvedeps_recursive $blockdev)"
     [ "$?" = 0 ] && root_dm=1
 
     # include modules
