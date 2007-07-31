@@ -46,7 +46,10 @@ get_param() {
     echo $(eval echo \${cmd_${1/-/_}}) 2>/dev/null
 }
 
-for file in boot/*; do
+if [ "$fast_boot" ]; then
+  source run_all.sh
+else
+  for file in boot/*; do
     echo "preping $file"
     # load config for the current module
     config="config/${file#*-}"
@@ -70,4 +73,5 @@ for file in boot/*; do
     
     # if the module did not load its modules, we do
     [ "$modules" ] && load_modules
-done
+  done
+fi

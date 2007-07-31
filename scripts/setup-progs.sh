@@ -7,14 +7,22 @@
 for script in $INITRD_PATH/boot/*.sh; do
     if use_script "$script"; then # only include the programs if the script gets used
     	# add the script to the feature list if no #%dontshow line was given
-	feature="${script##*/}"
-	feature="${feature#*-}"
+	file="${script##*/}"
+	feature="${file#*-}"
 	feature="${feature%.sh}"
     	if [ ! "$(cat $script | grep '%dontshow')" ]; then
 	    features="$features $feature"
     	fi
 	# copy the script itself
 	cp -pL "$script" boot/
+	# add an entry to the boot wrapping script
+	echo "echo preping $file" >> run_all.sh
+	condition="$(sed -n 's/^#%if:\(.*\)$/if [ \1 ]; then/p' "$script")"
+	echo "$condition" >> run_all.sh
+	sed -n 's/^#%modules:\(.*\)$/modules="\1"/p' $script >> run_all.sh
+	echo "echo running $file
+source boot/$file" >> run_all.sh
+	[ "$condition" ] && echo "fi" >> run_all.sh
 	# and all programs it needs
 	for files in $(cat $script | grep '%programs: ' | sed 's/^#%programs: \(.*\)$/\1/'); do
 	    for file in $(eval echo $files); do

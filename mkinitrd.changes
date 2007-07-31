@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul 31 15:43:53 CEST 2007 - agraf@suse.de
+
+- Fix dm resolviung to only be recursive in dm module
+- Include fast boot option (for less overhead with preping)
+
+-------------------------------------------------------------------
 Mon Jul 30 16:01:55 CEST 2007 - agraf@suse.de
 - Fixed booting on dmraid w/o kpartx (recursive resolution of dm
   devices)
