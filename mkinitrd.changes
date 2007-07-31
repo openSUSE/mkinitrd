@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Tue Jul 31 15:43:53 CEST 2007 - agraf@suse.de
 
-- Fix dm resolviung to only be recursive in dm module
+- Fix dm resolviung to only be recursive in dm module (#295997)
 - Include fast boot option (for less overhead with preping)
 
 -------------------------------------------------------------------

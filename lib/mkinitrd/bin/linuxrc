@@ -47,6 +47,7 @@ get_param() {
 }
 
 if [ "$fast_boot" ]; then
+  echo "doing fast boot"
   source run_all.sh
 else
   for file in boot/*; do
