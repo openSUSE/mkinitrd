@@ -3,6 +3,10 @@
 #%stage: device
 #
 case "$rootdev" in
+    /*)
+	;;
+    *://*)
+	;;
     *:*)
 	rootfstype=nfs
 	;;
