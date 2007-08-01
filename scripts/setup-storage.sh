@@ -146,6 +146,8 @@ update_blockdev() {
 	local curblockdev=$1
 	[ -z "$curblockdev" ] && curblockdev=$blockdev
 	
+	blockmajor=0
+	blockminor=0
 	if [ -e "$root_dir/${curblockdev#/}" ]; then
 		blockdevn="$(devnumber $root_dir/${curblockdev#/})"
 		blockmajor="$(devmajor $blockdevn)"
@@ -229,7 +231,7 @@ if [ -z "$rootdev" ] ; then
   rootcpio=`echo / | /bin/cpio --quiet -o -H newc`
   rootmajor="$(echo $(( 0x${rootcpio:62:8} )) )"
   rootminor="$(echo $(( 0x${rootcpio:70:8} )) )"
-  if [ $((rootmajor)) -ne 0 ] ; then
+  if [ $((rootmajor)) -ne 0 ] ; then # don't check for dynamic devices
     rootdev="$(beautify_blockdev $(majorminor2blockdev $rootmajor $rootminor))"
   fi
 
@@ -237,6 +239,14 @@ if [ -z "$rootdev" ] ; then
   while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
     if [ "$fstab_mountpoint" = "/" ]; then
       [ "$rootdev" ] || rootdev="$fstab_device"
+      update_blockdev "$fstab_device" # get major and minor
+      if [ ! "$blockmajor" = 0 ]; then # we don't check dynamic devices
+        # let's see if the stat device is the same as the fstab device
+	if [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
+	  rootdev="$fstab_device" # use the fstab device so the user can decide
+	                          # how to access the root device
+	fi
+      fi
       rootfstype="$fstab_type"
       rootfsopts="$fstab_options"
       break
@@ -245,7 +255,7 @@ if [ -z "$rootdev" ] ; then
 
   # no fstype found, so we will try to get it via vol_id
   if [ ! "$rootfstype" ]; then
-    eval $(/lib/udev/vol_id | grep ID_FS_TYPE)
+    eval $(/lib/udev/vol_id "$rootdev" | grep ID_FS_TYPE)
     rootfstype=$ID_FS_TYPE
   fi
 fi
@@ -316,7 +326,7 @@ fi
 # It will get replaced through its way of abstraction, starting at the information mount tell us
 # and ending at the block device
 
-fallback_rootdev="$(resolve_device Root $rootdev)"
+fallback_rootdev="$rootdev"
 save_var fallback_rootdev
 blockdev="$(resolve_device Root $rootdev) $(resolve_device Resume $resumedev) $(resolve_device Journal $journaldev) $(resolve_device Dump $dumpdev)"
 
