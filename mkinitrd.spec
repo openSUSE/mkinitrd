@@ -1,36 +1,34 @@
 #
 # spec file for package mkinitrd (Version 1.2)
 #
-# Copyright (c) 2005 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2007 SUSE LINUX Products GmbH, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
-# Please submit bugfixes or comments via http://www.suse.de/feedback/
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
 # norootforbuild
 # neededforbuild  
 
-BuildRequires: aaa_base acl attr bash bind-utils bison bzip2 coreutils cpio cpp cracklib cvs cyrus-sasl db devs diffutils e2fsprogs file filesystem fillup findutils flex gawk gdbm-devel glibc glibc-devel glibc-locale gpm grep groff gzip info insserv kbd less libacl libattr libgcc libselinux libstdc++ libxcrypt m4 make man mktemp module-init-tools ncurses ncurses-devel net-tools netcfg openldap2-client openssl pam pam-modules patch permissions popt procinfo procps psmisc pwdutils rcs readline sed strace syslogd sysvinit tar tcpd texinfo timezone unzip util-linux vim zlib zlib-devel autoconf automake binutils gcc gdbm gettext libtool perl rpm
-
-Name:         mkinitrd
-License:      GPL
-Group:        System/Base
-Provides:     aaa_base:/sbin/mk_initrd
-Requires:     coreutils ash modutils util-linux grep e2fsprogs tar gzip sed gawk cpio udev
+Name:           mkinitrd
+License:        GPL v2 or later
+Group:          System/Base
+Provides:       aaa_base:/sbin/mk_initrd
+Requires:       coreutils ash modutils util-linux grep e2fsprogs tar gzip sed gawk cpio udev
 # bootsplash required only if creating splash initrd's.
-Autoreqprov:  on
-Version:      1.2
-Release:      199
-Summary:      Creates an initial ramdisk image for preloading modules
-BuildRoot:    %{_tmppath}/%{name}-%{version}-build
-Source:       mkinitrd
-Source1:      installkernel
-Source2:      new-kernel-pkg
-Source3:      mkinitrd.8
-Source10:     mkinitramfs
-Source11:     mkinitramfs-kinit.sh
-Source20:     module_upgrade
+Autoreqprov:    on
+Version:        1.2
+Release:        199
+Summary:        Creates an initial ramdisk image for preloading modules
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Source:         mkinitrd
+Source1:        installkernel
+Source2:        new-kernel-pkg
+Source3:        mkinitrd.8
+Source10:       mkinitramfs
+Source11:       mkinitramfs-kinit.sh
+Source20:       module_upgrade
 #
 # Missing: man page for mkinitrd etc.
 #
