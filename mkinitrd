@@ -1028,6 +1028,8 @@ s390_dasd_sysfs() {
 			    use_diag=0
 			    ;;
 			DIAG)
+			    add_module dasd_eckd_mod
+			    add_module dasd_fba_mod
 			    add_module dasd_diag_mod
 			    use_diag=1
 			    ;;
@@ -1077,6 +1079,8 @@ root_dir/etc/zipl.conf or root_dir/etc/modules.conf."
 	fi
 
 	if grep -q DIAG /proc/dasd/devices ; then
+	    add_module dasd_eckd_mod
+	    add_module dasd_fba_mod
 	    add_module dasd_diag_mod
 	fi
     else
