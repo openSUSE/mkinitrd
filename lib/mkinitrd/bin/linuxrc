@@ -46,7 +46,7 @@ get_param() {
     echo $(eval echo \${cmd_${1/-/_}}) 2>/dev/null
 }
 
-if [ "$fast_boot" ]; then
+if [ ! "$slow_boot" ]; then
   echo "doing fast boot"
   source run_all.sh
 else

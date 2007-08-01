@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Wed Aug  1 18:40:22 CEST 2007 - agraf@suse.de
+
+- Fix fast boot
+- Use the fstab device name if stat shows the same major and minor
+  as the fstab device (fixes vmware boot)
+- Fix case with empty no / entry in /etc/fstab
+- Fix printing of "Root"-line twice
+- Have the fallback root device not get resolved
+- Have the nfs module only take nfs into account
+- Enable fast boot by default (disable using slow_boot=1)
+
+-------------------------------------------------------------------
 Tue Jul 31 15:43:53 CEST 2007 - agraf@suse.de
 
 - Fix dm resolviung to only be recursive in dm module (#295997)
