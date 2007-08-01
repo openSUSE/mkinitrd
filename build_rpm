@@ -84,6 +84,6 @@ if ! mkdir $DESTDIR ; then
 fi
 
 git archive --format=tar "$BRANCH" > $DESTDIR/mkinitrd.tar
-(cd $DESTDIR; tar xf mkinitrd.tar; rm -f mkinitrd.tar; rm -rf bonked)
+(cd $DESTDIR; tar xf mkinitrd.tar; rm -f mkinitrd.tar; rm -rf bonked; rm -f build_rpm)
 
 echo "mkinitrd src rpm copied to $DESTDIR"
