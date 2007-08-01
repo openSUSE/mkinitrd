@@ -4,6 +4,11 @@ Wed Aug  1 09:36:19 CEST 2007 - hare@suse.de
 - Include FBA modules for DIAG access (#235502)
 
 -------------------------------------------------------------------
+Tue Jul 17 09:00:20 CEST 2007 - hare@suse.de
+
+- Backport SLES10 changes for LVM (#279204)
+
+-------------------------------------------------------------------
 Tue Jan 23 13:53:51 CET 2007 - hare@suse.de
 
 - Correct scan order for zfcp (#213641)

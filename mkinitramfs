@@ -812,14 +812,28 @@ mkinitrd_kernel () {
     fi
 
     if [ -n "$root_lvm" -o -n "$root_md" ] ; then
-	# need dummy entry so fsck doesn't complain
+	# Name of the volume containing the root filesystem
+        local vg_root=${rootdev#/dev/}
+        vg_root=${vg_root%%/*}
+
 	cat_load_md <<-EOF
-	|# scan for lvm devices
 	|#need space for lvm data
-	|mount -n -t tmpfs none /etc/lvmtab.d
+	|mount -tramfs none /etc/lvmtab.d
 	|vgscan
-	|vgchange -a y
-	|umount -n /etc/lvmtab.d
+	|for o in \$(cat /proc/cmdline); do
+	|  case \$o in
+	|    root=/dev/*)
+	|	set -- \$(IFS=/ ; echo \$o)
+	|	vg_root=\$3
+	|	;;
+	|  esac
+	|done
+	|if [ -z "\$vg_root" ]; then
+	|  vg_root=$vg_root
+	|fi
+	|
+	|vgchange -a y \$vg_root
+	|umount /etc/lvmtab.d
 	EOF
     fi
 
