@@ -3,11 +3,19 @@
 #%stage: device
 #
 case "$rootdev" in
-    /*)
+    /dev/nfs)
+	rootfstype=nfs
+	rootdev=
+	use_dhcp=1
+	;;
+    /dev/*)
 	;;
     *://*)
+	rootfstype=${rootdev%%://*}
+	interface=default
+	save_var rootfstype
 	;;
-    *:*)
+    *:/*)
 	rootfstype=nfs
 	;;
 esac
