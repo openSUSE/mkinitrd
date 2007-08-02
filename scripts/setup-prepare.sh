@@ -30,19 +30,22 @@ cp_bin() {
    fi
 }
 
-# check if we should use the script $1
+# check if we should use script or feature $1
 use_script() {
-    local condition feature
+    local condition feature script file
 
     # always use when creating monster initrd
     [ "$create_monster_initrd" ] && return 0
 
-    # when using additional features defined in the sysconfig script / command line, always use them
+    # Normalize to feature name
+    feature="${1##*/}"
+    feature="${feature#*-}"
+    feature="${feature%.sh}"
+
+    # when using additional features defined in the sysconfig
+    # script / command line, always use them
     if [ "$ADDITIONAL_FEATURES" ]; then
       for addfeature in $ADDITIONAL_FEATURES; do
-	feature="${1##*/}"
-	feature="${feature#*-}"
-	feature="${feature%.sh}"
 	if [ "$addfeature" = "$feature" ]; then
 	    return 0
 	fi
@@ -50,9 +53,14 @@ use_script() {
     fi
 
     # return false if file does not exist
-    [ -e "$1" ] || return 1
+    for file in $INITRD_PATH/boot/*-$feature.sh ; do
+	if [ -e $file ] ; then
+	    script=$file
+	fi
+    done
+    [ -e "$script" ] || return 1
     
-    condition="$(cat "$1" | grep '%if: ')"
+    condition="$(cat "$script" | grep '%if: ')"
     condition="${condition#*if: }"
     if [ "$condition" ]; then
 	if ! eval test $condition; then
