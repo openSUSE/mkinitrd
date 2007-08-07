@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  7 12:51:22 CEST 2007 - hare@suse.de
+
+- Fix root device detection for update (#297999)
+
+-------------------------------------------------------------------
 Mon Aug  6 10:27:56 CEST 2007 - hare@suse.de
 
 - Add manpage mkinitrd.5

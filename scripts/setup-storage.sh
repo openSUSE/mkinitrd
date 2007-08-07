@@ -52,6 +52,10 @@ devnumber() {
 # returns	the block device name
 majorminor2blockdev() {
 	local major=$1 minor=$2
+
+	if [ $major -lt 0 ] ; then
+	    return
+	fi
 	if [ ! "$minor" ]; then
 		minor=$(echo $major | cut -d : -f 2)
 		major=$(echo $major | cut -d : -f 1)
@@ -86,11 +90,15 @@ beautify_blockdev() {
 	done
 	
 	# get pretty name from device-mapper
-	if [ -x /sbin/dmsetup ]; then
-		beauty_blockdevn="$(devnumber $root_dir/${olddev})"
-		echo -n /dev/mapper/
-		dmsetup info -c --noheadings -o name -j $(devmajor $beauty_blockdevn) -m $(devminor $beauty_blockdevn)
+	if [ -x /sbin/dmsetup -a "$blockdriver" = "device-mapper" ]; then
+	    dm_name=$(dmsetup info -c --noheadings -o name -j $blockmajor -m $blockminor)
+	    if [ "$dm_name" ] ; then
+		echo "/dev/mapper/$dm_name"
+		return
+	    fi
 	fi
+
+	echo $olddev
 }
 
 dm_resolvedeps() {
@@ -146,8 +154,8 @@ update_blockdev() {
 	local curblockdev=$1
 	[ -z "$curblockdev" ] && curblockdev=$blockdev
 	
-	blockmajor=0
-	blockminor=0
+	blockmajor=-1
+	blockminor=-1
 	if [ -e "$root_dir/${curblockdev#/}" ]; then
 		blockdevn="$(devnumber $root_dir/${curblockdev#/})"
 		blockmajor="$(devmajor $blockdevn)"
@@ -231,21 +239,15 @@ if [ -z "$rootdev" ] ; then
   rootcpio=`echo / | /bin/cpio --quiet -o -H newc`
   rootmajor="$(echo $(( 0x${rootcpio:62:8} )) )"
   rootminor="$(echo $(( 0x${rootcpio:70:8} )) )"
-  if [ $((rootmajor)) -ne 0 ] ; then # don't check for dynamic devices
-    rootdev="$(beautify_blockdev $(majorminor2blockdev $rootmajor $rootminor))"
-  fi
 
   # get opts from fstab and device too if stat failed
   while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
     if [ "$fstab_mountpoint" = "/" ]; then
-      [ "$rootdev" ] || rootdev="$fstab_device"
       update_blockdev "$fstab_device" # get major and minor
-      if [ ! "$blockmajor" = 0 ]; then # we don't check dynamic devices
-        # let's see if the stat device is the same as the fstab device
-	if [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
-	  rootdev="$fstab_device" # use the fstab device so the user can decide
-	                          # how to access the root device
-	fi
+      # let's see if the stat device is the same as the fstab device
+      if [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
+	rootdev="$fstab_device" # use the fstab device so the user can decide
+                                # how to access the root device
       fi
       rootfstype="$fstab_type"
       rootfsopts="$fstab_options"
@@ -253,6 +255,12 @@ if [ -z "$rootdev" ] ; then
     fi
   done < <(sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab)
 
+  if [ $((rootmajor)) -gt 0 -a -z "$rootdev" ] ; then
+      # don't check for non-device mounts
+      rootdev="$(majorminor2blockdev $rootmajor $rootminor)"
+      update_blockdev $rootdev
+      rootdev="$(beautify_blockdev $rootdev)"
+  fi
   # no fstype found, so we will try to get it via vol_id
   if [ ! "$rootfstype" ]; then
     eval $(/lib/udev/vol_id "$rootdev" | grep ID_FS_TYPE)
