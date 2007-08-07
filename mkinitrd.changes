@@ -2,6 +2,9 @@
 Tue Aug  7 12:51:22 CEST 2007 - hare@suse.de
 
 - Fix root device detection for update (#297999)
+- Umount /dev/pts correctly
+- Detect all devices of a LVM2 volume group
+- Only invoke EVMS detection if we really have an EVMS device
 
 -------------------------------------------------------------------
 Mon Aug  6 10:27:56 CEST 2007 - hare@suse.de

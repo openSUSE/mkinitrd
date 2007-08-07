@@ -142,7 +142,7 @@ for bd in $blockdev; do
     # EVMS always runs on device-mapper so no device-mapper device means no evms
     if [ "$blockdriver" = device-mapper ]; then
 	# Check whether we are using EVMS
-	if [ -x /sbin/evms ] ; then
+	if [ -x /sbin/evms ] && [ "${blockdev#/dev/evms}" != "$blockdev" ]; then
 	    region=$(echo "q:r" | /sbin/evms -s -b | grep -B 2 "Minor: $blockminor" | sed -n 's@Region Name: \(.\)@\1@p')
 	    if [ "$region" ] ; then
 		volume=$(echo "q:v,r=$region" | /sbin/evms -s -b | sed -n 's@Volume Name: \(.*\)@\1@p')
