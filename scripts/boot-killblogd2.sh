@@ -20,5 +20,7 @@ if test -n "$blogd_pid" ; then
     while [ -d "/proc/$blogd_pid" ]; do
 	usleep 300000
     done
-    umount -t devpts /root/dev/pts
+    if [ "$devpts" = "yes" ] ; then
+	umount -t devpts /dev/pts
+    fi
 fi

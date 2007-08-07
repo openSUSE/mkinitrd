@@ -23,11 +23,10 @@ export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 die() {
     umount /proc
     umount /sys
-    umount /dev
-    if test "$devpts" = "yes"; then
-	test -e /dev/pts      && umount -t devpts /dev/pts
-	test -e /root/dev/pts && umount -t devpts /root/dev/pts
+    if [ "$devpts" = "yes" ]; then
+	umount -t devpts /dev/pts
     fi
+    umount /dev
     exit $1
 }
 
@@ -107,6 +106,7 @@ if test -n "$REDIRECT" ; then
     mkdir -p /var/run
     mount -t devpts devpts /dev/pts
     /sbin/blogd $REDIRECT
+    devpts="yes"
 fi
 
 echo "" > /proc/sys/kernel/hotplug
