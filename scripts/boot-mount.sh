@@ -22,6 +22,9 @@
 
 [ "$( ( set -u; echo $ro >/dev/null; echo 1 ) 2>/dev/null )" = "1" ] && read_only=1
 
+[ -x /lib/udev/vol_id ] && VOL_ID=/lib/udev/vol_id
+[ -x /sbin/vol_id ] && VOL_ID=/sbin/vol_id
+
 # And now for the real thing
 if ! udev_discover_root ; then
     echo "not found -- exiting to /bin/sh"
@@ -29,8 +32,8 @@ if ! udev_discover_root ; then
     PATH=$PATH PS1='$ ' /bin/sh -i
 fi
 
-if [ -z "$rootfstype" ]; then
-    rootfstype=$(/lib/udev/vol_id -t $rootdev)
+if [ -z "$rootfstype" -a -n "$VOL_ID" ]; then
+    rootfstype=$($VOL_ID -t $rootdev)
     [ $? -ne 0 ] && rootfstype=
     [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
 fi
