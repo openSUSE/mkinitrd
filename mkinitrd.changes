@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug  9 17:15:50 CEST 2007 - hare@suse.de
+
+- Update EVMS detection
+- Fixup majorminor2blockdev for LVM devices
+- Use correct path to vol_id for compability
+
+-------------------------------------------------------------------
 Tue Aug  7 12:51:22 CEST 2007 - hare@suse.de
 
 - Fix root device detection for update (#297999)
