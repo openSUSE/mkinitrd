@@ -102,7 +102,7 @@ beautify_blockdev() {
 }
 
 dm_resolvedeps() {
-	local dm_uuid dm_deps dm_dep bd
+	local dm_deps dm_dep bd
 	local bds="$@"
 	[ ! "$bds" ] && bds=$blockdev
 	# resolve dependencies
