@@ -13,7 +13,7 @@ get_evms_devices() {
 	return 1
     fi
 
-    if [ -n "$1" ]; then
+    if [ -z "$1" ]; then
 	evms_cmd="q:r"
 
 	while read a b c d; do
@@ -21,12 +21,14 @@ get_evms_devices() {
 		evms_reg="$evms_reg $c"
 	    fi
 	done < <( echo "$evms_cmd" | /sbin/evms -s )
+    else
+	evms_reg="$*"
     fi
 
     : EVMS Regions $evms_reg
 
     for reg in $evms_reg; do
-	evms_cmd="q:c,r=$reg"
+	evms_cmd="q:c,r=$reg\nquit"
 	
 	while read a b c d; do
 	    if [ "$a $b" = "Container Name:" ]; then
@@ -44,13 +46,13 @@ get_evms_devices() {
 		    evms_cont="$c"
 		fi
 	    fi
-	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	done < <(echo -e "$evms_cmd" | /sbin/evms -b -s )
     done
 
     : EVMS Containers $evms_cont
 
     for cont in $evms_cont; do
-	evms_cmd="q:s,c=$cont"
+	evms_cmd="q:s,c=$cont\nquit"
 	
 	while read a b c d; do
 	    if [ "$a $b" = "Segment Name:" ]; then
@@ -68,13 +70,13 @@ get_evms_devices() {
 		    evms_seg="$c"
 		fi
 	    fi
-	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	done < <(echo -e "$evms_cmd" | /sbin/evms -b )
     done
 
     : EVMS Segments $evms_seg
 
     for seg in $evms_seg; do
-	evms_cmd="q:d,s=$seg"
+	evms_cmd="q:d,s=$seg\nquit"
 
 	while read a b c d; do
 	    if [ "$a $b $c" = "Logical Disk Name:" ]; then
@@ -92,44 +94,11 @@ get_evms_devices() {
 		    evms_dsk="$d"
 		fi
 	    fi
-	done < <(echo "$evms_cmd" | /sbin/evms -s )
+	done < <(echo -e "$evms_cmd" | /sbin/evms -b )
     done
 
 
     echo "$evms_seg"
-}
-
-create_evms_save_table() {
-    local tblfile=/tmp/evms_save_table
-    local tblname=$1
-    local num=0
-    shift
-
-    rm -f $tblfile
-    
-    dmdevs=$(dmsetup info -c --noheadings -o name)
-    for d in $dmdevs ; do
-	# Check if device exists (ie is a partition)
-	if [ ! -e /dev/$d ] ; then
-	    unset d
-	fi
-	# Filter out devices used by EVMS region
-	for e in $*; do
-	    if [ "$d" = "$e" ] ; then
-		unset d
-	    fi
-	done
-	# Create temp table
-	if [ "$d" ] ; then
-	    echo $(( num * 100 )) 100 linear /dev/$d 0 >> $tblfile
-	    num=$(( num + 1 ))
-	fi
-    done
-
-    if [ $num -gt 0 ] ; then
-	echo dmsetup create $tblname < $tblfile
-	echo rm -f $tblfile
-    fi
 }
 
 # get information about the current blockdev
@@ -142,15 +111,15 @@ for bd in $blockdev; do
     # EVMS always runs on device-mapper so no device-mapper device means no evms
     if [ "$blockdriver" = device-mapper ]; then
 	# Check whether we are using EVMS
-	if [ -x /sbin/evms ] && [ "${blockdev#/dev/evms}" != "$blockdev" ]; then
-	    region=$(echo "q:r" | /sbin/evms -s -b | grep -B 2 "Minor: $blockminor" | sed -n 's@Region Name: \(.\)@\1@p')
+	if [ -x /sbin/evms ] && [ "${bd#/dev/evms}" != "$bd" ]; then
+	    region=$(echo -e "q:r\nquit" | /sbin/evms -b -s | grep -B 2 "Minor: $blockminor" | sed -n 's@Region Name: \(.\)@\1@p')
 	    if [ "$region" ] ; then
-		volume=$(echo "q:v,r=$region" | /sbin/evms -s -b | sed -n 's@Volume Name: \(.*\)@\1@p')
+		volume=$(echo -e "q:v,r=$region\nquit" | /sbin/evms -b -s | sed -n 's@Volume Name: \(.*\)@\1@p')
 		if [ -e "$volume" ] ; then
 		    root_evms=1
 		    realrootdev=$volume
 		    # blockdev="$(get_evms_devices $blockdev)"
-		    evms_blockdev="$evms_blockdev $(dm_resolvedeps $blockdev)"
+		    evms_blockdev="$evms_blockdev $(dm_resolvedeps $bd)"
 		    [ $? -eq 0 ] || return 1
 		fi
 	    fi
