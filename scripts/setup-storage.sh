@@ -53,12 +53,12 @@ devnumber() {
 majorminor2blockdev() {
 	local major=$1 minor=$2
 
+	if [ ! "$minor" ]; then
+		minor=$(IFS=: ; set -- $major ; echo $2)
+		major=$(IFS=: ; set -- $major ; echo $1)
+	fi
 	if [ $major -lt 0 ] ; then
 	    return
-	fi
-	if [ ! "$minor" ]; then
-		minor=$(echo $major | cut -d : -f 2)
-		major=$(echo $major | cut -d : -f 1)
 	fi
 	local retval=$(cat /proc/partitions | egrep "^[ ]*$major[ ]*$minor")
 	echo /dev/${retval##* }
