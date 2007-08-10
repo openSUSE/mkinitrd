@@ -1,5 +1,6 @@
 #!/bin/bash
 #%stage: device
+#%modules: $dasd_modules
 #%programs: /sbin/dasdview /sbin/dasdinfo /sbin/dasd_configure
 #%if: "$root_dasd"
 #

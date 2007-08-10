@@ -31,25 +31,35 @@ if use_script dasd; then
 	    if [ -d "$dir" ] && [ -d ${dir}/device ]; then
 		dir=$(cd -P $dir/device; echo $PWD)
 		ccw=${dir##*/}
-		echo "ACTION==\"add\", SUBSYSTEM==\"ccw\", DEVPATH==\"*/$ccw\", RUN+=\"/bin/bash -c 'echo 1 > /sys\$env{DEVPATH}/online'\"" > ./etc/udev/rules.d/55-dasd-${ccw}.rules
 		if [ -r "$dir/discipline" ]; then
 		    read type < $dir/discipline
 		    
 		    case $type in
 			ECKD)
+			    drv="dasd-eckd"
 			    discipline=0
 			    ;;
 			FBA)
+			    drv="dasd-fba"
 			    discipline=1
 			    ;;
 			DIAG)
+			    dasd_modules="dasd_diag_mod"
+			    drv="dasd-diag"
 			    discipline=2
 			    ;;
 			*)
 			    ;;
 		    esac
 		fi
+		cat > $tmp_mnt/etc/udev/rules.d/55-dasd-${ccw}.rules <<EOF
+ACTION=="add", SUBSYSTEM=="ccw", KERNEL=="$ccw", IMPORT{program}="collect $ccw %k ${ccw} $drv"
+ACTION=="add", SUBSYSTEM=="drivers", KERNEL=="$drv", IMPORT{program}="collect $ccw %k ${ccw} $drv"
+ACTION=="add", ENV{COLLECT_$ccw}=="0", ATTR{[ccw/$ccw]online}="1"
+EOF
 	    fi
 	fi
     done
 fi
+
+save_var dasd_modules
