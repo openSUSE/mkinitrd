@@ -8,14 +8,12 @@ attach_dsdt() {
     local sdt_match
 
     if [ -z "$acpi_dsdt" ]; then
-        if [ -f /etc/sysconfig/kernel ]; then
-            acpi_dsdt="$ACPI_DSDT"
-        fi
+        acpi_dsdt="$ACPI_DSDT"
     fi
     if [ -z "$acpi_dsdt" ]; then
         return
     fi
-    for sdt in "$acpi_dsdt";do
+    for sdt in $acpi_dsdt; do
         # File must be named: DSDT.aml or SSDT[0-9]*.aml
         # For compatibility reasons DSDT.aml can have an arbitrary
         # name if only DSDT should get overridden

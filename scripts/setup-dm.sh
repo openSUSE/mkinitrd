@@ -24,5 +24,9 @@ if [ -x /sbin/dmsetup ]; then
 	    fi
 	done
     fi
+
+    # include dm block var from sysconfig
+    mkdir -p etc/sysconfig
+    grep DM_BLOCK /etc/sysconfig/kernel > etc/sysconfig/kernel
     save_var root_dm
 fi
