@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#%stage: setup
+#%stage: boot
 #
 # Attach ACPI DSDT if necessary.
 attach_dsdt() {
