@@ -1,6 +1,7 @@
 #!/bin/bash
 #%stage: block
 #%modules: nfs
+#%programs: /sbin/mount.nfs
 #%if: "$rootfstype" = "nfs" -o "$interface"
 #
 ##### Network FileSystem

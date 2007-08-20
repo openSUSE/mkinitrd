@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug 20 13:41:35 CEST 2007 - agraf@suse.de
+
+- Include mount.nfs so nfsroot works again (broken due to split in
+  util-linux) (#300096)
+
+-------------------------------------------------------------------
 Fri Aug 10 16:48:21 CEST 2007 - agraf@suse.de
 
 - Add dm linear support (#218122)
