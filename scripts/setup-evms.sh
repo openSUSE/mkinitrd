@@ -112,7 +112,7 @@ for bd in $blockdev; do
     if [ "$blockdriver" = device-mapper ]; then
 	# Check whether we are using EVMS
 	if [ -x /sbin/evms ] && [ "${bd#/dev/evms}" != "$bd" ]; then
-	    region=$(echo -e "q:r\nquit" | /sbin/evms -b -s | grep -B 2 "Minor: $blockminor" | sed -n 's@Region Name: \(.\)@\1@p')
+	    region=$(echo -e "q:r\nquit" | /sbin/evms -b -s | grep -B 2 "Minor: $blockminor\$" | sed -n 's@Region Name: \(.\)@\1@p')
 	    if [ "$region" ] ; then
 		volume=$(echo -e "q:v,r=$region\nquit" | /sbin/evms -b -s | sed -n 's@Volume Name: \(.*\)@\1@p')
 		if [ -e "$volume" ] ; then

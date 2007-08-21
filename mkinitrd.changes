@@ -15,6 +15,7 @@ Fri Aug 10 16:48:21 CEST 2007 - agraf@suse.de
 Fri Aug 10 12:32:40 CEST 2007 - hare@suse.de
 
 - Update DASD support
+- Match to correct minor number for EVMS (#288510)
 
 -------------------------------------------------------------------
 Thu Aug  9 17:15:50 CEST 2007 - hare@suse.de
