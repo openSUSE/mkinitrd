@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 22 19:49:01 CEST 2007 - agraf@suse.de
+
+- Not all SCSI drivers have a proc_name entry in sysfs, so we need
+  a proper fallback (#244348)
+
+-------------------------------------------------------------------
 Mon Aug 20 13:41:35 CEST 2007 - agraf@suse.de
 
 - Include mount.nfs so nfsroot works again (broken due to split in

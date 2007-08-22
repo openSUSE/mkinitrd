@@ -13,7 +13,13 @@ handle_scsi() {
 	echo "scsi host$hostnum not found"
 	exit 1;
     fi
-    cat /sys/class/scsi_host/host$hostnum/proc_name
+    procname=$(cat /sys/class/scsi_host/host$hostnum/proc_name)
+    # some drivers do not include proc_name so we need a fallback
+    if [ "$procname" = "<NULL>" ] ; then
+        procname="$(readlink /sys/class/scsi_host/host${hostnum}/device/../driver)"
+        procname="${procname##*/}"
+    fi
+    echo $procname
 }
 
 get_devmodule() {
