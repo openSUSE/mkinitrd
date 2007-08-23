@@ -1,6 +1,6 @@
 #!/bin/bash
 #%stage: boot
-#%depends: start
+#%depends: start dm
 #%programs: /sbin/udevd /sbin/udevtrigger /sbin/udevsettle udevinfo /sbin/udevcontrol
 #%dontshow
 #

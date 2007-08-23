@@ -13,6 +13,8 @@ if [ -x /sbin/dmsetup ]; then
 	
     blockdev="$(dm_resolvedeps_recursive $blockdev)"
     [ "$?" = 0 ] && root_dm=1
+    # include dm when using dm based block devs
+    [ "$DM_BLOCK" ] && root_dm=1
 
     # include modules
     if [ -n "$root_dm" ] ; then

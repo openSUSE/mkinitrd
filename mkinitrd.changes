@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 23 14:54:06 CEST 2007 - vkleen@suse.de
+
+- Fix dm linear support so booting works
+
+-------------------------------------------------------------------
 Wed Aug 22 19:49:01 CEST 2007 - agraf@suse.de
 
 - Not all SCSI drivers have a proc_name entry in sysfs, so we need

@@ -1,7 +1,8 @@
 #!/bin/bash
-#%stage: block
+#%stage: boot
+#%depends: start
 #%modules: $dm_modules dm-mod dm-snapshot
-#%programs: /sbin/dmsetup
+#%programs: /sbin/dmsetup /sbin/blockdev
 # dm-crypt dm-zero dm-mirror
 #%if: -n "$root_dm"
 #
@@ -17,15 +18,6 @@
 
 load_modules
 
-echo -n "Waiting for /dev/mapper/control to appear: "
-for i in 1 2 3 4 5; do
-    [ -e /dev/mapper/control ] && break
-    sleep 1
-    echo -n "."
-done
-if [ -e /dev/mapper/control ]; then
-    echo " ok"
-else
-    echo " failed"
-fi
-
+# because we run before udev we need to create the device node manually
+mkdir /dev/mapper
+mknod /dev/mapper/control c 10 63
