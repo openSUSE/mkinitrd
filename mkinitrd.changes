@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 30 10:05:50 CEST 2007 - hare@suse.de
+
+- Refer to raid456 module instead of the old raid5 (#304693)
+
+-------------------------------------------------------------------
 Thu Aug 23 14:54:06 CEST 2007 - vkleen@suse.de
 
 - Fix dm linear support so booting works
