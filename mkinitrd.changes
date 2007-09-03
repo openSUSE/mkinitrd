@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  3 16:08:39 CEST 2007 - seife@suse.de
+
+- add some magic to disable the splash during resume from disk
+
+-------------------------------------------------------------------
 Thu Aug 30 10:05:50 CEST 2007 - hare@suse.de
 
 - Refer to raid456 module instead of the old raid5 (#304693)
