@@ -11,6 +11,7 @@ for rule in \
     59-dasd.rules \
     60-persistent-storage.rules \
     60-persistent-input.rules \
+    62-dm_linear.rules \
     64-device-mapper.rules \
     64-md-raid.rules \
     80-drivers.rules; do

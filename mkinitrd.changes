@@ -1,4 +1,38 @@
 -------------------------------------------------------------------
+Mon Sep  3 16:08:39 CEST 2007 - seife@suse.de
+
+- add some magic to disable the splash during resume from disk
+
+-------------------------------------------------------------------
+Thu Aug 30 10:05:50 CEST 2007 - hare@suse.de
+
+- Refer to raid456 module instead of the old raid5 (#304693)
+
+-------------------------------------------------------------------
+Thu Aug 23 14:54:06 CEST 2007 - vkleen@suse.de
+
+- Fix dm linear support so booting works
+
+-------------------------------------------------------------------
+Wed Aug 22 19:49:01 CEST 2007 - agraf@suse.de
+
+- Not all SCSI drivers have a proc_name entry in sysfs, so we need
+  a proper fallback (#298726)
+
+-------------------------------------------------------------------
+Mon Aug 20 13:41:35 CEST 2007 - agraf@suse.de
+
+- Include mount.nfs so nfsroot works again (broken due to split in
+  util-linux) (#300096)
+
+-------------------------------------------------------------------
+Fri Aug 10 16:48:21 CEST 2007 - agraf@suse.de
+
+- Add dm linear support (#218122)
+- Split acpi setup to a seperate setup script
+- Make acpi setup backward-compatible (#285807)
+
+-------------------------------------------------------------------
 Fri Aug 10 12:32:40 CEST 2007 - hare@suse.de
 
 - Update DASD support

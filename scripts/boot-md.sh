@@ -1,7 +1,7 @@
 #!/bin/bash
 #%stage: softraid
 #%programs: /sbin/mdadm
-#%modules: raid0 raid1 raid5
+#%modules: raid0 raid1 raid456
 #%if: -n "$need_mdadm"
 #
 ##### MD (Software-)Raid

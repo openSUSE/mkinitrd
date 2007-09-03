@@ -45,7 +45,16 @@ discover_user_resume() {
     if [ "$resume_mode" != "off" ]; then
 	if [ -x /sbin/resume ]; then
 	    echo "Invoking userspace resume from $resumedev"
-	    /sbin/resume $resumedev
+	    read procsplash < /proc/splash
+	    case "$procsplash" in
+	    *silent*)
+		# if the version of "resume" is not new enough, "-P" will fail.
+		/sbin/resume -P 'splash = y' $resumedev || /sbin/resume $resumedev
+		;;
+	    *)
+		/sbin/resume -P 'splash = n' $resumedev || /sbin/resume $resumedev
+		;;
+	    esac
 	fi
     fi
 }

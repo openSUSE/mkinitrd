@@ -5,6 +5,8 @@
 if [ -x /sbin/dmsetup ]; then
 	kpartx_blockdev=
 
+	# always activate kpartx when using dm block
+	[ "$DM_BLOCK" ] && root_kpartx=1
 	for bd in $blockdev ; do
 	    update_blockdev $bd
 	    if [ "$blockdriver" = device-mapper ]; then
