@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  7 12:51:28 CEST 2007 - hare@suse.de
+
+- Call update-bootloader instead of trying to figure it
+  out ourselves (#299814)
+
+-------------------------------------------------------------------
 Fri Sep  7 12:47:26 CEST 2007 - jjolly@suse.de
 
 - root=LABEL=blubber does not work anymore (#300550)

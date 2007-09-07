@@ -468,33 +468,6 @@ done
 
 cleanup_finish
 
-if [ -e $root_dir/etc/sysconfig/bootloader ]; then
-    . $root_dir/etc/sysconfig/bootloader
-fi
-case $LOADER_TYPE in
-  lilo)
-    echo "
-Run lilo now to update the boot loader configuration."
-    ;;
-  elilo)
-    if [ -x /sbin/elilo ]; then
-      /sbin/elilo
-    else
-      echo "
-You may now have to update the elilo boot loader configuration."
-    fi
-    ;;
-  grub)
-    ;;
-  *)
-    if [ -f "$root_dir/etc/zipl.conf" ]; then
-	echo "
-initrd updated, zipl needs to update the IPL record before IPL!"
-    else
-	echo "
-You may now have to update your boot loader configuration."
-    fi
-    ;;
-esac
+sbin/update-bootloader --refresh
 
 exit $exit_code
