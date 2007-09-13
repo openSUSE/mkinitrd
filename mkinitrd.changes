@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 13 13:32:49 CEST 2007 - agraf@suse.de
+
+- Fix typo caused by the previous change
+
+-------------------------------------------------------------------
 Fri Sep  7 12:51:28 CEST 2007 - hare@suse.de
 
 - Call update-bootloader instead of trying to figure it
