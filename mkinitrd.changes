@@ -2,6 +2,7 @@
 Fri Sep 14 16:04:58 CEST 2007 - hare@suse.de
 
 - Call ldd correctly (#299242)
+- Setup LVM2 over md correctly (#309441)
 
 -------------------------------------------------------------------
 Thu Sep 13 13:32:49 CEST 2007 - agraf@suse.de
