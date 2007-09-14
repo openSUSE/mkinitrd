@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 14 10:24:12 CEST 2007 - hare@suse.de
+
+- Fix call to update-bootloader :-(
+
+-------------------------------------------------------------------
 Fri Sep  7 12:51:28 CEST 2007 - hare@suse.de
 
 - Call update-bootloader instead of trying to figure it
