@@ -51,7 +51,7 @@ if [ ! "$slow_boot" ]; then
   source run_all.sh
 else
   for file in boot/*; do
-    echo "preping $file"
+    [ "$debug" ] && echo "preping $file"
     # load config for the current module
     config="config/${file#*-}"
     [ -e "$config" ] && . "$config"
@@ -69,7 +69,7 @@ else
     modules="${modules#*les: }"
 
     # run the module
-    echo "running $file"
+    [ "$debug" ] && echo "running $file"
     source $file
     
     # if the module did not load its modules, we do

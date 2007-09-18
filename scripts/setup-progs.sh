@@ -16,7 +16,7 @@ for script in $INITRD_PATH/boot/*.sh; do
 	# copy the script itself
 	cp -pL "$script" boot/
 	# add an entry to the boot wrapping script
-	echo "echo preping $file" >> run_all.sh
+	echo "[ \"\$debug\" ] && echo preping $file" >> run_all.sh
 	# -- load config for the current module
 	[ -e "config/${file#*-}" ] && cat "config/${file#*-}" >> run_all.sh
 	# echo "[ -e "config/${file#*-}" ] && . \"config/${file#*-}\"" >> run_all.sh
@@ -25,7 +25,7 @@ for script in $INITRD_PATH/boot/*.sh; do
 	  echo "$condition" >> run_all.sh
 	  # -- remember dependent modules
 	  sed -n 's/^#%modules:\(.*\)$/modules="\1"/p' $script >> run_all.sh
-	  echo "echo running $file
+	  echo "[ \"\$debug\" ] && echo running $file
 source boot/$file
 [ \"\$modules\" ] && load_modules" >> run_all.sh
 	[ "$condition" ] && echo "fi" >> run_all.sh

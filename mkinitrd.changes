@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Sep 18 03:33:24 CEST 2007 - agraf@suse.de
+
+- Make the initrd less verbose, so people don't misinterpret debug
+  messages as warnings
+- Remove set -a so variables used in the initrd are not exported to
+  the userland (possible security leak)
+
+-------------------------------------------------------------------
 Thu Sep 13 13:32:49 CEST 2007 - agraf@suse.de
 
 - Fix typo caused by the previous change
