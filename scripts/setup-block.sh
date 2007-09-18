@@ -81,7 +81,7 @@ update_blockmodules() {
 }
 
 if [ "$create_monster_initrd" ]; then
-    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/{ide,scsi} -name "*.ko"); do
+    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi} -name "*.ko"); do
 	i=${i%*.ko}
 	block_modules="$block_modules ${i##*/}"
     done

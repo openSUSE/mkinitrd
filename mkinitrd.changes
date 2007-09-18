@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep 19 01:21:01 CEST 2007 - agraf@suse.de
+
+- Include libata modules in the Monster-Initrd
+
+-------------------------------------------------------------------
 Tue Sep 18 03:33:24 CEST 2007 - agraf@suse.de
 
 - Make the initrd less verbose, so people don't misinterpret debug
