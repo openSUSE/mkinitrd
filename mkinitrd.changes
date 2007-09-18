@@ -7,9 +7,9 @@ Tue Sep 18 03:33:24 CEST 2007 - agraf@suse.de
   the userland (possible security leak)
 
 -------------------------------------------------------------------
-Thu Sep 13 13:32:49 CEST 2007 - agraf@suse.de
+Fri Sep 14 10:24:12 CEST 2007 - hare@suse.de
 
-- Fix typo caused by the previous change
+- Fix call to update-bootloader :-(
 
 -------------------------------------------------------------------
 Fri Sep  7 12:51:28 CEST 2007 - hare@suse.de
