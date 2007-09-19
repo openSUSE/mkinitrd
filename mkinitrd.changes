@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 19 14:21:14 CEST 2007 - hare@suse.de
+
+- Remove all functions from the environment (#309131)
+- Don't remove the build root before starting %build
+
+-------------------------------------------------------------------
 Wed Sep 19 01:21:01 CEST 2007 - agraf@suse.de
 
 - Include libata modules in the Monster-Initrd
