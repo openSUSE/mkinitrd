@@ -56,7 +56,6 @@ gcc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/run-init src/run-init.c
 sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitrd
 
 %install
-rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts

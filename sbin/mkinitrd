@@ -468,6 +468,8 @@ done
 
 cleanup_finish
 
-/sbin/update-bootloader --refresh
+if [ -x /sbin/update-bootloader ] ; then
+    /sbin/update-bootloader --refresh
+fi
 
 exit $exit_code
