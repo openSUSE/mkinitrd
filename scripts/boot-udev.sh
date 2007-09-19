@@ -138,3 +138,5 @@ echo "Creating device nodes with udev"
 /sbin/udevd --daemon
 /sbin/udevtrigger
 /sbin/udevsettle --timeout=$udev_timeout
+
+unset udev_check_for_device

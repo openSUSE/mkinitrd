@@ -84,3 +84,5 @@ scsi_mod_check_compat default_dev_flags
 if [ $devflags != 0 ]; then 
 	add_module_param scsi_mod default_dev_flags=$devflags
 fi
+
+unset scsi_mod_check_compat

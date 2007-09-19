@@ -64,3 +64,4 @@ discover_user_resume() {
 # Check for a resume device
 discover_user_resume
 
+unset discover_user_resume

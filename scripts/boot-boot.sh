@@ -21,6 +21,11 @@ cd /root
 umount /proc
 umount /sys
 
+# Remove exported functions
+unset udev_discover_resume
+unset udev_discover_dump
+unset udev_discover_root
+
 # Export root fs information
 ROOTFS_BLKDEV="$rootdev"
 export ROOTFS_BLKDEV

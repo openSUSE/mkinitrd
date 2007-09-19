@@ -55,5 +55,7 @@ if [ -n "$root_evms" ] ; then
 	    /sbin/evms_activate
 	    /sbin/dmsetup remove evms_save
 	fi
+
+	unset create_evms_save_table
 fi
 

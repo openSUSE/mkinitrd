@@ -59,3 +59,5 @@ discover_kernel_resume() {
 /sbin/udevsettle --timeout=$udev_timeout
 # Check for a resume device
 discover_kernel_resume
+
+unset discover_kernel_resume
