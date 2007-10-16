@@ -24,7 +24,7 @@ if [ -x /sbin/cryptsetup -a -x /sbin/dmsetup ] ; then
 			save_var luks_${luks_name}
 
 			luks="$luks $luks_name"
-			luks_blockdev="$luks_blockdev $lucksbd"
+			luks_blockdev="$luks_blockdev $luksbd"
 		fi
 	done
 	if [ ! "$luks_name" ]; then # no luks found
