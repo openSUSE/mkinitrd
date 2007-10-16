@@ -1,7 +1,32 @@
 -------------------------------------------------------------------
-Fri Sep 14 10:24:12 CEST 2007 - hare@suse.de
+Wed Sep 19 14:21:14 CEST 2007 - hare@suse.de
 
-- Fix call to update-bootloader :-(
+- Remove all functions from the environment (#309131)
+- Don't remove the build root before starting %build
+
+-------------------------------------------------------------------
+Wed Sep 19 01:21:01 CEST 2007 - agraf@suse.de
+
+- Include libata modules in the Monster-Initrd
+
+-------------------------------------------------------------------
+Tue Sep 18 03:33:24 CEST 2007 - agraf@suse.de
+
+- Make the initrd less verbose, so people don't misinterpret debug
+  messages as warnings
+- Remove set -a so variables used in the initrd are not exported to
+  the userland (possible security leak)
+
+-------------------------------------------------------------------
+Fri Sep 14 16:04:58 CEST 2007 - hare@suse.de
+
+- Call ldd correctly (#299242)
+- Setup LVM2 over md correctly (#309441)
+
+-------------------------------------------------------------------
+Thu Sep 13 13:32:49 CEST 2007 - agraf@suse.de
+
+- Fix typo caused by the previous change
 
 -------------------------------------------------------------------
 Fri Sep  7 12:51:28 CEST 2007 - hare@suse.de

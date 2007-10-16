@@ -63,7 +63,6 @@ if [ -x /sbin/fwparam_ibft ] ; then
     TargetPortiBFT=$iSCSI_TARGET_PORT
 fi
 
-
 if [ "$tmp_InitiatorName" != "$InitiatorName" -a "$tmp_InitiatorName" != "default" -a "$tmp_InitiatorName" ]; then
     	iSCSI_warning_InitiatorName "$tmp_InitiatorName" "cmdline"
 	InitiatorName=$tmp_InitiatorName
@@ -71,6 +70,8 @@ fi
 
 # store the detected InitiatorName permanently
 echo "InitiatorName=$InitiatorName" > /etc/iscsi/initiatorname.iscsi
+
+unset iSCSI_warning_InitiatorName
 
 # ... hier wuerde viel s390-init zeug kommen
 
@@ -115,3 +116,5 @@ for session in iscsi_sessions "" iBFT; do
 done
 
 /sbin/iscsiadm -m node -L automatic
+
+unset iscsi_mark_root_nodes

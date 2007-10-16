@@ -53,7 +53,7 @@ ln -s fd/1 /dev/stdout
 ln -s fd/2 /dev/stderr
 
 # export variables automatically so we see them in the rescue shell
-set -a
+[ "$debug" ] && set -a
 
 tty_driver=
 

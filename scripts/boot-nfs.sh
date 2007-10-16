@@ -31,10 +31,12 @@ if [ -z "$rootdev" ]; then
 	    rootfstype="nfs"
 	fi ;;
   esac
-  if [ -z "$rootdev" ]; then
-	echo "no local root= kernel option given and no root server set by the dhcp server."
-	die 0
-  fi
+fi
+if [ -z "$rootdev" ]; then
+    echo "no local root= kernel option given and no root server set by the dhcp server."
+    echo "exiting to /bin/sh"
+    cd /
+    PATH=$PATH PS1='$ ' /bin/sh -i
 fi
 
 if [ "$rootfstype" = "nfs" ]; then

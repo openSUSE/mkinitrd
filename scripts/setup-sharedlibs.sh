@@ -16,7 +16,7 @@ shared_object_files() {
     fi
 
     initrd_libs=( $(
-	$LDD "$@" \
+	for i in "$@" ; do $LDD "$i" ; done \
 	| sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p' \
 	| sort | uniq
     ) )

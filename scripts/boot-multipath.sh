@@ -20,51 +20,6 @@
 
 load_modules
 
-# wait for all multipath partitions to appear
-mpath_check_for_partitions() {
-    local num=0
-
-    for link in $(ls /dev/disk/by-id/scsi-*); do
-	[ -L "$link" ] || continue
-	node=$(ls -l $link | sed -ne 's/.*\.\.\/\(.*\)/\1/p')
-	if [ "$link" = "${link%%-part*}" ] ; then
-	    dev=$link
-	    case "$node" in
-		dm-*)
-		    dev=$link;;
-		*)
-		    dev=none;;
-	    esac
-	else
-	    if [ "$link" != "${link#$dev}" ] ; then
-		case "$node" in
-		    dm-*)
-			: this node is okay
-			;;
-		    *)
-			num=$((num + 1))
-			;;
-		esac
-	    fi
-	fi
-    done
-    return $num
-}
-mpath_wait_for_partitions() {
-  local timeout=$udev_timeout
-  local retval=1
-  while [ $timeout -gt 0 ] ; do
-    if mpath_check_for_partitions; then
-      retval=0
-      break;
-    fi
-    /sbin/udevsettle --timeout=$udev_timeout
-    sleep 1
-    echo -n "."
-    timeout=$(( $timeout - 1 ))
-  done
-  return $retval
-}
 # check for multipath parameter in /proc/cmdline
 mpath_status=$(get_param multipath)
 

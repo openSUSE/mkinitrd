@@ -21,7 +21,7 @@ if [ -z "$root_evms" ] && [ -x /sbin/lvdisplay ] ; then
 	local vg_blockdev
 	root_lvm2=1
 	realrootdev=${vg_dev##  }
-	vg_blockdev=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed "s@,@\n@g" | sed "s@([0-9]*)@@g;s@ @@g" | sort | uniq)
+	vg_blockdev=$(vgs --noheadings --options pv_name $vg_root 2> /dev/null | sed "s@,@\n@g" | sed "s@([0-9]*)@@g;s@ @@g" | sort | uniq)
 	lvm_blockdev="$lvm_blockdev $vg_blockdev"
 	[ $? -eq 0 ] || return 1
 	vg_roots="$vg_roots $vg_root"
