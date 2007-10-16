@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct 16 13:40:15 CEST 2007 - hare@suse.de
+
+- Fix Xen block device detection (#331948)
+- Fix detection of mylex disks (#329663)
+- Fix typo in LUKS detection (#331655)
+
+-------------------------------------------------------------------
 Wed Sep 19 14:21:14 CEST 2007 - hare@suse.de
 
 - Remove all functions from the environment (#309131)

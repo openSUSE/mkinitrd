@@ -5,10 +5,15 @@
 #
 handle_scsi() {
     local dev=$1
+    local devpath tgtnum hostnum procname
 
     devpath=$(cd -P /sys/block/$dev/device; echo $PWD)
     tgtnum=${devpath##*/}
     hostnum=${tgtnum%%:*}
+    if [ ${tgtnum%%-*} = "vbd" ] ; then
+	echo "xenblk"
+	exit 0
+    fi
     if [ ! -d /sys/class/scsi_host/host$hostnum ] ; then
 	echo "scsi host$hostnum not found"
 	exit 1;
@@ -28,7 +33,7 @@ get_devmodule() {
 
 	if [ ! -d /sys/block/$blkdev ] ; then
 	    blkpart=$blkdev
-	    blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/')
+	    blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/;s/p$//')
 	    if [ ! -d /sys/block/$blkdev/$blkpart ] ; then
 		error 1 "Device $blkdev not found in sysfs"
 	    fi
@@ -40,15 +45,26 @@ get_devmodule() {
 		echo sd_mod
 		;;
 	    hd*)
-		devpath=$(cd -P "/sys/block/$blkdev/device"; cd ../..; echo $PWD)
-		cat $devpath/modalias
-		echo ide-disk
+		devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)
+		devname=${devpath##*/}
+		if [ ${devname%%-*} = "vbd" ] ; then
+		    echo "xenblk"
+		else
+		    devpath=$(cd -P "$devpath/../.."; echo $PWD)
+		    if [ -f "$devpath/modalias" ] ; then
+			cat $devpath/modalias
+		    fi
+		    echo ide-disk
+		fi
 		;;
 	    i2o*)
 		echo i2o_block i2o_config
 		;;
 	    xvd*)
 		echo xenblk
+		;;
+	    rd*)
+		echo DAC960
 		;;
 	    *)
 		if [ ! -d /sys/block/$blkdev/device ] ; then
