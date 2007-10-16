@@ -28,7 +28,7 @@ get_devmodule() {
 
 	if [ ! -d /sys/block/$blkdev ] ; then
 	    blkpart=$blkdev
-	    blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/')
+	    blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/;s/p$//')
 	    if [ ! -d /sys/block/$blkdev/$blkpart ] ; then
 		error 1 "Device $blkdev not found in sysfs"
 	    fi
@@ -49,6 +49,9 @@ get_devmodule() {
 		;;
 	    xvd*)
 		echo xenblk
+		;;
+	    rd*)
+		echo DAC960
 		;;
 	    *)
 		if [ ! -d /sys/block/$blkdev/device ] ; then
