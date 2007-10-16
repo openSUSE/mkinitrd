@@ -5,10 +5,15 @@
 #
 handle_scsi() {
     local dev=$1
+    local devpath tgtnum hostnum procname
 
     devpath=$(cd -P /sys/block/$dev/device; echo $PWD)
     tgtnum=${devpath##*/}
     hostnum=${tgtnum%%:*}
+    if [ ${tgtnum%%-*} = "vbd" ] ; then
+	echo "xenblk"
+	exit 0
+    fi
     if [ ! -d /sys/class/scsi_host/host$hostnum ] ; then
 	echo "scsi host$hostnum not found"
 	exit 1;
@@ -40,9 +45,17 @@ get_devmodule() {
 		echo sd_mod
 		;;
 	    hd*)
-		devpath=$(cd -P "/sys/block/$blkdev/device"; cd ../..; echo $PWD)
-		cat $devpath/modalias
-		echo ide-disk
+		devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)
+		devname=${devpath##*/}
+		if [ ${devname%%-*} = "vbd" ] ; then
+		    echo "xenblk"
+		else
+		    devpath=$(cd -P "$devpath/../.."; echo $PWD)
+		    if [ -f "$devpath/modalias" ] ; then
+			cat $devpath/modalias
+		    fi
+		    echo ide-disk
+		fi
 		;;
 	    i2o*)
 		echo i2o_block i2o_config
