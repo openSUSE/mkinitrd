@@ -32,7 +32,7 @@ if [ -n "$root_lvm2" ] ; then
 	       ;;
 	    /dev/*)
 	       set -- $(IFS=/ ; echo $o)
-	       if [ "$#" = "3" ] && [ "$2" != "cciss" ] ; then
+	       if [ "$#" = "3" ] && [ "$2" != "cciss" ] && [ "$2" != "ida" ] ; then
 	           vg_root=$2
 	       fi
 	       ;;

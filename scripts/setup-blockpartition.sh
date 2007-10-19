@@ -11,6 +11,9 @@ for bd in $blockdev; do
 	    if [ "${blockdriver%%[0-9]*}" = "cciss" ] ; then
 		blkpart="cciss!${bd##*/}"
 		blkdev="${blkpart%%p[0-9]}"
+	    elif [ "${blockdriver%%[0-9]*}" = "ida" ] ; then
+		blkpart="ida!${bd##*/}"
+		blkdev="${blkpart%%p[0-9]}"
 	    else
 		blkpart="${bd##*/}"
 		blkdev="$(echo $blkpart | sed 's/^\([a-z|!]*\)[0-9]*$/\1/')"
