@@ -32,8 +32,18 @@ if [ -n "$root_lvm2" ] ; then
 	       ;;
 	    /dev/*)
 	       set -- $(IFS=/ ; echo $o)
-	       if [ "$#" = "3" ] && [ "$2" != "cciss" ] && [ "$2" != "ida" ] ; then
-	           vg_root=$2
+	       if [ "$#" = "3" ] ; then
+		   # Check sysfs. If there are subdirectories
+		   # matching this name it's a block device
+		   for d in /sys/block/$2\!* ; do
+		       if [ -d $d ] ; then
+			   sysdev=$d
+		       fi
+		   done
+		   # Not found in sysfs, looks like a VG then
+		   if [ -z "$sysdev" ] ; then
+		       vg_root=$2
+		   fi
 	       fi
 	       ;;
 	esac
