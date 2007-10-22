@@ -66,6 +66,9 @@ get_devmodule() {
 	    rd*)
 		echo DAC960
 		;;
+	    ida*)
+		echo cpqarray
+		;;
 	    *)
 		if [ ! -d /sys/block/$blkdev/device ] ; then
 		    echo "Device $blkdev not handled" >&2
