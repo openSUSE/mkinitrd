@@ -198,7 +198,7 @@ while getopts :ef:hk:i:l:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
 	    ;;
 	i)  initrd_images=$OPTARG
 	    ;;
-	l)  INITRD_PATH=$OPTARG
+	l)  INITRD_PATH=$(cd $OPTARG; echo $PWD)
 	    ;;
 	m)  modules=$OPTARG
 	    modules_set=1

@@ -169,8 +169,8 @@ usage:
 		[-d|--debug] [-o|--offset <offset>] [-h|--help]
 
 	Install mkinitrd scripts. Options are:
-	-s|--scriptdir	Install initrd script in dir <scriptdir>
-	-i|--installdir	Install initrd script in dir <installdir>
+	-s|--scriptdir	Install initrd scripts from dir <scriptdir>
+	-i|--installdir	Install initrd scripts in dir <installdir>
 	-d|--debug	Enable debug output
 	-o|--offset	Use <offset> between script numbers.
 
