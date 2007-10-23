@@ -28,15 +28,11 @@ handle_scsi() {
 }
 
 get_devmodule() {
-	# fix cciss
+	# Translate subdirectories
 	local blkdev=$(echo $1 | sed 's./.!.g')
 
 	if [ ! -d /sys/block/$blkdev ] ; then
-	    blkpart=$blkdev
-	    blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/;s/p$//')
-	    if [ ! -d /sys/block/$blkdev/$blkpart ] ; then
-		error 1 "Device $blkdev not found in sysfs"
-	    fi
+	    error 1 "Device $blkdev not found in sysfs"
 	fi
 
 	case "$blkdev" in

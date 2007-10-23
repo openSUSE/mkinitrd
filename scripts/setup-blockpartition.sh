@@ -11,7 +11,7 @@ for bd in $blockdev; do
 	# /proc/partitions lists only partitions or devices which are
 	# are partitionable
 	if [ "$blkpart" ]; then
-	    blkdev=$(echo ${blkpart#/dev/} | sed 's./.!.g')
+	    blkpart=$(echo ${blkpart#/dev/} | sed 's./.!.g')
 	    blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/;s/p$//')
 	    if [ -d /sys/block/$blkdev/$blkpart ] ; then
 		blkdev=$(echo $blkdev | sed 's.!./.g')
