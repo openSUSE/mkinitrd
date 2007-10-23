@@ -221,6 +221,7 @@ resolve_device() {
 
     [ "$x" != "$realrootdev" ] && x="$x ($realrootdev)"
 
+    # FIXME: we should really print this to stdout
     echo -en "$type device:\t$x" >&2
     if [ "$type" = "Root" ]; then
 	echo " (mounted on ${root_dir:-/} as $rootfstype)" >&2
@@ -330,8 +331,9 @@ else
     rootfsmod=$rootfstype
 fi
 
-# blockdev is the current block device depending on the layered storage script we are in
-# It will get replaced through its way of abstraction, starting at the information mount tell us
+# blockdev is the list current block devices.
+# It will get modified by the various scrips as they descend through
+# the device setup, starting with the mount information
 # and ending at the block device
 
 fallback_rootdev="$rootdev"
