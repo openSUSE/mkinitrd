@@ -1,5 +1,5 @@
 #
-# spec file for package mkinitrd (Version 2.0)
+# spec file for package mkinitrd (Version 2.1)
 #
 # Copyright (c) 2007 SUSE LINUX Products GmbH, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine
@@ -11,12 +11,12 @@
 # norootforbuild
 
 Name:           mkinitrd
-License:        GNU General Public License (GPL)
+License:        GPL v2 or later
 Group:          System/Base
 Provides:       aaa_base:/sbin/mk_initrd
 #!BuildIgnore:  module-init-tools e2fsprogs udev pciutils reiserfs
 Requires:       coreutils modutils util-linux grep gzip sed gawk cpio udev pciutils sysvinit file perl
-Autoreqprov:    on
+AutoReqProv:    on
 Version:        2.1
 Release:        12
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
