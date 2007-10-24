@@ -3,6 +3,7 @@ Mon Oct 22 14:53:34 CEST 2007 - hare@suse.de
 
 - Rework partition detection
 - Fix booting from SmartArray devices (#334377)
+- Fix booting from dmraid (#334461)
 
 -------------------------------------------------------------------
 Tue Oct 16 13:40:15 CEST 2007 - hare@suse.de

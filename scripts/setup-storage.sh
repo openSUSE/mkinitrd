@@ -60,7 +60,7 @@ majorminor2blockdev() {
 	if [ $major -lt 0 ] ; then
 	    return
 	fi
-	local retval=$(cat /proc/partitions | egrep "^[ ]*$major[ ]*$minor")
+	local retval=$(cat /proc/partitions | egrep "^[ ]*$major[ ]*$minor ")
 	echo /dev/${retval##* }
 }
 
