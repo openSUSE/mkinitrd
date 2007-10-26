@@ -2863,7 +2863,7 @@ mkinitrd_kernel() {
 	EOF
     fi
 
-    if [ -z "$is_kdump" ] ; then
+    if [ -z "$is_kdump" ] && [ -n "$need_mdadm" ] ; then
 	cat_linuxrc <<-'EOF'
 	|if [ -z "$kdump_kernel" ]; then
 	|  # Wait for udev to settle
@@ -3064,6 +3064,15 @@ mkinitrd_kernel() {
 	|    fi
 	|    echo "Dumping failed, continue with booting"
 	|fi
+	EOF
+    fi
+
+    if [ -z "$need_mdadm" ] ; then
+	cat_linuxrc <<-'EOF'
+	|# Wait for udev to settle
+	|/sbin/udevsettle --timeout=$udev_timeout
+	|# Check for a resume device
+	|udev_discover_resume
 	EOF
     fi
 
