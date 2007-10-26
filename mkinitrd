@@ -1976,9 +1976,15 @@ mkinitrd_kernel() {
     fi
 
     # Start udev
+    UDEVD_MAX_CHILDS=64
+    UDEVD_MAX_CHILDS_RUNNING=16
+    [ -f /etc/sysconfig/udev ] && . /etc/sysconfig/udev
     cat_linuxrc <<-EOF
 	|
 	|echo "Starting udevd"
+	|UDEVD_MAX_CHILDS=${UDEVD_MAX_CHILDS}
+	|UDEVD_MAX_CHILDS_RUNNING=${UDEVD_MAX_CHILDS_RUNNING}
+	|export UDEVD_MAX_CHILDS UDEVD_MAX_CHILDS_RUNNING
 	|/sbin/udevd --daemon
 	|
 	|echo "Creating devices"
