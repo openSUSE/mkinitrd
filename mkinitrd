@@ -1355,6 +1355,8 @@ mkinitrd_kernel() {
     if has_module dm-multipath ; then
 	add_module dm-round-robin
 	add_module dm-emc
+	add_module dm-rdac
+	add_module dm-hp_sw
 	root_mpath=1
 	root_dm=1
     fi
@@ -3502,6 +3504,8 @@ if [ -n "$root_dm" ] ; then
 	    root_mpath=1
 	    add_module dm-round-robin
 	    add_module dm-emc
+	    add_module dm-rdac
+	    add_module dm-hp_sw
 	fi
     done
 fi
