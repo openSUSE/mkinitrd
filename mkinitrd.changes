@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Fri Oct 26 08:48:59 CEST 2007 - hare@suse.de
+
+- Fix root on iSCSI initialisation (#272115)
+
+-------------------------------------------------------------------
+Thu Sep 27 11:38:50 CEST 2007 - hare@suse.de
+
+- Add missing multipath hardware handler module (#310231)
+- Match to correct minor number for EVMS (#288510)
+- Use default udev settings from sysconfig (#307502)
+- Suspend to disk doesn't work with swap partition on LVM (#223489)
+- Allow to override rport_scan_timeout variable (#329192)
+
+-------------------------------------------------------------------
 Tue Jul  3 12:54:52 CEST 2007 - hare@suse.de
 
 - Include /var/lib/multipath/bindings to support
