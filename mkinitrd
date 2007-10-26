@@ -2504,6 +2504,7 @@ mkinitrd_kernel() {
 	|    fi
 	|
 	|    for tgt in \$iscsi_tgts ; do
+	|        echo "Setup iSCSI target \$tgt"
 	|        /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport -T \$tgt -o update -n node.conn[0].startup -v automatic
 	|    done
 	|}
@@ -2522,13 +2523,17 @@ mkinitrd_kernel() {
 	|/sbin/iscsid
 	|usleep 5000000
 	|
+	|[ -z "\$iscsiserver" ] && iscsiserver=$iscsi_tgtaddr
+	|[ -z "\$iscsiport" ] && iscsiport=3260
+	|[ -z "\$iscsitarget" ] && iscsitarget=$iscsi_tgtname
+	|
 	|if [ "\$iscsiserver" -a "\$iscsiport" ] ; then
 	|    if [ "\$iscsitarget" ] ; then
-	|        if ! /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport -T \$iscsitarget ; then
+	|        if ! /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport -T \$iscsitarget > /dev/null 2>&1 ; then
 	|            do_iscsi_discovery=yes
 	|        fi
 	|    else
-	|        if ! /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport ; then
+	|        if ! /sbin/iscsiadm -m node -p \$iscsiserver:\$iscsiport > /dev/null 2>&1 ; then
 	|            do_iscsi_discovery=yes
 	|        fi
 	|    fi
@@ -2537,6 +2542,7 @@ mkinitrd_kernel() {
 	|    fi
 	|    iscsi_mark_root_nodes
 	|fi
+	|echo "Logging in to all nodes"
 	|/sbin/iscsiadm -m node -L automatic
 	|
 	EOF
