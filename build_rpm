@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# Build a mkinitrd source rpm 
+#
+
+DESTDIR="./"
+
+while [ $# -gt 0 ] ; do
+    case "$1" in
+	-d)
+	    DESTDIR=$2;
+	    shift 2;
+	    ;;
+	--destdir)
+	    DESTDIR=${$1#*=};
+	    shift;
+	    ;;
+	-b)
+	    BRANCH=$2;
+	    shift 2;
+	    ;;
+	--branch=)
+	    BRANCH=${1##*=};
+	    shift;
+	    ;;
+	-f|--force)
+	    force=1;
+	    shift;
+	    ;;
+	*)
+	    echo "Usage: build_rpm [-f] [-d dir|--destdir=DIR] [-b BRANCH|--branch=BRANCH]"
+	    exit 1;
+	    ;;
+    esac
+done
+
+if ! which git-archive > /dev/null ; then
+    echo "git-archive not found, cannot continue"
+    exit 1
+fi
+
+if [ -z "$BRANCH" ] ; then
+    BRANCH="master"
+    echo "Branch is not set, checking out from $BRANCH"
+fi
+
+if [ -d "$DESTDIR/mkinitrd-rpm" ] ; then
+    if ! rm -rf "$DESTDIR/mkinitrd-rpm" ; then
+	echo "Cannot remove directory $DESTDIR"
+	exit 1
+    fi
+else
+    mkdir "$DESTDIR/mkinitrd-rpm"
+fi
+
+if ! git branch | grep -q "$BRANCH" ; then
+    echo "Branch \"$BRANCH\" does not exist"
+    exit 1
+else
+    echo "Checking out from $BRANCH"
+fi
+
+git archive --format=tar --prefix=mkinitrd-rpm/ "$BRANCH" \
+    | (cd $DESTDIR && tar xf -)
+
+rm $DESTDIR/mkinitrd-rpm/build_rpm
+
+echo "mkinitrd src rpm copied to $DESTDIR/mkinitrd-rpm"
