@@ -3379,7 +3379,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	minor=$(devminor $rootdevn)
 	# Check whether we are using EVMS
 	if [ -x /sbin/evms ] ; then
-	    region=$(echo "q:r" | evms -s -b | grep -B 2 "Minor: $minor" | grep -B 1 "Major: $major" | sed -n 's@Region Name: \(.\)@\1@p')
+	    region=$(echo "q:r" | evms -s -b | grep -B 2 "Minor: $minor\$" | grep -B 1 "Major: $major" | sed -n 's@Region Name: \(.\)@\1@p')
 	    if [ "$region" ] ; then
 		volume=$(echo "q:v,r=$region" | evms -s -b | sed -n 's@Volume Name: \(.*\)@\1@p')
 		if [ -e "$volume" ] ; then
