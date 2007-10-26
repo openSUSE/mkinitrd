@@ -1,0 +1,290 @@
+#!/usr/bin/perl -w
+#
+# update-initrd-modules
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+# USA.
+
+use strict;
+use Getopt::Long;
+
+use constant FALSE          => 0;
+use constant TRUE           => 1;
+use constant VERSION        => '0.1.0';
+use constant MODPREFIX      => '/lib/modules';
+use constant DEFAULT_CONF   => '/etc/sysconfig/kernel';
+
+# old+new version of the kernels that gets updated
+my ($oldver, $newver);
+my $configfile = DEFAULT_CONF;
+my $verbose;
+my @modalises_running_system = ();
+my @configfile = ();
+
+
+##
+# Reads the module list from $configfile.
+# Returns a list of modules or an empty list on error;
+##
+sub read_module_list
+{
+    my $modulestring;
+    my @modules = ();
+
+    open(MODULEFILE, $configfile) or die "Could not open " .
+        "$configfile: $!";
+
+    @configfile = <MODULEFILE>;
+    close MODULEFILE;
+
+    foreach (@configfile) {
+        if (/^#/) {
+            next;
+        }
+        if (/^\s+$/) {
+            next;
+        }
+
+        if (/^INITRD_MODULES/) {
+            ($modulestring) = /INITRD_MODULES="?([^"]*)"?$/;
+        }
+    }
+
+    if ($modulestring) {
+        @modules = split(/\s+/, $modulestring);
+    }
+
+    return @modules;
+}
+
+##
+# Writes the configuration file.
+##
+sub write_module_list
+{
+    my @modules = @_;
+
+    open(MODULEFILE, ">$configfile") or die "Could not open " .
+        "$configfile: $!";
+
+    foreach (@configfile) {
+        if (/^INITRD_MODULES/) {
+            print MODULEFILE "INITRD_MODULES=\"" . join(" ", @modules) .  "\"\n";
+        } else {
+            print MODULEFILE $_;
+        }
+    }
+
+    close(MODULEFILE);
+}
+
+
+##
+# Reads a list of modaliases for a kernel version. The first parameter
+# is the filename (modules.alias), the second parameter the module name.
+##
+sub read_modaliases_for_module
+{
+    my $filename = shift;
+    my $module = shift;
+    my @aliases = ();
+
+    open FH, $filename or die "Could not open $filename: $!";
+    while (<FH>) {
+        if (/^alias.*$module$/) {
+            my ($alias) = (split(/ /))[1];
+            push @aliases, $alias;
+        }
+    }
+    close FH;
+
+    return @aliases;
+}
+
+##
+# Finds a list of modules for a given list of modaliases.
+##
+sub find_modules
+{
+    my $modalias_file = shift;
+    my @modaliases = (@_);
+    my @modules = ();
+
+    open FH, $modalias_file or die "Could not open $modalias_file: $!";
+    while (<FH>) {
+        my (undef, $alias, $module) = split;
+        chomp $module;
+
+        # transform into a regexp
+        $alias =~ s/\*/.*/g;
+        $alias =~ s/\?/./g;
+
+        if (grep(/$alias/, @modaliases)) {
+            push @modules, $module;
+        }
+    }
+    close FH;
+
+    return @modules;
+}
+
+##
+# Reads a list of devices in the running system, in the format of module
+# aliases.
+##
+sub read_modaliases_running_system
+{
+    my @aliases = ();
+
+    foreach my $file (</sys/bus/*/devices/*/modalias>) {
+        my $alias;
+
+        open FH, $file or next;
+        $alias = <FH>;
+        close FH;
+
+        chomp $alias;
+
+        push @aliases, $alias;
+    }
+
+    return @aliases;
+}
+
+##
+# Remove duplicates in an array
+##
+sub remove_dups
+{
+    my %seen = ();
+    return grep { ! $seen{ $_ }++ } @_;
+}
+
+##
+# Checks if a module alias is present in the running system by globbing
+# through /sys/bus/*/devices/*/modalias
+##
+sub present_in_running_system
+{
+    my $modalias = shift;
+
+    # transform shell-like globbing into Perl regexps
+    # this should work for the simple modalises syntax
+    $modalias =~ s/\*/.*/g;
+    $modalias =~ s/\?/./g;
+
+    return grep(/$modalias/, @modalises_running_system);
+}
+
+##
+# Prints a help message.
+##
+sub print_help
+{
+    print STDERR "update-initrd-modules " . VERSION ."\n" .
+        "Reads $configfile, looks for present hardware devices for such\n".
+        "modules reads the modules.pcimap of two kernels and updates\n".
+        "INITRD_MODULES if the device driver has changed for a device\n".
+        "\n".
+        "  -h | --help              Prints this help message\n".
+        "  -o <ver> | --old <ver>   Version number of the kernel that should\n".
+        "                           be removed (for which INITRD_MODULES are\n".
+        "                           valid\n".
+        "  -n <ver> | --new <ver>   Version number of the new kernel that\n".
+        "                           is just installed (for which INITRD_MODULES\n".
+        "                           should be valid then\n".
+        "  -c <f> | --config <f>    Use <f> instead of $configfile\n".
+        "\n";
+}
+
+##
+# Parses the command line and fills out %config.
+##
+sub parse_cmdline
+{
+    my $print_help = FALSE;
+
+    GetOptions(
+        'h|help'        => \$print_help,
+        'o|old=s'       => \$oldver,
+        'n|new=s'       => \$newver,
+        'c|config=s'    => \$configfile,
+        'v|verbose'     => \$verbose
+    );
+
+    if ($print_help) {
+        print_help();
+        exit(0);
+    }
+
+    if (!$oldver || !$newver) {
+        print STDERR "You must provide an old version and a new version.\n\n";
+        print_help();
+        exit(1);
+    }
+}
+
+
+##
+# MAIN
+##
+
+parse_cmdline();
+my $old_modalias = MODPREFIX . '/' . $oldver . '/modules.alias';
+my $new_modalias = MODPREFIX . '/' . $newver . '/modules.alias';
+
+unless (-f $old_modalias) {
+    warn "The file '$old_modalias' doesn't exist";
+    exit 1;
+}
+
+unless (-f $new_modalias) {
+    warn "The file '$new_modalias' doesn't exist";
+    exit 1;
+}
+
+@modalises_running_system = read_modaliases_running_system();
+my @initrd_modules = read_module_list();
+my @new_modules = ();
+
+if ($verbose) {
+    print "Old modules\n";
+    print join(", ", @initrd_modules) . "\n";
+}
+
+for my $module (@initrd_modules) {
+    my @old_modaliases = read_modaliases_for_module($old_modalias, $module);
+
+    for my $alias (@old_modaliases) {
+        my @present_alias = present_in_running_system($alias);
+        if (@present_alias) {
+            my @modules = find_modules($new_modalias, @present_alias);
+            if (!grep(/^$module$/, @modules)) {
+                push @new_modules, @modules;
+            }
+        }
+    }
+}
+
+@initrd_modules = remove_dups(@initrd_modules, @new_modules);
+
+if ($verbose) {
+    print "New modules\n";
+    print join(", ", @initrd_modules) . "\n";
+}
+write_module_list(@initrd_modules);
+
+
+# vim: set sw=4 ts=4 et:

@@ -28,6 +28,7 @@ Source4:        hotplug.sh
 Source5:        ipconfig.sh
 Source10:       run-init.c
 Source20:       module_upgrade
+Source21:       update-initrd-modules
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk
@@ -67,6 +68,7 @@ install -D -m 755 run-init $RPM_BUILD_ROOT/lib/mkinitrd/bin/run-init
 install -D -m 755 %{S:0} $RPM_BUILD_ROOT/sbin/mkinitrd
 install -D -m 755 %{S:1} $RPM_BUILD_ROOT/sbin/installkernel
 install -D -m 755 %{S:20} $RPM_BUILD_ROOT/sbin/module_upgrade
+install -D -m 755 %{S:21} $RPM_BUILD_ROOT/sbin/update-initrd-modules
 install -D -m 755 %{S:4} $RPM_BUILD_ROOT/usr/share/mkinitrd/hotplug.sh
 install -D -m 755 %{S:5} $RPM_BUILD_ROOT/lib/mkinitrd/bin/ipconfig.sh
 ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
