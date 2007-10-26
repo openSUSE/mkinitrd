@@ -2208,9 +2208,18 @@ mkinitrd_kernel() {
 	    qla2*|lpfc|mptfc)
 		# Disable asynchronous scanning
 		cat_linuxrc <<-EOF
+		|# check for asynchronous scanning
+		|for p in \$(cat /proc/cmdline) ; do
+		|  case \$p in
+		|    rport_scan_timeout=*)
+		|      rport_scan_timeout="\${p#rport_scan_timeout=}"
+		|      ;;
+		|  esac
+		|done
+		|[ -z "\$rport_scan_timeout" ] && rport_scan_timeout=\$udev_timeout
 		|# Disable asynchronous scanning
-		|if [ -e /sys/module/scsi_transport_fc/parameters/rport_scan_timeout ] ; then
-		|  echo \$udev_timeout > /sys/module/scsi_transport_fc/parameters/rport_scan_timeout
+		|if [ \$rport_scan_timeout != 0 -a -e /sys/module/scsi_transport_fc/parameters/rport_scan_timeout ] ; then
+		|  echo \$rport_scan_timeout > /sys/module/scsi_transport_fc/parameters/rport_scan_timeout
 		|fi
 		EOF
 		;;
