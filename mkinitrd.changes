@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov  5 12:20:54 CET 2007 - hare@suse.de
+
+- Fix calculation of initrd size when a different inode count
+  is given (#338641)
+- Update manpage to include -n option (#338222)
+
+-------------------------------------------------------------------
 Fri Oct 19 11:06:56 CEST 2007 - hare@suse.de
 
 - Add -n option to increase the inode count (#143205)

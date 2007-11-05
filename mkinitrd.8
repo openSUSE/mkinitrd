@@ -27,6 +27,9 @@ match the "kernel list",  defaults to "initrd initrd.shipped"
 modules to include in initrd, defaults to INITRD_MODULES variable in
 /etc/sysconfig/kernel 
 .TP
+\fB-n inode_number\fR 
+number of inodes for the initrd, defaults to 4096.
+.TP
 \fB-b boot_dir\fR
 boot dir, defaults to "/boot", where the initrd is created.
 .TP
@@ -71,5 +74,6 @@ You can specify the root device via the environment variable rootdev (e.g.
 .SH "SEE ALSO"
 .BR \fBinitrd\fR(4)
 .SH AUTHOR
-Steffen Winterfeldt <wfeldt@suse.de>, Susanne Oberhauser <froh@suse.de>
+Steffen Winterfeldt <wfeldt@suse.de>, Susanne Oberhauser
+<froh@suse.de>, Hannes Reinecke <hare@suse.de>
 .BR 
