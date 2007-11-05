@@ -63,6 +63,8 @@ usage() {
 	  -S               Load policy file for SELinux if exist.
 	  -x size          Additional space on the initrd in kBytes.
                            Default is 2048.
+	  -n inodes        Number of inodes for the initrd.
+                           Default is 2048.
         root_dir:          The directory the root partition is mounted on.
                            Defaults to "/".
 EOM
@@ -145,6 +147,7 @@ use_static_binaries=1
 acpi_dsdt=
 use_selinux=
 initrd_space=2048
+initrd_inodes=2048
 
 # architecture dependend changes:
 case "$(uname -m)" in
@@ -153,7 +156,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :hk:i:m:b:d:s:St:D:I:a:x: a ; do
+while getopts :hk:i:m:n:b:d:s:St:D:I:a:x: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -177,6 +180,8 @@ while getopts :hk:i:m:b:d:s:St:D:I:a:x: a ; do
 		a)  echo "-a requires a DSDT parameter"
 		    ;;
 		x)  echo "-x requires the size to extend"
+		    ;;
+		n)  echo "-n requires number of inodes to create"
 		    ;;
 		*)  echo "Unknown option: -$OPTARG"
 		    echo "Try mkinitrd -h"
@@ -213,6 +218,8 @@ while getopts :hk:i:m:b:d:s:St:D:I:a:x: a ; do
 	    ;;
 	S)  use_selinux=1
 	    ;;
+	n)  initrd_inodes=$OPTARG
+	    ;;
 	x)  initrd_space=$OPTARG
 	    ;;
 	h)  usage
@@ -242,6 +249,12 @@ fi
 if (($initrd_space < 2048)) ; then
     echo "Not enough additional space, resetting to 2048"
     initrd_space=2048
+fi
+
+# Check if we have enough inodes
+if (($initrd_inodes < 2048)) ; then
+    echo "Not enough inodes, resetting to 2048"
+    initrd_inodes=2048
 fi
 
 # FIXME agruen: tmp_dir is the full, absolute path to a temporary directory
@@ -316,8 +329,8 @@ fi
 # and /sbin/initrd.static outside the $root_dir?
 
 # maximum initrd size
-image_blocks=40960
-image_inodes=2048
+image_blocks=$((40960 + $initrd_space))
+image_inodes="$initrd_inodes"
 
 # handle splash screen
 case "$splash" in
@@ -1130,7 +1143,11 @@ mkinitrd_kernel() {
 	error 1 "could not create temporary directory"
     fi
     dd if=/dev/zero of=$tmp_initrd bs=1k count=$image_blocks 2>/dev/null
-    mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd 2>/dev/null 1>&2
+    if ! mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd \
+	2>/dev/null 1>&2 ; then
+	error 7 "failed to create image with $image_blocks blocks and $image_inodes inodes"
+    fi
+
     tune2fs -i 0 $tmp_initrd >/dev/null 2>&1
 
     # check for loop device
@@ -2401,8 +2418,10 @@ mkinitrd_kernel() {
     mkdir $tmp_mnt_small
 
     dd if=/dev/zero of=$tmp_initrd_small bs=1k count=$img_size 2>/dev/null
-    mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd_small \
-	2>/dev/null 1>&2
+    if ! mke2fs -q -F -b 1024 -m 0 -N $image_inodes $tmp_initrd_small \
+	2>/dev/null 1>&2 ; then
+	error 7 "Failed to create image with $img_size blocks and $image_inodes inodes"
+    fi
     tune2fs -i 0 $tmp_initrd_small >/dev/null 2>&1
 
     if ! mount -t ext2 -oloop $tmp_initrd_small $tmp_mnt_small ; then
@@ -2560,11 +2579,30 @@ x="$rootdev"
 [ "$rootdev" != "$realrootdev" ] && x="$x ($realrootdev)"
 echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 
+if [ -e $root_dir/etc/sysconfig/kernel ]; then
+    . $root_dir/etc/sysconfig/kernel
+fi
+
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
-    if [ -e $root_dir/etc/sysconfig/kernel ]; then
-	. $root_dir/etc/sysconfig/kernel
+    if [ "$INITRD_MODULES" ]; then
 	modules="$INITRD_MODULES"
+    fi
+fi
+
+if [ "$initrd_inodes" = 2048 ] ; then
+    # get INITRD INODES from system configuration
+    if [ "$INITRD_IMAGE_INODES" ] && [ "$INITRD_IMAGE_INODES" -gt 2048 ] ; then
+	initrd_inodes="$INITRD_IMAGE_INODES"
+	image_inodes="$initrd_inodes"
+    fi
+fi
+
+if [ "$initrd_space" = 2048 ] ; then
+    # get INITRD IMAGE SPACE from system configuration
+    if [ "$INITRD_IMAGE_SPACE" ] && [ "$INITRD_IMAGE_SPACE" -gt 2048 ] ; then
+	initrd_space="$INITRD_IMAGE_SPACE"
+	image_blocks=$((40960 + $initrd_space))
     fi
 fi
 
