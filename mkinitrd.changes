@@ -7,7 +7,7 @@ Fri Oct 26 08:48:59 CEST 2007 - hare@suse.de
 Thu Oct 18 17:43:21 CEST 2007 - bwalle@suse.de
 
 - add update-initrd-modules script which updates INITRD_MODULES
-  by reading old and new modules.alias (FATE #300389, BZ #334191)
+  by reading old and new modules.alias (FATE #300389, #334191)
 
 -------------------------------------------------------------------
 Thu Sep 27 11:38:50 CEST 2007 - hare@suse.de

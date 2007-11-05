@@ -3,7 +3,8 @@
 # Build a mkinitrd source rpm 
 #
 
-DESTDIR="./"
+DESTDIR="."
+RPMDIR="mkinitrd-rpm"
 
 while [ $# -gt 0 ] ; do
     case "$1" in
@@ -27,8 +28,16 @@ while [ $# -gt 0 ] ; do
 	    force=1;
 	    shift;
 	    ;;
+	-p)
+	    RPMDIR=$2;
+	    shift 2;
+	    ;;
+	--prefix)
+	    RPMDIR=${$1#*=};
+	    shift;
+	    ;;
 	*)
-	    echo "Usage: build_rpm [-f] [-d dir|--destdir=DIR] [-b BRANCH|--branch=BRANCH]"
+	    echo "Usage: build_rpm [-f] [-d DIR|--destdir=DIR] [-b BRANCH|--branch=BRANCH] [-p DIR|--prefix=DIR]"
 	    exit 1;
 	    ;;
     esac
@@ -40,17 +49,20 @@ if ! which git-archive > /dev/null ; then
 fi
 
 if [ -z "$BRANCH" ] ; then
-    BRANCH="master"
-    echo "Branch is not set, checking out from $BRANCH"
+    BRANCH="SLES10_BRANCH"
+    echo "Branch is not set, using default $BRANCH"
 fi
 
-if [ -d "$DESTDIR/mkinitrd-rpm" ] ; then
-    if ! rm -rf "$DESTDIR/mkinitrd-rpm" ; then
-	echo "Cannot remove directory $DESTDIR"
+if [ -d "$DESTDIR/$RPMDIR" ] ; then
+    if ! rm -rf "$DESTDIR/$RPMDIR" ; then
+	echo "Cannot remove directory $DESTDIR/$RPMDIR"
 	exit 1
     fi
 else
-    mkdir "$DESTDIR/mkinitrd-rpm"
+    if ! mkdir "$DESTDIR/$RPMDIR" ; then
+	echo "Cannot create directory $DESTDIR/$RPMDIR"
+	exit 1
+    fi
 fi
 
 if ! git branch | grep -q "$BRANCH" ; then
@@ -60,9 +72,9 @@ else
     echo "Checking out from $BRANCH"
 fi
 
-git archive --format=tar --prefix=mkinitrd-rpm/ "$BRANCH" \
+git archive --format=tar --prefix=$RPMDIR/ "$BRANCH" \
     | (cd $DESTDIR && tar xf -)
 
-rm $DESTDIR/mkinitrd-rpm/build_rpm
+rm $DESTDIR/$RPMDIR/build_rpm
 
-echo "mkinitrd src rpm copied to $DESTDIR/mkinitrd-rpm"
+echo "mkinitrd src rpm copied to $DESTDIR/$RPMDIR"
