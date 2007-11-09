@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov  9 08:46:21 CET 2007 - hare@suse.de
+
+- Add new udevadm tool to boot-udev.sh
+
+-------------------------------------------------------------------
 Mon Oct 22 14:53:34 CEST 2007 - hare@suse.de
 
 - Rework partition detection
