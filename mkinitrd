@@ -3515,7 +3515,7 @@ if [ -n "$root_dm" ] ; then
     # Add all required dm modules
     dm_modules=$(dmsetup table | cut -f 4 -d ' ' | sort | uniq)
     for table in $dm_modules; do
-	if [ "$table" ] && [ "$table" != "linear" ] ; then
+	if [ "$table" ] && [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
 	    add_module dm-$table
 	fi
 	# Check for multipathing

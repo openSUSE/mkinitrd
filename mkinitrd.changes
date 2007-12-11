@@ -2,6 +2,7 @@
 Tue Dec 11 15:17:08 CET 2007 - hare@suse.de
 
 - Allow all features for Xen DomU installations (#342653)
+- Do not try to load built-in module 'dm-striped' (#347600)
 
 -------------------------------------------------------------------
 Fri Oct 26 08:48:59 CEST 2007 - hare@suse.de
