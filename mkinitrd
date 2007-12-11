@@ -135,6 +135,8 @@ kernel_images=
 initrd_images=
 modules=
 modules_set=
+sys_modules=
+sys_modules_set=
 domu_modules=
 domu_modules_set=
 feature_list=
@@ -1217,7 +1219,7 @@ mkinitrd_kernel() {
     local need_mdadm
     local is_kdump
     local -a features
-    local fs_modules drv_modules uld_modules xen_modules
+    local fs_modules drv_modules uld_modules root_modules
     local i
 
     tmp_mnt=$work_dir/mnt
@@ -2033,11 +2035,13 @@ mkinitrd_kernel() {
     fi
 
     if is_xen_kernel $kernel_version; then
-	xenu_modules="$(resolve_modules $kernel_version $domu_modules)"
+	root_modules="$(resolve_modules $kernel_version $domu_modules)"
+    else
+	root_modules="$(resolve_modules $kernel_version $sys_modules)"
     fi
 
     # Copy all modules into the initrd
-    for module in $resolved_modules $xenu_modules; do
+    for module in $resolved_modules $root_modules; do
 	if [ ! -r $root_dir/$module ]; then
 	    oops 9 "Module $module not found."
 	    continue
@@ -2076,8 +2080,6 @@ mkinitrd_kernel() {
     for module in $resolved_modules; do
 	if [ "$module" != "${module#*/kernel/fs/}" ]; then
 	    fs_modules="$fs_modules $module"
-	elif is_xen_kernel $kernel_version && [ "$module" != "${module#*/kernel/drivers/xen/*/xen}" ]; then
-	    xen_modules="$xen_modules $module"
 	else
 	    drv_modules="$drv_modules $module"
 	fi
@@ -2085,17 +2087,42 @@ mkinitrd_kernel() {
     #fs_modules="$(echo "$resolved_modules" | grep -e '/kernel/fs/')"
     #drv_modules="$(echo "$resolved_modules" | grep -v -e '/kernel/fs/')"
 
+    if [ "$root_modules" ]; then
+	if is_xen_kernel $kernel_version; then
+	    echo -ne "\nXen domU modules:\t"
+	else
+	    echo -ne "\nSystem modules:\t"
+	fi
+	initrd_is_using_modules=
+	for modpath in $root_modules; do
+	    module=${modpath##*/}
+	    module=${module%.ko}
+	    echo -n "${module} "
+	    cat_linuxrc <<-EOF
+		|params=
+		|for p in \$(cat /proc/cmdline) ; do
+		|  case \$p in
+		|    $module.*)
+		|      params="\$params \${p#$module.}"
+		|      ;;
+		|  esac
+		|done
+		|echo "Loading $module"
+		|modprobe $module \$params
+		EOF
+
+	    initrd_is_using_modules=1
+	done
+
+	if [ -z "$initrd_is_using_modules" ]; then
+	    echo "none"
+	else
+	    echo
+	fi
+    fi
+
     echo -ne "Driver modules:\t"
     initrd_is_using_modules=
-
-    if is_xen_kernel $kernel_version; then
-	# NOTE: We use the same settings as the dom0 initrd, except
-	# for the different module list. So we share fsck, dm, ... support.
-	cat_linuxrc <<-EOF
-	|caps="\$(</proc/xen/capabilities)"
-	|if [ "\$caps" != "\${caps%control_d*}" ]; then
-	EOF
-    fi
 
     for modpath in $drv_modules; do
 	module=${modpath##*/}
@@ -2129,6 +2156,7 @@ mkinitrd_kernel() {
 		|  case \$p in
 		|    dasd=*)
 		|      params="\$params \$p"
+		|      dasd_params="\${p#dasd=}"
 		|      ;;
 		|  esac
 		|done
@@ -2231,38 +2259,6 @@ mkinitrd_kernel() {
 
 	initrd_is_using_modules=1
     done
-
-    if is_xen_kernel $kernel_version; then
-	if [ "$xenu_modules" -o "$xen_modules" ]; then
-	    cat_linuxrc <<-EOF
-		|else
-		EOF
-	    echo -ne "\nXen domU modules:\t"
-
-	    for modpath in $xenu_modules $xen_modules; do
-		module=${modpath##*/}
-		module=${module%.ko}
-		echo -n "${module} "
-		cat_linuxrc <<-EOF
-		|params=
-		|for p in \$(cat /proc/cmdline) ; do
-		|  case \$p in
-		|    $module.*)
-		|      params="\$params \${p#$module.}"
-		|      ;;
-		|  esac
-		|done
-		|echo "Loading $module"
-		|modprobe $module \$params
-		EOF
-
-		initrd_is_using_modules=1
-	    done
-	fi
-	cat_linuxrc <<-EOF
-	|fi
-	EOF
-    fi
 
     if [ -z "$initrd_is_using_modules" ]; then
 	echo "none"
@@ -3478,7 +3474,7 @@ echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
     . $root_dir/etc/sysconfig/kernel
-    modules="$INITRD_MODULES"
+    sys_modules="$INITRD_MODULES"
 fi
 
 if [ -z "$domu_modules_set" ]; then
@@ -3500,7 +3496,6 @@ fi
 if [ -n "$root_dm" ] ; then
     add_module dm-mod
     add_module dm-snapshot
-    domu_modules="$domu_modules dm-mod dm-snapshot"
 fi
 
 if [ -n "$md_list" ] ; then
@@ -3559,7 +3554,20 @@ if [ -n "$interface" ] ; then
 	else
 	    drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
 	fi
-	add_module ${drvlink##*/}
+	# xen network driver registers as 'vif'
+	ifmod=${drvlink##*/}
+	if [ "$ifmod" == "vif" ] ; then
+	    ifmod=xennet
+	    for mod in $domu_modules; do
+		if [ "$mod" == "xennet" ] ; then
+		    ifmod=
+		    break;
+		fi
+	    done
+	fi
+	if [ "$ifmod " ] ; then
+	    add_module $ifmod
+	fi
 	read macaddress < /sys/class/net/$interface/address
     fi
 fi
@@ -3605,7 +3613,7 @@ initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
 
 boot_modules="$modules"
-echo -e "Module list:\t$boot_modules ($domu_modules)"
+echo -e "Module list:\t$boot_modules ($sys_modules) ($domu_modules)"
 for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     echo
     modules="$boot_modules"
