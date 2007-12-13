@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec 13 16:03:34 CET 2007 - hare@suse.de
+
+- Add support for LVM over iscsi (#267878)
+
+-------------------------------------------------------------------
 Tue Dec 11 15:17:08 CET 2007 - hare@suse.de
 
 - Allow all features for Xen DomU installations (#342653)

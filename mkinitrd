@@ -879,7 +879,7 @@ check_iscsi_root() {
     local devname=$1
     local sysfs_path
 
-    sysfs_path=$(udevinfo -q path -n $rootdev 2> /dev/null)
+    sysfs_path=$(udevinfo -q path -n $devname 2> /dev/null)
     if [ -z "$sysfs_path" ] || [ ! -d /sys$sysfs_path ] ; then
 	return;
     fi
@@ -2504,7 +2504,6 @@ mkinitrd_kernel() {
     if [ -n "$iscsi_root" ] ; then
 	iscsi_tgtname=$(cat /sys/class/iscsi_session/${iscsi_root}/targetname)
 	iscsi_tgtaddr=$(cat /sys/class/iscsi_connection/connection${iscsi_root#session}:0/address)
-	iscsi_sid=$(/sbin/iscsiadm -m node | grep "$iscsi_tgtname" | grep "$iscsi_tgtaddr" | sed 's@\[\(.*\)\] .*@\1@g')
 	cat_linuxrc <<-EOF
 	|iscsi_mark_root_nodes()
 	|{
@@ -2622,6 +2621,16 @@ mkinitrd_kernel() {
 	|		break;
 	|	    fi
 	|	    sleep 1
+	EOF
+
+    if [ -n "$root_lvm2" ] ; then
+	cat_linuxrc <<-'EOF'
+	|	    vgscan
+	|	    vgchange -a y $vgname
+	EOF
+    fi
+
+    cat_linuxrc <<-'EOF'
 	|	    echo -n "."
 	|	    timeout=$(( $timeout - 1 ))
 	|	done
@@ -3433,7 +3442,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md
 	    md_list=
-	    pv_list=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed -n "s@ *\(/dev/.*\)([0-9]*) *@\1@p" | sort | uniq)
+	    pv_list=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed "s@,@\n@g" | sed -n "s@([0-9]*)@@p;s@ @@g" | sort | uniq)
 	    for dev in $pv_list ; do
 		mdconf=$(mdadm -Db $dev 2> /dev/null)
 		if [ -n "$mdconf" ] ; then
@@ -3444,6 +3453,16 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	    done
 	    unset md_dev
 	    unset mdconf
+	    # Check for iscsi
+	    for dev in $pv_list ; do
+		case "$dev" in
+		    /dev/sd*)
+			sid=$(check_iscsi_root $dev)
+			;;
+		esac
+	    done
+	    [ -n "$sid" ] && iscsi_root="$sid"
+	    unset sid
 	fi
     fi
     if [ "$root_md" ] && [ -x /sbin/mdadm ] ; then
