@@ -10,6 +10,11 @@ Tue Dec 11 15:17:08 CET 2007 - hare@suse.de
 - Do not try to load built-in module 'dm-striped' (#347600)
 
 -------------------------------------------------------------------
+Thu Dec 13 16:03:34 CET 2007 - hare@suse.de
+
+- Update dasd_params parameter correctly (#336928)
+
+-------------------------------------------------------------------
 Fri Oct 26 08:48:59 CEST 2007 - hare@suse.de
 
 - Fix root on iSCSI initialisation (#272115)
