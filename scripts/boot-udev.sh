@@ -31,6 +31,13 @@ udev_check_for_device() {
 	    sleep 1
 	    echo -n "."
 	    timeout=$(( $timeout - 1 ))
+	    # Recheck for LVM volumes
+	    if [ -n "$lvm" -a -n "$vg_root" -a -n "$vg_roots" ] ; then
+		vgscan
+	    fi
+	    for vgr in $lvm $vg_root $vg_roots; do
+		vgchange -a y $vgr
+	    done
 	done
     fi
     return $retval;
