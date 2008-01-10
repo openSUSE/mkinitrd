@@ -20,7 +20,7 @@
 ## ro		mount the root device read-only
 ## 
 
-[ "$( ( set -u; echo $ro >/dev/null; echo 1 ) 2>/dev/null )" = "1" ] && read_only=1
+( set +u; test -n "$ro") && read_only=1
 
 [ -x /lib/udev/vol_id ] && VOL_ID=/lib/udev/vol_id
 [ -x /sbin/vol_id ] && VOL_ID=/sbin/vol_id

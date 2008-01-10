@@ -2,7 +2,7 @@
 #
 #%stage: boot
 #%depends: devfunctions
-#%programs: bash umount test mount mknod mkdir ln /sbin/blogd date sleep echo cat /bin/sed /sbin/insmod /sbin/modprobe expr kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/*
+#%programs: /bin/bash umount test mount mknod mkdir ln /sbin/blogd date sleep echo cat /bin/sed /sbin/insmod /sbin/modprobe expr kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/*
 #%modules: $RESOLVED_INITRD_MODULES
 #%dontshow
 #
