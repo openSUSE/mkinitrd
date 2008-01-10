@@ -62,7 +62,8 @@ for o in $(cat /proc/cmdline); do
     key="${o%%=*}"
     if [ "${key%.*}" != "${key}" ]; then # module parameter
     	add_module_param "${key%.*}" "${o#*.}"
-    else # environment variable
+    elif [ "${key}" != "${o}" ] ; then
+        # environment variable
         # set local variables too, in case somehow the kernel does not do this correctly
 	value="${o#*=}"
 	eval cmd_$key="$value"

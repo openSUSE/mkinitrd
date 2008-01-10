@@ -2,6 +2,7 @@
 Thu Jan 10 13:13:48 CET 2008 - hare@suse.de
 
 - Rescan for LVM2 when waiting for the root device (#343891)
+- Allow for commandline variables without a value (#347175)
 
 -------------------------------------------------------------------
 Fri Nov  9 08:46:21 CET 2007 - hare@suse.de
