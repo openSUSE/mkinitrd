@@ -64,6 +64,7 @@ usage() {
 			   DSDT of the BIOS. Defaults to the ACPI_DSDT
 			   variable in /etc/sysconfig/kernel.
           -e               Use static binaries where possible.
+          -l keyfile       LUKS Key for decryption.
 	  -V script        Vendor specific script to run in linuxrc.
 	  -M map           System.map file to use.
 EOF
@@ -142,6 +143,7 @@ domu_modules_set=
 feature_list=
 boot_dir=
 splash=off
+luks_key=/tmp/luks.key
 use_static_binaries=
 acpi_dsdt=
 use_selinux=
@@ -155,7 +157,7 @@ case "$(uname -m)" in
 	;;
 esac
 
-while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:j: a ; do
+while getopts :ef:hk:i:m:u:b:d:s:l:St:D:I:V:a:M:j: a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -175,6 +177,8 @@ while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:j: a ; do
 		s)  echo "-s requires image size(s)"
 		    ;;
 		t)  echo "-t requires tmp dir parameter"
+		    ;;
+		l)  echo "-l requires LUKS key parameter"
 		    ;;
 		D)  echo "-D requires dhcp interface parameter"
 		    ;;
@@ -215,6 +219,8 @@ while getopts :ef:hk:i:m:u:b:d:s:St:D:I:V:a:M:j: a ; do
 	s)  splash=$OPTARG
 	    ;;
 	t)  tmp_dir=$OPTARG
+	    ;;
+	l)  luks_key=$OPTARG
 	    ;;
 	D)  interface=$OPTARG
 	    interface=${interface#/dev/}
@@ -1363,7 +1369,7 @@ mkinitrd_kernel() {
     cipherMode="Cipher mode:"
     hashSpec="Hash spec:"
     numLuks=0
-    for md in $(ls /dev/mapper | grep -v "control") ; do
+    for md in $(dmsetup ls | cut -f 1) ; do
         device=`$cryptsetup status $md 2> /dev/null | grep device | cut -f 5 -d' ' `
         if [ -z "$device" ] ; then
             continue;
@@ -1402,6 +1408,10 @@ mkinitrd_kernel() {
 	    cp_bin /usr/bin/clear $tmp_mnt/bin/
         fi
     done
+
+    if [ "$root_lerfs" -o "$numLuks" -ne 0 ] ; then
+	features=(${features[@]} LUKS)
+    fi
 
     if [ ! -z "$vendor_init_script" ] ; then
 	features=(${features[@]} script\($vendor_script\))
@@ -1560,6 +1570,10 @@ mkinitrd_kernel() {
 	features=(${features[@]} lvm)
 	mkdir -p $tmp_mnt/etc/lvmtab.d
 	cp_bin /sbin/{vgscan,vgchange} $tmp_mnt/sbin
+	cp_bin /sbin/dmsetup $tmp_mnt/sbin
+    fi
+
+    if [ -n "$root_dm" ] ; then
 	cp_bin /sbin/dmsetup $tmp_mnt/sbin
     fi
 
