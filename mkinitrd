@@ -1349,6 +1349,60 @@ mkinitrd_kernel() {
 	done
     fi
 
+    # Enable the LUKS encrypted file systems, if any
+
+    if [ -x /usr/sbin/cryptsetup ] ; then
+        cryptsetup=/usr/sbin/cryptsetup
+    elif [ -x /usr/sbin/cryptsetup-luks ] ; then
+        cryptsetup=/usr/sbin/cryptsetup-luks
+    elif [ -x /sbin/cryptsetup ] ; then
+        cryptsetup=/sbin/cryptsetup
+    fi
+
+    cipherName="Cipher name:"
+    cipherMode="Cipher mode:"
+    hashSpec="Hash spec:"
+    numLuks=0
+    for md in $(ls /dev/mapper | grep -v "control") ; do
+        device=`$cryptsetup status $md 2> /dev/null | grep device | cut -f 5 -d' ' `
+        if [ -z "$device" ] ; then
+            continue;
+        elif [[ $device == /dev/loop* ]] ; then
+            continue;
+        fi
+        isLuks=`$cryptsetup isLuks $device &>/dev/null`
+        if [ $? == 0 ]; then
+            rN=${rootdev#"/dev/mapper/"}
+            cipher=`$cryptsetup luksDump $device | grep "$cipherName" | cut -f 2 -d: `
+            hash=`$cryptsetup luksDump $device | grep "$hashSpec" | cut -f 2 -d: `
+            mode=`$cryptsetup luksDump $device | grep "$cipherMode" | cut -f 3 -d: `
+
+            arch=`uname -m`
+            if [ $cipher == "aes" ] ; then
+                case "$(uname -m)" in
+                    i586)
+                        cipher="aes-i586"
+                        ;;
+                    i686)
+                        cipher="aes-i586"
+                        ;;
+                esac
+            fi
+            add_module $cipher
+            add_module $hash
+            add_module $mode
+            if [ "/dev/mapper/$md" != "$rootdev" ] ; then
+                cryptdev[$numLuks]=$device
+                dmname[$numLuks]=$md
+                numLuks=$(($numLuks + 1))
+	    else
+		root_lerfs=1
+            fi
+	    cp_bin $cryptsetup $tmp_mnt/sbin/cryptsetup
+	    cp_bin /usr/bin/clear $tmp_mnt/bin/
+        fi
+    done
+
     if [ ! -z "$vendor_init_script" ] ; then
 	features=(${features[@]} script\($vendor_script\))
 	cp_bin $vendor_init_script $vendor_script
@@ -3098,6 +3152,75 @@ mkinitrd_kernel() {
 	|    PATH=$PATH PS1='$ ' /bin/sh -i
 	|fi
 	EOF
+
+    if [ -n "$root_lerfs" ] ; then
+        rootName=${rootdev#"/dev/mapper/"}
+        cat_linuxrc <<-EOF
+	|# Try to unlock the root filesystem
+	|clear
+	|echo
+	|while [ \$((c)) -lt 3 ] ; do
+	|    echo -n "Enter passphrase: "
+	|    read -s ssopass
+	|    echo
+	|    echo -n \$ssopass | cryptsetup luksOpen \$rootdev $rootName 2> /dev/null
+	|    if [ "\$?" = 0 ]; then
+	|        break
+	|    else
+	|        echo "Try again..."
+	|        echo
+	|    fi
+	|    c=\$((c + 1))
+	|done
+	|if [ \$((c)) -ge 3 ]; then
+	|    echo "Too many failures..."
+	|    die 1
+	|fi
+	|rootdev=$rootdev
+	EOF
+
+        count=0
+        while [ $count -lt $numLuks ] ; do
+            cat_linuxrc <<-EOF
+	|#open the LUKS encrypted file system ${cryptdev[$count]}
+	|echo
+	|echo "Opening the LUKS encrypted file system ${cryptdev[$count]}"
+	|
+	|#first we try to open the file system using the sso password
+	|echo -n \$ssopass | cryptsetup luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
+	|if [ "\$?" != 0 ]; then
+	|    c=0
+	|    while [ \$((c)) -lt 3 ] ; do
+	|        echo -n "Enter passphrase for ${cryptdev[$count]}: "
+	|        read -s pass
+	|        echo
+	|        echo -n \$pass | cryptsetup luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
+	|        if [ "\$?" = 0 ]; then
+	|            break
+	|        else
+	|            echo "Try again..."
+	|            echo
+	|        fi
+	|        c=\$((c + 1))
+	|    done
+	|    if [ \$((c)) -ge 3 ]; then
+	|        echo "Too many failures...Device not opened"
+	|    fi
+	|fi
+	EOF
+            count=$(($count + 1))
+        done
+
+        cat_linuxrc <<-EOF
+	|
+	|#release the pass phrases
+	|ssopass=3xUxj04EbEl
+	|pass=DSwESCNsEb
+	|unset ssopass
+	|unset pass
+	|
+	EOF
+    fi
 
     cat_linuxrc <<-'EOF'
 	|if [ -z "$rootfstype" ]; then
