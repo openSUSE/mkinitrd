@@ -3299,6 +3299,14 @@ mkinitrd_kernel() {
 	|else
 	|    mount $opt $rootdev /root || die 1
 	|fi
+	|# Create iSCSI target node file
+	|if [ "$do_iscsi_discovery" ] ; then
+    	|    if [ ! -e /root/etc/iscsi/nodes/$iscsitarget/${iscsiserver},${iscsiport} ] ; then
+	|	echo Setting up new iSCSI target node in root FS
+	|	cp /etc/iscsi/nodes/$iscsitarget/${iscsiserver},${iscsiport} /root/etc/iscsi/nodes/$iscsitarget/${iscsiserver},${iscsiport}
+    	|    fi
+	|fi
+	|# End Create config file for iscsi
 	|# Look for an init binary on the root filesystem
 	|if [ -n "$init" ] ; then
 	|    if [ ! -f "/root$init" ]; then

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 29 15:04:34 CET 2008 - hare@suse.de
+
+- Transfer discovered iSCSI nodes to root fs (#354722)
+
+-------------------------------------------------------------------
 Mon Jan 14 15:37:36 CET 2008 - hare@suse.de
 
 - Add LUKS support (FATE#302951)
