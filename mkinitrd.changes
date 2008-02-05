@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb  4 17:31:43 CET 2008 - kukuk@suse.de
+
+- Fix generation of intrd for dom0 [bnc#357585]
+
+-------------------------------------------------------------------
 Tue Jan 29 15:04:34 CET 2008 - hare@suse.de
 
 - Transfer discovered iSCSI nodes to root fs (#354722)
@@ -14,15 +19,15 @@ Thu Dec 13 16:03:34 CET 2007 - hare@suse.de
 - Add support for LVM over iscsi (#267878)
 
 -------------------------------------------------------------------
+Thu Dec 13 16:03:34 CET 2007 - hare@suse.de
+
+- Update dasd_params parameter correctly (#336928)
+
+-------------------------------------------------------------------
 Tue Dec 11 15:17:08 CET 2007 - hare@suse.de
 
 - Allow all features for Xen DomU installations (#342653)
 - Do not try to load built-in module 'dm-striped' (#347600)
-
--------------------------------------------------------------------
-Thu Dec 13 16:03:34 CET 2007 - hare@suse.de
-
-- Update dasd_params parameter correctly (#336928)
 
 -------------------------------------------------------------------
 Fri Oct 26 08:48:59 CEST 2007 - hare@suse.de
@@ -233,6 +238,11 @@ Wed Aug  2 15:47:58 CEST 2006 - hare@suse.de
 - Fixup booting from lvm on top of md (#192039)
 
 -------------------------------------------------------------------
+Wed Jul 26 16:29:20 CEST 2006 - hare@suse.de
+
+- Fixup udev rules for lilo etc. (#192725)
+
+-------------------------------------------------------------------
 Tue Jun 27 15:53:46 CEST 2006 - hare@suse.de
 
 - Check for nfs last; persistent device names might
@@ -240,11 +250,6 @@ Tue Jun 27 15:53:46 CEST 2006 - hare@suse.de
 - Use 'module' link to get the correct module name for
   network modules
 - Fixup detection of EVMS installations (#188511)
-
--------------------------------------------------------------------
-Wed Jul 26 16:29:20 CEST 2006 - hare@suse.de
-
-- Fixup udev rules for lilo etc. (#192725)
 
 -------------------------------------------------------------------
 Tue Jun 13 13:46:20 CEST 2006 - hare@suse.de
