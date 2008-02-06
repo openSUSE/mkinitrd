@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  6 09:15:02 CET 2008 - agraf@suse.de
+
+- don't resolve non-existing devices, so a wrong resume device
+  option does not result in a broken initrd (#357725)
+
+-------------------------------------------------------------------
 Thu Jan 10 13:13:48 CET 2008 - hare@suse.de
 
 - Rescan for LVM2 when waiting for the root device (#343891)
