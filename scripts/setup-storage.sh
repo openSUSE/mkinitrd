@@ -194,7 +194,10 @@ resolve_device() {
     local x="$2"
     local realrootdev="$2"
 
-    [ "$2" ] || exit 0
+    # root device was already checked and non-existing
+    # non-root device is not fatal, but may not be
+    # shown to the following block resolver modules
+    [ -b "$realrootdev" ] || exit 0
 
     case "$realrootdev" in
       LABEL=*|UUID=*)
