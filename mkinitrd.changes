@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb  6 13:34:49 CET 2008 - hare@suse.de
+
+- Activate multipathing again [bnc#359173]
+
+-------------------------------------------------------------------
 Mon Feb  4 17:31:43 CET 2008 - kukuk@suse.de
 
 - Fix generation of intrd for dom0 [bnc#357585]

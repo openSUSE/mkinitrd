@@ -136,8 +136,6 @@ kernel_images=
 initrd_images=
 modules=
 modules_set=
-sys_modules=
-sys_modules_set=
 domu_modules=
 domu_modules_set=
 feature_list=
@@ -2103,12 +2101,11 @@ mkinitrd_kernel() {
     fi
 
     if is_xen_kernel $kernel_version; then
-	xen_modules="$(resolve_modules $kernel_version $domu_modules)"
+	xenu_modules="$(resolve_modules $kernel_version $domu_modules)"
     fi
-    root_modules="$(resolve_modules $kernel_version $sys_modules)"
 
     # Copy all modules into the initrd
-    for module in $resolved_modules $root_modules $xen_modules; do
+    for module in $resolved_modules $xenu_modules; do
 	if [ ! -r $root_dir/$module ]; then
 	    oops 9 "Module $module not found."
 	    continue
@@ -2153,73 +2150,6 @@ mkinitrd_kernel() {
     done
     #fs_modules="$(echo "$resolved_modules" | grep -e '/kernel/fs/')"
     #drv_modules="$(echo "$resolved_modules" | grep -v -e '/kernel/fs/')"
-
-    if [ "$root_modules" ]; then
-	echo -ne "\nSystem modules:\t"
-	initrd_is_using_modules=
-	for modpath in $root_modules; do
-	    module=${modpath##*/}
-	    module=${module%.ko}
-	    echo -n "${module} "
-	    cat_linuxrc <<-EOF
-		|params=
-		|for p in \$(cat /proc/cmdline) ; do
-		|  case \$p in
-		|    $module.*)
-		|      params="\$params \${p#$module.}"
-		|      ;;
-		|  esac
-		|done
-		|echo "Loading $module"
-		|modprobe $module \$params
-		EOF
-
-	    initrd_is_using_modules=1
-	done
-
-	if [ -z "$initrd_is_using_modules" ]; then
-	    echo "none"
-	else
-	    echo
-	fi
-    fi
-
-    if is_xen_kernel $kernel_version; then
-	cat_linuxrc <<-EOF
-	|caps="\$(</proc/xen/capabilities)"
-	|if [ "\$caps" != "\${caps%control_d*}" ]; then
-	EOF
-	echo -ne "\nXen domU modules:\t"
-	initrd_is_using_modules=
-	for modpath in $xen_modules; do
-	    module=${modpath##*/}
-	    module=${module%.ko}
-	    echo -n "${module} "
-	    cat_linuxrc <<-EOF
-		|params=
-		|for p in \$(cat /proc/cmdline) ; do
-		|  case \$p in
-		|    $module.*)
-		|      params="\$params \${p#$module.}"
-		|      ;;
-		|  esac
-		|done
-		|echo "Loading $module"
-		|modprobe $module \$params
-		EOF
-
-	    initrd_is_using_modules=1
-	done
-
-	if [ -z "$initrd_is_using_modules" ]; then
-	    echo "none"
-	else
-	    echo
-	fi
-	cat_linuxrc <<-EOF
-	|fi
-	EOF
-    fi
 
     echo -ne "Driver modules:\t"
     initrd_is_using_modules=
@@ -2364,6 +2294,43 @@ mkinitrd_kernel() {
 	echo "none"
     else
 	echo
+    fi
+
+    if  [ "$xenu_modules" ] && is_xen_kernel $kernel_version; then
+	cat_linuxrc <<-EOF
+	|caps="\$(</proc/xen/capabilities)"
+	|if [ "\$caps" != "\${caps%control_d*}" ]; then
+	EOF
+	echo -ne "\nXen domU modules:\t"
+	initrd_is_using_modules=
+	for modpath in $xenu_modules; do
+	    module=${modpath##*/}
+	    module=${module%.ko}
+	    echo -n "${module} "
+	    cat_linuxrc <<-EOF
+		|params=
+		|for p in \$(cat /proc/cmdline) ; do
+		|  case \$p in
+		|    $module.*)
+		|      params="\$params \${p#$module.}"
+		|      ;;
+		|  esac
+		|done
+		|echo "Loading $module"
+		|modprobe $module \$params
+		EOF
+
+	    initrd_is_using_modules=1
+	done
+
+	if [ -z "$initrd_is_using_modules" ]; then
+	    echo "none"
+	else
+	    echo
+	fi
+	cat_linuxrc <<-EOF
+	|fi
+	EOF
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
@@ -3670,7 +3637,7 @@ echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
     . $root_dir/etc/sysconfig/kernel
-    sys_modules="$INITRD_MODULES"
+    modules="$INITRD_MODULES"
 fi
 
 if [ -z "$domu_modules_set" ]; then
@@ -3809,7 +3776,7 @@ initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
 
 boot_modules="$modules"
-echo -e "Module list:\t$boot_modules ($sys_modules) ($domu_modules)"
+echo -e "Module list:\t$boot_modules ($domu_modules)"
 for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     echo
     modules="$boot_modules"
