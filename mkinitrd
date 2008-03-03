@@ -2298,8 +2298,8 @@ mkinitrd_kernel() {
 
     if  [ "$xenu_modules" ] && is_xen_kernel $kernel_version; then
 	cat_linuxrc <<-EOF
-	|caps="\$(</proc/xen/capabilities)"
-	|if [ "\$caps" != "\${caps%control_d*}" ]; then
+	|caps="\$(cat /proc/xen/capabilities)"
+	|if [ "\$caps" == "\${caps%control_d*}" ]; then
 	EOF
 	echo -ne "\nXen domU modules:\t"
 	initrd_is_using_modules=
