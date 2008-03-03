@@ -3572,7 +3572,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	fi
         # Check whether we are using LVM2
 	if [ -z "$root_evms" ] && [ -x /sbin/lvdisplay ] ; then
-	    vg_name=$(lvdisplay -c 2> /dev/null | sed -n "/.*:$major:$minor/p")
+	    vg_name=$(lvdisplay -c 2> /dev/null | sed -n "/.*:$major:$minor\$/p")
 	    vg_dev=${vg_name%%:*}
 	    vg_name=${vg_name#*:}
 	    vg_root=${vg_name%%:*}
