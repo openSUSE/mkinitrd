@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar  3 16:17:48 CET 2008 - hare@suse.de
+
+- Fix LVM device detection (bnc#360031)
+- Load PV network drivers in DomU (bnc#359578)
+
+-------------------------------------------------------------------
 Wed Feb  6 13:34:49 CET 2008 - hare@suse.de
 
 - Activate multipathing again [bnc#359173]
