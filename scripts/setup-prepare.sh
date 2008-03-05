@@ -96,16 +96,15 @@ use_script() {
     fi
 
     kernel_version=$(/sbin/get_kernel_version $kernel_image)
-    modules_dep=$root_dir/lib/modules/$kernel_version/modules.dep
+    modules_dir=$root_dir/lib/modules/$kernel_version
 
     #echo -e "Kernel version:\t$kernel_version"
     echo -e "Kernel image:   $kernel_image"
     echo -e "Initrd image:   $initrd_image"
 
-    if [ ! -d "/lib/modules/$kernel_version/misc" -a \
-	 ! -d "/lib/modules/$kernel_version/kernel" ]; then
-	oops 2 "No modules found for kernel $kernel_version"
-        return
+    if [ ! -d "$modules_dir/misc" -a \
+	 ! -d "$modules_dir/kernel" ]; then
+	echo -e "Kernel Modules: <not available>"
     fi
 
     # And run depmod to ensure proper loading
