@@ -104,12 +104,14 @@ for module in $modules; do
 done
 )
 
-echo -ne "Kernel Modules:\t"
-for mod in $resolved_modules ; do
-    modname=${mod##*/}
-    echo -n "${modname%%.ko} "
-done
-echo
+if [ "$resolved_modules" ] ; then
+    echo -ne "Kernel Modules:\t"
+    for mod in $resolved_modules ; do
+	modname=${mod##*/}
+	    echo -n "${modname%%.ko} "
+    done
+    echo
+fi
 
 # Copy all modules into the initrd
 for module in $resolved_modules; do
