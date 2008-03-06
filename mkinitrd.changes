@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar  6 10:39:31 CET 2008 - hare@suse.de
+
+- Select correct interface for static IP (bnc#364813)
+
+-------------------------------------------------------------------
 Mon Mar  3 16:17:48 CET 2008 - hare@suse.de
 
 - Fix LVM device detection (bnc#360031)

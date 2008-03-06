@@ -823,7 +823,7 @@ calc_netmask() {
 
     netmask=
     num=0
-    while (( $prefix > 8 )) ; do
+    while (( $prefix >= 8 )) ; do
 	if (( $num > 0 )) ; then
 	    netmask="${netmask}.255"
 	else
@@ -2559,8 +2559,21 @@ mkinitrd_kernel() {
 	|  esac
 	|done
 	|if [ -z "\$ifspec" ]; then
-	|    # Fallback to configured interface
-	|    ifspec=$ipinterface
+	|  # Fallback to configured interface
+	|  ifspec=$ipinterface
+	|  if [ "$macaddress" ] ; then
+	|    ifspec=\${ifspec%:*}
+	|    interface=\${ifspec##*:}
+	|    tmpspec=\${ifspec%:*}
+	|    for dev in /sys/class/net/* ; do
+	|      read tmpmac < \$dev/address
+	|      if [ "\$tmpmac" == "$macaddress" ] ; then
+	|        interface=\${dev##*/}
+	|        echo "using interface \$interface"
+	|      fi
+	|    done
+	|    ifspec="\${tmpspec}:\${interface}:none"
+	|  fi
 	|fi
 	|if [ -n "\$ifspec" ]; then
 	|  /bin/ipconfig \$ifspec
