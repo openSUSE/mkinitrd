@@ -4,7 +4,7 @@
 #%provides: resume
 #%depends: dump
 #
-#%if: -z "$is_kdump" -a -z "$kdump_kernel" -a '(' -x /usr/sbin/resume -o -x /sbin/resume ')'
+#%if: -x /usr/sbin/resume -o -x /sbin/resume
 #%programs: /sbin/resume
 #
 ##### software suspend resume
@@ -20,7 +20,7 @@
 ## resume		the device to resume from
 ## 
 
-[ "$( ( set -u; echo $noresume >/dev/null; echo 1 ) 2>/dev/null )" = "1" ] && resume_mode=off
+[ "$noresume" ] && resume_mode=off
 
 # Verify manual resume mode
 if [ "$resume_mode" != "off" -a -n "$resumedev" ]; then

@@ -20,7 +20,7 @@
 ## ro		mount the root device read-only
 ## 
 
-( set +u; test -n "$ro") && read_only=1
+read_only=${cmd_ro}
 
 [ -x /lib/udev/vol_id ] && VOL_ID=/lib/udev/vol_id
 [ -x /sbin/vol_id ] && VOL_ID=/sbin/vol_id

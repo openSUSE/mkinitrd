@@ -4,8 +4,6 @@
 #%provides: resume
 #%depends: resume.userspace
 #
-#%if: -z "$is_kdump" -a -z "$kdump_kernel"
-#
 ##### software suspend resume
 ##
 ## If software suspending has suspended the computer before
@@ -19,7 +17,7 @@
 ## resume		the device to resume from
 ## 
 
-[ "$( ( set -u; echo $noresume >/dev/null; echo 1 ) 2>/dev/null )" = "1" ] && resume_mode=off
+[ "$noresume" ] && resume_mode=off
 
 # Verify manual resume mode
 if [ "$resume_mode" != "off" -a -n "$resumedev" ]; then

@@ -59,7 +59,7 @@ if [ -x /sbin/fwparam_ibft ] ; then
     fi
     
     TargetNameiBFT=$iSCSI_TARGET_NAME
-    TargetAddressiBFT=iSCSI_TARGET_IPADDR
+    TargetAddressiBFT=$iSCSI_TARGET_IPADDR
     TargetPortiBFT=$iSCSI_TARGET_PORT
 fi
 
