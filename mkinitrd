@@ -922,6 +922,15 @@ get_default_interface() {
 	# Get info from install.inf during installation
 	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' /etc/install.inf)
 	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' /etc/install.inf)
+	macaddress=$(sed -ne 's/HWAddr: \(.*\)/\1/p' /etc/install.inf)
+	if [ "$macaddress" ] ; then
+	    for dev in /sys/class/net/* ; do
+		read tmpmac < $dev/address
+		if [ "$tmpmac" == "$macaddress" ] ; then
+		    ifname=${dev##*/}
+		fi
+	    done
+	fi
     else
     for cfg in /etc/sysconfig/network/ifcfg-*; do
 	if [ $(basename $cfg) = "ifcfg-lo" ] ; then
@@ -1449,6 +1458,8 @@ mkinitrd_kernel() {
 	cp_bin /bin/mv $tmp_mnt/bin/mv
 	cp_bin /bin/usleep $tmp_mnt/bin/usleep
 	cp_bin /bin/basename $tmp_mnt/bin/basename
+	cp_bin /sbin/ip $tmp_mnt/sbin/ip
+	cp_bin /bin/ping $tmp_mnt/bin/ping
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
@@ -1669,9 +1680,9 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_ipconfig" ] ; then
-	features=(${features[@]} static\($interface\))
-	cp_bin $root_dir/lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
-	cp_bin $root_dir/sbin/ip $tmp_mnt/sbin/ip
+	features=(${features[@]} static\($macaddress\))
+	cp_bin /bin/ping $tmp_mnt/bin/ping
+	cp_bin /sbin/ip $tmp_mnt/sbin/ip
     fi
   
     if [ "$rootfstype" = "ext2" ] ; then
@@ -2405,6 +2416,31 @@ mkinitrd_kernel() {
 	    ;;
     esac
 
+    if [ -n "$interface" ] ; then
+	cat_linuxrc <<-'EOF'
+	|# configure interface
+	|for o in $(cat /proc/cmdline); do
+	|    case $o in
+	|	eth[[:digit:]]=*)
+	|	    tmp=${o#eth[[:digit:]]=}
+	|	    interface=${o%=*}
+	|	    macaddress=${tmp%,*}
+	|	    ifmode=${tmp#*,}
+	|	    ;;
+	|	ibft=*)
+	|	    ibft_mode=${o#ibft=}
+	|	    ;;
+	|    esac
+	|done
+	|if [ "$ifmode" = "dhcp" ] ; then
+	|   dhcp_mode=1
+	|fi
+	|if [ "$ibft_mode" = "off" -a "$ifmode" = "ibft" ] ; then
+	|   ibft_mode=
+	|fi
+	EOF
+    fi
+
     if [ -n "$use_dhcp" ] ; then
 	cat_linuxrc <<-'EOF'
 	|# configure interface
@@ -2428,10 +2464,17 @@ mkinitrd_kernel() {
     if [ -n "$iscsi_root" ] ; then
 	cat_linuxrc <<-EOF
 	|# Check of iBFT settings
-	|if [ -x /sbin/fwparam_ibft ] ; then
+	|if [ "\$ibft_mode" != "off" ] && [ -x /sbin/fwparam_ibft ] ; then
 	|    eval \$(/sbin/fwparam_ibft -b 2> /dev/null )
 	|    if [ "\$iSCSI_INITIATOR_NAME" ] ; then
 	|        echo "InitiatorName=\$iSCSI_INITIATOR_NAME" > /tmp/initiatorname.iscsi
+	|    fi
+	|    if [ "\$iSCSI_INITIATOR_HWADDR" ] ; then
+	|      ibftspec=\$(/sbin/fwparam_ibft -b -i)
+	|      if [ "\$ibftspec" ] ; then
+	|        echo "Setting up network \$ibftspec"
+	|        /bin/ipconfig.sh \$ibftspec
+	|      fi
 	|    fi
 	|fi
 	|
@@ -2487,8 +2530,9 @@ mkinitrd_kernel() {
 	cat_linuxrc <<-EOF
 	|# run dhcp
 	|if [ -n "\$dhcp_mode" ]; then
-	|  # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
-	|  if [ "$macaddress" ] ; then
+	|  # Fallback to hardcoded MAC address
+	|  [ -z "\$macaddress" ] && macaddress="$macaddress"
+	|  if [ "\$macaddress" ] ; then
 	|    for dev in /sys/class/net/* ; do
 	|      read tmpmac < \$dev/address
 	|      if [ "\$tmpmac" == "$macaddress" ] ; then
@@ -2561,7 +2605,9 @@ mkinitrd_kernel() {
 	|if [ -z "\$ifspec" ]; then
 	|  # Fallback to configured interface
 	|  ifspec=$ipinterface
-	|  if [ "$macaddress" ] ; then
+	|  # Fallback to hardcoded MAC address
+	|  [ -z "\$macaddress" ] && macaddress="$macaddress"
+	|  if [ "\$macaddress" ] ; then
 	|    ifspec=\${ifspec%:*}
 	|    interface=\${ifspec##*:}
 	|    tmpspec=\${ifspec%:*}
@@ -2572,11 +2618,12 @@ mkinitrd_kernel() {
 	|        echo "using interface \$interface"
 	|      fi
 	|    done
-	|    ifspec="\${tmpspec}:\${interface}:none"
+	|    ifspec="\${tmpspec}:\${interface}:static"
 	|  fi
 	|fi
 	|if [ -n "\$ifspec" ]; then
-	|  /bin/ipconfig \$ifspec
+	|  echo "Setting up network \$ifspec"
+	|  /bin/ipconfig.sh \$ifspec
 	|fi
 	EOF
     fi

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 12 12:25:24 CET 2008 - hare@suse.de
+
+- Use settings from iBFT for configure network (bnc#277106)
+
+-------------------------------------------------------------------
 Thu Mar  6 10:39:31 CET 2008 - hare@suse.de
 
 - Select correct interface for static IP (bnc#364813)
