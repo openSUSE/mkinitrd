@@ -28,6 +28,25 @@ calc_prefix() {
     echo $prefix
 }
 
+# Calculate the network address
+calc_network() {
+    local ipaddr=$1
+    local netmask=$2
+
+    set -- $(IFS=.; echo $ipaddr)
+    ipnum=$(( ($1 << 24) + ($2 << 16) + ($3 << 8) + $4 )) 
+    set -- $(IFS=.; echo $netmask)
+    netnum=$(( ($1 << 24) + ($2 << 16) + ($3 << 8) + $4 )) 
+
+    netnum=$(( $ipnum & $netnum ))
+
+    echo "$(( ($netnum >> 24) & 0xff )).$(( ($netnum >> 16) & 0xff )).$(( ($netnum >> 8) & 0xff )).$(( $netnum & 0xff ))"
+}
+
+if [ -z "$1" ] ; then
+    exit 1
+fi
+
 ipcfg=$(echo $1 | sed 's/::/:_:/g')
 ipcfg=$(echo $ipcfg | sed 's/::/:_:/g')
 
@@ -71,6 +90,7 @@ if [ "$prefix" == "$client" ] ; then
 	prefix=24
     fi
 fi
+network=$(calc_network $client $netmask)
 
 # Configure the interface
 if [ "$peer" ] ; then
@@ -79,7 +99,9 @@ else
     /sbin/ip addr add ${client}/${prefix} dev $dev
 fi
 /sbin/ip link set $dev up
+/sbin/ip route add to ${network}/${prefix} dev $dev
 
 if [ "$gateway" ]; then
+    /bin/ping -c 5 -w 5 -n $gateway
     /sbin/ip route add to default via ${gateway}
 fi
