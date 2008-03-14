@@ -2274,24 +2274,6 @@ mkinitrd_kernel() {
 		|fi
 		EOF
 		;;
-	    qla2*|lpfc|mptfc)
-		# Disable asynchronous scanning
-		cat_linuxrc <<-EOF
-		|# check for asynchronous scanning
-		|for p in \$(cat /proc/cmdline) ; do
-		|  case \$p in
-		|    rport_scan_timeout=*)
-		|      rport_scan_timeout="\${p#rport_scan_timeout=}"
-		|      ;;
-		|  esac
-		|done
-		|[ -z "\$rport_scan_timeout" ] && rport_scan_timeout=\$udev_timeout
-		|# Disable asynchronous scanning
-		|if [ \$rport_scan_timeout != 0 -a -e /sys/module/scsi_transport_fc/parameters/rport_scan_timeout ] ; then
-		|  echo \$rport_scan_timeout > /sys/module/scsi_transport_fc/parameters/rport_scan_timeout
-		|fi
-		EOF
-		;;
 	esac
 	cat_linuxrc <<-EOF
 	|echo "Loading $module"
@@ -2724,6 +2706,7 @@ mkinitrd_kernel() {
 	|done
 	|if [ -e /dev/mapper/control ]; then
 	|    echo " ok"
+	|    dm_major=$(sed -n 's/\(.*\) device-mapper/\1/p' /proc/devices)
 	|else
 	|    echo " failed"
 	|fi
@@ -2738,10 +2721,32 @@ mkinitrd_kernel() {
 	|    local root
 	|    local retval=1
 	|    local timeout=$udev_timeout
+	|    local devn
+	|    local major
 	|    root=$1
 	|    if [ -n "$root" ]; then
 	|	echo -n "Waiting for device $root to appear: "
 	|	while [ $timeout -gt 0 ]; do
+	EOF
+    if [ -n "$root_mpath" ] ; then
+	cat_linuxrc <<-'EOF'
+	|	    if [ -e $root ]; then
+	|	        devn=$(devnumber $root)
+	|	        major=$(devmajor $devn)
+	|		if [ -z "$dm_major" ] || [ "$major" == "$dm_major" ] ; then
+	|		    retval=0
+	|		    echo " ok"
+	|		    break;
+	|		else
+	|		    echo -n "!"
+	|		    multipath -v0
+	|                   /sbin/udevsettle --timeout=$udev_timeout
+	|		fi
+	|	    fi
+	|	    sleep 1
+	EOF
+    else
+	cat_linuxrc <<-'EOF'
 	|	    if [ -e $root ]; then
 	|		echo " ok"
 	|		retval=0
@@ -2749,6 +2754,7 @@ mkinitrd_kernel() {
 	|	    fi
 	|	    sleep 1
 	EOF
+    fi
 
     if [ -n "$root_lvm2" ] ; then
 	cat_linuxrc <<-'EOF'
@@ -2838,11 +2844,6 @@ mkinitrd_kernel() {
 	|    fi
 	|}
 	|
-	|# Enable asynchronous scanning again
-	|if [ -e /sys/module/scsi_transport_fc/parameters/rport_scan_timeout ] ; then
-	|  echo 0 > /sys/module/scsi_transport_fc/parameters/rport_scan_timeout
-	|fi
-	|
 	|/sbin/udevsettle --timeout=$udev_timeout
 	|
 	EOF
@@ -2892,51 +2893,6 @@ mkinitrd_kernel() {
 
     if [ -n "$root_mpath" ] ; then
 	cat_linuxrc <<-EOF
-	|# wait for all multipath partitions to appear
-	|mpath_check_for_partitions() {
-	|    local num=0
-	|
-	|    for link in \$(ls /dev/disk/by-id/scsi-*); do
-	|	[ -L "\$link" ] || continue
-	|	node=\$(ls -l \$link | sed -ne 's/.*\.\.\/\(.*\)/\1/p')
-	|	if [ "\$link" = "\${link%%-part*}" ] ; then
-	|	    dev=\$link
-	|	    case "\$node" in
-	|		dm-*)
-	|		    dev=\$link;;
-	|		*)
-	|		    dev=none;;
-	|	    esac
-	|	else
-	|	    if [ "\$link" != "\${link#\$dev}" ] ; then
-	|		case "\$node" in
-	|		    dm-*)
-	|			: this node is okay
-	|			;;
-	|		    *)
-	|			num=\$((num + 1))
-	|			;;
-	|		esac
-	|	    fi
-	|	fi
-	|    done
-	|    return \$num
-	|}
-	|mpath_wait_for_partitions() {
-	|  local timeout=\$udev_timeout
-	|  local retval=1
-	|  while [ \$timeout -gt 0 ] ; do
-	|    if mpath_check_for_partitions; then
-	|      retval=0
-	|      break;
-	|    fi
-	|    /sbin/udevsettle --timeout=\$udev_timeout
-	|    sleep 1
-	|    echo -n "."
-	|    timeout=\$(( \$timeout - 1 ))
-	|  done
-	|  return \$retval
-	|}
 	|# check for multipath parameter in /proc/cmdline
 	|for o in \$(cat /proc/cmdline) ; do
 	|  case \$o in
@@ -2949,14 +2905,10 @@ mkinitrd_kernel() {
 	|  echo -n "Setup multipath devices: "
 	|  /sbin/multipath -v0
 	|  /sbin/udevsettle --timeout=\$udev_timeout
-	|  # On larger setups udev might time out prematurely
-	|  /sbin/dmsetup ls --target multipath --exec "/sbin/kpartx -a -p -part"
-	|  if ! mpath_wait_for_partitions; then
-	|      echo "not found -- exiting to /bin/sh"
-	|      cd /
-	|      PATH=$PATH PS1='$ ' /bin/sh -i
-	|  fi
 	|  echo 'ok.'
+	|else
+	|  # Reset as we're not using multipath
+	|  dm_major=
 	|fi
 	EOF
     fi

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 14 16:04:58 CET 2008 - hare@suse.de
+
+- Check the major:minor number of the root device
+  to select the correct device for multipath booting (bnc#369468)
+- Remove asynchronous scanning code as it's obsolete now
+
+-------------------------------------------------------------------
 Wed Mar 12 12:25:24 CET 2008 - hare@suse.de
 
 - Use settings from iBFT for configure network (bnc#277106)
