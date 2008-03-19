@@ -19,23 +19,41 @@ udev_check_for_device() {
     local root
     local retval=1
     local timeout=$udev_timeout
+    local udev_devn
+    local udev_major
+
     root=$1
     if [ -n "$root" ]; then
 	echo -n "Waiting for device $root to appear: "
 	while [ $timeout -gt 0 ]; do
 	    if [ -e $root ]; then
-		echo " ok"
-		retval=0
-		break;
+		udev_devn=$(devnumber $root)
+		udev_major=$(devmajor $udev_devn)
+		if [ -n "$root_major" ] ; then
+		    if [ "$udev_major" == "$root_major" ] ; then
+			echo " ok"
+			retval=0
+			break;
+		    else
+			echo -n "!"
+			multipath -v0
+			/sbin/udevsettle --timeout=$udev_timeout
+			continue;
+		    fi
+		else
+		    echo " ok"
+		    retval=0
+		    break;
+		fi  
 	    fi
 	    sleep 1
 	    echo -n "."
 	    timeout=$(( $timeout - 1 ))
 	    # Recheck for LVM volumes
-	    if [ -n "$lvm" -a -n "$vg_root" -a -n "$vg_roots" ] ; then
+	    if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
 		vgscan
 	    fi
-	    for vgr in $lvm $vg_root $vg_roots; do
+	    for vgr in $vg_root $vg_roots; do
 		vgchange -a y $vgr
 	    done
 	done
