@@ -75,6 +75,15 @@ get_default_interface() {
 	# Get info from install.inf during installation
 	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' $inffile)
 	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' $inffile)
+	macaddress=$(sed -ne 's/HWAddr: \(.*\)/\1/p' /etc/install.inf)
+	if [ "$macaddress" ] ; then
+	    for dev in /sys/class/net/* ; do
+		read tmpmac < $dev/address
+		if [ "$tmpmac" == "$macaddress" ] ; then
+		    ifname=${dev##*/}
+		fi
+	    done
+	fi
     fi
     # interface description not found in install.inf
     if [ ! "$ifname" ]; then
