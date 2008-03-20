@@ -463,8 +463,11 @@ is_xen_kernel() {
 
 # Check if module $1 is listed in $modules.
 has_module() {
+    local module
+    # Always use underscores here
+    module=$(echo $1 | sed 's/-/_/g')
     case " $modules " in
-	*" $1 "*)   return 0 ;;
+	*" $module "*)   return 0 ;;
     esac
     return 1
 }
@@ -481,6 +484,8 @@ has_any_module() {
 add_module() {
     local module
     for module in "$@"; do
+	# Always use underscores here
+	module=$(echo $module | sed 's/-/_/g')
 	has_module "$module" || modules="$modules $module"
     done
 }
@@ -3649,7 +3654,10 @@ echo -e "Root device:\t$x (mounted on ${root_dir:-/} as $rootfstype)"
 if [ -z "$modules_set" ]; then
     # get INITRD_MODULES from system configuration
     . $root_dir/etc/sysconfig/kernel
-    modules="$INITRD_MODULES"
+    for module in $INITRD_MODULES ; do
+	module=$(echo $module | sed 's/-/_/g')
+	modules="$modules $module"
+    done
 fi
 
 if [ -z "$domu_modules_set" ]; then
