@@ -20,13 +20,48 @@
 ## ro		mount the root device read-only
 ## 
 
+discover_root() {
+    local root devn
+    case "$rootdev" in
+	*:/*) root= ;;
+	/dev/nfs) root= ;;
+	/dev/*)	root=${rootdev#/dev/} ;;
+    esac
+    if [ -z "$root" ]; then
+	return 0
+    fi
+    if check_for_device $rootdev  ; then
+	# Get major:minor number of the device node
+	devn=$(devnumber $rootdev)
+    fi
+    if [ ! "$devn" ]; then
+	if [ ! "$1" ]; then
+	    # try the stored fallback device
+	    echo \
+"Could not find $rootdev.
+Want me to fall back to $fallback_rootdev? (Y/n) "
+	    read y
+	    if [ "$y" = n ]; then
+		return 1
+	    fi
+	    rootdev="$fallback_rootdev"
+	    if ! discover_root x ; then
+	        return 1
+	    fi
+    	else
+	    return 1
+    	fi
+    fi
+    return 0
+}
+
 read_only=${cmd_ro}
 
 [ -x /lib/udev/vol_id ] && VOL_ID=/lib/udev/vol_id
 [ -x /sbin/vol_id ] && VOL_ID=/sbin/vol_id
 
 # And now for the real thing
-if ! udev_discover_root ; then
+if ! discover_root ; then
     echo "not found -- exiting to /bin/sh"
     cd /
     PATH=$PATH PS1='$ ' /bin/sh -i
@@ -90,3 +125,5 @@ if [ $? -ne 0 ] ; then
     cd /
     PATH=$PATH PS1='$ ' /bin/sh -i
 fi
+
+unset discover_root
