@@ -55,8 +55,7 @@ discover_kernel_resume() {
        fi
     fi
 }
-# Wait for udev to settle
-/sbin/udevsettle --timeout=$udev_timeout
+wait_for_events
 # Check for a resume device
 discover_kernel_resume
 

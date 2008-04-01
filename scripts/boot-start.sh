@@ -128,8 +128,6 @@ case "$build_day" in
 		fi
 	;;
 esac
-# Default timeout is 30 seconds
-udev_timeout=30
 
 if [ "$linuxrc" = "trace" ]; then
     echo -n "cmdline: "

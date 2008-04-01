@@ -59,8 +59,7 @@ discover_user_resume() {
     fi
 }
 
-# Wait for udev to settle
-/sbin/udevsettle --timeout=$udev_timeout
+wait_for_events
 # Check for a resume device
 discover_user_resume
 
