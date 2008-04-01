@@ -13,6 +13,10 @@
 ## -----------------------
 ##
 
+wait_for_events() {
+    /sbin/udevsettle --timeout=$udev_timeout
+}
+
 # Check for debugging
 if [ -n "$debug_linuxrc" ]; then
     echo 'udev_log="debug"' >> /etc/udev/udev.conf
@@ -24,4 +28,4 @@ fi
 echo "Creating device nodes with udev"
 /sbin/udevd --daemon
 /sbin/udevtrigger
-/sbin/udevsettle --timeout=$udev_timeout
+wait_for_events

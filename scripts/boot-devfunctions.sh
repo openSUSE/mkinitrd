@@ -66,7 +66,7 @@ check_for_device() {
 		    else
 			echo -n "!"
 			multipath -v0
-			/sbin/udevsettle --timeout=$udev_timeout
+			wait_for_events
 			continue;
 		    fi
 		else

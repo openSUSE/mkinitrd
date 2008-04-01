@@ -17,5 +17,5 @@
 ## 
 
 /sbin/dmraid -a y -p
-/sbin/udevsettle --timeout=$udev_timeout
+wait_for_events
 

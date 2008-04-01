@@ -3,6 +3,10 @@
 #%stage: setup
 #%depends: start
 # 
+
+# Default udev timeout is 30 seconds
+udev_timeout=30
+
 mkdir -p $tmp_mnt/etc/udev/rules.d
 # copy needed rules
 for rule in \
@@ -29,3 +33,4 @@ for script in /lib/udev/* /sbin/*_id ; do
     fi
 done
 
+save_var udev_timeout

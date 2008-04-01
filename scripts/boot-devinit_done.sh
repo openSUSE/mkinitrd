@@ -2,4 +2,4 @@
 #%stage: block
 #%dontshow
 
-/sbin/udevsettle --timeout=$udev_timeout
+wait_for_events

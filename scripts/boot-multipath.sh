@@ -33,7 +33,7 @@ if [ "$mpath_status" != "off" ] ; then
   # Rescan for multipath
   echo -n "Setup multipath devices: "
   /sbin/multipath -v0
-  /sbin/udevsettle --timeout=$udev_timeout
+  wait_for_events
   echo 'ok.'
 fi
 
