@@ -68,7 +68,7 @@ beautify_blockdev() {
 	local olddev="$1" udevdevs dev
 	
 	# search for udev information
-	udevdevs=$(udevinfo -q symlink --name=$olddev)
+	udevdevs=$(/sbin/udevadm info -q symlink --name=$olddev)
 	#   look up ata device links
 	for dev in $udevdevs; do
 		if [ "$(echo $dev | grep /ata-)" ] ; then

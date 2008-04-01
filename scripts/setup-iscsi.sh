@@ -6,7 +6,7 @@ check_iscsi_root() {
     local devname=$1
     local sysfs_path
 
-    sysfs_path=$(udevinfo -q path -n $rootdev 2> /dev/null)
+    sysfs_path=$(/sbin/udevadm info -q path -n $rootdev 2> /dev/null)
     if [ -z "$sysfs_path" ] || [ ! -d /sys$sysfs_path ] ; then
 	return;
     fi

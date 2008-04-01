@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Tue Apr  1 15:03:02 CEST 2008 - hare@suse.de
+
+- Cleanup save_var statements
+- Match network interface by MAC address
+- Update multipath handling
+- add CIFS support
+- Move device discovery scripts
+- Use wait_for_events function instead of udevsettle
+- Update udev scripts to latest upstream version
+- Bump version number to 2.2
+
+-------------------------------------------------------------------
 Wed Mar  5 15:30:38 CET 2008 - hare@suse.de
 
 - Work on non-modular systems, too (#367269)

@@ -1,7 +1,7 @@
 #!/bin/bash
 #%stage: boot
 #%depends: start dm
-#%programs: /sbin/udevd /sbin/udevadm /sbin/udevtrigger /sbin/udevsettle udevinfo /sbin/udevcontrol
+#%programs: /sbin/udevd /sbin/udevadm
 #%dontshow
 #
 ##### udev initialization
@@ -14,7 +14,7 @@
 ##
 
 wait_for_events() {
-    /sbin/udevsettle --timeout=$udev_timeout
+    /sbin/udevadm settle --timeout=$udev_timeout
 }
 
 # Check for debugging
@@ -27,5 +27,5 @@ fi
 # Start udev
 echo "Creating device nodes with udev"
 /sbin/udevd --daemon
-/sbin/udevtrigger
+/sbin/udevadm trigger
 wait_for_events
