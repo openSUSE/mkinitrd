@@ -152,7 +152,9 @@ dm_resolvedeps_recursive() {
 # this receives information about the current blockdev so each storage layer has access to it for its current blockdev
 update_blockdev() {
 	local curblockdev=$1
-	[ -z "$curblockdev" ] && curblockdev=$blockdev
+	[ "$curblockdev" ] || curblockdev=$blockdev
+	# no blockdevs
+	[ "$curblockdev" ] || return
 	
 	blockmajor=-1
 	blockminor=-1
@@ -214,11 +216,8 @@ resolve_device() {
       /dev/disk/*)
 	realrootdev=$(/usr/bin/readlink -m $realrootdev)
 	;;
-      *:*)
-        if [ "$type" = "Root" ]; then
-	    rootfstype=nfs
-	    x="nfs-root"
-	fi
+      *:*|//*)
+        [ "$type" = "Root" ] && x="$rootfstype-root"
 	;;
     esac
 
@@ -303,13 +302,22 @@ done
 
 # check for nfs root and set the rootfstype accordingly
 case "$rootdev" in
-      /dev/*)
+    /dev/nfs)
+	rootfstype=nfs
+	use_dhcp=1
+	;;
+    /dev/*)
         if [ ! -e "$rootdev" ]; then
 	    error 1 "Root device ($rootdev) not found"
 	fi
 	;;
-      *:*)
+    *://*) # URL type
+	rootfstype=${rootdev%%://*}
+	interface=default
+	;;
+    *:*)
 	rootfstype=nfs
+	interface=default
 	;;
 esac
 
@@ -320,7 +328,12 @@ if [ -z "$rootfstype" ]; then
 fi
 
 if [ ! "$rootfstype" ]; then
-    error 1 "Could not find the filesystem type for root device $rootdev"
+    error 1 "Could not find the filesystem type for root device $rootdev
+
+Currently available -d parameters are:
+	Block devices	/dev/<device>
+	NFS		<server>:<path>
+	URL		<protocol>://<path>"
 fi
 
 # Check if we have to load a module for the rootfs type

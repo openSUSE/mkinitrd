@@ -70,6 +70,9 @@ case $rootdev in
 	    min=$(($rootdev & 0xff))
 	    echo "SUBSYSTEM==\"block\", SYSFS{dev}==\"$maj:$min\", SYMLINK+=\"root\"" > /etc/udev/rules.d/05-mkinitrd-lilo.rules
 	    rootdev=/dev/root ;;
+	*://*) # URL type
+	    rootfstype=${rootdev%%://*}
+	;;
 	*:/*)
 	    rootfstype="nfs"
 	    ;;
