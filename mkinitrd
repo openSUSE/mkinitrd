@@ -1377,6 +1377,10 @@ mkinitrd_kernel() {
         cryptsetup=/sbin/cryptsetup
     fi
 
+    if [ -r $luks_key ] ; then
+	cp -a $luks_key $tmp_mnt/tmp/luks.key
+    fi
+
     cipherName="Cipher name:"
     cipherMode="Cipher mode:"
     hashSpec="Hash spec:"
@@ -3190,6 +3194,12 @@ mkinitrd_kernel() {
 	|clear
 	|echo
 	|while [ \$((c)) -lt 3 ] ; do
+	|    # First we try to open using /tmp/luks.key
+	|    if [ -r /tmp/luks.key ] ; then
+	|        crypsetup --keyfile /tmp/luks.key luksOpen \$rootdev $rootName 2> /dev/null
+	|        [ "\$?" = 0 ] && break
+	|    fi
+	|    echo
 	|    echo -n "Enter passphrase: "
 	|    read -s ssopass
 	|    echo
@@ -3216,9 +3226,18 @@ mkinitrd_kernel() {
 	|echo
 	|echo "Opening the LUKS encrypted file system ${cryptdev[$count]}"
 	|
-	|#first we try to open the file system using the sso password
-	|echo -n \$ssopass | cryptsetup luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
-	|if [ "\$?" != 0 ]; then
+	|#first we try to open the file system using the /tmp/luks.key
+	|retval=1
+	|if [ -r /tmp/luks.key ] ; then
+	|    cryptsetup --keyfile /tmp/luks.key luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
+	|    retval=\$?
+	|    if [ "\$retval" != 0 ]; then
+	|        # Now we try the ssopass
+	|        echo -n \$ssopass | cryptsetup luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
+	|        retval=\$?
+	|    fi
+	|fi
+	|if [ "\$retval" != 0 ]; then
 	|    c=0
 	|    while [ \$((c)) -lt 3 ] ; do
 	|        echo -n "Enter passphrase for ${cryptdev[$count]}: "
