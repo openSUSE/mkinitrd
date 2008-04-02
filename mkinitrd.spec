@@ -1,7 +1,7 @@
 #
 # spec file for package mkinitrd (Version 1.2)
 #
-# Copyright (c) 2007 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
@@ -16,7 +16,7 @@ Group:          System/Base
 Provides:       aaa_base:/sbin/mk_initrd
 Requires:       coreutils modutils util-linux grep e2fsprogs gzip sed gawk cpio udev pciutils sysvinit reiserfs xfsprogs
 # bootsplash required only if creating splash initrd's.
-Autoreqprov:    on
+AutoReqProv:    on
 Version:        1.2
 Release:        0
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
