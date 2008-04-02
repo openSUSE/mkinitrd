@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr  1 10:56:07 CEST 2008 - hare@suse.de
+
+- Select LUKS key from commandline parameter (bnc#372703)
+
+-------------------------------------------------------------------
 Thu Mar 20 08:25:40 CET 2008 - hare@suse.de
 
 - Always use underscores in module names internally (bnc#369468)
