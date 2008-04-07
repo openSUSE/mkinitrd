@@ -25,7 +25,31 @@
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
 # $Revision: 1.386 $
 
+read_options_eval() {
+    local param_id="$1"
+    local param_desc="$2"
+
+    shift
+    shift
+    params="$@"
+    for (( i=0 ; i < $# ; i+=2 )); do
+	PARAM_ID=$current_param_id
+	let current_param_id++
+	cmd_option_param_description[$PARAM_ID]="$params[$i]"
+	let i++
+	cmd_option_param_var[$PARAM_ID]="$params[$i]"
+        echo "param: $i"
+    done
+}
+
+read_options() {
+    for script in $INITRD_PATH/boot/*.sh; do
+	eval read_options_eval $(cat $script | egrep '%param_' | sed 's/^.*_\(.\): \(.*\)$/\1 \2/')
+    done
+}
+
 usage() {
+    read_options
     cat<<EOF
 	Create initial ramdisk images that contain all kernel modules
 	needed in the early boot process, before the root file system
@@ -36,6 +60,16 @@ usage() {
         mkinitrd [options]
 
         options:
+EOF
+
+    for i in cmd_options; do
+	echo -n ${cmd_option_name[$i]}
+	PARAM_ID=${cmd_option_param[$i]}
+	echo -n ${cmd_option_param_description[$PARAM_ID]}
+#	echo -n ${cmd_option_param_var[$PARAM_ID]}
+	echo ${cmd_option_description[$i]}
+    done
+    cat<<EOF
           -h               This Text.
 	  -v               Verbose mode.
           -k "kernel list" List of kernel images for which initrd files

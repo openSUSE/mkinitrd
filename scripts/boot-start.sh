@@ -4,6 +4,7 @@
 #%depends: devfunctions
 #%programs: /bin/bash umount test mount mknod mkdir ln /sbin/blogd date sleep echo cat /bin/sed /sbin/insmod /sbin/modprobe expr kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/*
 #%modules: $RESOLVED_INITRD_MODULES
+#%param_m: "Modules to include in initrd. Defaults to the INITRD_MODULES variable in /etc/sysconfig/kernel" "\"module list\"" start.module_list
 #%dontshow
 #
 ##### Initrd initialization
