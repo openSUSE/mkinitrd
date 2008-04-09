@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  9 15:41:33 CEST 2008 - agraf@suse.de
+
+- Use dynamic cmdline parsing
+- Add CIFS support
+
+-------------------------------------------------------------------
 Wed Mar  5 15:30:38 CET 2008 - hare@suse.de
 
 - Work on non-modular systems, too (#367269)
