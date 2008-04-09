@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 #%stage: boot
+#%param_s: "Add splash animation and bootscreen to initrd." size splash
 #
 # architecture dependend changes from default:
 if [ "$splash" = "offbydefault" ]; then

@@ -25,51 +25,104 @@
 # $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
 # $Revision: 1.386 $
 
-read_options_eval() {
-    local param_id="$1"
-    local param_desc="$2"
+declare -a cmd_option
+declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name
 
-    shift
-    shift
-    params="$@"
-    for (( i=0 ; i < $# ; i+=2 )); do
-	PARAM_ID=$current_param_id
-	let current_param_id++
-	cmd_option_param_description[$PARAM_ID]="$params[$i]"
-	let i++
-	cmd_option_param_var[$PARAM_ID]="$params[$i]"
-        echo "param: $i"
+read_options_eval() {
+    [ "$#" = 0 ] && return
+    for p in "$@"; do
+	echo -en "$p~"
     done
 }
 
 read_options() {
-    for script in $INITRD_PATH/boot/*.sh; do
-	eval read_options_eval $(cat $script | egrep '%param_' | sed 's/^.*_\(.\): \(.*\)$/\1 \2/')
+        egrep -h '%param_' $INITRD_PATH/setup/*.sh | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > /tmp/$$.params
+	. /tmp/$$.params
+	rm -f /tmp/$$.params
+}
+
+parse_option() {
+    OLDIFS="$IFS"
+    IFS="~"
+    set -- $1
+    cmd_option_name="$1"
+    cmd_option_desc="$2"
+    shift
+    shift
+    cmd_option_param="$*"
+    IFS="$OLDIFS"
+}
+
+next_param() {
+    OLDIFS="$IFS"
+    IFS="~"
+    set -- $cmd_option_param
+    cmd_param_desc="$1"
+    cmd_param_name="$2"
+    shift
+    shift
+    cmd_option_param="$*"
+    IFS="$OLDIFS"
+    [ "$cmd_param_name" ]
+}
+
+cmd_getopts() {
+    for i in "${cmd_option[@]}"; do
+	parse_option "$i"
+	echo -n $cmd_option_name
+	next_param && echo -n :
     done
 }
 
+beautify() {
+    if [ "$nroff" ]; then
+	nroff -man | grep -v removeme
+    else
+	cat
+    fi
+}
+
+[ -x /usr/bin/nroff ] && nroff=1
+
 usage() {
-    read_options
+
+(
+
+if [ "$nroff" ]; then
+    cat <<EOF
+.TH removeme
+.SH MKINITRD
+EOF
+fi
+
     cat<<EOF
-	Create initial ramdisk images that contain all kernel modules
-	needed in the early boot process, before the root file system
-	becomes available. This usually includes SCSI and/or RAID
-	modules, a file system module for the root file system, or
-	a network interface driver module for dhcp.
+Create initial ramdisk images that contain all kernel modules needed in the early boot process, before the root file system becomes available. This usually includes SCSI and/or RAID modules, a file system module for the root file system, or a network interface driver module for dhcp.
 
-        mkinitrd [options]
+mkinitrd [options]
 
-        options:
 EOF
 
-    for i in cmd_options; do
-	echo -n ${cmd_option_name[$i]}
-	PARAM_ID=${cmd_option_param[$i]}
-	echo -n ${cmd_option_param_description[$PARAM_ID]}
-#	echo -n ${cmd_option_param_var[$PARAM_ID]}
-	echo ${cmd_option_description[$i]}
+    for i in "${cmd_option[@]}"; do
+	parse_option "$i"
+	if [ "$nroff" ]; then
+	    echo ".TP"
+	    echo -n ".B -$cmd_option_name"
+	    next_param && echo -n " $cmd_param_desc"
+	    echo
+	else
+	    echo -n "	-$cmd_option_name	"
+	    if next_param; then
+		echo -n "$cmd_param_desc	"
+	    else
+		echo -n "	"
+	    fi
+	fi
+	echo "$cmd_option_desc"
     done
-    cat<<EOF
+
+) | beautify
+
+false &&    cat<<EOF
           -h               This Text.
 	  -v               Verbose mode.
           -k "kernel list" List of kernel images for which initrd files
@@ -183,7 +236,8 @@ if [ -e "/etc/sysconfig/initrd" ]; then
     . /etc/sysconfig/initrd
 fi
 
-while getopts :ef:hk:i:l:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
+read_options
+while getopts $( cmd_getopts ) a ; do
     case $a in
 	\:|\?)	case $OPTARG in
 		k)  echo "-k requires kernel list parameter"
@@ -223,56 +277,6 @@ while getopts :ef:hk:i:l:m:u:b:d:s:St:D:I:V:a:M:Pj:Au:vp: a ; do
 		    ;;
 	    esac
 	    exit 1
-	    ;;
-	e)  use_static_binaries=ignored
-	    ;;
-	f)  ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES $OPTARG"
-	    ;;
-	k)  kernel_images=$OPTARG
-	    ;;
-	i)  initrd_images=$OPTARG
-	    ;;
-	l)  INITRD_PATH=$(cd $OPTARG; echo $PWD)
-	    ;;
-	m)  modules=$OPTARG
-	    modules_set=1
-	    ;;
-	u)  domu_modules=$OPTARG
-	    domu_modules_set=1
-	    ;;
-	b)  boot_dir=$OPTARG
-	    ;;
-	d)  rootdev=$OPTARG
-	    ;;
-	s)  splash=$OPTARG
-	    ;;
-	t)  tmp_dir=$OPTARG
-	    ;;
-	D)  interface=$OPTARG
-	    interface=${interface#/dev/}
-	    use_dhcp=1
-	    scan_pci_bus=
-	    ;;
- 	I)  interface=$OPTARG
- 	    interface=${interface#/dev/}
- 	    use_ipconfig=1
-	    scan_pci_bus=
-	    ;;
-	a)  acpi_dsdt="$OPTARG"
-	    ;;
-	S)  use_selinux=1
-	    ;;
-	V)  vendor_init_script="$OPTARG"
-	    ;;
-	M)  sysmap="$OPTARG"
-	    ;;
-	P)  scan_pci_bus=1
-	    ;;
-	A)  create_monster_initrd=1
-	    ;;
-	v)  verbose=1
-	    ;;
-	j)  journaldev="$OPTARG"
 	    ;;
 	h)  usage
 	    ;;
