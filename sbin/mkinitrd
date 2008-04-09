@@ -66,6 +66,16 @@ next_param() {
     [ "$cmd_param_name" ]
 }
 
+cmd_docmd() {
+    for i in "${cmd_option[@]}"; do
+	if [ "${i%%~*}" = "$1" ]; then
+	    parse_option "$i"
+	    return 0
+	fi
+    done
+    return 1
+}
+
 cmd_getopts() {
     for i in "${cmd_option[@]}"; do
 	parse_option "$i"
@@ -121,44 +131,6 @@ EOF
     done
 
 ) | beautify
-
-false &&    cat<<EOF
-          -h               This Text.
-	  -v               Verbose mode.
-          -k "kernel list" List of kernel images for which initrd files
-                           are created. Defaults to all kernels found
-			   in /boot.
-          -i "initrd list" List of file names for the initrd; position
-	  		   have match to "kernel list". Defaults to all
-			   all kernels found in /boot.
-          -m "module list" Modules to include in initrd. Defaults to the
-                           INITRD_MODULES variable in /etc/sysconfig/kernel.
-          -u "DomU module list" Modules to include in initrd. Defaults to
-                           the DOMU_INITRD_MODULES variable in
-                           /etc/sysconfig/kernel.
-          -f "feature list" Features to be enabled when generating initrd.
-                           Available features are:
-                           iscsi, md, mpath, lvm, lvm2, evms
-          -b boot_dir      Boot directory. Defaults to /boot.
-          -d root_device   Root device. Defaults to the device from which
-                           / is mounted. Overrides the rootdev enviroment
-			   variable if set.
-	  -s size          Add splash animation and bootscreen to initrd.
-	  -t tmp_dir       Temporary directory. Defaults to /var/tmp.
-          -l lib_dir       mkinitrd directory. Defaults to /lib/mkinitrd.
-	  -D interface     Run dhcp on the specified interface.
-	  -I interface     Configure the specified interface statically.
-	  -a acpi_dsdt     Attach compiled ACPI DSDT (Differentiated System
-	  		   Description Table) to initrd. This replaces the
-			   DSDT of the BIOS. Defaults to the ACPI_DSDT
-			   variable in /etc/sysconfig/kernel.
-          -e               Use static binaries where possible (currently unavailable)
-          -P               Include modules for IDE devices on the PCI bus
-	  -V script        Vendor specific script to run in linuxrc.
-	  -M map           System.map file to use.
-	  -A               Create a so called "monster initrd" which includes
-			   all features and modules possible.
-EOF
     exit
 }
 
@@ -239,46 +211,15 @@ fi
 read_options
 while getopts $( cmd_getopts ) a ; do
     case $a in
-	\:|\?)	case $OPTARG in
-		k)  echo "-k requires kernel list parameter"
-		    ;;
-		i)  echo "-i requires initrd list parameter"
-		    ;;
-		m)  echo "-m requires module list parameter"
-		    ;;
-		u)  echo "-u requires module list parameter"
-		    ;;
-		f)  echo "-f requires feature list parameter"
-		    ;;
-		b)  echo "-b requires boot dir parameter"
-		    ;;
-		d)  echo "-d requires root device parameter"
-		    ;;
-		s)  echo "-s requires image size(s)"
-		    ;;
-		t)  echo "-t requires tmp dir parameter"
-		    ;;
-		D)  echo "-D requires dhcp interface parameter"
-		    ;;
-		I)  echo "-I requires network interface parameter"
-		    ;;
-		a)  echo "-a requires a DSDT parameter"
-		    ;;
-		V)  echo "-V requires an executable to run inside linuxrc"
-		    ;;
-		M)  echo "-M requires the System.map file"
-		    ;;	
-		j)  echo "-j requires the journal device"
-		    ;;	
-		l)  echo "-l requires mkinitrd directory parameter"
-		    ;;
-		*)  echo "Unknown option: -$OPTARG"
-		    echo "Try mkinitrd -h"
-		    ;;
-	    esac
-	    exit 1
-	    ;;
 	h)  usage
+	    exit 0
+	    ;;
+	*)  if cmd_docmd $a; then
+		next_param && eval "$cmd_param_name='$OPTARG'"
+		eval param_$a=1
+	    else
+		exit 1
+	    fi
 	    ;;
     esac
 done
