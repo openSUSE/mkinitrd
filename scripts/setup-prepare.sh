@@ -75,94 +75,89 @@ use_script() {
 }
 
 
-    local kernel_version
-    local need_raidstart
-    local need_mdadm
-    local need_dmraid
-    local is_kdump
-    local -a features
-    local fs_modules drv_modules uld_modules xen_modules
-    local i
+local kernel_version
+local -a features
+local fs_modules drv_modules uld_modules xen_modules
 
-    tmp_mnt=$work_dir/mnt
-    tmp_mnt_small=${tmp_mnt}_small
-    tmp_msg=$work_dir/msg$$
-    vendor_script=$tmp_mnt/vendor_init.sh
+tmp_mnt=$work_dir/mnt
+tmp_mnt_small=${tmp_mnt}_small
+tmp_msg=$work_dir/msg$$
+vendor_script=$tmp_mnt/vendor_init.sh
 
-    linuxrc=$tmp_mnt/init
+linuxrc=$tmp_mnt/init
 
-    if [ ! -f "$kernel_image" ] ; then
-	error 1 "No kernel image $kernel_image found"
-    fi
+if [ ! -f "$kernel_image" ] ; then
+    error 1 "No kernel image $kernel_image found"
+fi
 
-    kernel_version=$(/sbin/get_kernel_version $kernel_image)
-    modules_dir=$root_dir/lib/modules/$kernel_version
+kernel_version=$(/sbin/get_kernel_version $kernel_image)
+modules_dir=$root_dir/lib/modules/$kernel_version
 
-    #echo -e "Kernel version:\t$kernel_version"
-    echo -e "Kernel image:   $kernel_image"
-    echo -e "Initrd image:   $initrd_image"
+#echo -e "Kernel version:\t$kernel_version"
+echo -e "Kernel image:   $kernel_image"
+echo -e "Initrd image:   $initrd_image"
 
-    if [ ! -d "$modules_dir/misc" -a \
-	 ! -d "$modules_dir/kernel" ]; then
-	echo -e "Kernel Modules: <not available>"
-    fi
+if [ ! -d "$modules_dir/misc" -a \
+    ! -d "$modules_dir/kernel" ]; then
+    echo -e "Kernel Modules: <not available>"
+fi
 
-    # And run depmod to ensure proper loading
-    if [ "$sysmap" ] ; then
-	map="$sysmap"
-    else
-	map=$root_dir/boot/System.map-$kernel_version
-    fi
-    if [ ! -f $map ]; then
-	map=$root_dir/boot/System.map
-    fi
-    if [ ! -f $map ]; then
-	oops 9 "Could not find map $map, please specify a correct file with -M."
-    fi
+# And run depmod to ensure proper loading
+if [ "$sysmap" ] ; then
+    map="$sysmap"
+else
+    map=$root_dir/boot/System.map-$kernel_version
+fi
+if [ ! -f $map ]; then
+    map=$root_dir/boot/System.map
+fi
+if [ ! -f $map ]; then
+    oops 9 "Could not find map $map, please specify a correct file with -M."
+fi
 
-    # create an empty initrd
-    if ! mkdir $tmp_mnt ; then
-	error 1 "could not create temporary directory"
-    fi
+# create an empty initrd
+if ! mkdir $tmp_mnt ; then
+    error 1 "could not create temporary directory"
+fi
 
-    # fill the initrd
-    cp $INITRD_PATH/bin/linuxrc $linuxrc
-    mkdir "$tmp_mnt/boot"
+# fill the initrd
+cp $INITRD_PATH/bin/linuxrc $linuxrc
+mkdir "$tmp_mnt/boot"
 
-    mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys,root,config}
+mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys,root,config}
 
-    mkdir -p -m 4777 $tmp_mnt/tmp
+mkdir -p -m 4777 $tmp_mnt/tmp
 
-    # Create a dummy /etc/mtab for mount/umount
-    echo -n > $tmp_mnt/etc/mtab
+# Create a dummy /etc/mtab for mount/umount
+echo -n > $tmp_mnt/etc/mtab
 
-    # Add modprobe, modprobe.conf*, and a version of /bin/true: modprobe.conf
-    # might use it.
-    cp -r $root_dir/etc/modprobe.conf $root_dir/etc/modprobe.conf.local \
- 	  $root_dir/etc/modprobe.d $tmp_mnt/etc
-    cat > $tmp_mnt/bin/true <<-EOF
-	#! /bin/sh
-	:
-	EOF
-    chmod +x $tmp_mnt/bin/true
+# Add modprobe, modprobe.conf*, and a version of /bin/true: modprobe.conf
+# might use it.
+cp -r $root_dir/etc/modprobe.conf $root_dir/etc/modprobe.conf.local \
+    $root_dir/etc/modprobe.d $tmp_mnt/etc
+cat > $tmp_mnt/bin/true <<-EOF
+#! /bin/sh
+:
+EOF
+chmod +x $tmp_mnt/bin/true
  
-    mkdir -p $tmp_mnt/var/log
+mkdir -p $tmp_mnt/var/log
 
-    # all dev nodes belong to root, but some may be
-    # owned by a group other than root
-    # getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
-    echo 'root::0:0:::' > $tmp_mnt/etc/passwd
-    echo 'nobody::65534:65533:::' >> $tmp_mnt/etc/passwd
-    getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
-    (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
+# all dev nodes belong to root, but some may be
+# owned by a group other than root
+# getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
+echo 'root::0:0:::' > $tmp_mnt/etc/passwd
+echo 'nobody::65534:65533:::' >> $tmp_mnt/etc/passwd
+getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
+(echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
 
-    # scsi_id config file
-    cp /etc/scsi_id.config $tmp_mnt/etc/scsi_id.config
+# scsi_id config file
+cp /etc/scsi_id.config $tmp_mnt/etc/scsi_id.config
 
-    # HBA firmware
-    mkdir -p $tmp_mnt/lib/firmware
-    for fw in /lib/firmware/ql*.bin /lib/firmware/aic94xx* ; do
-	if [ -f "$fw" ] ; then
-	    cp -a $fw $tmp_mnt/lib/firmware
-	fi
-    done
+# HBA firmware
+mkdir -p $tmp_mnt/lib/firmware
+for fw in /lib/firmware/ql*.bin /lib/firmware/aic94xx* ; do
+    if [ -f "$fw" ] ; then
+	cp -a $fw $tmp_mnt/lib/firmware
+    fi
+done

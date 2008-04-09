@@ -354,5 +354,9 @@ fi
 
 fallback_rootdev="$rootdev"
 save_var fallback_rootdev
+save_var rootdev
+save_var resumedev
+save_var journaldev
+save_var dumpdev
 blockdev="$(resolve_device Root $rootdev) $(resolve_device Resume $resumedev) $(resolve_device Journal $journaldev) $(resolve_device Dump $dumpdev)"
 

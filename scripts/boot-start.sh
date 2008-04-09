@@ -63,12 +63,13 @@ for o in $(cat /proc/cmdline); do
     key="${o%%=*}"
     if [ "${key%.*}" != "${key}" ]; then # module parameter
     	add_module_param "${key%.*}" "${o#*.}"
-    elif [ "${key}" != "${o}" ] ; then
+    else
         # environment variable
         # set local variables too, in case somehow the kernel does not do this correctly
 	value="${o#*=}"
-	eval cmd_$key="$value"
-	eval $key="$value"
+	value=${value:=1}
+	eval cmd_$key="${value}"
+	eval $key="${value}" 2> /dev/null
     fi
 done
 
@@ -129,8 +130,6 @@ case "$build_day" in
 		fi
 	;;
 esac
-# Default timeout is 30 seconds
-udev_timeout=30
 
 if [ "$linuxrc" = "trace" ]; then
     echo -n "cmdline: "

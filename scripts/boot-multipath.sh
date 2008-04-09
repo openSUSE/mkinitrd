@@ -28,13 +28,12 @@ if [ -z "$mpath_list" ] ; then
   mpath_status=off
 fi
 if [ "$mpath_status" != "off" ] ; then
+  # We are waiting for a device-mapper device
+  root_major=$(sed -n 's/\(.*\) device-mapper/\1/p' /proc/devices)
   # Rescan for multipath
   echo -n "Setup multipath devices: "
   /sbin/multipath -v0
-  /sbin/udevsettle --timeout=$udev_timeout
-  # On larger setups udev might time out prematurely
-  /sbin/dmsetup ls --target multipath --exec "/sbin/kpartx -a -p -part"
-  /sbin/udevsettle --timeout=$udev_timeout
+  wait_for_events
   echo 'ok.'
 fi
 
