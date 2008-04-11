@@ -1413,6 +1413,8 @@ mkinitrd_kernel() {
             add_module $cipher
             add_module $hash
             add_module $mode
+            add_module blkcipher
+            add_module cbc
             if [ "/dev/mapper/$md" != "$rootdev" ] ; then
                 cryptdev[$numLuks]=$device
                 dmname[$numLuks]=$md
@@ -3196,7 +3198,7 @@ mkinitrd_kernel() {
 	|while [ \$((c)) -lt 3 ] ; do
 	|    # First we try to open using /tmp/luks.key
 	|    if [ -r /tmp/luks.key ] ; then
-	|        crypsetup --keyfile /tmp/luks.key luksOpen \$rootdev $rootName 2> /dev/null
+	|        cryptsetup --key-file /tmp/luks.key luksOpen \$rootdev $rootName 2> /dev/null
 	|        [ "\$?" = 0 ] && break
 	|    fi
 	|    echo
@@ -3229,7 +3231,7 @@ mkinitrd_kernel() {
 	|#first we try to open the file system using the /tmp/luks.key
 	|retval=1
 	|if [ -r /tmp/luks.key ] ; then
-	|    cryptsetup --keyfile /tmp/luks.key luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
+	|    cryptsetup --key-file /tmp/luks.key luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
 	|    retval=\$?
 	|    if [ "\$retval" != 0 ]; then
 	|        # Now we try the ssopass
