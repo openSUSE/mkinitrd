@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 11 09:23:37 CEST 2008 - hare@suse.de
+
+- Add missing kernel modules (bnc#375620)
+- Fixup typos on call to cryptsetup (bnc#372703)
+
+-------------------------------------------------------------------
 Tue Apr  1 10:56:07 CEST 2008 - hare@suse.de
 
 - Select LUKS key from commandline parameter (bnc#372703)
