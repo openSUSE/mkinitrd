@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 18 11:06:37 CEST 2008 - hare@suse.de
+
+- Include /dev/mem for iBFT support (bnc#378841)
+
+-------------------------------------------------------------------
 Fri Apr 11 09:23:37 CEST 2008 - hare@suse.de
 
 - Add missing kernel modules (bnc#375620)
