@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 23 16:18:57 CEST 2008 - hare@suse.de
+
+- Clean up build dependencies
+- Replace awk with sed statements
+
+-------------------------------------------------------------------
 Tue Apr  1 15:03:02 CEST 2008 - hare@suse.de
 
 - Cleanup save_var statements

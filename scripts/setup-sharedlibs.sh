@@ -67,7 +67,7 @@ if [ -n "$lib_files" ]; then
 	    ;;
 	*)
 	    # no symlinks, most point into the running system
-	    for i in `LANG=C LC_ALL=C file -b $tmp_mnt/{,usr/}{lib*/udev/,{,s}bin}/* | awk '/^ELF ..-bit/ { print $2 }' | sort -u`
+	    for i in `LANG=C LC_ALL=C file -b $tmp_mnt/{,usr/}{lib*/udev/,{,s}bin}/* | sed -n 's/^ELF \([0-9][0-9]-bit\) .*/\1/p' | sort -u`
 	    do
 		case "$i" in
 		    32-bit)

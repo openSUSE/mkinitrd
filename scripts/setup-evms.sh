@@ -145,7 +145,7 @@ if [ -n "$root_evms" ] ; then
             *)
 		# this was $tmp_mnt/sbin/evms_activate before but we copy the binaries after 
 		# the raid setup now so this is not possible anymore
-                case "`LANG=C LC_ALL=C file -b /sbin/evms_activate | awk '/^ELF ..-bit/ { print $2 }'`" in
+                case "`LANG=C LC_ALL=C file -b /sbin/evms_activate | sed -n 's/^ELF \([0-9][0-9]-bit\) .*/\1/p'`" in
                     32-bit) evms_lib="/lib/evms" ;;
                     64-bit) evms_lib="/lib64/evms" ;;
                 esac

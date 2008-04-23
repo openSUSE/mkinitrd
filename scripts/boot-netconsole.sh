@@ -4,7 +4,7 @@
 #%depends: network
 #
 #%modules: netconsole
-#%programs: ping arp awk
+#%programs: ping arp
 #%if: "$interface" -a "$NETCONSOLE"
 #
 ##### network console
@@ -24,8 +24,8 @@ if [ "$netc_loghost" = "$netc_udpport" ]; then
 	netc_udpport="514"	# syslog
 fi
 ping -c1 $netc_loghost >/dev/null 2>&1
-netc_lladdr=$(arp | awk "/$netc_loghost/ { print \$3; exit }")
-netc_ipaddr=$(arp -n | awk "/$netc_lladdr/ { print \$1; exit }")
+netc_lladdr=$(arp $netc_loghost | while read ip type mac o; do [ "$mac" != "HWaddress" ] && echo $mac; done)
+netc_ipaddr=$(arp -n | while read ip type mac o; do [ "$mac" == "$netc_lladdr" ] && echo $ip; done)
 echo -e "Netconsole:\tlog to $netc_loghost:$netc_udpport [ $netc_ipaddr / $netc_lladdr ] via $interface"
 
 add_module_param netconsole "netconsole=@/,${netc_udpport}@${netc_ipaddr}/${netc_lladdr}"

@@ -13,9 +13,8 @@
 Name:           mkinitrd
 License:        GPL v2 or later
 Group:          System/Base
-Provides:       aaa_base:/sbin/mk_initrd
-#!BuildIgnore:  module-init-tools e2fsprogs udev pciutils reiserfs
-Requires:       coreutils modutils util-linux grep gzip sed gawk cpio udev pciutils sysvinit file perl
+#!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs
+Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl
 AutoReqProv:    on
 Version:        2.2
 Release:        12
@@ -67,7 +66,6 @@ make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
 install -D -m 644 man/mkinitrd.5 $RPM_BUILD_ROOT/%{_mandir}/man5/mkinitrd.5
 install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
-ln -s mkinitrd $RPM_BUILD_ROOT/sbin/mk_initrd
 mkdir -p $RPM_BUILD_ROOT/etc/rpm
 cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 #
