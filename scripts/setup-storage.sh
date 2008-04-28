@@ -248,7 +248,7 @@ if [ -z "$rootdev" ] ; then
     if [ "$fstab_mountpoint" = "/" ]; then
       update_blockdev "$fstab_device" # get major and minor
       # let's see if the stat device is the same as the fstab device
-      if [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
+      if [ "$rootmajor" -eq 0 ] || [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
 	rootdev="$fstab_device" # use the fstab device so the user can decide
                                 # how to access the root device
       fi
@@ -272,7 +272,7 @@ if [ -z "$rootdev" ] ; then
 fi
 
 #if we don't know where the root device belongs to
-if [ -z "$rootdev" ] ; then
+if [ -z "$rootfstype" ] ; then
   # get type from /etc/fstab or /proc/mounts (actually not needed)
   x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
        | grep -E "$rootdev[[:space:]]" | tail -n 1)
