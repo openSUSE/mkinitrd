@@ -6,6 +6,11 @@ Fri May  2 09:57:57 CEST 2008 - hare@suse.de
 - Warn user if non-english keyboard layout was used (bnc#331351)
 
 -------------------------------------------------------------------
+Tue Apr 29 09:42:58 CEST 2008 - hare@suse.de
+
+- Remove obsolete mk_initrd link
+
+-------------------------------------------------------------------
 Mon Apr 28 16:54:07 CEST 2008 - hare@suse.de
 
 - Update symlinks automatically

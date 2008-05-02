@@ -1,7 +1,7 @@
 #
-# spec file for package mkinitrd (Version 2.1)
+# spec file for package mkinitrd (Version 2.2)
 #
-# Copyright (c) 2007 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
@@ -10,6 +10,7 @@
 
 # norootforbuild
 
+
 Name:           mkinitrd
 License:        GPL v2 or later
 Group:          System/Base
@@ -17,7 +18,7 @@ Group:          System/Base
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl
 AutoReqProv:    on
 Version:        2.2
-Release:        12
+Release:        1
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tgz
@@ -46,6 +47,7 @@ Authors:
     Bernhard Kaindl <bk@suse.de>
     Andreas Gruenbacher <agruen@suse.de>
     Hannes Reinecke <hare@suse.de>
+    Alexander Graf <agraf@suse.de>
 
 %prep
 %setup
@@ -91,7 +93,6 @@ EOF
 /lib/mkinitrd/scripts/*
 /lib/mkinitrd/bin/*
 /sbin/mkinitrd
-/sbin/mk_initrd
 /sbin/mkinitrd_setup
 /sbin/module_upgrade
 /sbin/installkernel
