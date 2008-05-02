@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 #%stage: filesystem
+#%param_j: "Journal device" device journaldev
 #
 # usage: update_list <id> <list>
 update_list() {

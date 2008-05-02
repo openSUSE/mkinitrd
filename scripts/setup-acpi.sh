@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 #%stage: boot
+#%param_a: "Attach compiled ACPI DSDT (Differentiated System Description Table) to initrd. This replaces the DSDT of the BIOS. Defaults to the ACPI_DSDT variable in /etc/sysconfig/kernel." acpi_dsdt acpi_dsdt
 #
 # Attach ACPI DSDT if necessary.
 attach_dsdt() {

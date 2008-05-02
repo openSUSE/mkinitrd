@@ -2,6 +2,8 @@
 #
 #%stage: device
 #%depends: iscsi nfs
+#%param_D: "Run dhcp on the specified interface." interface interface
+#%param_I: "Configure the specified interface statically." interface interface
 #
 # Calculate the netmask for a given prefix
 calc_netmask() {
@@ -106,6 +108,10 @@ get_default_interface() {
     fi 
     echo $ifname/$BOOTPROTO
 }
+
+interface=${interface#/dev/}
+[ "$param_D" ] && use_dhcp=1
+[ "$param_I" ] && use_ipconfig=1
 
 # get the default interface if requested
 if [ "$interface" = "default" ]; then
