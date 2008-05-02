@@ -15,6 +15,16 @@
 ## luks_xxx		the luks device (e.g. /dev/sda)
 ## 
 
+case $luks_lang in
+    en*)
+	/* We only support english keyboard layout */
+	;;
+    *)
+	echo "Only english keyboard layout supported."
+	echo "Please ensure that the password is typed correctly."
+	;;
+esac
+
 for curluks in $luks; do
 	/sbin/cryptsetup luksOpen $(eval echo \$luks_${curluks}) $curluks
 done

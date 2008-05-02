@@ -3,6 +3,7 @@ Fri May  2 09:57:57 CEST 2008 - hare@suse.de
 
 - Fixup boot from multipath (bnc#385240)
 - Add 'mkinitrd.config' file to the initrd (bnc#380687)
+- Warn user if non-english keyboard layout was used (bnc#331351)
 
 -------------------------------------------------------------------
 Mon Apr 28 16:54:07 CEST 2008 - hare@suse.de

@@ -35,11 +35,22 @@ if [ -x /sbin/cryptsetup -a -x /sbin/dmsetup ] ; then
 fi
 
 if [ "$root_luks" ]; then
-	for m in $(cat /proc/crypto | grep module | sed 's/^module .*: \(.*\)$/\1/'); do
-		cryptmodules="$cryptmodules $m"
-	done
+    case $LANG in
+	en*)
+	    /* We only support english keyboard layout currently */
+	    ;;
+	*)
+	    echo "Only english keyboard layout supported."
+	    echo "Please ensure that the password is typed correctly."
+	    luks_lang=$LANG
+	    ;;
+    esac
+    for m in $(cat /proc/crypto | grep module | sed 's/^module .*: \(.*\)$/\1/'); do
+	cryptmodules="$cryptmodules $m"
+    done
 fi
 
 save_var root_luks	# do we have luks?
 save_var luks		# which names do the luks devices have?
 save_var cryptmodules	# required kernel modules for crypto setup
+save_var luks_lang	# original language settings
