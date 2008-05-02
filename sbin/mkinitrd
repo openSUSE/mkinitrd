@@ -20,10 +20,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 # USA.
 
-# This file is kept in the following CVS repository:
+# This file is kept in the following git repository:
 #
-# $Source: /suse/yast2/cvsroot/mkinitrd/mkinitrd,v $
-# $Revision: 1.386 $
+# git://git.kernel.org/pub/linux/kernel/scm/hare/mkinitrd.git
+#
 
 usage() {
     cat<<EOF
@@ -139,6 +139,7 @@ use_selinux=
 sysmap=
 journaldev=
 build_day=@BUILD_DAY@
+build_cmdline="$*"
 scan_pci_bus=
 create_monster_initrd=
 verbose=

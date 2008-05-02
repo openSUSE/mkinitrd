@@ -154,6 +154,9 @@ getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/g
 # scsi_id config file
 cp /etc/scsi_id.config $tmp_mnt/etc/scsi_id.config
 
+# Store the commandline
+echo $build_cmdline > $tmp_mnt/mkinitrd.config
+
 # HBA firmware
 mkdir -p $tmp_mnt/lib/firmware
 for fw in /lib/firmware/ql*.bin /lib/firmware/aic94xx* ; do
