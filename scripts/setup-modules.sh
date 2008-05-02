@@ -5,14 +5,6 @@
 # TODO: generate module deps and copy them to the initrd
 # 	take xen into account
 
-# Check if module $1 is listed in $modules.
-has_module() {
-    case " $modules " in
-	*" $1 "*)   return 0 ;;
-    esac
-    return 1
-}
-
 # Check if any of the modules in $* are listed in $modules.
 has_any_module() {
     local module

@@ -19,8 +19,7 @@ add_module_param() {
 ##################################################
 load_modules() {
     for file in $(eval echo $modules); do
-	opt=$(eval echo \${opt_${file/-/_}})
-	modprobe $file $opt
+	modprobe $file
     done
     modules=""
 }

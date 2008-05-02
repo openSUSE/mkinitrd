@@ -19,6 +19,14 @@ is_xen_kernel() {
     return 
 }
 
+# Check if module $1 is listed in $modules.
+has_module() {
+    case " $modules " in
+	*" $1 "*)   return 0 ;;
+    esac
+    return 1
+}
+
 # Set in the mkinitrd script
 save_var build_day
 
@@ -32,6 +40,11 @@ if [ -z "$domu_modules_set" ]; then
     # get DOMU_INITRD_MODULES from system configuration
     . $root_dir/etc/sysconfig/kernel
     domu_modules="$DOMU_INITRD_MODULES"
+fi
+
+# Activate features which are eqivalent to modules
+if has_module dm-multipath; then
+    ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES multipath"
 fi
 
 save_var rootdev

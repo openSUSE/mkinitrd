@@ -7,6 +7,8 @@ if [ -x /sbin/dmsetup ]; then
 
 	# always activate kpartx when using dm block
 	[ "$DM_BLOCK" ] && root_kpartx=1
+	# always activate kpartx for multipathing
+	use_script multipath && root_kpartx=1
 	for bd in $blockdev ; do
 	    update_blockdev $bd
 	    if [ "$blockdriver" = device-mapper ]; then

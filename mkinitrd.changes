@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May  2 09:57:57 CEST 2008 - hare@suse.de
+
+- Fixup boot from multipath (bnc#385240)
+
+-------------------------------------------------------------------
 Mon Apr 28 16:54:07 CEST 2008 - hare@suse.de
 
 - Update symlinks automatically
