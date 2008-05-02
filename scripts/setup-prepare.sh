@@ -1,6 +1,16 @@
 #!/bin/bash
 #
 #%stage: setup
+#%param_f: "Features to be enabled when generating initrd.\nAvailable features are:\niscsi, md, mpath, lvm, lvm2, evms" "\"feature list\"" ADDITIONAL_FEATURES
+#%param_k: "List of kernel images for which initrd files are created. Defaults to all kernels found in /boot." "\"kernel list\"" kernel_images
+#%param_i: "List of file names for the initrd; position have match to \"kernel list\". Defaults to all kernels found in /boot." "\"initrd list\"" initrd_images
+#%param_l: "mkinitrd directory. Defaults to /lib/mkinitrd." "\"lib_dir\"" INITRD_PATH
+#%param_b: "Boot directory. Defaults to /boot." boot_dir boot_dir
+#%param_t: "Temporary directory. Defaults to /var/tmp." tmp_dir tmp_dir
+#%param_M: "System.map file to use." map sysmap
+#%param_A: "Create a so called \"monster initrd\" which includes all features and modules possible."
+#%param_v: "Verbose mode."
+#%param_h: "This help screen."
 #
 ###### Additional options
 ##
@@ -74,6 +84,8 @@ use_script() {
     return 0
 }
 
+create_monster_initrd=$param_A
+verbose=$param_v
 
 local kernel_version
 local -a features

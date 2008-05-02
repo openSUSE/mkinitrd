@@ -5,6 +5,12 @@ Wed Apr 23 16:18:57 CEST 2008 - hare@suse.de
 - Replace awk with sed statements
 
 -------------------------------------------------------------------
+Wed Apr  9 15:41:33 CEST 2008 - agraf@suse.de
+
+- Use dynamic cmdline parsing
+- Add CIFS support
+
+-------------------------------------------------------------------
 Tue Apr  1 15:03:02 CEST 2008 - hare@suse.de
 
 - Cleanup save_var statements

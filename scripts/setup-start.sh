@@ -2,6 +2,9 @@
 #
 #%stage: setup
 #%depends: prepare
+#%param_m: "Modules to include in initrd. Defaults to the INITRD_MODULES variable in /etc/sysconfig/kernel" "\"module list\"" modules
+#%param_u: "Modules to include in initrd. Defaults to the DOMU_INITRD_MODULES variable in /etc/sysconfig/kernel." "\"DomU module list\"" domu_modules
+#%param_d: "Root device. Defaults to the device from which / is mounted. Overrides the rootdev enviroment variable if set." root_device rootdev
 #
 shebang=/bin/bash
 
@@ -22,13 +25,13 @@ is_xen_kernel() {
 # Set in the mkinitrd script
 save_var build_day
 
-if [ -z "$modules_set" ]; then
+if [ -z "$param_m" ]; then
     # get INITRD_MODULES from system configuration
     . $root_dir/etc/sysconfig/kernel
     modules="$INITRD_MODULES"
 fi
 
-if [ -z "$domu_modules_set" ]; then
+if [ -z "$param_u" ]; then
     # get DOMU_INITRD_MODULES from system configuration
     . $root_dir/etc/sysconfig/kernel
     domu_modules="$DOMU_INITRD_MODULES"
