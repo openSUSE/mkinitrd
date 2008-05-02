@@ -3,10 +3,10 @@
 #%stage: devicemapper
 #%provides: dmroot
 #
-# force multipath and kpartx usage if multipath was forced
+# force multipath and dm usage if multipath was forced
 if use_script multipath; then
     root_mpath=1
-    root_kpartx=1
+    root_dm=1
 fi
 
 if [ -x /sbin/multipath -a -x /sbin/dmsetup ] ; then
@@ -36,6 +36,9 @@ if use_script multipath; then
     fi
     if [ -e /etc/udev/rules.d/72-multipath-compat.rules ]; then
 	cp /etc/udev/rules.d/72-multipath-compat.rules $tmp_mnt/etc/udev/rules.d
+    fi
+    if [ -d /lib/multipath ]; then
+	mkdir $tmp_mnt/lib/multipath
     fi
 fi
 

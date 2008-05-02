@@ -67,6 +67,8 @@ check_for_device() {
 			echo -n "!"
 			multipath -v0
 			wait_for_events
+			sleep 1
+			timeout=$(( $timeout - 1 ))
 			continue;
 		    fi
 		else

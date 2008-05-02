@@ -2,9 +2,9 @@
 #%stage: block
 #%depends: dm
 #%provides: dmroot
-#%programs: /sbin/multipath /sbin/mpath_id /sbin/mpath_prio_*
+#%programs: /sbin/multipath /lib/multipath/*
 #%if: "$root_mpath"
-#%modules: dm-multipath dm-emc dm-hp_sw dm-rdac
+#%modules: dm-multipath dm-round-robin dm-emc dm-hp_sw dm-rdac
 #
 ##### Multipath
 ##
