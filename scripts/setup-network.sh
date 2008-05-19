@@ -115,8 +115,13 @@ interface=${interface#/dev/}
 
 # get the default interface if requested
 if [ "$interface" = "default" ]; then
-	ifspec=$(get_default_interface)
-	interface=${ifspec%%/*}
+    ifspec=$(get_default_interface)
+    interface=${ifspec%%/*}
+    if [ ${ifspec##*/} = "dhcp" ] ; then
+	use_dhcp=1
+    else
+	use_ipconfig=1
+    fi
 fi
 
 if [ "$create_monster_initrd" ]; then
@@ -139,46 +144,16 @@ if [ -n "$interface" ] ; then
             drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
         fi
         drvlink=${drvlink##*/}
+	# xen network driver registers as 'vif'
+	if [ "$drvlink" == "vif" ] ; then
+	    drvlink=xennet
+	fi
         read macaddress < /sys/class/net/$interface/address
     fi
-    
-    # type of eth device (eth, ctc, ...)
-    iftype="$(echo $interface | sed 's/^\([a-z|!]*\)[0-9]*$/\1/')"
-    
-	if [ ! -e "$configfile" ]; then
-	    # try mac based config file
-		configfile="/etc/sysconfig/network/ifcfg-$iftype-id-$macaddress"
-	fi
-	if [ ! -e "$configfile" ]; then
-		# try bus based config file
-		busid=$(basename $ifpath)
-		
-		case "$ifpath" in
-			*pci*)
-				bustype=pci
-				;;
-			*css*)
-				bustype=ccw
-				;;
-			*cu*)
-				bustype=ccw
-				;;
-		esac
-		configfile="/etc/sysconfig/network/ifcfg-$iftype-bus-$bustype-$busid"
-	fi
-	if [ ! -e "$configfile" ]; then
-	    # try id based config file
-		configfile="/etc/sysconfig/network/ifcfg-$interface"
-	fi
-	[ -e "$configfile" ] && . $configfile
-	
-	if [ "$BOOTPROTO" = "dhcp" -a ! "$use_ipconfig" ]; then
-		use_dhcp=1
-		use_ipconfig=
-	elif [ ! "$use_dhcp" ]; then
-		use_dhcp=
-		use_ipconfig=1
-	fi
+fi
+
+# Get static IP configuration if requested
+if [ "$interface" -a "$use_ipconfig" ] ; then
     ip=$(get_ip_config $interface)
 fi
 
