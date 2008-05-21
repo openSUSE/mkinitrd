@@ -70,6 +70,11 @@ for o in $(cat /proc/cmdline); do
 	eval cmd_$key="${value}"
 	eval $key="${value}" 2> /dev/null
     fi
+    if [ "$key" = "init" ] ; then
+	# All values after init= are for the init process
+	# and will be ignored here
+	break;
+    fi
 done
 
 if [ "$console" ]; then
