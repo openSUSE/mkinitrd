@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 21 14:55:47 CEST 2008 - hare@suse.de
+
+- Fixup DHCP and static IP detection (bnc#390756)
+- Ignore all commandline arguments after init= (bnc#389672)
+
+-------------------------------------------------------------------
 Fri May  2 09:57:57 CEST 2008 - hare@suse.de
 
 - Fixup boot from multipath (bnc#385240)
