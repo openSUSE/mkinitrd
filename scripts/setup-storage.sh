@@ -305,7 +305,6 @@ done
 case "$rootdev" in
     /dev/nfs)
 	rootfstype=nfs
-	use_dhcp=1
 	;;
     /dev/*)
         if [ ! -e "$rootdev" ]; then

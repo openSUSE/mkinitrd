@@ -38,11 +38,9 @@ fi
 
 if [ "$ip" -a ! "$(echo $ip | sed '/:/P;d')" ]; then
 	echo "[NETWORK] using dhcp on $interface based on ip=$ip"
-	use_dhcp=1
-	use_ipconfig=
+	nettype=dhcp
 elif [ "${ip##*:}" = dhcp ]; then
-	use_dhcp=1
-	use_ipconfig=
+	nettype=dhcp
 	newinterface="${ip%*:dhcp}"
 	newinterface="${newinterface##*:}"
 	[ "$newinterface" != dhcp -a "$newinterface" ] && interface="$newinterface"
@@ -52,19 +50,18 @@ fi
 if [ "$(get_param dhcp)" -a "$(get_param dhcp)" != "off" ]; then
 	echo "[NETWORK] using dhcp based on dhcp=$dhcp"
 	interface=$(get_param dhcp)
-	use_dhcp=1
-	use_ipconfig=
+	nettype=dhcp
 fi
 
-[ "$(get_param dhcp)" = "off" ] && use_dhcp=
+[ "$(get_param dhcp)" = "off" ] && nettype=static
 
-if [ "$ip" -a ! "$use_dhcp" ]; then
+if [ "$ip" -a "$nettype" != "dhcp" ]; then
 	echo "[NETWORK] using static config based on ip=$ip"
-	use_ipconfig=1
+	nettype=static
 fi
 
 # dhcp based ip config
-if [ "$use_dhcp" ]; then
+if [ "$nettype" = "static" ]; then
   # run dhcp
   if [ "$interface" != "off" ]; then
     # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
@@ -92,7 +89,7 @@ if [ "$use_dhcp" ]; then
   fi
   
 # static ip config
-elif [ -n "$use_ipconfig" ]; then
+elif [ "$nettype" = "static" ]; then
   # configure interface
   if [ -n "$ip" ]; then
     /bin/ipconfig $ip

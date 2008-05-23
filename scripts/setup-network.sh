@@ -110,17 +110,17 @@ get_default_interface() {
 }
 
 interface=${interface#/dev/}
-[ "$param_D" ] && use_dhcp=1
-[ "$param_I" ] && use_ipconfig=1
+[ "$param_D" ] && nettype=dhcp
+[ "$param_I" ] && nettype=static
 
 # get the default interface if requested
 if [ "$interface" = "default" ]; then
     ifspec=$(get_default_interface)
     interface=${ifspec%%/*}
     if [ ${ifspec##*/} = "dhcp" ] ; then
-	use_dhcp=1
+	nettype=dhcp
     else
-	use_ipconfig=1
+	nettype=static
     fi
 fi
 
@@ -153,7 +153,7 @@ if [ -n "$interface" ] ; then
 fi
 
 # Get static IP configuration if requested
-if [ "$interface" -a "$use_ipconfig" ] ; then
+if [ "$interface" -a "$nettype" = "static" ] ; then
     ip=$(get_ip_config $interface)
 fi
 
@@ -162,12 +162,9 @@ mkdir -p $tmp_mnt/var/run
 
 cp_bin $root_dir/lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
 
-[ "$use_ipconfig" ] && nettype=static
-[ "$use_dhcp" ] && nettype=dhcp
 [ "$interface" ] && verbose "[NETWORK]\t$interface ($nettype)"
 
-save_var use_ipconfig
-save_var use_dhcp
+save_var nettype
 save_var ip
 save_var interface
 save_var macaddress
