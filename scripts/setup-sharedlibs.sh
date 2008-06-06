@@ -63,7 +63,7 @@ if [ -n "$lib_files" ]; then
     case "$(uname -m)" in
 	alpha|ia64)
 	    mkdir -p $tmp_mnt/lib
-	    lib_files="$lib_files `echo $root_dir/lib/libnss_files* $root_dir/lib/libgcc_s.so*`"
+	    lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
 	    ;;
 	*)
 	    # no symlinks, most point into the running system
@@ -72,11 +72,11 @@ if [ -n "$lib_files" ]; then
 		case "$i" in
 		    32-bit)
 			mkdir -p $tmp_mnt/lib
-			lib_files="$lib_files `echo $root_dir/lib/libnss_files* $root_dir/lib/libgcc_s.so*`"
+			lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
 			;;
 		    64-bit)
 			mkdir -p $tmp_mnt/lib64
-			lib_files="$lib_files `echo $root_dir/lib64/libnss_files* $root_dir/lib64/libgcc_s.so*`"
+			lib_files="$lib_files `echo $root_dir/lib64/libnss_{dns,files}* $root_dir/lib64/libgcc_s.so*`"
 			;;
 		esac
 	    done

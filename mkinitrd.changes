@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun  6 13:07:39 CEST 2008 - hare@suse.de
+
+- Parse new DHCP information correctly
+- Fixup DNS hostname resolution (bnc#389672)
+
+-------------------------------------------------------------------
 Wed May 21 14:55:47 CEST 2008 - hare@suse.de
 
 - Fixup DHCP and static IP detection (bnc#390756)

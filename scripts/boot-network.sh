@@ -61,17 +61,19 @@ if [ "$ip" -a "$nettype" != "dhcp" ]; then
 fi
 
 # dhcp based ip config
-if [ "$nettype" = "static" ]; then
+if [ "$nettype" = "dhcp" ]; then
   # run dhcp
   if [ "$interface" != "off" ]; then
     # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
   
     echo "running dhcpcd on interface $interface"
-    dhcpcd -R -Y -N -t 60 $interface
+    dhcpcd -R -Y -N -t 120 $interface
     if [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] ; then
       . /var/lib/dhcpcd/dhcpcd-$interface.info
     else
-      echo "no response from dhcp server."
+      echo "no response from dhcp server -- exiting to /bin/sh"
+      cd /
+      PATH=$PATH PS1='$ ' /bin/sh -i
     fi
     [ -e "/var/run/dhcpcd-$interface.pid" ] && kill -9 $(cat /var/run/dhcpcd-$interface.pid)
     if [ -n "$DNS" ]; then
@@ -83,6 +85,17 @@ if [ "$nettype" = "static" ]; then
       IFS="$oifs"
       if [ -n "$DOMAIN" ]; then
 	  echo "search $DOMAIN" >> /etc/resolv.conf
+      fi
+      echo 'hosts: dns' > /etc/nsswitch.conf
+    elif [ -n "$DNSSERVERS" ]; then
+      oifs="$IFS"
+      IFS=" "
+      for ns in $DNSSERVERS ; do
+        echo "nameserver $ns" >> /etc/resolv.conf
+      done
+      IFS="$oifs"
+      if [ -n "$DNSDOMAIN" ]; then
+	  echo "search $DNSDOMAIN" >> /etc/resolv.conf
       fi
       echo 'hosts: dns' > /etc/nsswitch.conf
     fi
