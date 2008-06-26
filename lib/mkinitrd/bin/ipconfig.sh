@@ -28,36 +28,36 @@ calc_prefix() {
     echo $prefix
 }
 
-ipcfg=$(echo $1 | sed 's/::/:_:/g')
+ipcfg=$(echo $1 | sed 's/:/_:/g')
 
 set -- $(IFS=: ; echo $ipcfg )
 
-client=$1
+client=${1%%_}
 shift
 if [ "$1" != "_" ] ; then
-    peer=$1
+    peer=${1%%_}
 fi
 shift
 if [ "$1" != "_" ] ; then
-    gateway=$1
+    gateway=${1%%_}
 fi
 shift
 if [ "$1" != "_" ] ; then
-    netmask=$1
+    netmask=${1%%_}
 fi
 shift
 if [ "$1" != "_" ] ; then
-    hostname=$1
+    hostname=${1%%_}
 fi
 shift
 if [ "$1" != "_" ] ; then
-    dev=$1
+    dev=${1%%_}
 else
     dev=eth0
 fi
 shift
 if [ "$1" != "_" ] ; then
-    mode=$1
+    mode=${1%%_}
 fi
 shift
 
