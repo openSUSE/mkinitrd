@@ -60,6 +60,7 @@ tty_driver=
 # kernel commandline parsing
 for o in $(cat /proc/cmdline); do
     key="${o%%=*}"
+    key="${key//-/_}"
     if [ "${key%.*}" != "${key}" ]; then # module parameter
     	add_module_param "${key%.*}" "${o#*.}"
     else
