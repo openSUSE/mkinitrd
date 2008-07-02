@@ -103,9 +103,9 @@ Enabling command tracing of the init script
 \fBnoresume\fR
 Do not check for a resume device
 .TP
-\fBsysrq=yes\fR
-\fBsysrq=1\fR
-Enable sysrq
+\fBsysrq=yes\fR | \fBsysrq=1-9\fR
+Enable sysrq. If a numeric value is specified, the log level of the console
+will be set to that value.
 .TP
 \fBresume=<device>\fR
 Resume from device \fI<device>\fR
