@@ -1266,7 +1266,12 @@ mkinitrd_kernel() {
     fi
 
     # Check whether this is the kdump kernel
-    if [ "${kernel_image%%-kdump}" != "${kernel_image}" ] ; then
+    # NOTE: On IA64 and SLES10, we don't have kernel-kdump but use the normal
+    # kernel for dumping. Just include the kdump feature always there
+    # to avoid need for rerun mkinitrd when "kdump" package is installed.
+    # We don't have such strict size constraints on IA64.
+    if [ "${kernel_image%%-kdump}" != "${kernel_image}" ] || \
+		[ "$(uname -i)" = "ia64" ]  ; then
 	if [ -f /etc/sysconfig/kdump ] ; then
 	    . /etc/sysconfig/kdump
 	    dumpdev=$KDUMP_DUMPDEV

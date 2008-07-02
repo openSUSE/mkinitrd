@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul  2 15:15:08 CEST 2008 - hare@suse.de
+
+- Always include kdump feature for IA64 (bnc#396856)
+
+-------------------------------------------------------------------
 Fri Apr 18 11:06:37 CEST 2008 - hare@suse.de
 
 - Include /dev/mem for iBFT support (bnc#378841)
