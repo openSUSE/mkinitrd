@@ -96,7 +96,7 @@ get_default_interface() {
 	eval $(grep STARTMODE $cfg)
 	if [ "$STARTMODE" = "nfsroot" ]; then
 	    cfgname=$(basename $cfg)
-	    ifname=$(getcfg-interface ${cfg#*/ifcfg-})
+	    ifname=${cfg#*/ifcfg-}
 	    eval $(grep BOOTPROTO $cfg)
 	    break;
 	fi
