@@ -2,7 +2,7 @@
 .\"$Id: mkinitrd.8,v 1.21 2006/11/07 16:38:33 bwalle Exp $
 .TH mkinitrd 8
 .SH NAME
-mkinitrd, mk_initrd \- create initrd disk image
+mkinitrd \- create initrd disk image
 .SH SYNOPSIS
 \fBmkinitrd\fR [options] [root_dir]
 .SH DESCRIPTION
@@ -211,33 +211,25 @@ Include support for zfcp storage devices (s390)
 .SH Using NFS as root filesystem
 To configure an initrd for an NFS client, specify these options to add nfs and network driver support into the initrd:
 .TP
-mkinitrd \fB-m "nfs e1000" -D eth0\fR
+mkinitrd \fB-f nfs -D eth0\fR
 This will add the required kernel modules and a dhcp client to the initrd, which will try to get an IP address via eth0.
 Boot the NFS client with these additional command line options to mount the server: \fBnfsroot=1.2.3.4:/exported/directory\fR
 
 .TP
-mkinitrd \fB-m "nfs e1000" -I eth0\fR
+mkinitrd \fB-f nfs -I eth0\fR
 This will add the required kernel modules to the initrd, a static IP address must be specified on the kernel cmdline.
-Boot the NFS client with these additional command line options to mount the server: \fBnfsroot=1.2.3.4:/exported/directory ip=1.2.3.42:1.2.3.4:1.2.3.1:255.255.255.0:clienthostname:eth0:none\fR . See the ip= description above for details about the ip= option.
+Boot the NFS client with the
+.I nfsroot
+parameter as specified above to mount the server and the additional
+parameter
+.B ip=1.2.3.42:1.2.3.4:1.2.3.1:255.255.255.0:hostname:eth0:none
+to configure the network interface.
+See the ip= description above for details about the ip= option.
 .TP
 mkinitrd 
 Due to the new autodetection in mkinitrd it should suffice if the /-entry in /etc/fstab is an nfs target. The network device which will be used should have \fBSTARTMODE\fR set to \fBnfsroot\fR
 
-.SH NOTE
-\fBmk_initrd\fR is now a symbolic link to \fBmkinitrd\fR.
-.SH ENVIRONMENT VARIABLES
-You can specify the root device via the environment variable rootdev (e.g.
-"rootdev=/dev/hda mk_initrd").
-.BR 
 .SH RECOVERY
-What should you do if the initrd is broken and you can't get the system back up?
-
-.RS 7
-1. Boot into the system using the installation CD
-.RS 0
-2. Run mkinitrd
-.RS -7
-
 What should you do if the initrd is broken and you want to fix it using a chroot?
 I assume /mnt is your target root and /boot is mounted inside.
 
@@ -255,7 +247,7 @@ I assume /mnt is your target root and /boot is mounted inside.
 
 .SH ENVIRONMENT VARIABLES
 You can specify the root device via the environment variable rootdev (e.g.
-"rootdev=/dev/hda mk_initrd").
+"rootdev=/dev/hda mkinitrd").
 .BR 
 .SH AUTHOR
 Steffen Winterfeldt <snwint@suse.de>, Susanne Oberhauser
