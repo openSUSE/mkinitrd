@@ -141,3 +141,11 @@ if [ "$linuxrc" = "trace" ]; then
     debug_linuxrc=1
 fi
 
+if [ "$sysrq" ] && [ "$sysrq" != "no" ] ; then
+    echo 1 > /proc/sys/kernel/sysrq
+    case "$sysrq" in
+	0|1|2|3|4|5|6|7|8|9)
+	    echo $sysrq > /proc/sysrq-trigger
+	    ;;
+    esac
+fi
