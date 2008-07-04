@@ -1474,8 +1474,10 @@ mkinitrd_kernel() {
 	cp_bin /bin/mv $tmp_mnt/bin/mv
 	cp_bin /bin/usleep $tmp_mnt/bin/usleep
 	cp_bin /bin/basename $tmp_mnt/bin/basename
-	cp_bin /sbin/ip $tmp_mnt/sbin/ip
-	cp_bin /bin/ping $tmp_mnt/bin/ping
+	# Include programs for static IP configuration
+	use_ipconfig=1
+	# Always include dhcp programs, too
+	use_dhcp=1
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
@@ -1688,7 +1690,9 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_dhcp" ] ; then
-	features=(${features[@]} dhcp\($macaddress\))
+	if [ -z "$use_ipconfig" -a -n "$macaddress" ] ; then
+	    features=(${features[@]} dhcp\($macaddress\))
+	fi
 	cp_bin /sbin/dhcpcd $tmp_mnt/bin
 	cp_bin /bin/kill $tmp_mnt/bin
 	mkdir -p $tmp_mnt/var/lib/dhcpcd
@@ -1696,7 +1700,9 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_ipconfig" ] ; then
-	features=(${features[@]} static\($macaddress\))
+	if [ -z "$use_dhcp" -a -n "$macaddress" ] ; then
+	    features=(${features[@]} static\($macaddress\))
+	fi
 	cp_bin /bin/ping $tmp_mnt/bin/ping
 	cp_bin /sbin/ip $tmp_mnt/sbin/ip
     fi
@@ -2470,9 +2476,14 @@ mkinitrd_kernel() {
 	|    fi
 	|    if [ "\$iSCSI_INITIATOR_HWADDR" ] ; then
 	|      ibftspec=\$(/sbin/fwparam_ibft -b -i)
+	|      iftype=\${ibftspec##*:}
 	|      if [ "\$ibftspec" ] ; then
-	|        echo "Setting up network \$ibftspec"
-	|        /bin/ipconfig.sh \$ibftspec
+	|        if [ "\$iftype" = "dhcp" ] ; then
+	|           dhcp_mode=1
+	|           macaddress="\$iSCSI_INITIATOR_HWADDR"
+	|        else
+	|           ifspec="\$ibftspec"
+	|        fi
 	|      fi
 	|    fi
 	|fi
