@@ -3250,11 +3250,11 @@ mkinitrd_kernel() {
 	|if [ -r /tmp/luks.key ] ; then
 	|    cryptsetup --key-file /tmp/luks.key luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
 	|    retval=\$?
-	|    if [ "\$retval" != 0 ]; then
-	|        # Now we try the ssopass
-	|        echo -n \$ssopass | cryptsetup luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
-	|        retval=\$?
-	|    fi
+	|fi
+	|if [ "\$retval" != 0 ]; then
+	|    # Now we try the ssopass
+	|    echo -n \$ssopass | cryptsetup luksOpen ${cryptdev[$count]} ${dmname[$count]} 2> /dev/null
+	|    retval=\$?
 	|fi
 	|if [ "\$retval" != 0 ]; then
 	|    c=0

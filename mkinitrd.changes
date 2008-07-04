@@ -2,6 +2,8 @@
 Wed Jul  2 15:15:08 CEST 2008 - hare@suse.de
 
 - Always include kdump feature for IA64 (bnc#396856)
+- Enable DHCP to setup iBFT devices (bnc#395882)
+- Use the same password for each LUKS device (bnc#396346)
 
 -------------------------------------------------------------------
 Fri Apr 18 11:06:37 CEST 2008 - hare@suse.de
