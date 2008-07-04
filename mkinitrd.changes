@@ -6,7 +6,7 @@ Fri Jul  4 12:15:52 CEST 2008 - hare@suse.de
 -------------------------------------------------------------------
 Fri May  2 09:57:57 CEST 2008 - hare@suse.de
 
-- Fixup boot from multipath (bnc#385240)
+- Fixup boot from multipath (bnc#385240,bnc#371995)
 
 -------------------------------------------------------------------
 Tue Apr  1 15:03:02 CEST 2008 - hare@suse.de
@@ -15,6 +15,11 @@ Tue Apr  1 15:03:02 CEST 2008 - hare@suse.de
 - Update multipath handling
 - Move device discovery scripts
 - Use wait_for_events function instead of udevsettle
+
+-------------------------------------------------------------------
+Thu Mar  6 13:10:12 CET 2008 - hare@suse.de
+
+- Don't fail on non-existing resume devices (bnc#357725)
 
 -------------------------------------------------------------------
 Wed Mar  5 15:30:38 CET 2008 - hare@suse.de
