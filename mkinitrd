@@ -1478,6 +1478,8 @@ mkinitrd_kernel() {
 	use_ipconfig=1
 	# Always include dhcp programs, too
 	use_dhcp=1
+	# And we simulate root on iSCSI
+	iscsi_root=1
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
@@ -2603,7 +2605,7 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$use_ipconfig" ]; then
-	ipinterface=$(get_ip_config $interface)
+	[ "$interface" ] && ipinterface=$(get_ip_config $interface)
 	cat_linuxrc <<-EOF
 	|# configure interface
 	|for o in \$(cat /proc/cmdline); do
@@ -2639,8 +2641,10 @@ mkinitrd_kernel() {
     fi
 
     if [ -n "$iscsi_root" ] ; then
-	iscsi_tgtname=$(cat /sys/class/iscsi_session/${iscsi_root}/targetname)
-	iscsi_tgtaddr=$(cat /sys/class/iscsi_connection/connection${iscsi_root#session}:0/address)
+	if [ -d /sys/class/iscsi_session/$iscsi_root ] ; then
+	    iscsi_tgtname=$(cat /sys/class/iscsi_session/${iscsi_root}/targetname)
+	    iscsi_tgtaddr=$(cat /sys/class/iscsi_connection/connection${iscsi_root#session}:0/address)
+	fi
 	cat_linuxrc <<-EOF
 	|iscsi_mark_root_nodes()
 	|{
