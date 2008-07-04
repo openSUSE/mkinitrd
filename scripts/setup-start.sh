@@ -131,7 +131,7 @@ root="$rootdev"
 save_var root
 
 if is_xen_kernel $kernel_version; then
-    RESOLVED_INITRD_MODULES="$domu_modules"
+    RESOLVED_INITRD_MODULES="$modules $domu_modules"
 else
     RESOLVED_INITRD_MODULES="$modules"
 fi
