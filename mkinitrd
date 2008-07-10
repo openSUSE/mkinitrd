@@ -1694,6 +1694,8 @@ mkinitrd_kernel() {
     if [ -n "$use_dhcp" ] ; then
 	if [ -z "$use_ipconfig" -a -n "$macaddress" ] ; then
 	    features=(${features[@]} dhcp\($macaddress\))
+	else
+	    features=(${features[@]} dhcp)
 	fi
 	cp_bin /sbin/dhcpcd $tmp_mnt/bin
 	cp_bin /bin/kill $tmp_mnt/bin
@@ -1704,6 +1706,8 @@ mkinitrd_kernel() {
     if [ -n "$use_ipconfig" ] ; then
 	if [ -z "$use_dhcp" -a -n "$macaddress" ] ; then
 	    features=(${features[@]} static\($macaddress\))
+	else
+	    features=(${features[@]} ipconfig)
 	fi
 	cp_bin /bin/ping $tmp_mnt/bin/ping
 	cp_bin /sbin/ip $tmp_mnt/sbin/ip
