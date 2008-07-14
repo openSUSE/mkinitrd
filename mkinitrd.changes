@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Mon Jul 14 10:45:09 CEST 2008 - hare@suse.de
+
+- Update documentation
+- Remove call to getcfg-interface (bnc#401660)
+- Fixup booting from LVM (bnc#406554)
+
+-------------------------------------------------------------------
+Thu Jun 26 10:41:18 CEST 2008 - agraf@novell.com
+
+- Escape minus commandline keys (bnc#389672,bnc#403995)
+
+-------------------------------------------------------------------
 Thu Jun 26 08:47:25 CEST 2008 - hare@suse.de
 
 - Revert init= changes; incompatible with 'normal' kernel
