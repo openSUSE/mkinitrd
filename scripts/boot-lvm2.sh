@@ -17,12 +17,12 @@
 ## vg_roots		use this group as Volume Group
 ## 
 
-# load the necessary module before we initialize the raid system
-load_modules
-
-if [ -n "$root_lvm2" ] ; then
-    o=$(get_param root)
-    case $o in
+lvm2_get_vg() {
+    local param=$1
+    local vg_root vg_name
+    local sysdev
+    
+    case $param in
 	/dev/disk/by-*/*)
 	    vg_root=
 	    ;;
@@ -31,7 +31,7 @@ if [ -n "$root_lvm2" ] ; then
 	    vg_root=${vg_name%%-*}
 	    ;;
 	/dev/*)
-	    set -- $(IFS=/ ; echo $o)
+	    set -- $(IFS=/ ; echo $param)
 	    if [ "$#" = "3" ] ; then
 		# Check sysfs. If there are subdirectories
 		# matching this name it's a block device
@@ -47,13 +47,30 @@ if [ -n "$root_lvm2" ] ; then
 	    fi
 	    ;;
     esac
-    if [ "$vg_root" ] || [ "$vg_roots" ] ; then
+
+    echo $vg_root
+}
+
+# load the necessary module before we initialize the raid system
+load_modules
+
+if [ -n "$root_lvm2" ] ; then
+    o=$(get_param root)
+    vg_root=$(lvm2_get_vg $o)
+    if [ "$vg_root" ] ; then
         # We are waiting for a device-mapper device
 	root_major=$(sed -n 's/\(.*\) device-mapper/\1/p' /proc/devices)
+    fi
+    o=$(get_param resume)
+    vg_resume=$(lvm2_get_vg $o)
+    if [ "$vg_resume" ] ; then
+	resume_major=$(sed -n 's/\(.*\) device-mapper/\1/p' /proc/devices)
     fi
 fi
 
 # initialize remebered and parameterized devices
-for vgr in $vg_root $vg_roots; do
+for vgr in $vg_root $vg_resume $vg_roots; do
 	vgchange -a y $vgr
 done
+
+unset lvm2_get_vg

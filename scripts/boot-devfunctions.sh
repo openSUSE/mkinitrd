@@ -46,24 +46,34 @@ devnumber() {
 # device node will be created by udev
 check_for_device() {
     local root
+    local type
     local retval=1
     local timeout=$udev_timeout
+    local dm_major
     local udev_devn
     local udev_major
 
     root=$1
+    type=$2
+    if [ "$type" = "root" ] ; then
+	dm_major=$root_major
+    elif [ "$type" = "resume" ] ; then
+	dm_major=$resume_major
+    else
+	dm_major=
+    fi
     if [ -n "$root" ]; then
 	echo -n "Waiting for device $root to appear: "
 	while [ $timeout -gt 0 ]; do
 	    if [ -e $root ]; then
 		udev_devn=$(devnumber $root)
 		udev_major=$(devmajor $udev_devn)
-		if [ -n "$root_major" ] ; then
-		    if [ "$udev_major" == "$root_major" ] ; then
+		if [ -n "$dm_major" ] ; then
+		    if [ "$udev_major" == "$dm_major" ] ; then
 			echo " ok"
 			retval=0
 			break;
-		    else
+		    elif [ -x /sbin/multipath ] ; then
 			echo -n "!"
 			multipath -v0
 			wait_for_events
