@@ -2551,7 +2551,7 @@ mkinitrd_kernel() {
 	|  if [ "\$macaddress" ] ; then
 	|    for dev in /sys/class/net/* ; do
 	|      read tmpmac < \$dev/address
-	|      if [ "\$tmpmac" == "$macaddress" ] ; then
+	|      if [ "\$tmpmac" == "\$macaddress" ] ; then
 	|        interface=\${dev##*/}
 	|        echo "using interface \$interface"
 	|      fi
@@ -2629,7 +2629,7 @@ mkinitrd_kernel() {
 	|    tmpspec=\${ifspec%:*}
 	|    for dev in /sys/class/net/* ; do
 	|      read tmpmac < \$dev/address
-	|      if [ "\$tmpmac" == "$macaddress" ] ; then
+	|      if [ "\$tmpmac" == "\$macaddress" ] ; then
 	|        interface=\${dev##*/}
 	|        echo "using interface \$interface"
 	|      fi
