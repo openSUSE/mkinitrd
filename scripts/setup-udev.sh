@@ -7,6 +7,7 @@
 # Default udev timeout is 30 seconds
 udev_timeout=30
 
+mkdir -p $tmp_mnt/lib/udev/rules.d
 mkdir -p $tmp_mnt/etc/udev/rules.d
 # copy needed rules
 for rule in \
@@ -19,7 +20,9 @@ for rule in \
     64-device-mapper.rules \
     64-md-raid.rules \
     80-drivers.rules; do
-    if [ -f /etc/udev/rules.d/$rule ]; then
+    if [ -f /lib/udev/rules.d/$rule ]; then
+	cp /lib/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
+    elif [ -f /etc/udev/rules.d/$rule ]; then
 	cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
     fi
 done

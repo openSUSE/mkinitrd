@@ -17,8 +17,9 @@ Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl
 AutoReqProv:    on
-Version:        2.2
+Version:        2.3
 Release:        1
+Conflicts:      udev < 118
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tgz
