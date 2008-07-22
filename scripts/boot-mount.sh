@@ -57,9 +57,6 @@ Want me to fall back to $fallback_rootdev? (Y/n) "
 
 read_only=${cmd_ro}
 
-[ -x /lib/udev/vol_id ] && VOL_ID=/lib/udev/vol_id
-[ -x /sbin/vol_id ] && VOL_ID=/sbin/vol_id
-
 # And now for the real thing
 if ! discover_root ; then
     echo "not found -- exiting to /bin/sh"
@@ -67,10 +64,12 @@ if ! discover_root ; then
     PATH=$PATH PS1='$ ' /bin/sh -i
 fi
 
-if [ -z "$rootfstype" -a -n "$VOL_ID" ]; then
-    rootfstype=$($VOL_ID -t $rootdev)
+if [ -z "$rootfstype" -a -x /sbin/udevadm ]; then
+    eval $(/sbin/udevadm info -q env -n $root | sed -n '/ID_FS_TYPE/p')
+    rootfstype=$ID_FS_TYPE
     [ $? -ne 0 ] && rootfstype=
     [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
+    ID_FS_TYPE=
 fi
 
 # check filesystem if possible

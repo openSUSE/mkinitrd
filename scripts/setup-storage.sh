@@ -265,11 +265,6 @@ if [ -z "$rootdev" ] ; then
       update_blockdev $rootdev
       rootdev="$(beautify_blockdev $rootdev)"
   fi
-  # no fstype found, so we will try to get it via vol_id
-  if [ ! "$rootfstype" ]; then
-    eval $(/lib/udev/vol_id "$rootdev" | grep ID_FS_TYPE)
-    rootfstype=$ID_FS_TYPE
-  fi
 fi
 
 #if we don't know where the root device belongs to
@@ -322,9 +317,11 @@ case "$rootdev" in
 esac
 
 if [ -z "$rootfstype" ]; then
-    rootfstype=$(/lib/udev/vol_id -t $rootdev)
+    eval $(udevadm info -q env -n $rootdev | sed -n '/ID_FS_TYPE/p' )
+    rootfstype=$ID_FS_TYPE
     [ $? -ne 0 ] && rootfstype=
     [ "$rootfstype" = "unknown" ] && $rootfstype=
+    ID_FS_TYPE=
 fi
 
 if [ ! "$rootfstype" ]; then
