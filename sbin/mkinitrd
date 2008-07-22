@@ -440,10 +440,13 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     [ $? -eq 0 ] || exit 1
 
     # If the current $kernel_image has a symlink without "-<version>" (e.g.
-    # "vmlinuz") pointing to it, create an "initrd" symlink for the
+    # "vmlinuz") pointing to it, and if the name is /boot/initrd-<version> (i.e.
+    # without any suffix or prefix), create an "initrd" symlink for the
     # corresponding $initrd_image.
     if [ $exit_code -eq 0 -a "$(readlink ${kernel_image%%-*})" = \
-	 "${kernel_image#$boot_dir/}" ]; then
+	 "${kernel_image#$boot_dir/}" -a \
+         "${initrd_image#$boot_dir/initrd-}" = \
+         "${kernel_image#$boot_dir/vmlinu[xz]-}" ]; then
 	rm -f $root_dir/$boot_dir/initrd
 	ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
     fi
