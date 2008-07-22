@@ -313,11 +313,11 @@ case "$rootdev" in
 	;;
     *://*) # URL type
 	rootfstype=${rootdev%%://*}
-	interface=default
+	interface=${interface:-default}
 	;;
     *:*)
 	rootfstype=nfs
-	interface=default
+	interface=${interface:-default}
 	;;
 esac
 

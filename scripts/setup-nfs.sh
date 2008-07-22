@@ -4,6 +4,6 @@
 #
 
 if [ "$rootfstype" = "nfs" ]; then
-	interface=default
+	interface=${interface:-default}
 	save_var rootfstype
 fi

@@ -117,7 +117,7 @@ interface=${interface#/dev/}
 if [ "$interface" = "default" ]; then
     ifspec=$(get_default_interface)
     interface=${ifspec%%/*}
-    if [ ${ifspec##*/} = "dhcp" ] ; then
+    if [ "${ifspec##*/}" = "dhcp" ] ; then
 	nettype=dhcp
     else
 	nettype=static
