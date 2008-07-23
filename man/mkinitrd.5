@@ -110,9 +110,16 @@ Don't show the script in the list of features displayed to the user.
 .TP
 .B #%programs \fI<list>\fB
 A (space separated) list of programs, specified by their full path, that
-should be included in the initrd. Libraries are automatically resolved by
-\fIldd\fR. Please note that libraries that are loaded at runtime by
-\fIdlopen()\fR are not included automatically. They have to be copied manually.
+should be included in the initrd.
+
+\fBNOTE:\fR The path is the full path in the initrd, not in the system.
+\fBmkinitrd\fR tries to discover programs automatically, which means that
+programs in \fI/sbin\fR will be also searched in \fI/usr/sbin\fR and programs
+in \fI/bin\fR will be also searched in \fI/usr/bin\fR.
+
+Libraries are automatically resolved by \fIldd\fR. Please note that libraries
+that are loaded at runtime by \fIdlopen()\fR are not included automatically.
+They have to be copied manually.
 .LP
 Each script provides per default a feature with the script name, so that
 .I setup-foo.sh
