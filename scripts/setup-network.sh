@@ -88,7 +88,7 @@ get_default_interface() {
 	fi
     fi
     # interface description not found in install.inf
-    if [ ! "$ifname" ]; then
+    if [ -z "$ifname" ]; then
       for cfg in /etc/sysconfig/network/ifcfg-*; do
 	if [ $(basename $cfg) = "ifcfg-lo" ] ; then
 	    continue;
@@ -102,9 +102,14 @@ get_default_interface() {
 	fi
       done
     fi
-    if [ ! "$ifname" ]; then
-    	ifname="$(/sbin/route -n | egrep "^0.0.0.0")"
-    	ifname=${ifname##* }
+    # No nfsroot interface description
+    if [ -z "$ifname" ]; then
+    	ifname=$(/sbin/ip route | sed -n 's/default .* dev \([[:alnum:]]*\) */\1/p')
+	if [ $(ps -A -o cmd= | sed -n '/.*dhcp.*$ifname.*/p' | wc --lines) -eq 2 ] ; then
+	    BOOTPROTO=dhcp
+	else
+	    BOOTPROTO=static
+	fi
     fi 
     echo $ifname/$BOOTPROTO
 }
@@ -114,7 +119,7 @@ interface=${interface#/dev/}
 [ "$param_I" ] && nettype=static
 
 # get the default interface if requested
-if [ "$interface" = "default" ]; then
+if [ -z "$interface" -o "$interface" = "default" ]; then
     ifspec=$(get_default_interface)
     interface=${ifspec%%/*}
     if [ "${ifspec##*/}" = "dhcp" ] ; then
