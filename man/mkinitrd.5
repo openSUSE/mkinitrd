@@ -108,7 +108,7 @@ Space-separated list of additional features provided by this script.
 .B #%dontshow
 Don't show the script in the list of features displayed to the user.
 .TP
-.B #%programs \fI<list>\fB
+.B #%programs: \fI<list>\fB
 A (space separated) list of programs, specified by their full path, that
 should be included in the initrd.
 
@@ -120,6 +120,16 @@ in \fI/bin\fR will be also searched in \fI/usr/bin\fR.
 Libraries are automatically resolved by \fIldd\fR. Please note that libraries
 that are loaded at runtime by \fIdlopen()\fR are not included automatically.
 They have to be copied manually.
+.TP
+.B #%modules: \fI<list>\fB
+List of (space separated) kernel modules (only the name, no path, without
+suffix) that should be included in the initrd. The modules must be loaded in
+the corresponding boot script with \fIload_modules\fR.
+.TP
+.B #%udevmodules: \fI<list>\fB
+List of (space separated) kernel modules (only the name, no path, without
+suffix) that should be included in the initrd but are loaded automatically with
+either udev or something else (like file system modules with \fImount\fR).
 .LP
 Each script provides per default a feature with the script name, so that
 .I setup-foo.sh
