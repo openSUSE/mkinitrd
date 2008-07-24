@@ -64,10 +64,8 @@ fi
 if [ "$nettype" = "dhcp" ]; then
   # run dhcp
   if [ "$interface" != "off" ]; then
-    # ifconfig lo 127.0.0.1 netmask 255.0.0.0 broadcast 127.255.255.255 up
-  
     echo "running dhcpcd on interface $interface"
-    dhcpcd -Y -N -t 120 $interface
+    dhcpcd -R -Y -N -t 120 $interface
     if [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] ; then
       . /var/lib/dhcpcd/dhcpcd-$interface.info
     else

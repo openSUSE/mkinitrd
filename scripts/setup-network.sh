@@ -166,7 +166,6 @@ mkdir -p $tmp_mnt/var/lib/dhcpcd
 mkdir -p $tmp_mnt/var/run
 
 cp_bin $root_dir/lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
-cp_bin $root_dir/lib/mkinitrd/sbin/modify_resolvconf $tmp_mnt/sbin/modify_resolvconf
 
 [ "$interface" ] && verbose "[NETWORK]\t$interface ($nettype)"
 
