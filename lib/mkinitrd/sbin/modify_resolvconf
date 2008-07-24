@@ -1,0 +1,19 @@
+#!/bin/sh
+
+shift # getopts cannot parse options if the first argument is a non-option
+      # i.e. starting with no dash
+
+while getopts t:e:s:p:i:l:n:f: name ; do
+    case $name in
+        l)  searchlist=$OPTARG ;;
+        n)  nameserver=$OPTARG ;;
+    esac
+done
+
+rm /etc/resolv.conf
+echo "search $searchlist" >> /etc/resolv.conf
+for ns in $nameserver ; do
+    echo "nameserver $ns" >> /etc/resolv.conf
+done
+
+exit 0
