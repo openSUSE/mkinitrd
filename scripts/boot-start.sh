@@ -2,7 +2,7 @@
 #
 #%stage: boot
 #%depends: devfunctions
-#%programs: /bin/bash umount test mount mknod mkdir ln /sbin/blogd date sleep echo cat /bin/sed /sbin/insmod /sbin/modprobe expr kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/*
+#%programs: /bin/bash umount test mount mknod mkdir ln date sleep echo cat /bin/sed /sbin/insmod /sbin/modprobe kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/*
 #%modules: $RESOLVED_INITRD_MODULES
 #%dontshow
 #
@@ -79,8 +79,8 @@ fi
 
 for o in $tty_driver; do
     case "$o" in
-	tty0)  test -e /dev/tty1  || mknod -m 0660 /dev/tty1  c 4  1 ;;
-	ttyS0) test -e /dev/ttyS0 || mknod -m 0660 /dev/ttyS0 c 4 64 ;;
+	ttyS*) test -e /dev/$o || mknod -m 0660 /dev/$o c 4 64 ;;
+	tty*)  test -e /dev/$o || mknod -m 0660 /dev/$o c 4  1 ;;
     esac
 done
 
@@ -100,17 +100,6 @@ if test -n "$tty_driver" ; then
     unset major minor tty
 fi
 unset tty_driver
-
-# start boot log deamon
-REDIRECT=$(showconsole 2>/dev/null)
-if test -n "$REDIRECT" ; then
-    > /dev/shm/initrd.msg
-    ln -sf /dev/shm/initrd.msg /var/log/boot.msg
-    mkdir -p /var/run
-    mount -t devpts devpts /dev/pts
-    /sbin/blogd $REDIRECT
-    devpts="yes"
-fi
 
 echo "" > /proc/sys/kernel/hotplug
 
