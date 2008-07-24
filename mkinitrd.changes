@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Thu Jul 24 13:54:08 CEST 2008 - hare@suse.de
+
+- Don't overwrite interface settings (bnc#410013)
+- Remove calls to 'vol_id'
+- Don't update symbolic link when creating initrd with suffix
+  (bnc#411212)
+- Update manpages
+- Select default interface when '-f network' is given (bnc#411207)
+- Move subsystem scripts to individual rpms.
+- Update version to 2.4
+
+-------------------------------------------------------------------
 Mon Jul 21 09:18:48 CEST 2008 - hare@suse.de
 
 - Look for udev rules in /lib/udev, too.
