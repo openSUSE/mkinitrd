@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 31 12:19:00 CEST 2008 - hare@suse.de
+
+- Do not activate network by default (bnc#412649)
+- Reset LVM prior to multipath activation (bnc#407512)
+
+-------------------------------------------------------------------
 Thu Jul 24 13:54:08 CEST 2008 - hare@suse.de
 
 - Don't overwrite interface settings (bnc#410013)
