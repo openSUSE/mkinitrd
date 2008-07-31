@@ -74,6 +74,9 @@ check_for_device() {
 			retval=0
 			break;
 		    elif [ -x /sbin/multipath ] ; then
+			if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
+			    vgchange -a n
+			fi
 			echo -n "!"
 			multipath -v0
 			wait_for_events
@@ -93,11 +96,24 @@ check_for_device() {
 	    # Recheck for LVM volumes
 	    if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
 		vgscan
+		
+		for vgr in $vg_root $vg_roots; do
+		    vgchange -a y $vgr
+		done
+		wait_for_events
 	    fi
-	    for vgr in $vg_root $vg_roots; do
-		vgchange -a y $vgr
-	    done
 	done
+    fi
+    if [ -x /sbin/multipath ] && [ -n "vg_root" -a -n "$vg_roots" ] ; then
+	echo "Resetting LVM for multipath"
+	vgchange -a n
+	multipath -v 0
+	wait_for_events
+	vgscan
+	for vgr in $vg_root $vg_roots; do
+	    vgchange -a y $vgr
+	done
+	wait_for_events
     fi
     return $retval;
 }
