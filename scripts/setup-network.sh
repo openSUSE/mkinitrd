@@ -114,12 +114,20 @@ get_default_interface() {
     echo $ifname/$BOOTPROTO
 }
 
+if [ -z "$interface" ] ; then
+    for addfeature in $ADDITIONAL_FEATURES; do
+	if [ "$addfeature" = "network" ]; then
+	    interface=default
+	fi
+    done
+fi
+
 interface=${interface#/dev/}
 [ "$param_D" ] && nettype=dhcp
 [ "$param_I" ] && nettype=static
 
 # get the default interface if requested
-if [ -z "$interface" -o "$interface" = "default" ]; then
+if [ "$interface" = "default" ]; then
     ifspec=$(get_default_interface)
     interface=${ifspec%%/*}
     if [ "${ifspec##*/}" = "dhcp" ] ; then
