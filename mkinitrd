@@ -2773,12 +2773,12 @@ mkinitrd_kernel() {
 	|		    retval=0
 	|		    echo " ok"
 	|		    break;
-	|		else
-	|		    echo -n "!"
-	|		    multipath -v0
-	|                   /sbin/udevsettle --timeout=$udev_timeout
 	|		fi
 	|	    fi
+	|	    echo -n "!"
+	|	    [ -x /sbin/vgchange ] && /sbin/vgchange -a n
+	|	    multipath -v0
+	|           /sbin/udevsettle --timeout=$udev_timeout
 	|	    sleep 1
 	EOF
     else
@@ -2794,8 +2794,8 @@ mkinitrd_kernel() {
 
     if [ -n "$root_lvm2" ] ; then
 	cat_linuxrc <<-'EOF'
-	|	    vgscan
-	|	    vgchange -a y $vgname
+	|	    /sbin/vgchange -a y $vgname
+	|           /sbin/udevsettle --timeout=$udev_timeout
 	EOF
     fi
 
@@ -2803,6 +2803,15 @@ mkinitrd_kernel() {
 	|	    echo -n "."
 	|	    timeout=$(( $timeout - 1 ))
 	|	done
+	|    fi
+	|    if [ -x /sbin/vgchange ] && [ -x /sbin/multipath ] ; then
+	|        echo "Resetting LVM for multipath"
+	|        vgchange -a n
+	|        multipath -v 0
+	|        /sbin/udevsettle --timeout=$udev_timeout
+	|        vgscan
+	|        vgchange -a y $vgname
+	|        /sbin/udevsettle --timeout=$udev_timeout
 	|    fi
 	|    return $retval;
 	|}
@@ -2946,6 +2955,11 @@ mkinitrd_kernel() {
 	|  # Reset as we're not using multipath
 	|  dm_major=
 	|fi
+	EOF
+    else
+	cat_linuxrc <<-EOF
+	|# No multipath support
+	|dm_major=0
 	EOF
     fi
 
