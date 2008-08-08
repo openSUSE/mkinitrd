@@ -82,6 +82,7 @@ elif [ -x "$rootfsck" ]; then
     echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
     # Display progress bar if possible 
     fsckopts="-V -a"
+    [ "$forcefsck" ] && fsckopts="$fsckopts -f"
     [ "`/sbin/showconsole`" = "/dev/tty1" ] && fsckopts="$fsckopts -C"
     # Check external journal for reiserfs
     [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && fsckopts="-j $journaldev $fsckopts"
