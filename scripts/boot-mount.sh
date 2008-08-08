@@ -65,7 +65,7 @@ if ! discover_root ; then
 fi
 
 if [ -z "$rootfstype" -a -x /sbin/udevadm ]; then
-    eval $(/sbin/udevadm info -q env -n $root | sed -n '/ID_FS_TYPE/p')
+    eval $(/sbin/udevadm info -q env -n $rootdev | sed -n '/ID_FS_TYPE/p')
     rootfstype=$ID_FS_TYPE
     [ $? -ne 0 ] && rootfstype=
     [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
