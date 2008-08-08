@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug  8 16:06:49 CEST 2008 - hare@suse.de
+
+- Fix booting with no 'root=' commandline parameter
+- Implement 'forcefsck' parameter (bnc#379597)
+- Add requirement to 'dhcpcd' (bnc#413713)
+
+-------------------------------------------------------------------
 Thu Jul 31 12:19:00 CEST 2008 - hare@suse.de
 
 - Do not activate network by default (bnc#412649)

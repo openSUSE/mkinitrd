@@ -20,6 +20,7 @@ AutoReqProv:    on
 Version:        2.4
 Release:        1
 Conflicts:      udev < 118
+Requires:       dhcpcd
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tgz
