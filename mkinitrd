@@ -2777,7 +2777,7 @@ mkinitrd_kernel() {
 	|	    fi
 	|	    echo -n "!"
 	|	    [ -x /sbin/vgchange ] && /sbin/vgchange -a n
-	|	    multipath -v0
+	|	    [ -z "$dm_major" ] || multipath -v0
 	|           /sbin/udevsettle --timeout=$udev_timeout
 	|	    sleep 1
 	EOF
@@ -2804,7 +2804,7 @@ mkinitrd_kernel() {
 	|	    timeout=$(( $timeout - 1 ))
 	|	done
 	|    fi
-	|    if [ -x /sbin/vgchange ] && [ -x /sbin/multipath ] ; then
+	|    if [ -x /sbin/vgchange ] && [ -x /sbin/multipath ] && [ "$dm_major" ] ; then
 	|        echo "Resetting LVM for multipath"
 	|        vgchange -a n
 	|        multipath -v 0
