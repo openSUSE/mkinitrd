@@ -2794,6 +2794,7 @@ mkinitrd_kernel() {
 
     if [ -n "$root_lvm2" ] ; then
 	cat_linuxrc <<-'EOF'
+	|	    /sbin/vgscan
 	|	    /sbin/vgchange -a y $vgname
 	|           /sbin/udevsettle --timeout=$udev_timeout
 	EOF
