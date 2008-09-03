@@ -104,7 +104,7 @@ get_default_interface() {
     fi
     # No nfsroot interface description
     if [ -z "$ifname" ]; then
-    	ifname=$(/sbin/ip route | sed -n 's/default .* dev \([[:alnum:]]*\) */\1/p')
+    	ifname=$(/sbin/ip route | sed -n 's/default .* dev \([[:alnum:]]*\) *.*/\1/p')
 	if [ $(ps -A -o cmd= | sed -n '/.*dhcp.*$ifname.*/p' | wc --lines) -eq 2 ] ; then
 	    BOOTPROTO=dhcp
 	else
