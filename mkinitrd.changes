@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep  9 16:00:28 CEST 2008 - hare@suse.de
+
+- Fix dhcp network detection (bnc#415438)
+- parse 'ip route' lines correctly (bnc#414191)
+- Always include all ATA and SCSI drivers
+
+-------------------------------------------------------------------
 Fri Aug  8 16:06:49 CEST 2008 - hare@suse.de
 
 - Fix booting with no 'root=' commandline parameter

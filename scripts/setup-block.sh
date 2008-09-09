@@ -2,6 +2,7 @@
 #
 #%stage: block
 #%depends: partition
+#%param_S: "Don't include all IDE and SCSI drivers."
 #
 handle_scsi() {
     local dev=$1
@@ -95,7 +96,7 @@ update_blockmodules() {
     echo -n "$newmodule "
 }
 
-if [ "$create_monster_initrd" ]; then
+if [ "$create_monster_initrd" -o ! "$param_S" ]; then
     for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi} -name "*.ko"); do
 	i=${i%*.ko}
 	block_modules="$block_modules ${i##*/}"
