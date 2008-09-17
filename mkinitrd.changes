@@ -2,6 +2,7 @@
 Wed Sep 17 09:58:45 CEST 2008 - hare@suse.de
 
 - Root device not found when using 'LABEL=' (bnc#415783)
+- Update manpage to specify the correct inode count (bnc#358426)
 
 -------------------------------------------------------------------
 Mon Nov  5 12:20:54 CET 2007 - hare@suse.de
