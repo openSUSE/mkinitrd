@@ -2170,7 +2170,7 @@ mkinitrd_kernel() {
 	|		i=\$(expr \$i + 1)
 	|		echo -n "."
 	|	    done
-	|	    if [ -z "$dev" ]; then
+	|	    if [ -z "\$dev" ]; then
 	|		rootdev=
 	|		echo " failed."
 	|	    fi

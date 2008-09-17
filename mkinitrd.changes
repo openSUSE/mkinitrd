@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep 17 09:58:45 CEST 2008 - hare@suse.de
+
+- Root device not found when using 'LABEL=' (bnc#415783)
+
+-------------------------------------------------------------------
 Mon Nov  5 12:20:54 CET 2007 - hare@suse.de
 
 - Fix calculation of initrd size when a different inode count
