@@ -64,10 +64,24 @@ if ! discover_root ; then
     PATH=$PATH PS1='$ ' /bin/sh -i
 fi
 
-if [ -z "$rootfstype" -a -x /sbin/udevadm ]; then
-    eval $(/sbin/udevadm info -q env -n $rootdev | sed -n '/ID_FS_TYPE/p')
+sysdev=$(/sbin/udevadm info -q path -n $rootdev)
+# Fallback if rootdev is not controlled by udev
+if [ $? -ne 0 ] && [ -b $rootdev ] ; then
+    local devn maj min sysdev
+
+    devn=$(devnumber $rootdev)
+    maj=$(devmajor $devn)
+    min=$(devminor $devn)
+    if [ -e /sys/dev/block/$maj:$min ] ; then
+	sysdev=$(cd -P /sys/dev/block/$maj:$min ; echo $PWD)
+    fi
+    unset devn
+    unset maj
+    unset min
+fi
+if [ -z "$rootfstype" -a -x /sbin/udevadm -a -n "$sysdev" ]; then
+    eval $(/sbin/udevadm info -q env -p $sysdev | sed -n '/ID_FS_TYPE/p')
     rootfstype=$ID_FS_TYPE
-    [ $? -ne 0 ] && rootfstype=
     [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
     ID_FS_TYPE=
 fi
