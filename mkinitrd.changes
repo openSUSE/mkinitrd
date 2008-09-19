@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Thu Sep 18 15:18:08 CEST 2008 - hare@suse.de
+Fri Sep 19 10:17:52 CEST 2008 - hare@suse.de
 
 - Detect LVM2 devices during boot correctly (bnc#421379)
+- Include all S/390 block modules, too (bnc#427615)
 
 -------------------------------------------------------------------
 Tue Sep  9 16:00:28 CEST 2008 - hare@suse.de
