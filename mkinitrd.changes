@@ -3,7 +3,7 @@ Tue Sep 23 16:24:26 CEST 2008 - hare@suse.de
 
 - Add /bin/uname (required for firmware.sh script)
   (bnc#427267)
-
+ 
 -------------------------------------------------------------------
 Fri Sep 19 10:17:52 CEST 2008 - hare@suse.de
 
