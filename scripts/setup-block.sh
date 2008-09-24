@@ -54,6 +54,9 @@ get_devmodule() {
 		    echo ide-disk
 		fi
 		;;
+	    cciss*)
+		echo cciss
+		;;
 	    i2o*)
 		echo i2o_block i2o_config
 		;;

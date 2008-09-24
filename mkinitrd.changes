@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 24 15:29:37 CEST 2008 - hare@suse.de
+
+- Handle cciss devices correctly (bnc#424217)
+- Do not call update-bootloader on error
+
+-------------------------------------------------------------------
 Tue Sep 23 16:24:26 CEST 2008 - hare@suse.de
 
 - Add /bin/uname (required for firmware.sh script)
