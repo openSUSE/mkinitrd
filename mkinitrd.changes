@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 29 13:33:46 CEST 2008 - hare@suse.de
+
+- Build ramdisk in /dev/shm to speed up mkinitrd
+
+-------------------------------------------------------------------
 Wed Sep 24 15:29:37 CEST 2008 - hare@suse.de
 
 - Handle cciss devices correctly (bnc#424217)
