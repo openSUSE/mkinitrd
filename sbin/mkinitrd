@@ -36,9 +36,9 @@ read_options_eval() {
 }
 
 read_options() {
-        egrep -h '%param_' $INITRD_PATH/setup/*.sh | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > /tmp/$$.params
-	. /tmp/$$.params
-	rm -f /tmp/$$.params
+        egrep -h '%param_' $INITRD_PATH/setup/*.sh | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > $tmp_dir/$$.params
+	. $tmp_dir/$$.params
+	rm -f $tmp_dir/$$.params
 }
 
 parse_option() {
@@ -248,7 +248,7 @@ fi
 if [ -n "$tmp_dir" ]; then
     tmp_dir="/${tmp_dir#/}"  # make sure it is an absolute path
 else
-    tmp_dir=/var/tmp
+    tmp_dir=/dev/shm
 fi
 if [ ! -d "$tmp_dir" ]; then
     echo "$tmp_dir is not a directory" >&2
