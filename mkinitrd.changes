@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Oct  9 09:12:14 CEST 2008 - agraf@suse.de
+
+- Remove rootfs module check (bnc#432766)
+- Include libata drivers only if libata is used
+- Remove warning for non-existing driver directories
+- Fix script syntax
+
+-------------------------------------------------------------------
 Mon Sep 29 13:33:46 CEST 2008 - hare@suse.de
 
 - Build ramdisk in /dev/shm to speed up mkinitrd

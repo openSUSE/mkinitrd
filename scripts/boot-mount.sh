@@ -66,8 +66,6 @@ fi
 sysdev=$(/sbin/udevadm info -q path -n $rootdev)
 # Fallback if rootdev is not controlled by udev
 if [ $? -ne 0 ] && [ -b $rootdev ] ; then
-    local devn maj min sysdev
-
     devn=$(devnumber $rootdev)
     maj=$(devmajor $devn)
     min=$(devminor $devn)
