@@ -107,9 +107,13 @@ update_blockmodules() {
 }
 
 if [ "$create_monster_initrd" ]; then
-    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi,s390/block,s390/scsi} -name "*.ko"); do
-	i=${i%*.ko}
-	block_modules="$block_modules ${i##*/}"
+    for d in $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi,s390/block,s390/scsi}; do
+	if [ -d "$d" ]; then
+	    for i in $(find "$d" -name "*.ko"); do
+		i=${i%*.ko}
+		block_modules="$block_modules ${i##*/}"
+	    done
+	fi
     done
 else
 	# if we need libata, just copy all libata drivers
