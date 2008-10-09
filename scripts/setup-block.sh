@@ -2,8 +2,9 @@
 #
 #%stage: block
 #%depends: partition
-#%param_S: "Don't include all IDE and SCSI drivers."
+#%param_S: "Don't include all libata drivers."
 #
+
 handle_scsi() {
     local dev=$1
     local devpath tgtnum hostnum procname
@@ -25,6 +26,12 @@ handle_scsi() {
         procname="$(readlink /sys/class/scsi_host/host${hostnum}/device/../driver)"
         procname="${procname##*/}"
     fi
+
+    # let's see if that driver is on libata
+    if [ -L "/sys/module/libata/holders/$procname" ]; then
+        block_uses_libata=1
+    fi
+
     echo $procname
 }
 
@@ -99,12 +106,21 @@ update_blockmodules() {
     echo -n "$newmodule "
 }
 
-if [ "$create_monster_initrd" -o ! "$param_S" ]; then
+if [ "$create_monster_initrd" ]; then
     for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi,s390/block,s390/scsi} -name "*.ko"); do
 	i=${i%*.ko}
 	block_modules="$block_modules ${i##*/}"
     done
 else
+	# if we need libata, just copy all libata drivers
+	if [ "$block_uses_libata" -a ! "$param_S" ]; then
+	    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/ata -name "*.ko"); do
+	        i=${i%*.ko}
+	        block_modules="$block_modules ${i##*/}"
+	    done
+	fi
+
+	# copy over all drivers needed to boot up the system
 	for bd in $blockdev; do
 	    case $bd in # only include devices
 	      /dev*) 
