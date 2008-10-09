@@ -2,6 +2,7 @@
 #
 #%stage: boot
 #%depends: start
+#%udevmodules: $rootfsmod
 #
 #%dontshow
 #

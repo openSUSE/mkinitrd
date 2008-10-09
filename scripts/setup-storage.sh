@@ -333,15 +333,16 @@ Currently available -d parameters are:
 	URL		<protocol>://<path>"
 fi
 
+# We assume that we always have to load a module for the rootfs
+rootfsmod=$rootfstype
+
 # Check if we have to load a module for the rootfs type
+# XXX: This check should happen more generically for all modules
 if [ ! "$(find $root_dir/lib/modules/$kernel_version/ -name $rootfstype.ko)" ]; then
-    if ! grep -q ${rootfstype}_fs_type $map ; then
-	error 1 "Could not find the filesystem module for root device $rootdev ($rootfstype)"
-    else
+    if grep -q ${rootfstype}_fs_type $map ; then
+	# No need to load a module, since this is compiled in
 	rootfsmod=
     fi
-else
-    rootfsmod=$rootfstype
 fi
 
 # blockdev is the list current block devices.
