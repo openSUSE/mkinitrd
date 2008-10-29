@@ -70,6 +70,7 @@ make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
 install -D -m 644 man/mkinitrd.5 $RPM_BUILD_ROOT/%{_mandir}/man5/mkinitrd.5
 install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
+install -D -m 644 man/lsinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/lsinitrd.8
 mkdir -p $RPM_BUILD_ROOT/etc/rpm
 cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 #
@@ -96,10 +97,12 @@ EOF
 /lib/mkinitrd/bin/*
 /sbin/mkinitrd
 /sbin/mkinitrd_setup
+/sbin/lsinitrd
 /sbin/module_upgrade
 /sbin/installkernel
 %doc %{_mandir}/man5/mkinitrd.5.gz
 %doc %{_mandir}/man8/mkinitrd.8.gz
+%doc %{_mandir}/man8/lsinitrd.8.gz
 
 %changelog
 * Tue May 29 2007 - agraf@suse.de

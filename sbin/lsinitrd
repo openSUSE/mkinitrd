@@ -25,7 +25,7 @@
 #
 
 usage() {
-    echo "Usage: lsinitrd [-l] <initrd>"
+    echo "Usage: lsinitrd [-l] [-h] <initrd>"
 }
 
 while [ "$1" ] ; do
@@ -33,6 +33,10 @@ while [ "$1" ] ; do
      	-l|--long)
 	    verbose=1
 	    shift
+	    ;;
+	-h)
+	    usage
+	    exit 1
 	    ;;
 	-*)
 	    echo "Unknown option $1"

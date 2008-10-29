@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 29 10:53:39 CET 2008 - hare@suse.de
+
+- Include lsinitrd script (bnc#439103)
+
+-------------------------------------------------------------------
 Thu Oct  9 09:12:14 CEST 2008 - agraf@suse.de
 
 - Remove rootfs module check (bnc#432766)

@@ -4,7 +4,7 @@
 
 sbindir = /sbin
 
-PRGS = mkinitrd installkernel module_upgrade mkinitrd_setup
+PRGS = mkinitrd installkernel module_upgrade mkinitrd_setup lsinitrd
 all: install
 
 install: $(PRGS)
