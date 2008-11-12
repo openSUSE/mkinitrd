@@ -130,11 +130,14 @@ interface=${interface#/dev/}
 if [ "$interface" = "default" ]; then
     ifspec=$(get_default_interface)
     interface=${ifspec%%/*}
-    if [ "${ifspec##*/}" = "dhcp" ] ; then
-	nettype=dhcp
-    else
-	nettype=static
-    fi
+    case "${ifspec##*/}" in
+	dhcp*)
+	    nettype=dhcp
+	    ;;
+	*)
+	    nettype=static
+	    ;;
+    esac
 fi
 
 if [ "$create_monster_initrd" ]; then
