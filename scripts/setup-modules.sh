@@ -5,6 +5,14 @@
 # TODO: generate module deps and copy them to the initrd
 # 	take xen into account
 
+# Check if module $1 is listed in $modules.
+has_module() {
+    case " $modules " in
+	*" $1 "*)   return 0 ;;
+    esac
+    return 1
+}
+
 # Check if any of the modules in $* are listed in $modules.
 has_any_module() {
     local module
@@ -74,6 +82,10 @@ for script in $INITRD_PATH/boot/*.sh; do
 	    [ "$module" ] && verbose "[MODULES]\t$(basename $script): $(eval echo $module)"
 	    add_module $(eval echo $module)
 	done
+	if is_final "$script" ; then
+	    # Stop if the script is marked 'final'
+	    break
+	fi
     fi
 done
 

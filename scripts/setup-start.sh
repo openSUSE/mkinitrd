@@ -22,14 +22,6 @@ is_xen_kernel() {
     return 
 }
 
-# Check if module $1 is listed in $modules.
-has_module() {
-    case " $modules " in
-	*" $1 "*)   return 0 ;;
-    esac
-    return 1
-}
-
 # Set in the mkinitrd script
 save_var build_day
 

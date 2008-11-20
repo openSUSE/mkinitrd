@@ -107,6 +107,7 @@ elif [ "$nettype" = "static" ]; then
     # dhcp information emulation
     IPADDR="${ip%%:*}"
     ip="${ip#*:}" # first entry => peeraddr
+    PEERADDR="${ip%%:*}"
     ip="${ip#*:}" # first entry => gwaddr
     GATEWAY="${ip%%:*}"
     ip="${ip#*:}" # first entry => netmask

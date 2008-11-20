@@ -61,10 +61,6 @@ if [ "$1" != "_" ] ; then
 fi
 shift
 
-if [ "$mode" ] ; then
-    echo "Ignoring mode $mode, using static configuration"
-fi
-
 # Calculate the prefix
 prefix=${client%%*/}
 if [ "$prefix" == "$client" ] ; then
