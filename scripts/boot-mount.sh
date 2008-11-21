@@ -88,7 +88,8 @@ if [ -z "$rootfstype" ]; then
     echo "invalid root filesystem -- exiting to /bin/sh"
     cd /
     PATH=$PATH PS1='$ ' /bin/sh -i
-elif [ -x "$rootfsck" ]; then
+# don't run fsck in the kdump kernel
+elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # fsck is unhappy without it
     echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
     # Display progress bar if possible 

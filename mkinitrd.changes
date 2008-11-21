@@ -5,6 +5,7 @@ Fri Nov 21 10:51:52 CET 2008 - hare@suse.de
 - Update modules script for zfcpdump (bnc#446427)
 - Select correct network interface when 'ip=' is specified
   on the commandline (bnc#442074)
+- Disable fsck for kdump (bnc#438192)
 
 -------------------------------------------------------------------
 Wed Oct 29 10:53:39 CET 2008 - hare@suse.de
