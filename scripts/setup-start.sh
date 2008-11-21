@@ -38,9 +38,13 @@ if [ -z "$param_u" ]; then
 fi
 
 # Activate features which are eqivalent to modules
-if has_module dm-multipath; then
-    ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES multipath"
-fi
+for m in "$module" ; do
+    case "$m" in
+	dm-multipath)
+	    ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES multipath"
+	    ;;
+    esac
+done
 
 save_var rootdev
 root="$rootdev"
