@@ -82,10 +82,6 @@ for script in $INITRD_PATH/boot/*.sh; do
 	    [ "$module" ] && verbose "[MODULES]\t$(basename $script): $(eval echo $module)"
 	    add_module $(eval echo $module)
 	done
-	if is_final "$script" ; then
-	    # Stop if the script is marked 'final'
-	    break
-	fi
     fi
 done
 
