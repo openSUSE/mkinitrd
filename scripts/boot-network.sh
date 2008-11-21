@@ -23,13 +23,19 @@ load_modules
 
 # mac address based config
 if [ "$macaddress" ] ; then
-  for dev in /sys/class/net/* ; do
-    read tmpmac < $dev/address
-    if [ "$tmpmac" = "$macaddress" ] ; then
-      interface=${dev##*/}
-      echo "[NETWORK] using interface $interface"
-    fi
-  done
+    nettype=${ip##*:}
+    ip=${ip%:*}
+    interface=${ip##*:}
+    tmpip=${ip%:*}
+    for dev in /sys/class/net/* ; do
+      read tmpmac < $dev/address
+      if [ "$tmpmac" == "$macaddress" ] ; then
+        interface=${dev##*/}
+        echo "using interface $interface"
+      fi
+    done
+    ip="${tmpip}:${interface}:${nettype}"
+  fi
 fi
 
 if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then 

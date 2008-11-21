@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Nov 21 10:51:52 CET 2008 - hare@suse.de
+
+- network: use wildcard match for nettype 'dhcp' (bnc#440192)
+- Update modules script for zfcpdump (bnc#446427)
+- Select correct network interface when 'ip=' is specified
+  on the commandline (bnc#442074)
+
+-------------------------------------------------------------------
 Wed Oct 29 10:53:39 CET 2008 - hare@suse.de
 
 - Include lsinitrd script (bnc#439103)
