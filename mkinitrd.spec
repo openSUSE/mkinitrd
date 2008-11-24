@@ -15,7 +15,7 @@ Name:           mkinitrd
 License:        GPL v2 or later
 Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs
-Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl
+Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
 AutoReqProv:    on
 Version:        2.4
 Release:        1
