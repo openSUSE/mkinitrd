@@ -35,7 +35,6 @@ if [ "$macaddress" ] ; then
       fi
     done
     ip="${tmpip}:${interface}:${nettype}"
-  fi
 fi
 
 if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then 
