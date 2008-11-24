@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov 24 16:45:34 CET 2008 - hare@suse.de
+
+- Fix syntax error in network script (bnc#448241)
+
+-------------------------------------------------------------------
 Mon Nov 24 12:07:21 CET 2008 - hare@suse.de
 
 - Correctly quote variables (bnc#447966)
