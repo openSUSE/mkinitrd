@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 24 12:07:21 CET 2008 - hare@suse.de
+
+- Correctly quote variables (bnc#447966)
+- Remove stderr redirection from modprobe to display the
+  actuall error (bnc#441327)
+
+-------------------------------------------------------------------
 Fri Nov 21 10:51:52 CET 2008 - hare@suse.de
 
 - network: use wildcard match for nettype 'dhcp' (bnc#440192)

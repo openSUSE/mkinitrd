@@ -44,15 +44,11 @@ resolve_modules() {
 	fi
 	module_list=$(/sbin/modprobe $with_modprobe_conf \
 	    --set-version $kernel_version --ignore-install \
-	    --show-depends $module 2> /dev/null \
+	    --show-depends $module \
 	    | sed -ne 's:.*insmod /\?::p' | sed -ne 's:\ .*\?::p' )
 	if [ ! "$module_list" ]; then
-	    # Check for build-in modules
-	    modname=$(echo $module | sed 's/-/_/g')
-	    if [ ! -d /sys/module/$modname ] ; then
-		echo \
-"WARNING Cannot determine dependencies of kernel module '$module'.
-	Does it exist? If it does, try depmod -a. Continuing without $module." >&2
+	    echo \
+"WARNING: no dependencies for kernel module '$module' found." >&2
 	    fi
 	fi
 	for mod in $module_list ; do
