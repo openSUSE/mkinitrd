@@ -65,7 +65,7 @@ check_for_device() {
     if [ -n "$root" ]; then
 	echo -n "Waiting for device $root to appear: "
 	while [ $timeout -gt 0 ]; do
-	    if [ -e $root ]; then
+	    if [ -e "$root" ]; then
 		udev_devn=$(devnumber $root)
 		udev_major=$(devmajor $udev_devn)
 		if [ -n "$dm_major" ] ; then

@@ -52,7 +52,7 @@ devnumber() {
 # usage		majorminor <major> <minor>
 # returns	the block device name
 majorminor2blockdev() {
-	local major=$1 minor=$2
+	local major=${1:-0} minor=$2
 
 	if [ ! "$minor" ]; then
 		minor=$(IFS=: ; set -- $major ; echo $2)
