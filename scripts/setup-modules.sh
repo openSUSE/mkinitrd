@@ -42,6 +42,14 @@ resolve_modules() {
 	if [ -e /etc/modprobe.conf ]; then
 	    with_modprobe_conf="-C /etc/modprobe.conf"
 	fi
+	case "$module" in
+	    mpt*)
+		if [ -f /etc/modprobe.d/mptctl ] ; then
+		    rm -f $tmp_mnt/etc/modprobe.d/mptctl
+		    mv /etc/modprobe.d/mptctl /tmp
+		fi
+		;;
+	esac
 	module_list=$(/sbin/modprobe $with_modprobe_conf \
 	    --set-version $kernel_version --ignore-install \
 	    --show-depends $module \
@@ -55,6 +63,9 @@ resolve_modules() {
 		resolved_modules="$resolved_modules $mod"
 	    fi
 	done
+	if [ -f /tmp/mptctl ] ; then
+	    mv /tmp/mptctl /etc/modprobe.d/mptctl
+	fi
     done
     echo $resolved_modules
 }
