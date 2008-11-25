@@ -57,6 +57,16 @@ Authors:
 %build
 gcc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/run-init src/run-init.c
 sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitrd
+echo "Checking scripts:"
+if ! bash -n sbin/mkinitrd; then
+    exit 1
+fi
+for script in scripts/*.sh; do
+    if ! bash -n $script; then
+        exit 1;
+	break;
+    fi
+done
 
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd

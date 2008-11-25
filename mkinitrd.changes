@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 25 10:02:24 CET 2008 - hare@suse.de
+
+- Add syntax checker
+
+-------------------------------------------------------------------
 Tue Nov 25 08:54:55 CET 2008 - hare@suse.de
 
 - Fix syntax error in modules script (bnc#448511)
