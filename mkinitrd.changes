@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 25 08:54:55 CET 2008 - hare@suse.de
+
+- Fix syntax error in modules script (bnc#448511)
+
+-------------------------------------------------------------------
 Mon Nov 24 16:45:34 CET 2008 - hare@suse.de
 
 - Fix syntax error in network script (bnc#448241)

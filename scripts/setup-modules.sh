@@ -49,7 +49,6 @@ resolve_modules() {
 	if [ ! "$module_list" ]; then
 	    echo \
 "WARNING: no dependencies for kernel module '$module' found." >&2
-	    fi
 	fi
 	for mod in $module_list ; do
 	    if ! $(echo $resolved_modules | grep -q $mod) ; then
