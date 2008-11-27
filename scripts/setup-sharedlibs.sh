@@ -23,17 +23,23 @@ shared_object_files() {
 
     for lib in "${initrd_libs[@]}"; do
 	case "$lib" in
-	linux-gate*)
-	    # This library is mapped into the process by the kernel
-	    # for vsyscalls (i.e., syscalls that don't need a user/
-	    # kernel address space transition) in 2.6 kernels.
-	    continue ;;
-	/*)
-	    lib="${lib:1}" ;;
-	*)
-	    # Library could not be found.
-	    oops 7 "Dynamic library $lib not found"
-	    continue ;;
+	    linux-gate*)
+		# This library is mapped into the process by the kernel
+		# for vsyscalls (i.e., syscalls that don't need a user/
+		# kernel address space transition) in 2.6 kernels.
+		continue ;;
+	    /lib/power*|/lib/ppc*)
+		# Always include the base libraries for PowerPC
+		lib="lib/${lib##*/}" ;;
+	    /lib64/power*|/lib64/ppc*)
+		# Always include the base libraries for ppc64
+		lib="lib64/${lib##*/}" ;;	    
+	    /*)
+		lib="${lib:1}" ;;
+	    *)
+		# Library could not be found.
+		oops 7 "Dynamic library $lib not found"
+		continue ;;
 	esac
 
 	while [ -L "/$lib" ]; do
