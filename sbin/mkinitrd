@@ -22,7 +22,7 @@
 
 # This file is kept in the following git repository:
 #
-# git://git.kernel.org/pub/scm/linux/kernel/git/hare/mkinitrd.git
+# git://git.opensuse.org/projects/mkinitrd.git
 #
 
 declare -a cmd_option
