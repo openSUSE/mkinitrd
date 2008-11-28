@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 28 13:32:08 CET 2008 - bwalle@suse.de
+
+- Don't use optimised versions of shared libraries on POWER
+  (bnc#448725).
+
+-------------------------------------------------------------------
 Tue Nov 25 16:21:37 CET 2008 - hare@suse.de
 
 - Work around mptctl install lines (bnc#448716)
