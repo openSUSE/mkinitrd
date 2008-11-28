@@ -23,7 +23,7 @@ Conflicts:      udev < 118
 Requires:       dhcpcd
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Source0:        mkinitrd.tgz
+Source0:        mkinitrd.tar.bz2
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk

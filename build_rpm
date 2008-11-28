@@ -71,7 +71,7 @@ if ! mkdir $DESTDIR ; then
 fi
 
 git archive --format=tar --prefix=mkinitrd-$VERSION/ "$BRANCH" \
-    | gzip > $DESTDIR/mkinitrd.tgz
+    | bzip2 > $DESTDIR/mkinitrd.tar.bz2
 
 cp mkinitrd.spec $DESTDIR
 cp mkinitrd.changes $DESTDIR
