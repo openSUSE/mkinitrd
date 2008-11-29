@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Sat Nov 29 20:43:18 CET 2008 - bwalle@suse.de
+
+- Document the algorithm how the default DHCP network interface
+  is chosen (bnc #440900).
+- Resolve bridge network devices when auto-detecting the network
+  interfaces (bnc #449765).
+
+-------------------------------------------------------------------
 Fri Nov 28 13:32:08 CET 2008 - bwalle@suse.de
 
 - Don't use optimised versions of shared libraries on POWER
