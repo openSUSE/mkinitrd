@@ -57,7 +57,16 @@ overwrites the rootdev enviroment variable if set
 Add splash animation and bootscreen to initrd.
 .TP
 \fB-D interface\fR
-Run dhcp on the specified interface.
+Run dhcp on the specified interface (for example "eth0").
+
+It's also possible to specify "default" here if the default interface should be
+used.  If there's a file "/etc/install.inf" (which is from the installation
+system), then the interface that was used for installation is used as default
+interface. Otherwise, if NFS root is used and one of the network configuration
+files in "/etc/sysconfig/network" contain the option "STARTMODE=nfsroot", than
+this interface is used as default.  Finally, the interface which is used for
+the default route (in the output of "/sbin/route" is used as default interface
+in the initrd.
 .TP
 \fB-I interface\fR
 Configure the specified interface statically.
