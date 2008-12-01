@@ -1,4 +1,3 @@
-#ident "$Id: run-init.c,v 1.2 2006/10/31 17:37:07 olh Exp $"
 /* ----------------------------------------------------------------------- *
  *   
  *   Copyright 2004 H. Peter Anvin - All Rights Reserved
