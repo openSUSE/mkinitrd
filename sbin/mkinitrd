@@ -378,7 +378,7 @@ save_var() {
 
 verbose() {
 	if [ "$verbose" ] ; then
-	    echo -e "$@"
+	    echo -e "$@" >&2
 	fi
 }
 
