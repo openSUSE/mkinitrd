@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Dec 01 22:12:33 CET 2008 - bwalle@suse.de
+
+- Allow unsupported modules in self-made development kernels
+  (bnc #441327).
+
+-------------------------------------------------------------------
 Sat Nov 29 20:43:18 CET 2008 - bwalle@suse.de
 
 - Document the algorithm how the default DHCP network interface
