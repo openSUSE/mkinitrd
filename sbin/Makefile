@@ -8,5 +8,5 @@ PRGS = mkinitrd installkernel module_upgrade mkinitrd_setup lsinitrd
 all: install
 
 install: $(PRGS)
-        install -d $(DESTDIR)$(sbindir)
-        install -m 755 $^ $(DESTDIR)$(sbindir)
+	install -d $(DESTDIR)$(sbindir)
+	install -m 755 $^ $(DESTDIR)$(sbindir)
