@@ -31,14 +31,14 @@ declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_para
 read_options_eval() {
     [ "$#" = 0 ] && return
     for p in "$@"; do
-	echo -en "$p~"
+        echo -en "$p~"
     done
 }
 
 read_options() {
         egrep -h '%param_' $INITRD_PATH/setup/*.sh | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > $tmp_dir/$$.params
-	. $tmp_dir/$$.params
-	rm -f $tmp_dir/$$.params
+        . $tmp_dir/$$.params
+        rm -f $tmp_dir/$$.params
 }
 
 parse_option() {
@@ -68,27 +68,27 @@ next_param() {
 
 cmd_docmd() {
     for i in "${cmd_option[@]}"; do
-	if [ "${i%%~*}" = "$1" ]; then
-	    parse_option "$i"
-	    return 0
-	fi
+        if [ "${i%%~*}" = "$1" ]; then
+            parse_option "$i"
+            return 0
+        fi
     done
     return 1
 }
 
 cmd_getopts() {
     for i in "${cmd_option[@]}"; do
-	parse_option "$i"
-	echo -n $cmd_option_name
-	next_param && echo -n :
+        parse_option "$i"
+        echo -n $cmd_option_name
+        next_param && echo -n :
     done
 }
 
 beautify() {
     if [ "$nroff" ]; then
-	nroff -man | grep -v removeme
+        nroff -man | grep -v removeme
     else
-	cat
+        cat
     fi
 }
 
@@ -113,21 +113,21 @@ mkinitrd [options]
 EOF
 
     for i in "${cmd_option[@]}"; do
-	parse_option "$i"
-	if [ "$nroff" ]; then
-	    echo ".TP"
-	    echo -n ".B -$cmd_option_name"
-	    next_param && echo -n " $cmd_param_desc"
-	    echo
-	else
-	    echo -n "	-$cmd_option_name	"
-	    if next_param; then
-		echo -n "$cmd_param_desc	"
-	    else
-		echo -n "	"
-	    fi
-	fi
-	echo "$cmd_option_desc"
+        parse_option "$i"
+        if [ "$nroff" ]; then
+            echo ".TP"
+            echo -n ".B -$cmd_option_name"
+            next_param && echo -n " $cmd_param_desc"
+            echo
+        else
+            echo -n "   -$cmd_option_name       "
+            if next_param; then
+                echo -n "$cmd_param_desc        "
+            else
+                echo -n "       "
+            fi
+        fi
+        echo "$cmd_option_desc"
     done
 
 ) | beautify
@@ -139,41 +139,41 @@ default_kernel_images() {
     local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
     case "$(uname -m)" in
-	s390|s390x)
-	    regex='image'
-	    ;;
-	ppc|ppc64)
-	    regex='vmlinux'
-	    ;;
-	*)  regex='vmlinu.'
-	    ;;
+        s390|s390x)
+            regex='image'
+            ;;
+        ppc|ppc64)
+            regex='vmlinux'
+            ;;
+        *)  regex='vmlinu.'
+            ;;
     esac
 
     # user mode linux
     if grep -q UML /proc/cpuinfo; then
-	    regex='linux'
+            regex='linux'
     fi
 
     kernel_images=""
     initrd_images=""
     for kernel_image in $(ls /boot \
-	    | sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
+            | sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
 
-	# Note that we cannot check the RPM database here -- this
-	# script is itself called from within the binary kernel
-	# packages, and rpm does not allow recursive calls.
+        # Note that we cannot check the RPM database here -- this
+        # script is itself called from within the binary kernel
+        # packages, and rpm does not allow recursive calls.
 
-	[ -L "/boot/$kernel_image" ] && continue
-	[ "${kernel_image%%.gz}" != "$kernel_image" ] && continue
-	kernel_version=$(/sbin/get_kernel_version \
-			 /boot/$kernel_image 2> /dev/null)
-	initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
-	if [ "$kernel_image" != "$initrd_image" -a \
-	     -n "$kernel_version" -a \
-	     -d "/lib/modules/$kernel_version" ]; then
-		kernel_images="$kernel_images /boot/$kernel_image"
-		initrd_images="$initrd_images /boot/$initrd_image"
-	fi
+        [ -L "/boot/$kernel_image" ] && continue
+        [ "${kernel_image%%.gz}" != "$kernel_image" ] && continue
+        kernel_version=$(/sbin/get_kernel_version \
+                         /boot/$kernel_image 2> /dev/null)
+        initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
+        if [ "$kernel_image" != "$initrd_image" -a \
+             -n "$kernel_version" -a \
+             -d "/lib/modules/$kernel_version" ]; then
+                kernel_images="$kernel_images /boot/$kernel_image"
+                initrd_images="$initrd_images /boot/$initrd_image"
+        fi
     done
 }
 
@@ -212,16 +212,16 @@ fi
 read_options
 while getopts $( cmd_getopts ) a ; do
     case $a in
-	h)  usage
-	    exit 0
-	    ;;
-	*)  if cmd_docmd $a; then
-		next_param && eval "$cmd_param_name='$OPTARG'"
-		eval param_$a=1
-	    else
-		exit 1
-	    fi
-	    ;;
+        h)  usage
+            exit 0
+            ;;
+        *)  if cmd_docmd $a; then
+                next_param && eval "$cmd_param_name='$OPTARG'"
+                eval param_$a=1
+            else
+                exit 1
+            fi
+            ;;
     esac
 done
 shift $(( $OPTIND - 1 ))
@@ -309,8 +309,8 @@ unset CDPATH
 
 work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
 if [ $? -ne 0 ]; then
-	echo "$0: Can't create temp dir, exiting." >&2
-	exit 1
+        echo "$0: Can't create temp dir, exiting." >&2
+        exit 1
 fi
 
 umount_proc() {
@@ -361,44 +361,44 @@ oops() {
 # saves an environment variable in the config file of the current script
 # usage: save_var <variable name> [default value]
 save_var() {
-	# sysconfig options override dynamically generated options
-	if [ -e "/etc/sysconfig/initrd" ]; then
-		local override="$(cat /etc/sysconfig/initrd | egrep \"^$1=\")"
-		if [ "$override" ]; then
-			eval $override
-		fi
-	fi
-	# only overwrite variables if not defined previously (e.g. by the kernel commandline)
-	if [ "$(eval echo \$$1)" ]; then
-		echo "[ \"\$$1\" ] || $1='$(eval echo \$$1)'" >> config/$curscript
-	elif [ "$2" ]; then
-		echo "[ \"\$$1\" ] || $1='$2'" >> config/$curscript
-	fi
+        # sysconfig options override dynamically generated options
+        if [ -e "/etc/sysconfig/initrd" ]; then
+                local override="$(cat /etc/sysconfig/initrd | egrep \"^$1=\")"
+                if [ "$override" ]; then
+                        eval $override
+                fi
+        fi
+        # only overwrite variables if not defined previously (e.g. by the kernel commandline)
+        if [ "$(eval echo \$$1)" ]; then
+                echo "[ \"\$$1\" ] || $1='$(eval echo \$$1)'" >> config/$curscript
+        elif [ "$2" ]; then
+                echo "[ \"\$$1\" ] || $1='$2'" >> config/$curscript
+        fi
 }
 
 verbose() {
-	if [ "$verbose" ] ; then
-	    echo -e "$@" >&2
-	fi
+        if [ "$verbose" ] ; then
+            echo -e "$@" >&2
+        fi
 }
 
 # creates an initrd image using small modules called "setup scripts"
 # the actual creation of the initrd is contained within these scripts
 mkinitrd_kernel() {
-	local kernel_image=$1 initrd_image=$2
-	shebang=/bin/bash
-	oldpwd="$(pwd)"
-	
-	for setupfile in $INITRD_PATH/setup/*.sh; do
-		[ -d "$tmp_mnt" ] && cd "$tmp_mnt" # process setup files in the initrd root dir
-		if [ ! -d "$setupfile" ]; then
-		    curscript="${setupfile##*-}"
-#		    echo "[$curscript] $blockdev"
-		    source $setupfile
-		    [ $? -ne 0 ] && oops 1 "Script $setupfile failed!"
-		fi
-	done
-	cd "$oldpwd"
+        local kernel_image=$1 initrd_image=$2
+        shebang=/bin/bash
+        oldpwd="$(pwd)"
+        
+        for setupfile in $INITRD_PATH/setup/*.sh; do
+                [ -d "$tmp_mnt" ] && cd "$tmp_mnt" # process setup files in the initrd root dir
+                if [ ! -d "$setupfile" ]; then
+                    curscript="${setupfile##*-}"
+#                   echo "[$curscript] $blockdev"
+                    source $setupfile
+                    [ $? -ne 0 ] && oops 1 "Script $setupfile failed!"
+                fi
+        done
+        cd "$oldpwd"
 }
 
 ###################################################################
@@ -430,11 +430,11 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
 #    modules="$boot_modules"
     kernel_image=${kernel_images[$i]}
     [ ${kernel_image:0:1} != '/' ] \
-    	&& kernel_image=$boot_dir/$kernel_image
+        && kernel_image=$boot_dir/$kernel_image
 
     initrd_image=${initrd_images[$i]}
     [ ${initrd_image:0:1} != '/' ] \
-    	&& initrd_image=$boot_dir/$initrd_image
+        && initrd_image=$boot_dir/$initrd_image
 
     mkinitrd_kernel $kernel_image $initrd_image
     [ $? -eq 0 ] || exit 1
@@ -444,11 +444,11 @@ for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
     # without any suffix or prefix), create an "initrd" symlink for the
     # corresponding $initrd_image.
     if [ $exit_code -eq 0 -a "$(readlink ${kernel_image%%-*})" = \
-	 "${kernel_image#$boot_dir/}" -a \
+         "${kernel_image#$boot_dir/}" -a \
          "${initrd_image#$boot_dir/initrd-}" = \
          "${kernel_image#$boot_dir/vmlinu[xz]-}" ]; then
-	rm -f $root_dir/$boot_dir/initrd
-	ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
+        rm -f $root_dir/$boot_dir/initrd
+        ln -s "${initrd_image#$boot_dir/}" $root_dir/$boot_dir/initrd
     fi
     cleanup
     )

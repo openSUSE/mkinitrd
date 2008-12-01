@@ -13,17 +13,17 @@ calc_prefix() {
     # Analyze each block
     prefix=0
     while [ "$1" ] && (( $1 == 255 )); do
-	prefix=$(($prefix + 8))
-	shift
+        prefix=$(($prefix + 8))
+        shift
     done
     # Bit-shift first non-zero block
     if [ "$1" ] && (( $1 > 0 )); then
-	mask=$1
-	prefix=$(($prefix + 8))
-	while (( ($mask & 0x1) == 0 )) ; do
-	    mask=$(( $mask >> 1 ))
-	    prefix=$(($prefix - 1))
-	done
+        mask=$1
+        prefix=$(($prefix + 8))
+        while (( ($mask & 0x1) == 0 )) ; do
+            mask=$(( $mask >> 1 ))
+            prefix=$(($prefix - 1))
+        done
     fi
     echo $prefix
 }
@@ -65,9 +65,9 @@ shift
 prefix=${client%%*/}
 if [ "$prefix" == "$client" ] ; then
     if [ -n "$netmask" ] ; then
-	prefix=$(calc_prefix $netmask)
+        prefix=$(calc_prefix $netmask)
     else
-	prefix=24
+        prefix=24
     fi
 fi
 

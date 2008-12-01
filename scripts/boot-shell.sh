@@ -11,7 +11,7 @@
 ## Command line parameters
 ## -----------------------
 ##
-## shell=1		turn on a debug shell
+## shell=1              turn on a debug shell
 ## 
 
 [ "$(get_param shell)" ] && bash

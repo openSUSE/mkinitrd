@@ -19,7 +19,7 @@ my $verbose = 0;  # Verbose output?
 my $rename = {};  # The list of modules that are renamed
 
 if (!GetOptions("rename=s%" => $rename,
-		"verbose" => \$verbose)) {
+                "verbose" => \$verbose)) {
     die "SYNOPSIS: $0 {--rename old=new} ...\n";
 }
 
@@ -29,9 +29,9 @@ if (!GetOptions("rename=s%" => $rename,
 sub update_file($$) {
     my ($func, $filename) = @_;
     print "Checking file $filename...\n"
-	if $verbose;
+        if $verbose;
     my $fh = new FileHandle("< $filename")
-	or die "$filename: $!\n";
+        or die "$filename: $!\n";
 
     local $/ = undef;
     my @before = split /\n/, <$fh>;
@@ -40,11 +40,11 @@ sub update_file($$) {
     map { &$func($_) } @after;
 
     if ((join "\n", @before) ne (join "\n", @after)) {
-	print "Updating file $filename...\n"
-	    if $verbose;
-	my $fh = new FileHandle("> $filename")
-	    or die "Writing to $filename: $!\n";
-	print $fh join "\n", @after;
+        print "Updating file $filename...\n"
+            if $verbose;
+        my $fh = new FileHandle("> $filename")
+            or die "Writing to $filename: $!\n";
+        print $fh join "\n", @after;
     }
 }
 
@@ -56,17 +56,17 @@ sub script($$$) {
     ($subst, $variables, $_) = @_;
 
     if (
-	/^\s*([^=\s]+)\s*=\s*(")((?:[^"]|\\.)*)"/ ||
-	/^\s*([^=\s]+)\s*=\s*(')([^']*)'/ ||
-	/^\s*([^=\s]+)\s*=\s*()(\S+)/
+        /^\s*([^=\s]+)\s*=\s*(")((?:[^"]|\\.)*)"/ ||
+        /^\s*([^=\s]+)\s*=\s*(')([^']*)'/ ||
+        /^\s*([^=\s]+)\s*=\s*()(\S+)/
     ) {
-	foreach my $v (@$variables) {
-	    if ($1 eq $v) {
-		$_ = "$v=$2" . (join " ", map {
-			exists $subst->{$_} ? $subst->{$_} : $_
-		    } split /\s+/, $3 ) . "$2";
-		}
-	}
+        foreach my $v (@$variables) {
+            if ($1 eq $v) {
+                $_ = "$v=$2" . (join " ", map {
+                        exists $subst->{$_} ? $subst->{$_} : $_
+                    } split /\s+/, $3 ) . "$2";
+                }
+        }
     }
 }
 
@@ -85,11 +85,11 @@ sub ifcfg_script($) {
 # A file sourced by modprobe (/etc/modprobe.conf and friends).
 sub modprobe_conf($) {
     if (/^(\s*alias\s+\S+\s+)(\S+)(.*)/
-	&& exists $rename->{$2}) {
-	$_ = "$1$rename->{$2}$3";
+        && exists $rename->{$2}) {
+        $_ = "$1$rename->{$2}$3";
     } elsif (/^(\s*(?:options|install|remove)\s+)(\S+)(.*)/
-	     && exists $rename->{$2}) {
-	$_ = "$1$rename->{$2}$3";
+             && exists $rename->{$2}) {
+        $_ = "$1$rename->{$2}$3";
     }
 }
 
@@ -114,11 +114,11 @@ if ($@) {
 
 for my $conf (</etc/modprobe.d/*>) {
     eval {
-	update_file \&modprobe_conf, $conf;
+        update_file \&modprobe_conf, $conf;
     };
     if ($@) {
-	warn $@;
-	$errors++;
+        warn $@;
+        $errors++;
     }
 }
 
@@ -134,11 +134,11 @@ if ($@) {
 # Update all ifcfg files
 for my $ifcfg (</etc/sysconfig/network/ifcfg-*>) {
     eval {
-	update_file \&ifcfg_script, $ifcfg;
+        update_file \&ifcfg_script, $ifcfg;
     };
     if ($@) {
-	warn $@;
-	$errors++;
+        warn $@;
+        $errors++;
     }
 }
 

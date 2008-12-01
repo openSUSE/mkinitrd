@@ -13,8 +13,8 @@
 ## Command line parameters
 ## -----------------------
 ##
-## console		the device we should redirect the output to (ttyS0 for serial console)
-## linuxrc=trace	activates debugging for the initrd process
+## console              the device we should redirect the output to (ttyS0 for serial console)
+## linuxrc=trace        activates debugging for the initrd process
 ## [module].param=value sets a kernel module parameter
 ##
 
@@ -24,7 +24,7 @@ die() {
     umount /proc
     umount /sys
     if [ "$devpts" = "yes" ]; then
-	umount -t devpts /dev/pts
+        umount -t devpts /dev/pts
     fi
     umount /dev
     exit $1
@@ -62,14 +62,14 @@ for o in $(cat /proc/cmdline); do
     key="${o%%=*}"
     key="${key//-/_}"
     if [ "${key%.*}" != "${key}" ]; then # module parameter
-    	add_module_param "${key%.*}" "${o#*.}"
+        add_module_param "${key%.*}" "${o#*.}"
     else
         # environment variable
         # set local variables too, in case somehow the kernel does not do this correctly
-	value="${o#*=}"
-	value=${value:=1}
-	eval cmd_$key="${value}"
-	eval $key="${value}" 2> /dev/null
+        value="${o#*=}"
+        value=${value:=1}
+        eval cmd_$key="${value}"
+        eval $key="${value}" 2> /dev/null
     fi
 done
 
@@ -79,8 +79,8 @@ fi
 
 for o in $tty_driver; do
     case "$o" in
-	ttyS*) test -e /dev/$o || mknod -m 0660 /dev/$o c 4 64 ;;
-	tty*)  test -e /dev/$o || mknod -m 0660 /dev/$o c 4  1 ;;
+        ttyS*) test -e /dev/$o || mknod -m 0660 /dev/$o c 4 64 ;;
+        tty*)  test -e /dev/$o || mknod -m 0660 /dev/$o c 4  1 ;;
     esac
 done
 
@@ -90,12 +90,12 @@ if test -n "$tty_driver" ; then
     major=${tty_driver%% *}
     minor=${tty_driver##* }
     if test $major -eq 4 -a $minor -lt 64 ; then
-	tty=/dev/tty$minor
-	test -e $tty || mknod -m 0660 $tty c 4 $minor
+        tty=/dev/tty$minor
+        test -e $tty || mknod -m 0660 $tty c 4 $minor
     fi
     if test $major -eq 4 -a $minor -ge 64 ; then
-	tty=/dev/ttyS$((64-$minor))
-	test -e $tty || mknod -m 0660 $tty c 4 $minor
+        tty=/dev/ttyS$((64-$minor))
+        test -e $tty || mknod -m 0660 $tty c 4 $minor
     fi
     unset major minor tty
 fi
@@ -106,18 +106,18 @@ echo "" > /proc/sys/kernel/hotplug
 kernel_cmdline=($@)
 
 case "$build_day" in
-	@*) ;;
-	*)
-		current_day="$(LC_ALL=C date -u '+%Y%m%d')"
-		if [ "$current_day" -lt "$build_day" ] ; then
-			echo "your system time is not correct:"
-			LC_ALL=C date -u
-			echo "setting system time to:"
-			LC_ALL=C date -us "$build_day"
-			sleep 3
-			export SYSTEM_TIME_INCORRECT=$current_day
-		fi
-	;;
+        @*) ;;
+        *)
+                current_day="$(LC_ALL=C date -u '+%Y%m%d')"
+                if [ "$current_day" -lt "$build_day" ] ; then
+                        echo "your system time is not correct:"
+                        LC_ALL=C date -u
+                        echo "setting system time to:"
+                        LC_ALL=C date -us "$build_day"
+                        sleep 3
+                        export SYSTEM_TIME_INCORRECT=$current_day
+                fi
+        ;;
 esac
 
 if [ "$linuxrc" = "trace" ]; then
@@ -133,8 +133,8 @@ fi
 if [ "$sysrq" ] && [ "$sysrq" != "no" ] ; then
     echo 1 > /proc/sys/kernel/sysrq
     case "$sysrq" in
-	0|1|2|3|4|5|6|7|8|9)
-	    echo $sysrq > /proc/sysrq-trigger
-	    ;;
+        0|1|2|3|4|5|6|7|8|9)
+            echo $sysrq > /proc/sysrq-trigger
+            ;;
     esac
 fi

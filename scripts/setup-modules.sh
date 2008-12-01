@@ -3,12 +3,12 @@
 #%stage: boot
 #
 # TODO: generate module deps and copy them to the initrd
-# 	take xen into account
+#       take xen into account
 
 # Check if module $1 is listed in $modules.
 has_module() {
     case " $modules " in
-	*" $1 "*)   return 0 ;;
+        *" $1 "*)   return 0 ;;
     esac
     return 1
 }
@@ -17,7 +17,7 @@ has_module() {
 has_any_module() {
     local module
     for module in "$@"; do
-	has_module "$module" && return 0
+        has_module "$module" && return 0
     done
 }
 
@@ -25,7 +25,7 @@ has_any_module() {
 add_module() {
     local module
     for module in "$@"; do
-	has_module "$module" || modules="$modules $module"
+        has_module "$module" || modules="$modules $module"
     done
 }
 
@@ -96,47 +96,47 @@ resolve_modules() {
     fi
 
     for module in "$@"; do
-	local with_modprobe_conf
-	module=${module%.o}  # strip trailing ".o" just in case.
-	module=${module%.ko}  # strip trailing ".ko" just in case.
-	if [ -e /etc/modprobe.conf ]; then
-	    with_modprobe_conf="-C /etc/modprobe.conf"
-	fi
-	case "$module" in
-	    mpt*)
-		if [ -f /etc/modprobe.d/mptctl ] ; then
-		    rm -f $tmp_mnt/etc/modprobe.d/mptctl
-		    mv /etc/modprobe.d/mptctl /tmp
-		fi
-		;;
-	esac
-	module_list=$(/sbin/modprobe $with_modprobe_conf \
-	    --set-version $kernel_version --ignore-install \
-	    --show-depends $module \
+        local with_modprobe_conf
+        module=${module%.o}  # strip trailing ".o" just in case.
+        module=${module%.ko}  # strip trailing ".ko" just in case.
+        if [ -e /etc/modprobe.conf ]; then
+            with_modprobe_conf="-C /etc/modprobe.conf"
+        fi
+        case "$module" in
+            mpt*)
+                if [ -f /etc/modprobe.d/mptctl ] ; then
+                    rm -f $tmp_mnt/etc/modprobe.d/mptctl
+                    mv /etc/modprobe.d/mptctl /tmp
+                fi
+                ;;
+        esac
+        module_list=$(/sbin/modprobe $with_modprobe_conf \
+            --set-version $kernel_version --ignore-install \
+            --show-depends $module \
             $additional_args \
-	    | sed -ne 's:.*insmod /\?::p' | sed -ne 's:\ .*\?::p' )
-	if [ ! "$module_list" ]; then
-	    echo \
+            | sed -ne 's:.*insmod /\?::p' | sed -ne 's:\ .*\?::p' )
+        if [ ! "$module_list" ]; then
+            echo \
 "WARNING: no dependencies for kernel module '$module' found." >&2
-	fi
-	for mod in $module_list ; do
-	    if ! $(echo $resolved_modules | grep -q $mod) ; then
-		resolved_modules="$resolved_modules $mod"
-	    fi
-	done
-	if [ -f /tmp/mptctl ] ; then
-	    mv /tmp/mptctl /etc/modprobe.d/mptctl
-	fi
+        fi
+        for mod in $module_list ; do
+            if ! $(echo $resolved_modules | grep -q $mod) ; then
+                resolved_modules="$resolved_modules $mod"
+            fi
+        done
+        if [ -f /tmp/mptctl ] ; then
+            mv /tmp/mptctl /etc/modprobe.d/mptctl
+        fi
     done
     echo $resolved_modules
 }
 
 resolve_modalias() {
     local tofind="$1" alias module
-	
+        
     while read a alias module; do
-	case $tofind in $alias) echo "$module" ;;
-	esac
+        case $tofind in $alias) echo "$module" ;;
+        esac
     done < /lib/modules/$kernel_version/modules.alias
 }
 
@@ -144,11 +144,11 @@ resolve_modalias() {
 modules=
 for script in $INITRD_PATH/boot/*.sh; do
     if use_script "$script"; then # only include the modules if the script gets used
-	verbose -n ""
-	for module in $(cat $script | egrep '%udevmodules: |%modules: ' | sed 's/^.*s: \(.*\)$/\1/'); do
-	    [ "$module" ] && verbose "[MODULES]\t$(basename $script): $(eval echo $module)"
-	    add_module $(eval echo $module)
-	done
+        verbose -n ""
+        for module in $(cat $script | egrep '%udevmodules: |%modules: ' | sed 's/^.*s: \(.*\)$/\1/'); do
+            [ "$module" ] && verbose "[MODULES]\t$(basename $script): $(eval echo $module)"
+            add_module $(eval echo $module)
+        done
     fi
 done
 
@@ -162,8 +162,8 @@ modules=$(
 for module in $modules; do
     skip=
     for m2 in $modules; do
-	if [ "-$module" = "$m2" ]; then
-	    skip=1
+        if [ "-$module" = "$m2" ]; then
+            skip=1
         fi
     done
     [ ${module:0:1} = "-" ] && continue
@@ -174,8 +174,8 @@ done
 if [ "$resolved_modules" ] ; then
     echo -ne "Kernel Modules:\t"
     for mod in $resolved_modules ; do
-	modname=${mod##*/}
-	    echo -n "${modname%%.ko} "
+        modname=${mod##*/}
+            echo -n "${modname%%.ko} "
     done
     echo
 fi
@@ -183,13 +183,13 @@ fi
 # Copy all modules into the initrd
 for module in $resolved_modules; do
     if [ ! -r $root_dir/$module ]; then
-	oops 9 "Module $module not found."
-	continue
+        oops 9 "Module $module not found."
+        continue
     fi
     if ! ( cd ${root_dir:-/} ; cp -p --parents $module $tmp_mnt ) ; then
-	oops 6 "Failed to add module $module."
-	rm -rf $tmp_mnt
-	return 1
+        oops 6 "Failed to add module $module."
+        rm -rf $tmp_mnt
+        return 1
     fi
 done
 

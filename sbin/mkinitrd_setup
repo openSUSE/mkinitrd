@@ -37,7 +37,7 @@ my %stages = (
 sub dprintf
 {
     if ($debug > 0) {
-	printf @_;
+        printf @_;
     }
 }
 
@@ -51,29 +51,29 @@ sub resolve_dependency
     my $providedby;
 
     if ( $section eq "setup" ) {
-	$level = \%level_setup;
-	$depends = \%depends_setup;
-	$providedby= \%providedby_setup;
+        $level = \%level_setup;
+        $depends = \%depends_setup;
+        $providedby= \%providedby_setup;
     } else {
-	$level = \%level_boot;
-	$depends = \%depends_boot;
-	$providedby= \%providedby_boot;
+        $level = \%level_boot;
+        $depends = \%depends_boot;
+        $providedby= \%providedby_boot;
     }
     $oldlevel = $$level{$name};
 
     foreach my $elem (split(' ',$$depends{$name})) {
-	my $newlevel = -1;
+        my $newlevel = -1;
 
-	foreach my $n (split(' ',$$providedby{$elem})) {
-	    $newlevel = resolve_dependency($section, $n);
-	    if ( $oldlevel <= $newlevel) {
-		$oldlevel = $newlevel + 1;
-	    }
-	}
+        foreach my $n (split(' ',$$providedby{$elem})) {
+            $newlevel = resolve_dependency($section, $n);
+            if ( $oldlevel <= $newlevel) {
+                $oldlevel = $newlevel + 1;
+            }
+        }
 
-	if ($newlevel == -1) {
-	    dprintf "Unresolved dependency \"%s\" ", $elem;
-	}
+        if ($newlevel == -1) {
+            dprintf "Unresolved dependency \"%s\" ", $elem;
+        }
     }
     dprintf "%s/%s (%s) ", $section, $name, $oldlevel;
     $$level{$name} = $oldlevel;
@@ -90,89 +90,89 @@ sub scan_section
     my $providedby;
 
     SCAN: foreach $_ (@scripts) {
-	my $provides;
-	my $section;
-	my $scriptname;
-	my $level;
-	my $depends;
-	my $providedby;
-	my $scrlist;
+        my $provides;
+        my $section;
+        my $scriptname;
+        my $level;
+        my $depends;
+        my $providedby;
+        my $scrlist;
 
-	if (/(.*)-(.*)\.sh$/) {
-	    if (($1 ne "setup" ) && ($1 ne "boot")) {
-		next SCAN;
-	    }
-	    $section = $1;
-	    $scriptname = $2;
-	} else {
-	    next SCAN;
-	}
+        if (/(.*)-(.*)\.sh$/) {
+            if (($1 ne "setup" ) && ($1 ne "boot")) {
+                next SCAN;
+            }
+            $section = $1;
+            $scriptname = $2;
+        } else {
+            next SCAN;
+        }
 
-	if ( $section eq "setup" ) {
-	    $level = \%level_setup;
-	    $depends = \%depends_setup;
-	    $providedby= \%providedby_setup;
-	    $scrlist = \@scripts_setup;
-	} else {
-	    $level = \%level_boot;
-	    $depends = \%depends_boot;
-	    $providedby= \%providedby_boot;
-	    $scrlist = \@scripts_boot;
-	}
+        if ( $section eq "setup" ) {
+            $level = \%level_setup;
+            $depends = \%depends_setup;
+            $providedby= \%providedby_setup;
+            $scrlist = \@scripts_setup;
+        } else {
+            $level = \%level_boot;
+            $depends = \%depends_boot;
+            $providedby= \%providedby_boot;
+            $scrlist = \@scripts_boot;
+        }
 
-	dprintf "scanning script %s (name %s)\n", $_, $scriptname;
-	dprintf "\tsection: %s\n", $section;
-	$provides = $scriptname;
+        dprintf "scanning script %s (name %s)\n", $_, $scriptname;
+        dprintf "\tsection: %s\n", $section;
+        $provides = $scriptname;
 
-	open(SCR, "$scriptdir/$_");
+        open(SCR, "$scriptdir/$_");
 
-	while (<SCR>) {
-	    chomp;
-	    if ( /^\#%stage: (.*)/ ) {
-		if (! defined $stages{$1}) {
-		    dprintf "%s: Invalid stage \"%s\"\n", $scriptname, $1;
-		    close(SCR);
-		    next SCAN;
-		}
-		if ($section eq "setup") {
-		    $$level{$scriptname} = ($stages{$1} * 10) + 1;
-		} else {
-		    $$level{$scriptname} = 91 - ($stages{$1} * 10);
-		}
-		dprintf "\tstage %s: %d\n", $1, $$level{$scriptname};
-	    }
-	    if ( /^\#%depends: (.*)/ ) {
-		dprintf "\tdepends on %s\n", $1;
-		$$depends{$scriptname} = $1;
-	    }
-	    if ( /\#%provides: (.*)/ ) {
-		$provides = join(' ',$provides,$1);
-	    }
+        while (<SCR>) {
+            chomp;
+            if ( /^\#%stage: (.*)/ ) {
+                if (! defined $stages{$1}) {
+                    dprintf "%s: Invalid stage \"%s\"\n", $scriptname, $1;
+                    close(SCR);
+                    next SCAN;
+                }
+                if ($section eq "setup") {
+                    $$level{$scriptname} = ($stages{$1} * 10) + 1;
+                } else {
+                    $$level{$scriptname} = 91 - ($stages{$1} * 10);
+                }
+                dprintf "\tstage %s: %d\n", $1, $$level{$scriptname};
+            }
+            if ( /^\#%depends: (.*)/ ) {
+                dprintf "\tdepends on %s\n", $1;
+                $$depends{$scriptname} = $1;
+            }
+            if ( /\#%provides: (.*)/ ) {
+                $provides = join(' ',$provides,$1);
+            }
 
-	}
-	close SCR;
+        }
+        close SCR;
 
-	@$scrlist = (@$scrlist,$scriptname);
+        @$scrlist = (@$scrlist,$scriptname);
 
-	dprintf "\tprovides %s\n", $provides;
-	foreach my $elem (split(' ',$provides)) {
-	    $$providedby{$elem} = join(' ', $$providedby{$elem},$scriptname);
-	}
+        dprintf "\tprovides %s\n", $provides;
+        foreach my $elem (split(' ',$provides)) {
+            $$providedby{$elem} = join(' ', $$providedby{$elem},$scriptname);
+        }
     }
 }
 
 sub usage {
     print <<EOF;
 usage:
-	mkinitrd_setup [-s|--scriptdir <scriptdir>]
-		[-i|--installdir <installdir>]
-		[-d|--debug] [-o|--offset <offset>] [-h|--help]
+        mkinitrd_setup [-s|--scriptdir <scriptdir>]
+                [-i|--installdir <installdir>]
+                [-d|--debug] [-o|--offset <offset>] [-h|--help]
 
-	Install mkinitrd scripts. Options are:
-	-s|--scriptdir	Install initrd scripts from dir <scriptdir>
-	-i|--installdir	Install initrd scripts in dir <installdir>
-	-d|--debug	Enable debug output
-	-o|--offset	Use <offset> between script numbers.
+        Install mkinitrd scripts. Options are:
+        -s|--scriptdir  Install initrd scripts from dir <scriptdir>
+        -i|--installdir Install initrd scripts in dir <installdir>
+        -d|--debug      Enable debug output
+        -o|--offset     Use <offset> between script numbers.
 
 EOF
 }
@@ -180,11 +180,11 @@ EOF
 Getopt::Long::Configure('no_ignore_case');
 
 if (!GetOptions('scriptdir|s=s' => \$scriptdir,
-		'installdir|i=s' => \$installdir,
-		'debug|d' => \$debug,
-		'offset|o' => \$offset,
-		'help|h' => \$dohelp
-		)) {
+                'installdir|i=s' => \$installdir,
+                'debug|d' => \$debug,
+                'offset|o' => \$offset,
+                'help|h' => \$dohelp
+                )) {
     usage();
     exit 1;
 }
@@ -254,7 +254,7 @@ foreach (@scripts_setup) {
     dprintf "Linking %s to %s\n", $target, $linkname;
     $ret = symlink($target, $linkname);
     if ( $ret < 1 ) {
-	printf "Failed to create symlink %s: %s\n", $linkname, $!;
+        printf "Failed to create symlink %s: %s\n", $linkname, $!;
     }
 }
 
@@ -283,7 +283,7 @@ foreach (@scripts_boot) {
     dprintf "Linking %s to %s\n", $target, $linkname;
     $ret = symlink($target, $linkname);
     if ( $ret < 1 ) {
-	printf "Failed to create symlink %s: %s\n", $linkname, $!;
+        printf "Failed to create symlink %s: %s\n", $linkname, $!;
     }
 }
 

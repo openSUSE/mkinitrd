@@ -21,18 +21,18 @@ for rule in \
     64-md-raid.rules \
     80-drivers.rules; do
     if [ -f /lib/udev/rules.d/$rule ]; then
-	cp /lib/udev/rules.d/$rule $tmp_mnt/lib/udev/rules.d
+        cp /lib/udev/rules.d/$rule $tmp_mnt/lib/udev/rules.d
     elif [ -f /etc/udev/rules.d/$rule ]; then
-	cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
+        cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
     fi
 done
 # copy helper
 mkdir -p $tmp_mnt/lib/udev
 for script in /lib/udev/* /sbin/*_id ; do
     if [ ! -d "$script" ] && [ -x "$script" ] ; then
-	cp_bin $script ${tmp_mnt}${script}
+        cp_bin $script ${tmp_mnt}${script}
     elif [ -f "$script" ] ; then
-	cp -pL $script ${tmp_mnt}${script}
+        cp -pL $script ${tmp_mnt}${script}
     fi
 done
 

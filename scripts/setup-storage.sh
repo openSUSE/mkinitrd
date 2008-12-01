@@ -9,9 +9,9 @@ update_list() {
 
     shift
     case " $@ " in
-	*" $elem "*)
-	    echo "$@"
-	    return 0;;
+        *" $elem "*)
+            echo "$@"
+            return 0;;
     esac
     echo "$@ $elem"
 }
@@ -49,146 +49,146 @@ devnumber() {
     mkdevn ${5%,} $6
 }
 
-# usage		majorminor <major> <minor>
-# returns	the block device name
+# usage         majorminor <major> <minor>
+# returns       the block device name
 majorminor2blockdev() {
-	local major=${1:-0} minor=$2
+        local major=${1:-0} minor=$2
 
-	if [ ! "$minor" ]; then
-		minor=$(IFS=: ; set -- $major ; echo $2)
-		major=$(IFS=: ; set -- $major ; echo $1)
-	fi
-	if [ $major -lt 0 ] ; then
-	    return
-	fi
-	local retval=$(cat /proc/partitions | egrep "^[ ]*$major[ ]*$minor ")
-	echo /dev/${retval##* }
+        if [ ! "$minor" ]; then
+                minor=$(IFS=: ; set -- $major ; echo $2)
+                major=$(IFS=: ; set -- $major ; echo $1)
+        fi
+        if [ $major -lt 0 ] ; then
+            return
+        fi
+        local retval=$(cat /proc/partitions | egrep "^[ ]*$major[ ]*$minor ")
+        echo /dev/${retval##* }
 }
 
 beautify_blockdev() {
-	local olddev="$1" udevdevs dev
-	
-	# search for udev information
-	udevdevs=$(/sbin/udevadm info -q symlink --name=$olddev)
-	#   look up ata device links
-	for dev in $udevdevs; do
-		if [ "$(echo $dev | grep /ata-)" ] ; then
-			echo "/dev/$dev"
-			return
-		fi
-	done
-	#   look up scsi device links
-	for dev in $udevdevs; do
-		if [ "$(echo $dev | grep /scsi-)" ] ; then
-			echo "/dev/$dev"
-			return
-		fi
-	done
-	#   take the first guess
-	for dev in $udevdevs; do
-		echo "/dev/$dev"
-		return
-	done
-	
-	# get pretty name from device-mapper
-	if [ -x /sbin/dmsetup -a "$blockdriver" = "device-mapper" ]; then
-	    dm_name=$(dmsetup info -c --noheadings -o name -j $blockmajor -m $blockminor)
-	    if [ "$dm_name" ] ; then
-		echo "/dev/mapper/$dm_name"
-		return
-	    fi
-	fi
+        local olddev="$1" udevdevs dev
+        
+        # search for udev information
+        udevdevs=$(/sbin/udevadm info -q symlink --name=$olddev)
+        #   look up ata device links
+        for dev in $udevdevs; do
+                if [ "$(echo $dev | grep /ata-)" ] ; then
+                        echo "/dev/$dev"
+                        return
+                fi
+        done
+        #   look up scsi device links
+        for dev in $udevdevs; do
+                if [ "$(echo $dev | grep /scsi-)" ] ; then
+                        echo "/dev/$dev"
+                        return
+                fi
+        done
+        #   take the first guess
+        for dev in $udevdevs; do
+                echo "/dev/$dev"
+                return
+        done
+        
+        # get pretty name from device-mapper
+        if [ -x /sbin/dmsetup -a "$blockdriver" = "device-mapper" ]; then
+            dm_name=$(dmsetup info -c --noheadings -o name -j $blockmajor -m $blockminor)
+            if [ "$dm_name" ] ; then
+                echo "/dev/mapper/$dm_name"
+                return
+            fi
+        fi
 
-	echo $olddev
+        echo $olddev
 }
 
 dm_resolvedeps() {
-	local dm_deps dm_dep bd
-	local bds="$@"
-	[ ! "$bds" ] && bds=$blockdev
-	# resolve dependencies
-	for bd in $bds ; do
-		update_blockdev $bd >&2
-		if [ "$blockdriver" = device-mapper ]; then
-			root_dm=1
-			dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor)
-			dm_deps=${dm_deps#*: }
-			dm_deps=${dm_deps//, /:}
-			dm_deps=${dm_deps//(/}
-			dm_deps=${dm_deps//)/}
-			for dm_dep in $dm_deps; do
-				majorminor2blockdev $dm_dep
-			done
-		else
-			echo -n "$bd "
-		fi
-	done
-	return 0	
+        local dm_deps dm_dep bd
+        local bds="$@"
+        [ ! "$bds" ] && bds=$blockdev
+        # resolve dependencies
+        for bd in $bds ; do
+                update_blockdev $bd >&2
+                if [ "$blockdriver" = device-mapper ]; then
+                        root_dm=1
+                        dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor)
+                        dm_deps=${dm_deps#*: }
+                        dm_deps=${dm_deps//, /:}
+                        dm_deps=${dm_deps//(/}
+                        dm_deps=${dm_deps//)/}
+                        for dm_dep in $dm_deps; do
+                                majorminor2blockdev $dm_dep
+                        done
+                else
+                        echo -n "$bd "
+                fi
+        done
+        return 0        
 }
 
 dm_resolvedeps_recursive() {
-	local dm_uuid dm_deps dm_dep bd
-	local bds="$@"
-	[ ! "$bds" ] && bds=$blockdev
-	# resolve dependencies
-	for bd in $bds ; do
-		update_blockdev $bd >&2
-		if [ "$blockdriver" = device-mapper ]; then
-			root_dm=1
-			dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor)
-			dm_deps=${dm_deps#*: }
-			dm_deps=${dm_deps//, /:}
-			dm_deps=${dm_deps//(/}
-			dm_deps=${dm_deps//)/}
-			for dm_dep in $dm_deps; do
-				dm_resolvedeps $(majorminor2blockdev $dm_dep)
-			done
-		else
-			echo -n "$bd "
-		fi
-	done
-	[ "$root_dm" = 1 ]
+        local dm_uuid dm_deps dm_dep bd
+        local bds="$@"
+        [ ! "$bds" ] && bds=$blockdev
+        # resolve dependencies
+        for bd in $bds ; do
+                update_blockdev $bd >&2
+                if [ "$blockdriver" = device-mapper ]; then
+                        root_dm=1
+                        dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor)
+                        dm_deps=${dm_deps#*: }
+                        dm_deps=${dm_deps//, /:}
+                        dm_deps=${dm_deps//(/}
+                        dm_deps=${dm_deps//)/}
+                        for dm_dep in $dm_deps; do
+                                dm_resolvedeps $(majorminor2blockdev $dm_dep)
+                        done
+                else
+                        echo -n "$bd "
+                fi
+        done
+        [ "$root_dm" = 1 ]
 }
 
 # this receives information about the current blockdev so each storage layer has access to it for its current blockdev
 update_blockdev() {
-	local curblockdev=$1
-	[ "$curblockdev" ] || curblockdev=$blockdev
-	# no blockdevs
-	[ "$curblockdev" ] || return
-	
-	blockmajor=-1
-	blockminor=-1
-	if [ -e "$root_dir/${curblockdev#/}" ]; then
-		blockdevn="$(devnumber $root_dir/${curblockdev#/})"
-		blockmajor="$(devmajor $blockdevn)"
-		if [ ! "$blockmajor" ]; then
-			error 1 "Fatal storage error. Device $curblockdev could not be analyzed."
-		fi
-		blockminor="$(devminor $blockdevn)"
-		blockdriver="$(block_driver $blockmajor)"
-		if [ ! "$blockdriver" ]; then
-			error 1 "Fatal storage error. Device $curblockdev does not have a driver."
-		fi
-		
-		# temporary hack to have devicemapper activated whenever a dm device was found
-		if [ "$blockdriver" = device-mapper ]; then
-			tmp_root_dm=1
-		fi
-	fi
+        local curblockdev=$1
+        [ "$curblockdev" ] || curblockdev=$blockdev
+        # no blockdevs
+        [ "$curblockdev" ] || return
+        
+        blockmajor=-1
+        blockminor=-1
+        if [ -e "$root_dir/${curblockdev#/}" ]; then
+                blockdevn="$(devnumber $root_dir/${curblockdev#/})"
+                blockmajor="$(devmajor $blockdevn)"
+                if [ ! "$blockmajor" ]; then
+                        error 1 "Fatal storage error. Device $curblockdev could not be analyzed."
+                fi
+                blockminor="$(devminor $blockdevn)"
+                blockdriver="$(block_driver $blockmajor)"
+                if [ ! "$blockdriver" ]; then
+                        error 1 "Fatal storage error. Device $curblockdev does not have a driver."
+                fi
+                
+                # temporary hack to have devicemapper activated whenever a dm device was found
+                if [ "$blockdriver" = device-mapper ]; then
+                        tmp_root_dm=1
+                fi
+        fi
 
-	if false; then	
-		echo ""
-		echo "$curblockdev"
-		echo "===================="
-		echo ""
-		echo "bdev: $blockdev"
-		echo "devn: $blockdevn"
-		echo "majo: $blockmajor"
-		echo "mino: $blockminor"
-		echo "driv: $blockdriver"
-		echo ""
-	fi
+        if false; then  
+                echo ""
+                echo "$curblockdev"
+                echo "===================="
+                echo ""
+                echo "bdev: $blockdev"
+                echo "devn: $blockdevn"
+                echo "majo: $blockmajor"
+                echo "mino: $blockminor"
+                echo "driv: $blockdriver"
+                echo ""
+        fi
 }
 
 # usage: resolve_device <device label> <device node>
@@ -204,22 +204,22 @@ resolve_device() {
 
     case "$realrootdev" in
       LABEL=*|UUID=*)
-	# get real root via fsck hack
-	realrootdev=$(fsck -N "$rootdev" \
-		      | sed -ne '2s/.* \/dev/\/dev/p' \
-		      | sed -e 's/  *//g')
-	if [ -z "$realrootdev" ] ; then
-	    echo "Could not expand $x to real device" >&2
-	    exit 1
-	fi
-	realrootdev=$(/usr/bin/readlink -m $realrootdev)
-	;;
+        # get real root via fsck hack
+        realrootdev=$(fsck -N "$rootdev" \
+                      | sed -ne '2s/.* \/dev/\/dev/p' \
+                      | sed -e 's/  *//g')
+        if [ -z "$realrootdev" ] ; then
+            echo "Could not expand $x to real device" >&2
+            exit 1
+        fi
+        realrootdev=$(/usr/bin/readlink -m $realrootdev)
+        ;;
       /dev/disk/*)
-	realrootdev=$(/usr/bin/readlink -m $realrootdev)
-	;;
+        realrootdev=$(/usr/bin/readlink -m $realrootdev)
+        ;;
       *:*|//*)
         [ "$type" = "Root" ] && x="$rootfstype-root"
-	;;
+        ;;
     esac
 
     [ "$x" != "$realrootdev" ] && x="$x ($realrootdev)"
@@ -227,9 +227,9 @@ resolve_device() {
     # FIXME: we should really print this to stdout
     echo -en "$type device:\t$x" >&2
     if [ "$type" = "Root" ]; then
-	echo " (mounted on ${root_dir:-/} as $rootfstype)" >&2
+        echo " (mounted on ${root_dir:-/} as $rootfstype)" >&2
     else
-	echo >&2
+        echo >&2
     fi
     echo $realrootdev
 }
@@ -250,7 +250,7 @@ if [ -z "$rootdev" ] ; then
       update_blockdev "$fstab_device" # get major and minor
       # let's see if the stat device is the same as the fstab device
       if [ "$rootmajor" -eq 0 ] || [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
-	rootdev="$fstab_device" # use the fstab device so the user can decide
+        rootdev="$fstab_device" # use the fstab device so the user can decide
                                 # how to access the root device
       fi
       rootfstype="$fstab_type"
@@ -279,11 +279,11 @@ fi
 if [ "$rootfsopts" -a -z "$journaldev" ] ; then
     jdev=${rootfsopts#*,jdev=}
     if [ "$jdev" != "$rootfsopts" ] ; then
-	journaldev=${jdev%%,*}
+        journaldev=${jdev%%,*}
     fi
     logdev=${rootfsopts#*,logdev=}
     if [ "$logdev" != "$rootfsopts" ] ; then
-	journaldev=${logdev%%,*}
+        journaldev=${logdev%%,*}
     fi
 fi
 
@@ -291,29 +291,29 @@ fi
 for o in $(cat /proc/cmdline); do
     case "$o" in
     resume=*)
-	resumedev=${o##resume=}
-	;;
+        resumedev=${o##resume=}
+        ;;
     esac
 done
 
 # check for nfs root and set the rootfstype accordingly
 case "$rootdev" in
     /dev/nfs)
-	rootfstype=nfs
-	;;
+        rootfstype=nfs
+        ;;
     /dev/*)
         if [ ! -e "$rootdev" ]; then
-	    error 1 "Root device ($rootdev) not found"
-	fi
-	;;
+            error 1 "Root device ($rootdev) not found"
+        fi
+        ;;
     *://*) # URL type
-	rootfstype=${rootdev%%://*}
-	interface=${interface:-default}
-	;;
+        rootfstype=${rootdev%%://*}
+        interface=${interface:-default}
+        ;;
     *:*)
-	rootfstype=nfs
-	interface=${interface:-default}
-	;;
+        rootfstype=nfs
+        interface=${interface:-default}
+        ;;
 esac
 
 if [ -z "$rootfstype" ]; then
@@ -328,9 +328,9 @@ if [ ! "$rootfstype" ]; then
     error 1 "Could not find the filesystem type for root device $rootdev
 
 Currently available -d parameters are:
-	Block devices	/dev/<device>
-	NFS		<server>:<path>
-	URL		<protocol>://<path>"
+        Block devices   /dev/<device>
+        NFS             <server>:<path>
+        URL             <protocol>://<path>"
 fi
 
 # We assume that we always have to load a module for the rootfs
@@ -340,8 +340,8 @@ rootfsmod=$rootfstype
 # XXX: This check should happen more generically for all modules
 if [ ! "$(find $root_dir/lib/modules/$kernel_version/ -name $rootfstype.ko)" ]; then
     if grep -q ${rootfstype}_fs_type $map ; then
-	# No need to load a module, since this is compiled in
-	rootfsmod=
+        # No need to load a module, since this is compiled in
+        rootfsmod=
     fi
 fi
 

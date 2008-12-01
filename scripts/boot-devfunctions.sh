@@ -56,64 +56,64 @@ check_for_device() {
     root=$1
     type=$2
     if [ "$type" = "root" ] ; then
-	dm_major=$root_major
+        dm_major=$root_major
     elif [ "$type" = "resume" ] ; then
-	dm_major=$resume_major
+        dm_major=$resume_major
     else
-	dm_major=
+        dm_major=
     fi
     if [ -n "$root" ]; then
-	echo -n "Waiting for device $root to appear: "
-	while [ $timeout -gt 0 ]; do
-	    if [ -e "$root" ]; then
-		udev_devn=$(devnumber $root)
-		udev_major=$(devmajor $udev_devn)
-		if [ -n "$dm_major" ] ; then
-		    if [ "$udev_major" == "$dm_major" ] ; then
-			echo " ok"
-			retval=0
-			break;
-		    elif [ -x /sbin/multipath ] ; then
-			if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
-			    vgchange -a n
-			fi
-			echo -n "!"
-			multipath -v0
-			wait_for_events
-			sleep 1
-			timeout=$(( $timeout - 1 ))
-			continue;
-		    fi
-		else
-		    echo " ok"
-		    retval=0
-		    break;
-		fi  
-	    fi
-	    sleep 1
-	    echo -n "."
-	    timeout=$(( $timeout - 1 ))
-	    # Recheck for LVM volumes
-	    if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
-		vgscan
-		
-		for vgr in $vg_root $vg_roots; do
-		    vgchange -a y $vgr
-		done
-		wait_for_events
-	    fi
-	done
+        echo -n "Waiting for device $root to appear: "
+        while [ $timeout -gt 0 ]; do
+            if [ -e "$root" ]; then
+                udev_devn=$(devnumber $root)
+                udev_major=$(devmajor $udev_devn)
+                if [ -n "$dm_major" ] ; then
+                    if [ "$udev_major" == "$dm_major" ] ; then
+                        echo " ok"
+                        retval=0
+                        break;
+                    elif [ -x /sbin/multipath ] ; then
+                        if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
+                            vgchange -a n
+                        fi
+                        echo -n "!"
+                        multipath -v0
+                        wait_for_events
+                        sleep 1
+                        timeout=$(( $timeout - 1 ))
+                        continue;
+                    fi
+                else
+                    echo " ok"
+                    retval=0
+                    break;
+                fi  
+            fi
+            sleep 1
+            echo -n "."
+            timeout=$(( $timeout - 1 ))
+            # Recheck for LVM volumes
+            if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
+                vgscan
+                
+                for vgr in $vg_root $vg_roots; do
+                    vgchange -a y $vgr
+                done
+                wait_for_events
+            fi
+        done
     fi
     if [ -x /sbin/multipath ] && [ -n "vg_root" -a -n "$vg_roots" ] ; then
-	echo "Resetting LVM for multipath"
-	vgchange -a n
-	multipath -v 0
-	wait_for_events
-	vgscan
-	for vgr in $vg_root $vg_roots; do
-	    vgchange -a y $vgr
-	done
-	wait_for_events
+        echo "Resetting LVM for multipath"
+        vgchange -a n
+        multipath -v 0
+        wait_for_events
+        vgscan
+        for vgr in $vg_root $vg_roots; do
+            vgchange -a y $vgr
+        done
+        wait_for_events
     fi
     return $retval;
 }

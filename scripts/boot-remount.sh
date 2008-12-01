@@ -14,7 +14,7 @@
 ## Command line parameters
 ## -----------------------
 ##
-## init=...		use this file instead of the normal init binary
+## init=...             use this file instead of the normal init binary
 ## 
 
 # Look for an init binary on the root filesystem
@@ -43,13 +43,13 @@ if [ -f /root/etc/fstab ] ; then
     set -- $(IFS=,; echo $fsoptions)
     fsoptions=
     if [ "$read_only" ]; then
-	fsoptions=ro
+        fsoptions=ro
     fi
     while [ "$1" ] ; do
         case $1 in
         *quota) ;;
         defaults) ;;
-	rw) ;;
+        rw) ;;
         *)
             if [ "$fsoptions" ] ; then
                 fsoptions="$fsoptions,$1"

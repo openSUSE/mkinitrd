@@ -19,7 +19,7 @@ add_module_param() {
 ##################################################
 load_modules() {
     for file in $(eval echo $modules); do
-	modprobe $file
+        modprobe $file
     done
     modules=""
 }
@@ -59,9 +59,9 @@ else
     condition="$(cat $file | sed -n '/%if: /p')"
     condition="${condition#*if: }"
     if [ "$condition" ]; then
-	if ! eval test $condition; then
-	    continue
-	fi
+        if ! eval test $condition; then
+            continue
+        fi
     fi
     # remember dependent modules
     modules=$(cat $file | sed -n '/%modules: /p')

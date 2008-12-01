@@ -8,13 +8,13 @@ rootfsck="/sbin/fsck.${rootfstype}"
 if [ ! -x "$rootfsck" ]; then
     rootfsck=
     if [ "$rootfstype" != "nfs" -a "$rootfstype" != "xfs" -a "$rootfstype" != "cifs" ]; then
-	echo "****************************"
-	echo "*        WARNING           "
-	echo "* No fsck for your rootfs  "
+        echo "****************************"
+        echo "*        WARNING           "
+        echo "* No fsck for your rootfs  "
         echo "* could be found.          "
-	echo "* This might be bad!       "
-	echo "* Please install: /sbin/fsck.$rootfstype"
-	echo "****************************"
+        echo "* This might be bad!       "
+        echo "* Please install: /sbin/fsck.$rootfstype"
+        echo "****************************"
     fi
 fi
 

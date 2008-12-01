@@ -14,9 +14,9 @@ is_xen_kernel() {
 
     for cfg in ${root_dir}/boot/config-$kversion $root_dir/lib/modules/$kversion/build/.config
     do
-	test -r $cfg || continue
-	grep -q "^CONFIG_XEN=y\$" $cfg
-	return
+        test -r $cfg || continue
+        grep -q "^CONFIG_XEN=y\$" $cfg
+        return
     done
     test $kversion != "${kversion%-xen*}"
     return 
@@ -40,9 +40,9 @@ fi
 # Activate features which are eqivalent to modules
 for m in "$module" ; do
     case "$m" in
-	dm-multipath)
-	    ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES multipath"
-	    ;;
+        dm-multipath)
+            ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES multipath"
+            ;;
     esac
 done
 

@@ -12,46 +12,46 @@ shared_object_files() {
 
     LDD=/usr/bin/ldd
     if [ ! -x $LDD ]; then
-	error 2 "I need $LDD."
+        error 2 "I need $LDD."
     fi
 
     initrd_libs=( $(
-	for i in "$@" ; do $LDD "$i" ; done \
-	| sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p' \
-	| sort | uniq
+        for i in "$@" ; do $LDD "$i" ; done \
+        | sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p' \
+        | sort | uniq
     ) )
 
     for lib in "${initrd_libs[@]}"; do
-	case "$lib" in
-	    linux-gate*)
-		# This library is mapped into the process by the kernel
-		# for vsyscalls (i.e., syscalls that don't need a user/
-		# kernel address space transition) in 2.6 kernels.
-		continue ;;
-	    /lib/power*|/lib/ppc*)
-		# Always include the base libraries for PowerPC
-		lib="lib/${lib##*/}" ;;
-	    /lib64/power*|/lib64/ppc*)
-		# Always include the base libraries for ppc64
-		lib="lib64/${lib##*/}" ;;	    
-	    /*)
-		lib="${lib:1}" ;;
-	    *)
-		# Library could not be found.
-		oops 7 "Dynamic library $lib not found"
-		continue ;;
-	esac
+        case "$lib" in
+            linux-gate*)
+                # This library is mapped into the process by the kernel
+                # for vsyscalls (i.e., syscalls that don't need a user/
+                # kernel address space transition) in 2.6 kernels.
+                continue ;;
+            /lib/power*|/lib/ppc*)
+                # Always include the base libraries for PowerPC
+                lib="lib/${lib##*/}" ;;
+            /lib64/power*|/lib64/ppc*)
+                # Always include the base libraries for ppc64
+                lib="lib64/${lib##*/}" ;;           
+            /*)
+                lib="${lib:1}" ;;
+            *)
+                # Library could not be found.
+                oops 7 "Dynamic library $lib not found"
+                continue ;;
+        esac
 
-	while [ -L "/$lib" ]; do
-	    echo $lib
-	    link="$(readlink "/$lib")"
-	    if [ x"${link:0:1}" == x"/" ]; then
-	        lib=${link#/}
-	    else
-	        lib="${lib%/*}/$link"
-	    fi
-	done
-	echo $lib
+        while [ -L "/$lib" ]; do
+            echo $lib
+            link="$(readlink "/$lib")"
+            if [ x"${link:0:1}" == x"/" ]; then
+                lib=${link#/}
+            else
+                lib="${lib%/*}/$link"
+            fi
+        done
+        echo $lib
     done
 }
 
@@ -62,38 +62,38 @@ lib_files=$(shared_object_files "${initrd_bins[@]}")
 [ $? -eq 0 ] || return 1
 if [ -n "$lib_files" ]; then
     for lib in $lib_files; do
-	[ -L $root_dir/$lib ] || verbose -n "$lib "
-	( cd ${root_dir:-/} ; cp -dp --parents $lib $tmp_mnt )
+        [ -L $root_dir/$lib ] || verbose -n "$lib "
+        ( cd ${root_dir:-/} ; cp -dp --parents $lib $tmp_mnt )
     done
     lib_files=
     case "$(uname -m)" in
-	alpha|ia64)
-	    mkdir -p $tmp_mnt/lib
-	    lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
-	    ;;
-	*)
-	    # no symlinks, most point into the running system
-	    for i in `LANG=C LC_ALL=C file -b $tmp_mnt/{,usr/}{lib*/udev/,{,s}bin}/* | sed -n 's/^ELF \([0-9][0-9]-bit\) .*/\1/p' | sort -u`
-	    do
-		case "$i" in
-		    32-bit)
-			mkdir -p $tmp_mnt/lib
-			lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
-			;;
-		    64-bit)
-			mkdir -p $tmp_mnt/lib64
-			lib_files="$lib_files `echo $root_dir/lib64/libnss_{dns,files}* $root_dir/lib64/libgcc_s.so*`"
-			;;
-		esac
-	    done
-	    ;;
+        alpha|ia64)
+            mkdir -p $tmp_mnt/lib
+            lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
+            ;;
+        *)
+            # no symlinks, most point into the running system
+            for i in `LANG=C LC_ALL=C file -b $tmp_mnt/{,usr/}{lib*/udev/,{,s}bin}/* | sed -n 's/^ELF \([0-9][0-9]-bit\) .*/\1/p' | sort -u`
+            do
+                case "$i" in
+                    32-bit)
+                        mkdir -p $tmp_mnt/lib
+                        lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
+                        ;;
+                    64-bit)
+                        mkdir -p $tmp_mnt/lib64
+                        lib_files="$lib_files `echo $root_dir/lib64/libnss_{dns,files}* $root_dir/lib64/libgcc_s.so*`"
+                        ;;
+                esac
+            done
+            ;;
     esac
 
     for lib in $lib_files ; do
-	if [ -f $lib ] ; then
-	    verbose -n "${lib##$root_dir/} "
-	    cp -dp --parents $lib $tmp_mnt
-	fi
+        if [ -f $lib ] ; then
+            verbose -n "${lib##$root_dir/} "
+            cp -dp --parents $lib $tmp_mnt
+        fi
     done
     verbose
 else

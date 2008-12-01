@@ -30,22 +30,22 @@ usage() {
 
 while [ "$1" ] ; do
     case $1 in
-     	-l|--long)
-	    verbose=1
-	    shift
-	    ;;
-	-h)
-	    usage
-	    exit 1
-	    ;;
-	-*)
-	    echo "Unknown option $1"
-	    usage
-	    exit 1
-	    ;;
-	*)
-	    break;
-	    ;;
+        -l|--long)
+            verbose=1
+            shift
+            ;;
+        -h)
+            usage
+            exit 1
+            ;;
+        -*)
+            echo "Unknown option $1"
+            usage
+            exit 1
+            ;;
+        *)
+            break;
+            ;;
     esac
 done
 

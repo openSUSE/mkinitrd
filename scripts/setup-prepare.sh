@@ -15,9 +15,9 @@
 ###### Additional options
 ##
 ## Script inclusion may be overriden by
-##	1) creating a monster-initrd
-##	2) including the wanted module in the configuration option ADDITIONAL_FEATURES in /etc/sysconfig/initrd
-##	3) definition using the -f command line switch
+##      1) creating a monster-initrd
+##      2) including the wanted module in the configuration option ADDITIONAL_FEATURES in /etc/sysconfig/initrd
+##      3) definition using the -f command line switch
 ##
 
 # Install a binary file
@@ -28,13 +28,13 @@ cp_bin() {
     # Remember the binaries installed. We need the list for checking
     # for dynamic libraries.
     while [ $# -gt 1 ]; do
-	initrd_bins[${#initrd_bins[@]}]=$1
-	shift
+        initrd_bins[${#initrd_bins[@]}]=$1
+        shift
    done
    # file may print '^setuid ELF ...'
    # suid mount will fail if mkinitrd was called as user
    if [ -L "$1" ]; then
-	: do nothing with symlinks
+        : do nothing with symlinks
    elif [ -d "$1" -o -f "$1" ]; then
      find "$1" -type f -print0 | xargs -0 chmod 0755 
    fi
@@ -56,29 +56,29 @@ use_script() {
     # script / command line, always use them
     if [ "$ADDITIONAL_FEATURES" ]; then
       for addfeature in $ADDITIONAL_FEATURES; do
-	if [ "$addfeature" = "$feature" ]; then
-	    return 0
-	fi
+        if [ "$addfeature" = "$feature" ]; then
+            return 0
+        fi
       done
     fi
 
     # return false if file does not exist
     for file in $INITRD_PATH/boot/*-$feature.sh ; do
-	if [ -e $file ] ; then
-	    script=$file
-	fi
+        if [ -e $file ] ; then
+            script=$file
+        fi
     done
     [ -e "$script" ] || return 1
     
     condition="$(cat "$script" | grep '%if: ')"
     condition="${condition#*if: }"
     if [ "$condition" ]; then
-	if ! eval test $condition; then
-#	    echo "[FAILED] ($1) $(eval echo $condition)"
-	    return 1
-#	else
-#	    echo "[OK] ($1) $(eval echo $condition)"
-	fi
+        if ! eval test $condition; then
+#           echo "[FAILED] ($1) $(eval echo $condition)"
+            return 1
+#       else
+#           echo "[OK] ($1) $(eval echo $condition)"
+        fi
     fi
 #    echo "[OK] ($1)"
     return 0
@@ -173,6 +173,6 @@ echo $build_cmdline > $tmp_mnt/mkinitrd.config
 mkdir -p $tmp_mnt/lib/firmware
 for fw in /lib/firmware/ql*.bin /lib/firmware/aic94xx* ; do
     if [ -f "$fw" ] ; then
-	cp -a $fw $tmp_mnt/lib/firmware
+        cp -a $fw $tmp_mnt/lib/firmware
     fi
 done
