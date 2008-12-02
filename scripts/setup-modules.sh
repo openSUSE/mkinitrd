@@ -44,8 +44,8 @@ add_module() {
 #       the kernel and then just loads the kernel module, we can safely include
 #       such modules on such systems in initrd.
 #
-#       The check is done by checking if 'ext3.ko' is supported. Since we
-#       have to supported ext3 for a very long period of time from now because
+#       The check is done by checking if 'ipv6.ko' is supported. Since we
+#       have to supported ipv6 for a very long period of time from now because
 #       it's our standard file system, and that module exists on every
 #       architecture and does not depend on the hardware and even exists in
 #       the base package of the kernel because we need it in a virtualised
@@ -63,7 +63,7 @@ check_supported_kernel() {
     local kernel_version=$1
     local output=
 
-    output=$(modinfo -k "$kernel_version" -F supported ext3 2>/dev/null)
+    output=$(modinfo -k "$kernel_version" -F supported ipv6 2>/dev/null)
     if [ "$?" -ne 0 ] ; then
         # If the command existed with an error, assume that the kernel is
         # supported. That is just the same behaviour as before we did that
