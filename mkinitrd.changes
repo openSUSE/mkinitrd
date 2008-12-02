@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec 02 15:04:59 CET 2008 - bwalle@suse.de
+
+- Change evaluation of -v option: Now it's really global, not local
+  to the subshell spawned by mkinitrd. Discovered while debugging
+  bnc #450522.
+
+-------------------------------------------------------------------
 Tue Dec 02 14:39:32 CET 2008 - bwalle@suse.de
 
 - Add -B option to prevent update-bootloader --refresh from being

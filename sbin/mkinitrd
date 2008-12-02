@@ -229,6 +229,7 @@ shift $(( $OPTIND - 1 ))
 
 # global options
 no_bootloader_update=$param_B
+verbose=$param_v
 
 mkinit_name="mkinitramfs"
 

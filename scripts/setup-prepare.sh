@@ -86,7 +86,6 @@ use_script() {
 }
 
 create_monster_initrd=$param_A
-verbose=$param_v
 
 local kernel_version
 local -a features
