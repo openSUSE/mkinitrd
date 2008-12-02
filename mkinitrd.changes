@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec 02 17:41:44 CET 2008 - bwalle@suse.de
+
+- Don't evaluate 'install' lines in /etc/modprobe.conf and friends
+  to generate module dependencies. Don't copy over install lines
+  into the initrd. (bnc #449123)
+
+-------------------------------------------------------------------
 Tue Dec 02 15:04:59 CET 2008 - bwalle@suse.de
 
 - Change evaluation of -v option: Now it's really global, not local

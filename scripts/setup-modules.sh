@@ -96,21 +96,12 @@ resolve_modules() {
     fi
 
     for module in "$@"; do
-        local with_modprobe_conf
         module=${module%.o}  # strip trailing ".o" just in case.
         module=${module%.ko}  # strip trailing ".ko" just in case.
-        if [ -e /etc/modprobe.conf ]; then
-            with_modprobe_conf="-C /etc/modprobe.conf"
-        fi
-        case "$module" in
-            mpt*)
-                if [ -f /etc/modprobe.d/mptctl ] ; then
-                    rm -f $tmp_mnt/etc/modprobe.d/mptctl
-                    mv /etc/modprobe.d/mptctl /tmp
-                fi
-                ;;
-        esac
-        module_list=$(/sbin/modprobe $with_modprobe_conf \
+
+        # don't use a modprobe.conf to get rid of the install lines
+        module_list=$(/sbin/modprobe \
+            -C /dev/null \
             --set-version $kernel_version --ignore-install \
             --show-depends $module \
             $additional_args \
@@ -124,9 +115,6 @@ resolve_modules() {
                 resolved_modules="$resolved_modules $mod"
             fi
         done
-        if [ -f /tmp/mptctl ] ; then
-            mv /tmp/mptctl /etc/modprobe.d/mptctl
-        fi
     done
     echo $resolved_modules
 }
