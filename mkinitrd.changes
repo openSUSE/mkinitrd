@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 02 14:39:32 CET 2008 - bwalle@suse.de
+
+- Add -B option to prevent update-bootloader --refresh from being
+  executed after the initrd(s) have been generated (bnc #450522).
+
+-------------------------------------------------------------------
 Mon Dec 01 22:12:33 CET 2008 - bwalle@suse.de
 
 - Allow unsupported modules in self-made development kernels
