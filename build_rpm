@@ -4,6 +4,7 @@
 #
 
 DESTDIR="/tmp/mkinitrd"
+uncommitted_changes=0
 
 while [ $# -gt 0 ] ; do
     case "$1" in
@@ -27,8 +28,13 @@ while [ $# -gt 0 ] ; do
             force=1;
             shift;
             ;;
+        --uncommitted-changes)
+            uncommitted_changes=1
+            shift;
+            ;;
         *)
-            echo "Usage: build_rpm [-f] [-d dir|--destdir=DIR] [-b BRANCH|--branch=BRANCH]"
+            echo "Usage: build_rpm [-f] [-d dir|--destdir=DIR] " \
+                 "[-b BRANCH|--branch=BRANCH] [--uncommitted-changes]"
             exit 1;
             ;;
     esac
@@ -75,5 +81,21 @@ git archive --format=tar --prefix=mkinitrd-$VERSION/ "$BRANCH" \
 
 cp mkinitrd.spec $DESTDIR
 cp mkinitrd.changes $DESTDIR
+
+
+#
+# if the user specified
+if (( $uncommitted_changes )) ; then
+    echo "WARNING: Including uncommitted changes for testing." >&2
+    echo "         Don't submit the package to Autobuild!"     >&2
+
+    patchname=mkinitrd-$(date -u +%Y-%M-%d_%T_%Z).diff
+    git diff > $DESTDIR/$patchname
+
+    sed -i 's#%setup#%setup\n%patch0 -p1#g' \
+        $DESTDIR/mkinitrd.spec
+    sed -i "s#\(Source0:.*\)#\1\nPatch0:         $patchname#g" \
+        $DESTDIR/mkinitrd.spec
+fi
 
 echo "mkinitrd src rpm copied to $DESTDIR"
