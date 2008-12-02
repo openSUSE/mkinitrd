@@ -97,6 +97,12 @@ External journal device to use for the root filesystem.
 \fB-l directory\fR
 Directory to use for mkinitrd files instead of /lib/mkinitrd
 .TP
+\fB-B\fR
+Don't run the \fBupdate-bootloader\fR(8) script after the initrd(s) have been
+created. This is useful if you call \fBmkinitrd\fR(8) not for the running
+system but for example in a spec file to pre-generate an initrd or to
+generate a special kdump initrd (which \fBmkdumprd\fR(8) does).
+.TP
 \fB-A\fR
 Create a so called "monster initrd" which includes all
 available features and modules.

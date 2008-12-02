@@ -9,6 +9,7 @@
 #%param_t: "Temporary directory. Defaults to /var/tmp." tmp_dir tmp_dir
 #%param_M: "System.map file to use." map sysmap
 #%param_A: "Create a so called \"monster initrd\" which includes all features and modules possible."
+#%param_B: "Do not update bootloader configuration."
 #%param_v: "Verbose mode."
 #%param_h: "This help screen."
 #
