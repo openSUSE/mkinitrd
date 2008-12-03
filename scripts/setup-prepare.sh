@@ -145,28 +145,8 @@ echo -n > $tmp_mnt/etc/mtab
 
 # Add modprobe, modprobe.conf*, and a version of /bin/true: modprobe.conf
 # might use it.
-
-#
-# copy each modprobe file without install lines
-
-mkdir -p "$tmp_mnt/etc/modprobe.d"
-if [ -f "$root_dir/etc/modprobe.conf" ] ; then
-    grep -v ^install "$root_dir/etc/modprobe.conf" > \
-            "$tmp_mnt/etc/modprobe.conf"
-fi
-
-if [ -f "$root_dir/etc/modprobe.conf.local" ] ; then
-    grep -v ^install "$root_dir/etc/modprobe.conf.local" > \
-            "$tmp_mnt/etc/modprobe.conf.local"
-fi
-
-if [ -d "$root_dir/etc/modprobe.d" ] ; then
-    for file in $root_dir/etc/modprobe.d/* ; do
-        filebase=${file##*/}
-        grep -v ^install "$file" > "$tmp_mnt/etc/modprobe.d/$filebase"
-    done
-fi
-
+cp -r $root_dir/etc/modprobe.conf $root_dir/etc/modprobe.conf.local \
+    $root_dir/etc/modprobe.d $tmp_mnt/etc
 cat > $tmp_mnt/bin/true <<-EOF
 #! /bin/sh
 :
