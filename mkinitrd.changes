@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Wed Dec 03 19:57:23 CET 2008 - bwalle@suse.de
+
+- Add 'SUSE INITRD foo REQUIRES bar' comment parsing (bnc #449853).
+- Don't filter out install lines from initrd (bnc #449853). 
+
+-------------------------------------------------------------------
+Wed Dec 03 19:56:38 CET 2008 - hare@suse.de
+
+- Copy persistent net rules into the initrd
+- Fixup ip= line to reflect interface changes from the commandline
+  (bnc #442074).
+
+-------------------------------------------------------------------
 Tue Dec 02 17:41:44 CET 2008 - bwalle@suse.de
 
 - Don't evaluate 'install' lines in /etc/modprobe.conf and friends
