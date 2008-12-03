@@ -200,7 +200,10 @@ fi
 mkdir -p $tmp_mnt/var/lib/dhcpcd
 mkdir -p $tmp_mnt/var/run
 
-cp_bin $root_dir/lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
+cp_bin /lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
+if [ -f /etc/udev/rules.d/70-persistent-net.rules ] ; then
+    cp /etc/udev/rules.d/70-persistent-net.rules $tmp_mnt/etc/udev/rules.d
+fi
 
 [ "$interface" ] && verbose "[NETWORK]\t$interface ($nettype)"
 
