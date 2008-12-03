@@ -5,6 +5,11 @@
 # TODO: generate module deps and copy them to the initrd
 #       take xen into account
 
+# Global variables
+# Array that stores additional dependencies. Each entry looks like
+#       module:module1 module2
+declare -a additional_module_dependencies
+
 # Check if module $1 is listed in $modules.
 has_module() {
     case " $modules " in
@@ -82,6 +87,127 @@ check_supported_kernel() {
     fi
 }
 
+# Brief
+#       Loads additional dependencies information
+#
+# Description
+#       In /etc/modprobe.conf, /etc/modprobe.conf.local and /etc/modprobe.d/*
+#       we have a special syntax
+#
+#               # SUSE INITRD: foo REQUIRES bar
+#
+#       to introduce additional dependencies which are expressed in the install
+#       lines but cannot be parsed by mkinitrd statically.
+#
+#       This function loads that dependencies into the global
+#       additional_module_dependencies array.
+load_additional_dependencies()
+{
+    # array already filled
+    if [ ${#additional_module_dependencies[*]} -ne 0 ] ; then
+        return
+    fi
+
+    for file in /etc/modprobe.conf \
+                /etc/modprobe.conf.local \
+                /etc/modprobe.d/* ; do
+        # skip files if it does not exist
+        if ! [ -r "$file" ] ; then
+            continue
+        fi
+
+        while read line ; do
+            local string module requirement dependencies dependency
+
+            string=${line##*SUSE INITRD: }
+            module=${string/ REQUIRES*}
+            requirement=${string##*REQUIRES }
+
+            if [ -z "$module" -o -z "$requirement" ] ; then
+                echo >&2 "Requirement line '$line' in file '$file' is invalid."
+                continue
+            fi
+
+            number=0
+            added=0
+            for entry in ${additional_module_dependencies[@]} ; do
+                local module2 requirements2 val
+                module2=${entry/:*}
+                requirements2=${entry/*:}
+                if [ "$module2" = "$module" ] ; then
+                    added=1
+                    val="$module:$requirements2 $requirement"
+                    additional_module_dependencies[$number]=$val
+                    break
+                fi
+                number=$[number+1]
+            done
+
+            if [ $added -eq 0 ] ; then
+                additional_module_dependencies=( \
+                        "${additional_module_dependencies[@]}" \
+                        "$module:$requirement" )
+            fi
+        done < <(grep '^# SUSE INITRD: ' $file)
+    done
+}
+
+# Brief
+#       Returns additional module requirements from
+#       additional_module_dependencies
+#
+# Description
+#       Checks for a given kernel modules if there are additional dependencies
+#       found by load_additional_dependencies.
+#
+#       Prints a list (separated by ' ') of modules if there are additional
+#       dependencies.
+#
+# Parameters
+#       mod: the module for which additional depdencies should be found
+#       ver: the kernel version
+#       recursive: recursive call if 1, don't print the final newline
+#
+# Return value
+#       0 (true) if there are additional dependencies, 1 (false) otherwise
+get_add_module_deps()
+{
+    local mod=${1##*/}
+    local version=$2
+    local recursive=$3
+    local printed=0
+    mod=${mod%.ko}
+
+    for entry in "${additional_module_dependencies[@]}" ; do
+        local module requirements m
+
+        module=${entry/:*}
+        requirements=${entry/*:}
+        if [ "$module" = "$mod" ] ; then
+            for m in $requirements ; do
+                filename=$(modinfo -k "$version" -F filename $m)
+                if [ -z "$filename" ] ; then
+                    echo >&2 "Ignoring additional requirement $mod REQUIRES $m"
+                else
+                    echo -n "$filename "
+                    get_add_module_deps "$m" "$version" 1
+                    printed=$[printed+1]
+                fi
+            done
+        fi
+    done
+
+    # build the return value
+    if [ $printed -ne 0 ] ; then
+        if [ "$recursive" -ne 1 ] ; then
+            echo ""
+        fi
+        return 0
+    fi
+
+    return 1
+}
+
 # Resolve module dependencies and parameters. Returns a list of modules and
 # their parameters.
 resolve_modules() {
@@ -113,6 +239,19 @@ resolve_modules() {
         for mod in $module_list ; do
             if ! $(echo $resolved_modules | grep -q $mod) ; then
                 resolved_modules="$resolved_modules $mod"
+
+                # check for additional requirements specified by
+                # SUSE INITRD comments in /etc/modprobe.conf{,local,.d/*}
+                additional_reqs=$(get_add_module_deps "$mod" "$kernel_version" 0)
+                if [ $? -eq 0 ] ; then
+                    local req
+
+                    for req in $additional_reqs ; do
+                        if ! $(echo $resolved_modules | grep -q $req) ; then
+                            resolved_modules="$resolved_modules $req"
+                        fi
+                    done
+                fi
             fi
         done
     done
@@ -140,6 +279,8 @@ for script in $INITRD_PATH/boot/*.sh; do
     fi
 done
 
+# parsing of '# SUSE INITRD' lines
+load_additional_dependencies
 resolved_modules="$(resolve_modules $kernel_version $modules)"
 if [ $? -ne 0 ] ; then
     return 1
