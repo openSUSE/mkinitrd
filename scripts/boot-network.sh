@@ -33,7 +33,6 @@ if [ "$macaddress" ] ; then
     if [ "$ip" ] ; then
         nettype=${ip##*:}
         ip=${ip%:*}
-        interface=${ip##*:}
         tmpip=${ip%:*}
         ip="${tmpip}:${interface}:${nettype}"
     fi
