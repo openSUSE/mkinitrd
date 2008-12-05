@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Dec  5 14:51:40 CET 2008 - bwalle@suse.de
+
+- Run mkinitrd_setup in '%posttrans' instead of '%post' to fix
+  danging symlinks after removal of some scripts (bnc #456417).
+
+-------------------------------------------------------------------
 Wed Dec 03 19:57:23 CET 2008 - bwalle@suse.de
 
 - Add 'SUSE INITRD foo REQUIRES bar' comment parsing (bnc #449853).

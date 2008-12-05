@@ -89,7 +89,7 @@ cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 %install_mkinitrd   /usr/bin/perl /sbin/mkinitrd_setup
 EOF
 
-%post
+%posttrans
 /sbin/mkinitrd_setup
 
 %files
