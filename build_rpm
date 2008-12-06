@@ -90,7 +90,7 @@ if (( $uncommitted_changes )) ; then
     echo "         Don't submit the package to Autobuild!"     >&2
 
     patchname=mkinitrd-$(date -u +%Y-%M-%d_%T_%Z).diff
-    git diff > $DESTDIR/$patchname
+    git diff HEAD > $DESTDIR/$patchname
 
     sed -i 's#%setup#%setup\n%patch0 -p1#g' \
         $DESTDIR/mkinitrd.spec
