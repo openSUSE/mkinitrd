@@ -8,7 +8,11 @@
 # Global variables
 # Array that stores additional dependencies. Each entry looks like
 #       module:module1 module2
-declare -a additional_module_dependencies
+# The array is initialised with some known dependency and extended at runtime
+# in the load_additional_dependencies function.
+additional_module_dependencies=(
+        "virtio:virtio_pci virtio_ring"
+)
 
 # Check if module $1 is listed in $modules.
 has_module() {
