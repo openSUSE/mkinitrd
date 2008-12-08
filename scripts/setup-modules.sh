@@ -40,6 +40,49 @@ add_module() {
 }
 
 # Brief
+#       For some special modules, checks if the feature is compiled-in.
+#
+# Description
+#       For some specific modules (we need to restrict that because there's no
+#       known mapping between module name and configuration option) check if
+#       the module has been compiled into the kernel.
+#
+# Parameters:
+#       module: the kernel module
+#
+# Return value:
+#       Returns 0 (true) if the feature has been compiled in and 1 (false)
+#       otherwise.
+check_builtin_module() {
+    local config_file=${initrd_image/initrd/config}
+    local config_option
+
+    # if the config file does not exist => not compiled in
+    if ! [ -f "$config_file" ] ; then
+        return 1
+    fi
+
+    case "$(basename $module .ko)" in
+        usbcore)
+            config_option=CONFIG_USB ;;
+        ohci_hcd)
+            config_option=CONFIG_USB_OHCI_HCD ;;
+        ehci_hcd)
+            config_option=CONFIG_USB_EHCI_HCD ;;
+        usbhid)
+            config_option=CONFIG_USB_HID ;;
+    esac
+
+    if [ -n "$config_option" ] ; then
+        grep -q ^${config_option}=y "$config_file"
+        return $?
+    fi
+
+    return 1
+}
+
+
+# Brief
 #       Checks if the kernel version is supported at all.
 #
 # Description
@@ -243,6 +286,12 @@ resolve_modules() {
     for module in "$@"; do
         module=${module%.o}  # strip trailing ".o" just in case.
         module=${module%.ko}  # strip trailing ".ko" just in case.
+
+        # skip if the feature is compiled into the kernel
+        if check_builtin_module "$module" ; then
+            verbose "[MODULES]\tModule '$module' is compiled in"
+            continue
+        fi
 
         # don't use a modprobe.conf to get rid of the install lines
         module_list=$(/sbin/modprobe \

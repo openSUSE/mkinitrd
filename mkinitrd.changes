@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 08 17:24:58 CET 2008 - bwalle@suse.de
+
+- Check for specific module if they are compiled in and don't
+  print warning messages if the modules are missing in that case.
+  That affects USB on PPC64. (bnc #449123)
+
+-------------------------------------------------------------------
 Mon Dec 08 16:14:39 CET 2008 - bwalle@suse.de
 
 - Implement program dependencies for modules (bnc #449123).
