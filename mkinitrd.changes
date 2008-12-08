@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 08 16:14:39 CET 2008 - bwalle@suse.de
+
+- Implement program dependencies for modules (bnc #449123).
+
+-------------------------------------------------------------------
 Sat Dec  6 17:21:00 CET 2008 - bwalle@suse.de
 
 - Include virtio_pci module if necessary (bnc #456439).

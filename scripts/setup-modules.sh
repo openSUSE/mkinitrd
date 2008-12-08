@@ -6,6 +6,7 @@
 #       take xen into account
 
 # Global variables
+
 # Array that stores additional dependencies. Each entry looks like
 #       module:module1 module2
 # The array is initialised with some known dependency and extended at runtime
@@ -105,6 +106,16 @@ check_supported_kernel() {
 #
 #       This function loads that dependencies into the global
 #       additional_module_dependencies array.
+#
+#       The function also scans for lines like
+#
+#              # SUSE INITRD: foot REQUIRES /bar
+#
+#       where /bar is the full path to the binary that is required. Of course
+#       we know we have something like /sbin/modprobe there, but we can for
+#       example include "sysctl" with that mechanism.
+#
+#       For that lines, we use cp_bin to actually include the binary.
 load_additional_dependencies()
 {
     for file in /etc/modprobe.conf \
@@ -127,25 +138,34 @@ load_additional_dependencies()
                 continue
             fi
 
-            number=0
-            added=0
-            for entry in ${additional_module_dependencies[@]} ; do
-                local module2 requirements2 val
-                module2=${entry/:*}
-                requirements2=${entry/*:}
-                if [ "$module2" = "$module" ] ; then
-                    added=1
-                    val="$module:$requirements2 $requirement"
-                    additional_module_dependencies[$number]=$val
-                    break
-                fi
-                number=$[number+1]
-            done
+            # file dependency
+            if [[ "$requirement" == /* ]] ; then
+                local dir=${requirement##*/}
+                mkdir -p "$tmp_mnt/$dir"
+                cp_bin "$requirement" "$tmp_mnt/$dir"
+                verbose "[MODULES]\tIncluding $requirement per initrd comment"
+            # module dependency
+            else
+                number=0
+                added=0
+                for entry in ${additional_module_dependencies[@]} ; do
+                    local module2 requirements2 val
+                    module2=${entry/:*}
+                    requirements2=${entry/*:}
+                    if [ "$module2" = "$module" ] ; then
+                        added=1
+                        val="$module:$requirements2 $requirement"
+                        additional_module_dependencies[$number]=$val
+                        break
+                    fi
+                    number=$[number+1]
+                done
 
-            if [ $added -eq 0 ] ; then
-                additional_module_dependencies=( \
-                        "${additional_module_dependencies[@]}" \
-                        "$module:$requirement" )
+                if [ $added -eq 0 ] ; then
+                    additional_module_dependencies=( \
+                            "${additional_module_dependencies[@]}" \
+                            "$module:$requirement" )
+                fi
             fi
         done < <(grep '^# SUSE INITRD: ' $file)
     done
