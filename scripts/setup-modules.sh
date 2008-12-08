@@ -107,11 +107,6 @@ check_supported_kernel() {
 #       additional_module_dependencies array.
 load_additional_dependencies()
 {
-    # array already filled
-    if [ ${#additional_module_dependencies[*]} -ne 0 ] ; then
-        return
-    fi
-
     for file in /etc/modprobe.conf \
                 /etc/modprobe.conf.local \
                 /etc/modprobe.d/* ; do
