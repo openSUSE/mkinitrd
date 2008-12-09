@@ -38,7 +38,7 @@ if [ -z "$param_u" ]; then
 fi
 
 # Activate features which are eqivalent to modules
-for m in "$module" ; do
+for m in $modules ; do
     case "$m" in
         dm-multipath)
             ADDITIONAL_FEATURES="$ADDITIONAL_FEATURES multipath"
