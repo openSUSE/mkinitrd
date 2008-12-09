@@ -55,4 +55,18 @@ if is_xen_kernel $kernel_version; then
 else
     RESOLVED_INITRD_MODULES="$modules"
 fi
+
+# Drivers with a firmware cannot be loaded via INITRD_MODULES mechanism
+# because udev is needed to load the firmware. Put them in initrd, but don't
+# load them via modprobe.
+RESOLVED_INITRD_MODULES_NEW=
+for m in $RESOLVED_INITRD_MODULES ; do
+    if [ $(modinfo -F firmware $m 2> /dev/null | wc -l) -gt 0 ] ; then
+        verbose "[SETUP]\tExcluding $m from INITRD_MODULES because of firmware"
+    else
+        RESOLVED_INITRD_MODULES_NEW="$RESOLVED_INITRD_MODULES_NEW $m"
+    fi
+done
+RESOLVED_INITRD_MODULES=$RESOLVED_INITRD_MODULES_NEW
+
 save_var RESOLVED_INITRD_MODULES
