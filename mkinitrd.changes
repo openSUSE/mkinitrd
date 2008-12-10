@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Dec 10 16:27:55 CET 2008 - bwalle@suse.de
+
+- Don't build initrds for kdump kernels with 'mkinitrd' calls
+  that don't have -k or -i arguments. That affects only special
+  kernel-kdump packages as we currently have on PPC64.
+
+-------------------------------------------------------------------
 Wed Dec 10 16:15:52 CET 2008 - bwalle@suse.de
 
 - Mount /root/proc (/proc of the perspective of the system which is

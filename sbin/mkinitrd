@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # mkinitrd - create the initramfs images
 # usage: see below usage() or call with -h
@@ -157,7 +157,8 @@ default_kernel_images() {
     kernel_images=""
     initrd_images=""
     for kernel_image in $(ls /boot \
-            | sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p") ; do
+            | sed -ne "\|^$regex\(-[0-9.]\+-[0-9]\+-[a-z0-9]\+$\)\?|p" \
+            | grep -v kdump$ ) ; do
 
         # Note that we cannot check the RPM database here -- this
         # script is itself called from within the binary kernel
