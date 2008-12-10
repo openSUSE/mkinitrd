@@ -79,8 +79,8 @@ fi
 git archive --format=tar --prefix=mkinitrd-$VERSION/ "$BRANCH" \
     | bzip2 > $DESTDIR/mkinitrd.tar.bz2
 
-cp mkinitrd.spec $DESTDIR
-cp mkinitrd.changes $DESTDIR
+git show $BRANCH:mkinitrd.spec > $DESTDIR/mkinitrd.spec
+git show $BRANCH:mkinitrd.changes > $DESTDIR/mkinitrd.changes
 
 
 #
