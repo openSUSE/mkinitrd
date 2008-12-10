@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Tue Dec 09 16:40:22 CET 2008 - bwalle@suse.de
+Wed Dec 10 10:30:58 CET 2008 - bwalle@suse.de
 
 - Don't load drivers that require firmware to be loaded before
   udev starts (bnc #457428).
