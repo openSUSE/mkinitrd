@@ -92,7 +92,7 @@ beautify() {
     fi
 }
 
-[ -x /usr/bin/nroff ] && nroff=1
+[ -x /usr/bin/nroff -a -t 1 ] && nroff=1
 
 usage() {
 
@@ -120,12 +120,9 @@ EOF
             next_param && echo -n " $cmd_param_desc"
             echo
         else
-            echo -n "   -$cmd_option_name       "
-            if next_param; then
-                echo -n "$cmd_param_desc        "
-            else
-                echo -n "       "
-            fi
+            printf "   -%-5.5s" $cmd_option_name
+            next_param
+            printf "%-25.25s" "$cmd_param_desc"
         fi
         echo "$cmd_option_desc"
     done
