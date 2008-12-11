@@ -1,0 +1,330 @@
+//{{{ Copyright (c) 2008, SUSE LINUX Products GmbH
+//
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// Redistributions of source code must retain the above copyright notice, this
+// list of conditions and the following disclaimer.
+//
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution.
+//
+// Neither the name of the Novell nor the names of its contributors may be used
+// to endorse or promote products derived from this software without specific
+// prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ONANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//}}}
+
+mkinitrd(8)
+===========
+:man source: mkinitrd
+:man manual: User Manuals
+Bernhard Walle <bwalle@suse.de>
+
+Name
+----
+mkinitrd - create initrd disk image
+
+Synopsis
+--------
+mkinitrd [_options_] [_root_dir_]
+
+Description
+-----------
+mkinitrd creates initial ramdisk images for booting Linux. The "/init" script
+in the compressed cpio archive loads all driver modules, creates all device
+nodes currently known by the kernel, initializes vital subsystems (e.g.
+networking when doing nfs), does a filesystem check on the root filesystem and
+finally passes control to /sbin/init.  udev  is  used to  create  the  device
+nodes in a tmpfs mounted /dev directory.  This directory is moved over to the
+final root filesystem, essentially hiding the on-disk content  below  /dev  on
+the root filesystem.
+
+A few options can be specified via the kernel command line to modify some
+hardcoded values in the "/init" script. They are read from /proc/cmdline.
+
+While in the old days the Linux kernel was responsible for mounting the
+rootfilesystem and running /sbin/init, all the work is now done by the "/init"
+script.
+
+Options
+-------
+*-h*::
+  Shows help output and exits.
+
+*-k* _kernel_list_::
+List  of  kernel images for which initrd files are created (relative to
+_boot_dir_), defaults to _vmlinux_ on ppc/ppc64, _image_ on s390/s390x and
+_vmlinuz_ for  everything else.
+
+*-i* _initrd_list_::
+List  of  file  names (relative to _boot_dir_) for the initrd; positions have
+to match the _kernel_list_,  defaults to _initrd_.
+
+*-m* _module_list_::
+Modules to include in initrd, defaults to _INITRD_MODULES_ variable  in
+*/etc/sysconfig/kernel*.
+
+*-f* _feature_list_::
+Features  to  be  enabled for the initrd. In general mkinitrd configures the
+initrd for the root device it is started from. With this option additional
+feature can  be enabled.
+
+*-b* _bootdir_::
+Boot directory, defaults to */boot*, where the initrd is created.
+
+*-d* _root_device_::
+Root  device, defaults to the device from which the _root_dir_ is mounted;
+overwrites the rootdev enviroment variable if set
+
+*-s* _size_::
+Add splash animation and bootscreen to initrd.
+
+*-D* _interface_::
+Run dhcp on the specified interface (for example "eth0").
++
+It's also possible to specify "default" here if the  default interface should be
+used.   If  there's  a file */etc/install.inf* (which is from the installation
+system), then the interface that was used for installation is used as  default
+interface.  Otherwise, if NFS root is used and one of the network configuration
+files in */etc/sysconfig/network* contain the option _STARTMODE=nfsroot_, than
+this  interface  is  used as  default. Finally, the interface which is used for
+the default route (in the output of
+*/sbin/route* is used as default interface in the initrd.
+
+*-I* _interface_::
+Configure the specified interface statically.
+
+*-a* _acpi_dsdt_::
+Attach compiled ACPI DSDT (Differentiated System Description Table) to initrd.
+This replaces  the  DSDT of the BIOS. Defaults to the _ACPI_DSDT_ variable in
+*/etc/sysconfig/kernel*.
+
+*-t* _tmp_dir_::
+tmp dir, defaults to "/tmp".
+
+*-e*::
+Use static binaries where possible. (currently unavailable)
+
+*-P*::
+Include modules for all IDE devices on the PCI bus.
+
+*-V* _script_::
+Vendor specific script to run in linuxrc.
+
+*-M* _map_::
+System.map file to use.
+
+*-j* _device_::
+External journal device to use for the root filesystem.
+
+*-l* _directory_::
+Directory to use for mkinitrd files instead of */lib/mkinitrd*.
+
+*-B*::
+Don't run the *update-bootloader*(8) script after the initrd(s)  have  been
+created.  This  is  useful if you call mkinitrd(8) not for the running system
+but for example in a spec file to pre-generate an initrd or to  generate  a
+special  kdump  initrd (which *mkdumprd*(8) does).
+
+*-A*::
+Create  a so called "monster initrd" which includes all available features and
+modules.
+
+*-S*::
+Do not include all libata modules by default.
+
+_root_dir_::
+The directory the root partition is mounted to defaults to "/".
+
+Kernel command-line Parameters
+------------------------------
+*mkinitrd* implements a set of additional kernel command-line parameters  which
+are  interpreted  by  the  generated *init* script.  In addition to the standard
+kernel parameters the following parameters are supported:
+
+*linuxrc=trace*::
+Enabling command tracing of the init script
+
+*shell=1*::
+Execute a shell after the linuxrc has finished and  before  the normal  system
+is booted. Useful for debugging.
+
+*noresume*::
+Do not check for a resume device
+
+*sysrq=yes* | *sysrq=1-9*::
+Enable sysrq. If a numeric value is specified, the log level of the console will
+be set to that value.
+
+*resume=*_device_::
+Resume from device _device_.
+
+*journal=*_device_::
+Use device _device_ as external journal device.  This is only valid for reiser
+and xfs filesystems.
+
+*mduuid=*_UUID_::
+Mount md RAID with uuid _UUID_ as the root filesystem.
+
+*TargetAddress*=_IP_Address_::
+[iSCSI] IP Address of the iSCSI Target
+
+*InitiatorName*=_iqn_.
+[iSCSI] Use _iqn_ as the iSCIS initiatorname.
+
+*ip=*_ipspec_::
+Use _ipspec_  to  configure  the  network  interface.  Format  of  the _ipspec_
+is _client_:_server_:_gateway_:_netmask_:_hostname_:_device_:_proto_.
+_client_, _server_,  _gateway_,  _netmask_  are  in  the standard dotted-decimal
+IP notation.  _proto_ is currently ignored.
+
+*udev_timeout=*_secs_::
+Set the timeout for root device detection to _secs_ seconds.  Default is 10.
+
+Features
+--------
+Normally *mkinitrd* detects all required features  automatically,  based  upon
+the  current root,  resume,  dump and journal device.  If additional features
+should be enabled, the _-f_ option can be specified.  Of course you can write your
+own features as well. Just  take  a look at */lib/mkinitrd*.
+
+Currently,  the  following  features can be selected (if a feature is available
+depends on the installed packages):
+
+*block*::
+Include support for block devices (SCSI and IDE)
+
+*busybox*::
+Replace and add all tools known as safe with the busybox versions
+
+*dasd*::
+Include support for dasd storage devices (s390)
+
+*dmraid*::
+Include support for Software-Raid over device mapper (known as Fake-Raid)
+
+*dm*::
+Include support for device mapper in general
+
+*evms*::
+Add support for EVMS
+
+*firewire*::
+Include firewire storage
+
+*iscsi*::
+Include iSCSI support
+
+*kpartx*::
+Include support for kpartx partitioning. Always use this if you have device
+mapper devices.
+
+*luks*::
+Include encryption support using luks
+
+*lvm2*::
+Include support for LVM2
+
+*md*::
+Include support for Software RAID (md)
+
+*multipath*::
+Include support for multipathing
+
+*netconsole*::
+Include support for debugging using netconsole
+
+*network*::
+Include networking support
+
+*nfs*::
+Include support for nfs(-root)
+
+*resume.kernel*::
+Include resume support using the kernel resume code
+
+*resume.userspace*::
+Include resume support using the userspace program
+
+*usb*::
+Include USB-support (keyboard and storage)
+
+*vendor*::
+Include vendor script support
+
+*zfcp*::
+Include support for zfcp storage devices (s390)
+
+Using NFS as root filesystem
+----------------------------
+To  configure  an  initrd  for an NFS client, specify these options to add nfs and network
+driver support into the initrd:
+
+mkinitrd *-f nfs -D eth0*::
+This will add the required kernel modules and a dhcp client to the  initrd,
+which will  try to get an IP address via eth0.  Boot the NFS client with these
+additional command line options to mount the server:
+*nfsroot=1.2.3.4:/exported/directory*.
+
+
+mkinitrd *-f nfs -I eth0*::
+This will add the required kernel modules to the initrd, a static IP  address
+must be specified on the kernel cmdline.  Boot the NFS client with the _nfsroot_
+parameter as  specified  above  to  mount   the   server   and   the
+additional   parameter
+*ip=1.2.3.42:1.2.3.4:1.2.3.1:255.255.255.0:hostname:eth0:none*  to configure the
+network interface.  See the ip= description above for details about the ip=
+option.
+
+mkinitrd::
+Due to the new autodetection in mkinitrd  it  should  suffice  if  the  /-entry
+in /etc/fstab  is  an  nfs  target.  The network device which will be used
+should have _STARTMODE_ set to _nfsroot_.
+
+Recovery
+--------
+What should you do if the initrd is broken and you want to  fix  it  using  a
+chroot?   I assume /mnt is your target root and /boot is mounted inside.
+
+. mount --bind /dev /mnt/dev
+. chroot /mnt
+. mount /proc
+. mount /sys
+. mkinitrd
+
+Environment variables
+---------------------
+You  can  specify  the  root  device  via  the  environment variable rootdev
+(e.g. "rootdev=/dev/hda mkinitrd").
+
+Authors
+-------
+Steffen Winterfeldt <snwint@suse.de>,
+Susanne Oberhauser  <froh@suse.de>,
+Andreas  Grünbacher  <agruen@suse.de>,
+Hannes Reinecke <hare@suse.de>,
+Alexander Graf <agraf@suse.de>,
+Bernhard Walle <bwalle@suse.de>
+
+
+SEE ALSO
+--------
+*mkinitrd*(8), *mkinitrd*(5)
+
+
+// vim: set sw=4 ts=4 et tw=80 fdm=marker: :collapseFolds=1:

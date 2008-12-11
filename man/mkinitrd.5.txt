@@ -1,0 +1,228 @@
+//{{{ Copyright (c) 2008, SUSE LINUX Products GmbH
+//
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// Redistributions of source code must retain the above copyright notice, this
+// list of conditions and the following disclaimer.
+//
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution.
+//
+// Neither the name of the Novell nor the names of its contributors may be used
+// to endorse or promote products derived from this software without specific
+// prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ONANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//}}}
+
+mkinitrd(5)
+===========
+:man source: mkinitrd
+:man manual: User Manuals
+Bernhard Walle <bwalle@suse.de>
+
+Name
+----
+mkinitrd - description of modular scripts layout
+
+Synopsis
+--------
+(not applicable)
+
+Description
+-----------
+*mkinitrd*  creates  initial ramdisk images for booting Linux. It is designed to
+be modular, so that functionality required by other programs can be maintained
+in separate scripts.
+
+Directory Layout
+----------------
+All files are located in the directory */lib/mkinitrd*. The directory has the
+following layout:
+
+*bin*::
+External program required during boot
+
+*dev*::
+Additional devices nodes to be copied into the mkinitrd.
+
+*scripts*::
+Repository for mkinitrd scripts
+
+*setup*::
+Resolved links for scripts to be executed during creation of the initrd
+
+*boot*::
+Resolved links for scripts to be executed during boot.
+
+Script Repository
+-----------------
+
+The  directory */lib/mkinitrd/scripts* is the repository for all mkinitrd
+scripts. They follow the naming convention
+
+    <type>-<name>.sh
+
+_<type>_ can be either _setup_ for scripts to be called during initrd  creation
+or _boot_ for scripts to be called during boot. The _<name>_ for a script serves
+as an identification for the implemented feature; it is assumed that scripts
+named *boot-foo.sh* and *setup-foo.sh* both refer to the feature _foo_.
+
+Script Symlink Resolution
+-------------------------
+The directories */lib/mkinitrd/setup* and */lib/mkinitrd/boot* hold the resolved
+symlinks to the scripts in the mkinitrd repository. The symlinks have the naming
+convention
+
+    <number>-<name>.sh
+
+where _<number>_ determines the execution order (lower numbers will be executed
+earlier) and _<name>_ is  the names of the script as mentioned in the previous
+section. The symlinks are maintained by the program */sbin/mkinitrd_setup* which
+evaluates the tags in the scripts and creates  symlinks  with the correct name.
+Manual maintenance in the */lib/mkinitrd/setup* or */lib/mkinitrd/boot*
+directories are strongly  discouraged,  as  any  call to */sbin/mkinitrd_setup*
+will remove the manually created links.
+
+Script Keywords
+---------------
+
+The execution order of the mkinitrd scripts is determined by keywords. The
+following keywords are recognized:
+
+*#%stage:* _<name>_::
+The execution stage for this script
+
+*#%depends:* _<list>_::
+Space-separated list of features or scripts names this script depends upon.
+
+*#%provides:* _<list>_::
+Space-separated list of additional features provided by this script.
+
+*#%dontshow*::
+Don't show the script in the list of features displayed to the user.
+
+*#%programs:* _<list>_::
+A (space separated) list of programs, specified by their full path, that
+should  be included in the initrd.
++
+*NOTE:* The path is the full path in the initrd, not in the system. *mkinitrd*
+tries to discover programs automatically, which means that programs in */sbin*
+will be also searched in */usr/sbin* and programs in */bin* will be also searched
+in */usr/bin*.
++
+Libraries  are  automatically  resolved by *ldd*(1). Please note that
+libraries that are loaded at runtime by *dlopen*(3) are not included
+automatically. They have to be copied manually.
+
+*#%modules:* _<list>_::
+List  of  (space separated) kernel modules (only the name, no path, without
+suffix) that should be included in the initrd. The modules must be  loaded  in
+the  corresponding boot script with _load_modules_.
+
+*#%udevmodules:* _<list>_::
+List  of  (space separated) kernel modules (only the name, no path, without
+suffix) that should be included in the initrd but are loaded automatically with
+either udev or something else (like file system modules with _mount_).
+
+Each  script  provides  per  default  a feature with the script name, so that
+_setup-foo.sh_ automatically provides a feature _foo_.
+
+All dependend scripts (i.e. any feature listed in the _#%depends:_ list)  will
+be executed prior to this script.
+
+Execution Stages
+----------------
+Script execution is gouverned by _stages_.  The stages define the overall
+execution order as each stage is executed sequentially. The defined stages are:
+
+*setup*::
+General preparation
+
+*filesystem*::
+Filesystem detection and maintenance
+
+*crypto*::
+Handling of cryptographic volumes
+
+*volumemanager*::
+Handling of LVM2 and EVMS volumes
+
+*softraid*::
+Detection and setup of MD devices
+
+*partitions*::
+Detection and setup of partitions.
+
+*devicemapper*::
+Device-mapper devices presenting full disks, e.g. multipath and dmraid
+
+*block*::
+Detection and setup of block devices.
+
+*device*::
+Detection and setup of hardware devices
+
+*boot*::
+Final cleanups/preparation
+
+During _setup_ the stages are executed from setup to *boot*; during _boot_ the
+stages are  executed in reversed order. The stages itself are defined
+corresponding to the Novell Storage Foundation Layout. This induces some
+restrictions to the possible device setups,  as  e.g.  MD over LVM is not
+supported.
+
+The  stages  are executed sequentially. All scripts for a stage have to be
+executed before those for the next stage are evaluated. Within a stage scripts
+can run parallel where pos- sible.
+
+As  each  stage  serves  as  a  checkpoint  it is *not* possible to have
+dependencies across stages. So script _foo_ in stage _filesystem_ cannot depend
+on script _bar_ in stage _block_.
+
+Script Installation
+-------------------
+New scripts should be copied to */lib/mkinitrd/scripts* and the appropriate
+keywords  should be inserted.  Afterwards */sbin/mkinitrd_setup* should be
+executed to update the symlinks in _boot_ and _setup_.
+
+For removal the scripts should be deleted and */sbin/mkinitrd_setup* should  be
+called  to update the symlinks.
+
+
+Authors
+-------
+Steffen  Winterfeldt  <snwint@suse.de>,
+Susanne Oberhauser <froh@suse.de>,
+Andreas Grünbacher <agruen@suse.de>,
+Hannes Reinecke <hare@suse.de>,
+Alexander Graf  <agraf@suse.de>,
+Bernhard Walle <bwalle@suse.de>
+
+Files
+-----
+/lib/mkinitrd /sbin/mkinitrd /sbin/mkinitrd_setup
+
+Bugs
+----
+Please report bugs and enhancement requests at https://bugzilla.novell.com[].
+
+See Also
+--------
+*mkinitrd*(8), *lsinitrd*(8)
+
+// vim: set sw=4 ts=4 et tw=80 fdm=marker: :collapseFolds=1:
