@@ -14,7 +14,8 @@
 Name:           mkinitrd
 License:        GPL v2 or later
 Group:          System/Base
-#!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs
+#!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
+BuildRequires:  asciidoc
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
 AutoReqProv:    on
 Version:        2.4
@@ -56,6 +57,7 @@ Authors:
 
 %build
 gcc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/run-init src/run-init.c
+make -C man
 sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitrd
 echo "Checking scripts:"
 if ! bash -n sbin/mkinitrd; then
