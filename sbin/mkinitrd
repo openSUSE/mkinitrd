@@ -25,7 +25,8 @@
 # git://git.opensuse.org/projects/mkinitrd.git
 #
 
-LOGFILE=/var/log/YaST2/mkinitrd.log
+LOGDIR=/var/log/YaST2
+LOGFILE=$LOGDIR/mkinitrd.log
 declare -a cmd_option
 declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name
 
@@ -263,7 +264,7 @@ verbose=$param_v
 logging_disabled=$param_L
 
 # init logging
-if [ -d $LOGFILE ] && [ -w $LOGFILE ] && \
+if [ -d $LOGDIR ] && [ -w $LOGDIR ] && \
         [ "$logging_disabled" != 1 ] ; then
     logging_disabled=0
 else
