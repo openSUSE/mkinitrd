@@ -25,6 +25,7 @@
 # git://git.opensuse.org/projects/mkinitrd.git
 #
 
+LOGFILE=/var/log/YaST2/mkinitrd.log
 declare -a cmd_option
 declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name
 
@@ -175,6 +176,36 @@ default_kernel_images() {
     done
 }
 
+# Brief
+#       Logs to the logfile if logging is not disabled
+#
+# Description
+#       Just logs into $LOGFILE (/var/log/YaST2/mkinitrd.log). You may want to
+#       consider not to use that function directly but to use the verbose
+#       function that also prints the string to stdout when -v has been
+#       specified.
+#
+# Parameters
+#       (varargs): strings to log. Exception: If the first argument is "-n" or
+#                  "-ne" then no newline is prepended
+#
+log() {
+    # don't log until we initialised logging properly
+    if [ -z "$logging_disabled" ] || [ "$logging_disabled" -eq 1 ] ; then
+        return
+    fi
+
+    if [ "$1" = "-n" ] || [ "$1" = "-ne" ]  ; then
+        shift
+        echo -en " " "$@" >> $LOGFILE
+    elif [ $# -eq 0 ] ; then
+        echo >> $LOGFILE
+    else
+        echo >> $LOGFILE
+        echo -en $(date +'%Y-%m-%d %H:%M:%S') "$*" >> $LOGFILE
+    fi
+}
+
 # You can specify the root device via the environment variable rootdev (e.g.
 # "rootdev=/dev/hda mkinitrd").
 
@@ -208,6 +239,7 @@ if [ -e "/etc/sysconfig/initrd" ]; then
     . /etc/sysconfig/initrd
 fi
 
+saved_args=$@
 read_options
 while getopts $( cmd_getopts ) a ; do
     case $a in
@@ -228,6 +260,18 @@ shift $(( $OPTIND - 1 ))
 # global options
 no_bootloader_update=$param_B
 verbose=$param_v
+logging_disabled=$param_L
+
+# init logging
+if [ -d $LOGFILE ] && [ -w $LOGFILE ] && \
+        [ "$logging_disabled" != 1 ] ; then
+    logging_disabled=0
+else
+    logging_disabled=1
+fi
+
+log "--------------------------------------------------------------------------"
+log "mkinitrd called with arguments ${saved_args[*]}"
 
 mkinit_name="mkinitramfs"
 
@@ -383,6 +427,8 @@ verbose() {
         if [ "$verbose" ] ; then
             echo -e "$@" >&2
         fi
+
+        log "$@"
 }
 
 # creates an initrd image using small modules called "setup scripts"

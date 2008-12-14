@@ -148,6 +148,16 @@ modules.
 *-S*::
 Do not include all libata modules by default.
 
+*-v*::
+Verbose mode. Prints more information to standard error. By default the
+information that would be printed in verbose mode is also appended to the log
+file _/var/log/YaST2/mkinitrd.log_, so it's not necessary to re-run *mkinitrd*
+with the *-v* option to create bug reports.
+
+*-L*::
+Disable logging to _/var/log/YaST2/mkinitrd.log_. This is useful for testing
+if you don't want to clutter the system log.
+
 _root_dir_::
 The directory the root partition is mounted to defaults to "/".
 
@@ -306,6 +316,14 @@ chroot?   I assume /mnt is your target root and /boot is mounted inside.
 . mount /proc
 . mount /sys
 . mkinitrd
+
+Files
+-----
+
+*/var/log/YaST2/mkinitrd.log*::
+The log file of this program. Always attach that log file in Bugzilla if
+something goes wrong. It's also included in the usual YaST logs that are created
+with *save_y2logs*(8).
 
 Environment variables
 ---------------------
