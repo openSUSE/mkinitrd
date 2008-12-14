@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Dec 14 18:24:00 CET 2008 - bwalle@suse.de
+
+- Implement logging (/var/log/YaST2/mkinitrd.log).
+
+-------------------------------------------------------------------
 Wed Dec 10 16:27:55 CET 2008 - bwalle@suse.de
 
 - Don't build initrds for kdump kernels with 'mkinitrd' calls
