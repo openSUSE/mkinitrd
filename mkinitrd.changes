@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 16 10:15:02 CET 2008 - bwalle@suse.de
+
+- Revert mounting of /proc in initrd (bnc #457984).
+
+-------------------------------------------------------------------
 Sun Dec 14 18:24:00 CET 2008 - bwalle@suse.de
 
 - Implement logging (/var/log/YaST2/mkinitrd.log).

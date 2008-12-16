@@ -16,8 +16,6 @@
 
 # Move device nodes
 /bin/mount --move /dev /root/dev
-/root/usr/bin/chroot /root /bin/mount /proc
-
 # ready to leave
 cd /root
 umount /proc
