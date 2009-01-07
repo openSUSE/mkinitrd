@@ -2,8 +2,8 @@
 #
 #%stage: setup
 #%depends: killprogs
-#%programs: 
-#%modules: 
+#%programs:
+#%modules:
 #%dontshow
 #
 ##### boot
@@ -16,6 +16,8 @@
 
 # Move device nodes
 /bin/mount --move /dev /root/dev
+/bin/mount /root/proc
+
 # ready to leave
 cd /root
 umount /proc

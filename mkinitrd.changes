@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 07 13:34:15 CET 2009 - bwalle@suse.de
+
+- Mount /root/proc (/proc of the perspective of the system which is
+  booted) in initrd to make SELinux happy (bnc #457984).
+
+-------------------------------------------------------------------
 Tue Dec 16 10:15:02 CET 2008 - bwalle@suse.de
 
 - Revert mounting of /proc in initrd (bnc #457984).
@@ -54,7 +60,7 @@ Fri Dec  5 14:51:40 CET 2008 - bwalle@suse.de
 Wed Dec 03 19:57:23 CET 2008 - bwalle@suse.de
 
 - Add 'SUSE INITRD foo REQUIRES bar' comment parsing (bnc #449853).
-- Don't filter out install lines from initrd (bnc #449853). 
+- Don't filter out install lines from initrd (bnc #449853).
 
 -------------------------------------------------------------------
 Wed Dec 03 19:56:38 CET 2008 - hare@suse.de
@@ -165,7 +171,7 @@ Tue Sep 23 16:24:26 CEST 2008 - hare@suse.de
 
 - Add /bin/uname (required for firmware.sh script)
   (bnc#427267)
- 
+
 -------------------------------------------------------------------
 Fri Sep 19 10:17:52 CEST 2008 - hare@suse.de
 
@@ -570,7 +576,7 @@ Tue May 22 18:57:30 CEST 2007 - agraf@suse.de
 
 - Fixed sysconfig/kernel support again
 - Made mkinitrd abort more often if anything goes wrong
-- Always set md's start_ro flag to 1 
+- Always set md's start_ro flag to 1
 
 -------------------------------------------------------------------
 Mon May 21 17:21:06 CEST 2007 - agraf@suse.de
@@ -721,12 +727,12 @@ Thu Nov 16 08:42:21 CET 2006 - hare@suse.de
 -------------------------------------------------------------------
 Mon Nov 13 10:18:25 CET 2006 - bwalle@suse.de
 
-- added rootmd in feature list (-f), fixes #218167 
+- added rootmd in feature list (-f), fixes #218167
 
 -------------------------------------------------------------------
 Fri Nov 10 16:19:59 CET 2006 - bwalle@suse.de
 
-- fixed mkinitrd uml hostfs support (#215240) 
+- fixed mkinitrd uml hostfs support (#215240)
 
 -------------------------------------------------------------------
 Tue Nov  7 17:33:54 CET 2006 - bwalle@suse.de
@@ -1597,7 +1603,7 @@ Fri Mar 11 12:53:23 CET 2005 - agruen@suse.de
 -------------------------------------------------------------------
 Thu Mar 10 18:31:40 CET 2005 - ro@suse.de
 
-- typo fix "rootfstype" -> "$rootfstype" 
+- typo fix "rootfstype" -> "$rootfstype"
 
 -------------------------------------------------------------------
 Thu Mar 10 14:25:15 CET 2005 - hare@suse.de
@@ -1717,7 +1723,7 @@ Mon Jan 31 11:44:47 CET 2005 - hare@suse.de
 -------------------------------------------------------------------
 Fri Jan 28 11:18:45 CET 2005 - schwab@suse.de
 
-- make package noarch 
+- make package noarch
 
 -------------------------------------------------------------------
 Thu Jan 27 17:17:55 CET 2005 - agruen@suse.de
@@ -1821,7 +1827,7 @@ Fri Sep  3 20:59:08 CEST 2004 - olh@suse.de
 -------------------------------------------------------------------
 Fri Sep  3 20:57:02 CEST 2004 - olh@suse.de
 
-- mkinitramfs: copy the /tmp/net-*.conf files to /dev/nfsroot/ 
+- mkinitramfs: copy the /tmp/net-*.conf files to /dev/nfsroot/
 
 -------------------------------------------------------------------
 Fri Sep  3 20:53:47 CEST 2004 - olh@suse.de
@@ -1888,7 +1894,7 @@ Sat Aug 21 16:13:36 CEST 2004 - olh@suse.de
 -------------------------------------------------------------------
 Fri Aug 20 11:22:24 CEST 2004 - olh@suse.de
 
-- mkinitrd: /run_init must be s static binary because /lib is 
+- mkinitrd: /run_init must be s static binary because /lib is
             already gone when it runs, take the klibc version
 
 -------------------------------------------------------------------
@@ -1945,7 +1951,7 @@ Thu Jul  1 23:49:40 CEST 2004 - agruen@suse.de
 Wed Jun 23 18:17:31 CEST 2004 - fehr@suse.de
 
 - Add code that makes root filesystem on EVMS possible (#41198)
-  
+
 -------------------------------------------------------------------
 Mon Jun 21 17:00:11 CEST 2004 - agruen@suse.de
 
@@ -2076,7 +2082,7 @@ Sat May 29 23:25:31 CEST 2004 - olh@suse.de
 Sat May 29 23:19:29 CEST 2004 - olh@suse.de
 
 - mkinitramfs-kinit.sh:
-  remove hardcoded unconditional 42 panic timeout 
+  remove hardcoded unconditional 42 panic timeout
 
 -------------------------------------------------------------------
 Wed May 26 15:53:20 CEST 2004 - agruen@suse.de
@@ -2091,7 +2097,7 @@ Wed May 26 15:11:04 CEST 2004 - olh@suse.de
 -------------------------------------------------------------------
 Tue May 25 20:51:54 CEST 2004 - garloff@suse.de
 
-- mkinitrd and mkinitramfs: Find iscsid in either /usr/sbin or 
+- mkinitrd and mkinitramfs: Find iscsid in either /usr/sbin or
   /sbin.
 
 -------------------------------------------------------------------
@@ -2161,7 +2167,7 @@ Wed May  5 17:55:38 CEST 2004 - agruen@suse.de
 -------------------------------------------------------------------
 Mon May  3 11:00:21 CEST 2004 - hare@suse.de
 
-- new-kernel-pkg: Fixed embarrasing bug in call to zipl 
+- new-kernel-pkg: Fixed embarrasing bug in call to zipl
   (called with -v instead of -V)
 
 -------------------------------------------------------------------
@@ -2175,7 +2181,7 @@ Thu Apr 29 21:09:50 CEST 2004 - olh@suse.de
 -------------------------------------------------------------------
 Tue Apr 27 17:37:32 CEST 2004 - fehr@suse.de
 
-- mkinitrd: add code to only activate the LVM VG that contains the 
+- mkinitrd: add code to only activate the LVM VG that contains the
   root fs to prevent problems as described in bug #32794
 
 -------------------------------------------------------------------
@@ -2408,7 +2414,7 @@ Fri Dec  5 15:16:06 CET 2003 - hare@suse.de
 -------------------------------------------------------------------
 Thu Dec  4 16:16:58 CET 2003 - ro@suse.de
 
-- added manpage mkinitrd.8 
+- added manpage mkinitrd.8
 
 -------------------------------------------------------------------
 Wed Nov 26 14:01:53 CET 2003 - agruen@suse.de
@@ -2593,7 +2599,7 @@ Tue Aug 26 17:34:21 CEST 2003 - agruen@suse.de
 -------------------------------------------------------------------
 Mon Aug 25 01:17:22 CEST 2003 - ro@suse.de
 
-- fix syntax error in last change 
+- fix syntax error in last change
 
 -------------------------------------------------------------------
 Fri Aug 22 17:28:07 CEST 2003 - trenn@suse.de
