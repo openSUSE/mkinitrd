@@ -19,7 +19,7 @@ is_xen_kernel() {
         return
     done
     test $kversion != "${kversion%-xen*}"
-    return 
+    return
 }
 
 # Set in the mkinitrd script

@@ -33,7 +33,7 @@ shared_object_files() {
                 lib="lib/${lib##*/}" ;;
             /lib64/power*|/lib64/ppc*)
                 # Always include the base libraries for ppc64
-                lib="lib64/${lib##*/}" ;;           
+                lib="lib64/${lib##*/}" ;;
             /*)
                 lib="${lib:1}" ;;
             *)

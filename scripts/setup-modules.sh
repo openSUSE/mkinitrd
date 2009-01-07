@@ -328,7 +328,7 @@ resolve_modules() {
 
 resolve_modalias() {
     local tofind="$1" alias module
-        
+
     while read a alias module; do
         case $tofind in $alias) echo "$module" ;;
         esac

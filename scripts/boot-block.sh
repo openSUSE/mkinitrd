@@ -26,7 +26,7 @@
 ## inq_timeout          ??
 ## dev_flags            ??
 ## default_dev_flags    ??
-## 
+##
 
 [ "$(get_param ide)" ] && add_module_param ide_core "options=\"$(get_param ide)\""
 
@@ -81,7 +81,7 @@ scsi_mod_check_compat inq_timeout
 scsi_mod_check_compat dev_flags
 scsi_mod_check_compat default_dev_flags
 
-if [ $devflags != 0 ]; then 
+if [ $devflags != 0 ]; then
         add_module_param scsi_mod default_dev_flags=$devflags
 fi
 

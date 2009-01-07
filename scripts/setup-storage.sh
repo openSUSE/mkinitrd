@@ -40,7 +40,7 @@ devmajor() {
 # Extract the minor part from a device number
 devminor() {
     local devn=${1:-0}
-    echo $(( $devn % 256 )) 
+    echo $(( $devn % 256 ))
 }
 
 # (We are using a devnumber binary inside the initrd.)
@@ -67,7 +67,7 @@ majorminor2blockdev() {
 
 beautify_blockdev() {
         local olddev="$1" udevdevs dev
-        
+
         # search for udev information
         udevdevs=$(/sbin/udevadm info -q symlink --name=$olddev)
         #   look up ata device links
@@ -89,7 +89,7 @@ beautify_blockdev() {
                 echo "/dev/$dev"
                 return
         done
-        
+
         # get pretty name from device-mapper
         if [ -x /sbin/dmsetup -a "$blockdriver" = "device-mapper" ]; then
             dm_name=$(dmsetup info -c --noheadings -o name -j $blockmajor -m $blockminor)
@@ -123,7 +123,7 @@ dm_resolvedeps() {
                         echo -n "$bd "
                 fi
         done
-        return 0        
+        return 0
 }
 
 dm_resolvedeps_recursive() {
@@ -156,7 +156,7 @@ update_blockdev() {
         [ "$curblockdev" ] || curblockdev=$blockdev
         # no blockdevs
         [ "$curblockdev" ] || return
-        
+
         blockmajor=-1
         blockminor=-1
         if [ -e "$root_dir/${curblockdev#/}" ]; then
@@ -170,14 +170,14 @@ update_blockdev() {
                 if [ ! "$blockdriver" ]; then
                         error 1 "Fatal storage error. Device $curblockdev does not have a driver."
                 fi
-                
+
                 # temporary hack to have devicemapper activated whenever a dm device was found
                 if [ "$blockdriver" = device-mapper ]; then
                         tmp_root_dm=1
                 fi
         fi
 
-        if false; then  
+        if false; then
                 echo ""
                 echo "$curblockdev"
                 echo "===================="
@@ -238,7 +238,7 @@ resolve_device() {
 
 if [ -z "$rootdev" ] ; then
   # no rootdev specified, get current root opts from /etc/fstab and device from stat
-  
+
   # get rootdev via stat
   rootcpio=`echo / | /bin/cpio --quiet -o -H newc`
   rootmajor="$(echo $(( 0x${rootcpio:62:8} )) )"

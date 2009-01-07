@@ -15,7 +15,7 @@
 ## -----------------------
 ##
 ## NETCONSOLE=<server>[:port]   server and port to route the output to
-## 
+##
 
 netc_loghost="${NETCONSOLE%:*}"
 netc_udpport="${NETCONSOLE#*:}"

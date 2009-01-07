@@ -2,7 +2,7 @@
 #
 #%stage: setup
 #%depends: start
-# 
+#
 
 # Default udev timeout is 30 seconds
 udev_timeout=30

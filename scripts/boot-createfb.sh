@@ -9,7 +9,7 @@
 ## Command line parameters
 ## -----------------------
 ##
-## 
+##
 
 # Create framebuffer devices
 if [ -f /proc/fb ]; then

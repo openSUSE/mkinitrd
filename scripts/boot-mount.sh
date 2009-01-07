@@ -17,7 +17,7 @@
 ## -----------------------
 ##
 ## ro           mount the root device read-only
-## 
+##
 
 discover_root() {
     local root devn
@@ -92,7 +92,7 @@ if [ -z "$rootfstype" ]; then
 elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # fsck is unhappy without it
     echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
-    # Display progress bar if possible 
+    # Display progress bar if possible
     fsckopts="-V -a"
     [ "$forcefsck" ] && fsckopts="$fsckopts -f"
     [ "`/sbin/showconsole`" = "/dev/tty1" ] && fsckopts="$fsckopts -C"

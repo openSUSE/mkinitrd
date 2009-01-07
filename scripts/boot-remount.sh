@@ -15,7 +15,7 @@
 ## -----------------------
 ##
 ## init=...             use this file instead of the normal init binary
-## 
+##
 
 # Look for an init binary on the root filesystem
 if [ -n "$init" ] ; then

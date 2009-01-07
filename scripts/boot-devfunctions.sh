@@ -33,7 +33,7 @@ devmajor() {
 # Extract the minor part from a device number
 devminor() {
     local devn=${1:-0}
-    echo $(( $devn % 256 )) 
+    echo $(( $devn % 256 ))
 }
 
 # (We are using a devnumber binary inside the initrd.)
@@ -88,7 +88,7 @@ check_for_device() {
                     echo " ok"
                     retval=0
                     break;
-                fi  
+                fi
             fi
             sleep 1
             echo -n "."
@@ -96,7 +96,7 @@ check_for_device() {
             # Recheck for LVM volumes
             if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
                 vgscan
-                
+
                 for vgr in $vg_root $vg_roots; do
                     vgchange -a y $vgr
                 done

@@ -50,7 +50,7 @@ get_ip_config() {
 
         ipaddr=${1%%/*}
         prefix=${1##*/}
-        shift 
+        shift
         if [ "$1" == "peer" ] ; then
             shift
             peeraddr=${1%%/*}
@@ -66,7 +66,7 @@ get_ip_config() {
     fi
     hostname=$(hostname)
     echo "$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:none"
-}  
+}
 
 get_default_interface() {
     local ifname

@@ -94,15 +94,15 @@ get_devmodule() {
 
 update_blockmodules() {
     local newmodule="$1"
-    
+
     echo -n "$block_modules"
-    
+
     for bm in $block_modules; do
         if [ "$newmodule" = "$bm" ]; then
             return
         fi
     done
-    
+
     echo -n "$newmodule "
 }
 
@@ -127,7 +127,7 @@ else
         # copy over all drivers needed to boot up the system
         for bd in $blockdev; do
             case $bd in # only include devices
-              /dev*) 
+              /dev*)
                 update_blockdev $bd
                 curmodule="$(get_devmodule ${bd##/dev/})"
                 [ $? -eq 0 ] || return 1
@@ -141,7 +141,7 @@ else
                     block_modules=$(update_blockmodules "$blockmodule")
                 done
                 ;;
-              *) 
+              *)
                 verbose "[BLOCK] ignoring $bd"
             esac
         done

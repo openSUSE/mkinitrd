@@ -2,7 +2,7 @@
 #%stage: device
 #%programs: /sbin/dhcpcd /sbin/ip
 # dhcpcd reqires the af_packet module
-#%modules: af_packet 
+#%modules: af_packet
 #%udevmodules: $drvlink
 #%if: "$interface" -o "$dhcp" -o "$ip" -o "$nfsaddrs"
 #
@@ -16,7 +16,7 @@
 ## dhcp=<device>                                                                                                        if set runs dhcp on the given device (no dhcp if device is "off")
 ## ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:$autoconf     defines the ip configuration to use
 ## nfsaddrs                                                                                                                     an alias for "ip"
-## 
+##
 
 # load the modules before detecting which device we are going to use
 load_modules
@@ -38,7 +38,7 @@ if [ "$macaddress" ] ; then
     fi
 fi
 
-if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then 
+if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then
         ip=$nfsaddrs
 fi
 
@@ -104,7 +104,7 @@ if [ "$nettype" = "dhcp" ]; then
       echo 'hosts: dns' > /etc/nsswitch.conf
     fi
   fi
-  
+
 # static ip config
 elif [ "$nettype" = "static" ]; then
   # configure interface

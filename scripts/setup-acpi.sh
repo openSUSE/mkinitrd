@@ -18,7 +18,7 @@ attach_dsdt() {
         # File must be named: DSDT.aml or SSDT[0-9]*.aml
         # For compatibility reasons DSDT.aml can have an arbitrary
         # name if only DSDT should get overridden
-        
+
         # sdt_type shows the type of the SDT (S or D)
         sdt_type=$(echo "$sdt" | sed 's/^.*\/\([SD]\)SDT[0-9]*\.aml$/\1/')
         # fallback for arbitrary file names

@@ -38,7 +38,7 @@ cp_bin() {
    if [ -L "$1" ]; then
         : do nothing with symlinks
    elif [ -d "$1" -o -f "$1" ]; then
-     find "$1" -type f -print0 | xargs -0 chmod 0755 
+     find "$1" -type f -print0 | xargs -0 chmod 0755
    fi
 }
 
@@ -71,7 +71,7 @@ use_script() {
         fi
     done
     [ -e "$script" ] || return 1
-    
+
     condition="$(cat "$script" | grep '%if: ')"
     condition="${condition#*if: }"
     if [ "$condition" ]; then
@@ -153,7 +153,7 @@ cat > $tmp_mnt/bin/true <<-EOF
 :
 EOF
 chmod +x $tmp_mnt/bin/true
- 
+
 mkdir -p $tmp_mnt/var/log
 
 # all dev nodes belong to root, but some may be

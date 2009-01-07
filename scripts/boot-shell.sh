@@ -12,6 +12,6 @@
 ## -----------------------
 ##
 ## shell=1              turn on a debug shell
-## 
+##
 
 [ "$(get_param shell)" ] && bash

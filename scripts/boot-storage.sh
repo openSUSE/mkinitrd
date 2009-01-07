@@ -18,7 +18,7 @@
 ## nfsroot              alias for root
 ## resume               the resume device (the device software suspend puts its image to)
 ## journal              the journaling device (if journaling is being done on a seperate device)
-## 
+##
 
 # include the rootdev= option
 . /config/mount.sh
