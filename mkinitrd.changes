@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 07 18:24:30 CET 2009 - bwalle@suse.de
+
+- Fix libata detection: Now by default all libata drivers are
+  included if a disk is detected as libata. (That was already
+  implemented, but didn't work.)
+
+-------------------------------------------------------------------
 Wed Jan 07 13:34:15 CET 2009 - bwalle@suse.de
 
 - Mount /root/proc (/proc of the perspective of the system which is
