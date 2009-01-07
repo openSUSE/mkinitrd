@@ -116,35 +116,35 @@ if [ "$create_monster_initrd" ]; then
         fi
     done
 else
-        # if we need libata, just copy all libata drivers
-        if [ "$block_uses_libata" -a ! "$param_S" ]; then
-            for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/ata -name "*.ko"); do
-                i=${i%*.ko}
-                block_modules="$block_modules ${i##*/}"
-            done
-        fi
-
-        # copy over all drivers needed to boot up the system
-        for bd in $blockdev; do
-            case $bd in # only include devices
-              /dev*)
-                update_blockdev $bd
-                curmodule="$(get_devmodule ${bd##/dev/})"
-                [ $? -eq 0 ] || return 1
-                for curmodule_i in $curmodule; do
-                    verbose "[BLOCK] $bd -> $curmodule_i"
-                done
-                if [ -z "$curmodule" ]; then
-                    echo "[BLOCK] WARNING: could not find block module for $bd"
-                fi
-                for blockmodule in $curmodule; do
-                    block_modules=$(update_blockmodules "$blockmodule")
-                done
-                ;;
-              *)
-                verbose "[BLOCK] ignoring $bd"
-            esac
+    # if we need libata, just copy all libata drivers
+    if [ "$block_uses_libata" -a ! "$param_S" ]; then
+        for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/ata -name "*.ko"); do
+            i=${i%*.ko}
+            block_modules="$block_modules ${i##*/}"
         done
+    fi
+
+    # copy over all drivers needed to boot up the system
+    for bd in $blockdev; do
+        case $bd in # only include devices
+          /dev*)
+            update_blockdev $bd
+            curmodule="$(get_devmodule ${bd##/dev/})"
+            [ $? -eq 0 ] || return 1
+            for curmodule_i in $curmodule; do
+                verbose "[BLOCK] $bd -> $curmodule_i"
+            done
+            if [ -z "$curmodule" ]; then
+                echo "[BLOCK] WARNING: could not find block module for $bd"
+            fi
+            for blockmodule in $curmodule; do
+                block_modules=$(update_blockmodules "$blockmodule")
+            done
+            ;;
+          *)
+            verbose "[BLOCK] ignoring $bd"
+        esac
+    done
 fi
 
 save_var block_modules
