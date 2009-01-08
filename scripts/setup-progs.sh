@@ -43,6 +43,16 @@ source boot/$file
                         SOURCE=$(which "$file")
                         DEST="./bin/"
                 fi
+
+                # if we're given a symlink, always copy the linked file too
+                if [ -L "$SOURCE" ]; then
+                        LINK=$(readlink -e "$SOURCE")
+                        if [ -e "$LINK" ]; then
+                                mkdir -p .$(dirname "$LINK")
+                                cp_bin "$LINK" ."$LINK"
+                        fi
+                fi
+
                 cp_bin "$SOURCE" "$DEST"
             done
         done

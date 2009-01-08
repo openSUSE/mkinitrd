@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 08 11:07:14 CET 2009 - bwalle@suse.de
+
+- Implement dead symlink detection (bnc #431714)
+
+-------------------------------------------------------------------
 Wed Jan 07 18:24:30 CET 2009 - bwalle@suse.de
 
 - Fix libata detection: Now by default all libata drivers are
