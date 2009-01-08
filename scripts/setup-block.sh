@@ -34,7 +34,7 @@ handle_scsi()
     tgtnum=${devpath##*/}
     hostnum=${tgtnum%%:*}
     if [ ${tgtnum%%-*} = "vbd" ] ; then
-        result="xenblk"
+        modules="xenblk"
     else
         if [ ! -d /sys/class/scsi_host/host$hostnum ] ; then
             echo "scsi host$hostnum not found"
@@ -52,7 +52,7 @@ handle_scsi()
             block_uses_libata=1
         fi
 
-        result=$procname
+        modules=$procname
     fi
 
     eval "$2=\$modules"
