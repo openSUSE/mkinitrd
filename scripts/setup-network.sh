@@ -138,6 +138,27 @@ get_default_interface() {
     echo $ifname/$BOOTPROTO
 }
 
+get_network_module()
+{
+    local interface=$1
+
+    ifpath=$(cd -P /sys/class/net/$interface/device; echo $PWD)
+    if [ -f /sys/class/net/$interface/device/modalias ] ; then
+        read drvlink  < /sys/class/net/$interface/device/modalias
+    elif [ -f /sys/class/net/$interface/device/driver/module ] ; then
+        drvlink=$(cd /sys/class/net/$interface/device/driver; readlink module)
+    else
+        drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
+    fi
+    drvlink=${drvlink##*/}
+    # xen network driver registers as 'vif'
+    if [ "$drvlink" == "vif" ] ; then
+        drvlink=xennet
+    fi
+
+    echo "$drvlink"
+}
+
 if [ -z "$interface" ] ; then
     for addfeature in $ADDITIONAL_FEATURES; do
         if [ "$addfeature" = "network" ]; then
@@ -175,20 +196,21 @@ fi
 if [ -n "$interface" ] ; then
     # Pull in network module
     if [ -d /sys/class/net/$interface/device ] ; then
-        ifpath=$(cd -P /sys/class/net/$interface/device; echo $PWD)
-        if [ -f /sys/class/net/$interface/device/modalias ] ; then
-            read drvlink  < /sys/class/net/$interface/device/modalias
-        elif [ -f /sys/class/net/$interface/device/driver/module ] ; then
-            drvlink=$(cd /sys/class/net/$interface/device/driver; readlink module)
-        else
-            drvlink=$(cd /sys/class/net/$interface/device; readlink driver)
-        fi
-        drvlink=${drvlink##*/}
-        # xen network driver registers as 'vif'
-        if [ "$drvlink" == "vif" ] ; then
-            drvlink=xennet
-        fi
+        drvlink=$(get_network_module $interface)
         read macaddress < /sys/class/net/$interface/address
+    elif [ -d /sys/class/net/$interface/bonding ] ; then
+        verbose "[NETWORK]\tConfigure bonding for $interface"
+        bonding_module=bonding
+        drvlink=bonding
+        mode=$(< /sys/class/net/$interface/bonding/mode)
+        miimon=$(< /sys/class/net/$interface/bonding/miimon)
+        slave_macaddresses=$(sed -ne 's/Permanent HW addr: \(.*\)/\1/p' /proc/net/bonding/$interface)
+
+        # include hardware modules for the slaves
+        for interf in $(< /sys/class/net/$interface/bonding/slaves) ; do
+            mod=$(get_network_module $interf)
+            drvlink="$drvlink $mod"
+        done
     fi
 fi
 
@@ -212,3 +234,7 @@ save_var ip
 save_var interface
 save_var macaddress
 save_var drvlink
+save_var mode
+save_var miimon
+save_var slave_macaddresses
+save_var bonding_module

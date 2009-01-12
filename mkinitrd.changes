@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 12 14:11:34 CET 2009 - bwalle@suse.de
+
+- Add support for network bonding (bnc #460720).
+
+-------------------------------------------------------------------
 Mon Jan 12 14:08:52 CET 2009 - bwalle@suse.de
 
 - Explicitely require sd_mod when all libata drivers are included.
