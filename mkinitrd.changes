@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 12 17:00:38 CET 2009 - bwalle@suse.de
+
+- Add support for network bonding (bnc #460720).
+
+-------------------------------------------------------------------
 Sun Dec 14 18:24:00 CET 2008 - bwalle@suse.de
 
 - Implement logging (/var/log/YaST2/mkinitrd.log).

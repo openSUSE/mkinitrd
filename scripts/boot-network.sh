@@ -2,7 +2,7 @@
 #%stage: device
 #%programs: /sbin/dhcpcd /sbin/ip
 # dhcpcd reqires the af_packet module
-#%modules: af_packet 
+#%modules: af_packet $bonding_module
 #%udevmodules: $drvlink
 #%if: "$interface" -o "$dhcp" -o "$ip" -o "$nfsaddrs"
 #
@@ -16,7 +16,7 @@
 ## dhcp=<device>                                                                                                        if set runs dhcp on the given device (no dhcp if device is "off")
 ## ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:$autoconf     defines the ip configuration to use
 ## nfsaddrs                                                                                                                     an alias for "ip"
-## 
+##
 
 # load the modules before detecting which device we are going to use
 load_modules
@@ -24,6 +24,11 @@ load_modules
 # mac address based config
 if [ "$macaddress" ] ; then
     for dev in /sys/class/net/* ; do
+      # skip files that are no directories
+      if ! [ -d $dev ] ; then
+          continue
+      fi
+
       read tmpmac < $dev/address
       if [ "$tmpmac" == "$macaddress" ] ; then
         interface=${dev##*/}
@@ -38,7 +43,7 @@ if [ "$macaddress" ] ; then
     fi
 fi
 
-if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then 
+if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then
         ip=$nfsaddrs
 fi
 
@@ -64,6 +69,25 @@ fi
 if [ "$ip" -a "$nettype" != "dhcp" ]; then
         echo "[NETWORK] using static config based on ip=$ip"
         nettype=static
+fi
+
+if [[ "$drvlink" = *bonding* ]]; then
+    ip link set $interface down
+    echo "$miimon" > /sys/class/net/$interface/bonding/miimon
+    echo "$mode" > /sys/class/net/$interface/bonding/mode
+    ip link set $interface up
+    for address in $slave_macaddresses ; do
+        for dev in /sys/class/net/* ; do
+            if ! [ -d $dev ] ; then
+                continue
+            fi
+            read tmpmac < $dev/address
+            if [ "$tmpmac" == "$address" ] ; then
+                slave=${dev##*/}
+                echo "+$slave" > /sys/class/net/$interface/bonding/slaves
+            fi
+        done
+    done
 fi
 
 # dhcp based ip config
@@ -104,7 +128,7 @@ if [ "$nettype" = "dhcp" ]; then
       echo 'hosts: dns' > /etc/nsswitch.conf
     fi
   fi
-  
+
 # static ip config
 elif [ "$nettype" = "static" ]; then
   # configure interface
