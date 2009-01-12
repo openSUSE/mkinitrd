@@ -56,6 +56,10 @@ Options
 *-l*::
   Verbose listing, similar to "ls -l".
 
+*-c*::
+  Shows the contents of the configuration files (the _config_ directory in
+  the initrd). Useuful for debugging.
+
 Authors
 -------
 Hannes Reinecke <hare@suse.de>,

@@ -25,13 +25,17 @@
 #
 
 usage() {
-    echo "Usage: lsinitrd [-l] [-h] <initrd>"
+    echo "Usage: lsinitrd [-l] [-h] [-c] <initrd>"
 }
 
 while [ "$1" ] ; do
     case $1 in
         -l|--long)
             verbose=1
+            shift
+            ;;
+        -c|--config)
+            config=1
             shift
             ;;
         -h)
@@ -63,4 +67,13 @@ else
     args="-t"
 fi
 
-zcat $initrd | cpio $args
+if [ "$config" -eq 1 ] ; then
+    # yes, that's snow, but doesn't use any temporary files :)
+    for configfile in $(zcat $initrd | cpio $args 2>/dev/null | grep '^config/') ; do
+        echo "=========> $configfile <============"
+        zcat $initrd | cpio -i --to-stdout $configfile 2>/dev/null
+        echo
+    done
+else
+    zcat $initrd | cpio $args
+fi

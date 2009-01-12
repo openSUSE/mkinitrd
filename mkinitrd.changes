@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 12 16:56:19 CET 2009 - bwalle@suse.de
+
+- Implement -c option (show configuration) in lsinitrd(8).
+
+-------------------------------------------------------------------
 Mon Jan 12 14:11:34 CET 2009 - bwalle@suse.de
 
 - Add support for network bonding (bnc #460720).
