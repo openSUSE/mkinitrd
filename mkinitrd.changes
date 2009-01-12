@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 12 14:08:52 CET 2009 - bwalle@suse.de
+
+- Explicitely require sd_mod when all libata drivers are included.
+
+-------------------------------------------------------------------
 Thu Jan 08 18:16:29 CET 2009 - bwalle@suse.de
 
 - Fix handling of minor device numbers greater than 255

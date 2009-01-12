@@ -185,6 +185,7 @@ else
                         i=${i%*.ko}
                         block_modules="$block_modules ${i##*/}"
                     done
+                    block_modules="$block_modules sd_mod"
                     all_libata_modules_included=1
                 fi
             else
