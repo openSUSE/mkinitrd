@@ -40,7 +40,8 @@ while [ $# -gt 0 ] ; do
     esac
 done
 
-VERSION=$(sed -n 's/Version: *\(.*\)/\1/p' mkinitrd.spec)
+# get the version from the source file, not from the spec file
+eval $(grep '^VERSION' sbin/mkinitrd)
 
 if ! which git > /dev/null ; then
     echo "git not found, cannot continue"
@@ -83,7 +84,6 @@ git show $BRANCH:mkinitrd.spec > $DESTDIR/mkinitrd.spec
 git show $BRANCH:mkinitrd.changes > $DESTDIR/mkinitrd.changes
 
 # version
-eval $(grep '^VERSION' sbin/mkinitrd)
 sed -i "s/@@VERSION@@/$VERSION/g" $DESTDIR/mkinitrd.spec
 
 #
