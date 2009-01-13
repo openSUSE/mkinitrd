@@ -214,6 +214,12 @@ if [ -n "$interface" ] ; then
     fi
 fi
 
+# Copy the /etc/resolv.conf when the IP is static
+if [ "$interface" -a "$nettype" = "static" -a -f /etc/resolv.conf ] ; then
+    verbose "[NETWORK]\tUsing /etc/resolv.conf from the system in the initrd"
+    cp /etc/resolv.conf $tmp_mnt/etc
+fi
+
 # Get static IP configuration if requested
 if [ "$interface" -a "$nettype" = "static" ] ; then
     ip=$(get_ip_config $interface)

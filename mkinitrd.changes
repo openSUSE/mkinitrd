@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 13 14:08:33 CET 2009 - bwalle@suse.de
+
+- Copy the system resolv.conf for static IP configurations
+  to make name resolution work in the kdump case when static
+  IPs are used (bnc #459065).
+
+-------------------------------------------------------------------
 Mon Jan 12 17:00:38 CET 2009 - bwalle@suse.de
 
 - Add support for network bonding (bnc #460720).
