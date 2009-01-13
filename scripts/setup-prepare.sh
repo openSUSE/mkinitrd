@@ -11,6 +11,7 @@
 #%param_A: "Create a so called \"monster initrd\" which includes all features and modules possible."
 #%param_B: "Do not update bootloader configuration."
 #%param_v: "Verbose mode."
+#%param_R: "Print release (version)."
 #%param_L: "Disable logging."
 #%param_h: "This help screen."
 #
