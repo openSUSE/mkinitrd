@@ -25,6 +25,7 @@
 # git://git.opensuse.org/projects/mkinitrd.git
 #
 
+VERSION=2.5.0
 LOGDIR=/var/log/YaST2
 LOGFILE=$LOGDIR/mkinitrd.log
 declare -a cmd_option
@@ -247,6 +248,9 @@ while getopts $( cmd_getopts ) a ; do
         h)  usage
             exit 0
             ;;
+        R)  echo "mkinitrd $VERSION"
+            exit 0
+            ;;
         *)  if cmd_docmd $a; then
                 next_param && eval "$cmd_param_name='$OPTARG'"
                 eval param_$a=1
@@ -438,7 +442,7 @@ mkinitrd_kernel() {
         local kernel_image=$1 initrd_image=$2
         shebang=/bin/bash
         oldpwd="$(pwd)"
-        
+
         for setupfile in $INITRD_PATH/setup/*.sh; do
                 [ -d "$tmp_mnt" ] && cd "$tmp_mnt" # process setup files in the initrd root dir
                 if [ ! -d "$setupfile" ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Build a mkinitrd source rpm 
+# Build a mkinitrd source rpm
 #
 
 DESTDIR="/tmp/mkinitrd"
@@ -82,6 +82,9 @@ git archive --format=tar --prefix=mkinitrd-$VERSION/ "$BRANCH" \
 git show $BRANCH:mkinitrd.spec > $DESTDIR/mkinitrd.spec
 git show $BRANCH:mkinitrd.changes > $DESTDIR/mkinitrd.changes
 
+# version
+eval $(grep '^VERSION' sbin/mkinitrd)
+sed -i "s/@@VERSION@@/$VERSION/g" $DESTDIR/mkinitrd.spec
 
 #
 # if the user specified

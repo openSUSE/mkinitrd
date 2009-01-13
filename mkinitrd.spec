@@ -18,7 +18,7 @@ Group:          System/Base
 BuildRequires:  asciidoc
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
 AutoReqProv:    on
-Version:        2.4
+Version:        @@VERSION@@
 Release:        1
 Conflicts:      udev < 118
 Requires:       dhcpcd
