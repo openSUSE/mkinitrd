@@ -67,8 +67,8 @@ Options
   Shows help output and exits.
 
 *-R*::
-  Prints the version and exits. We use *-R* because *-v* (verbose) and *-V*
-  (vendor scripts) are already taken.
+  Prints the version and exits. We use *-R* (release) because *-v* (verbose) and
+  *-V* (vendor scripts) are already taken.
 
 *-k* _kernel_list_::
 List  of  kernel images for which initrd files are created (relative to
