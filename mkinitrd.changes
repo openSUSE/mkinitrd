@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 13 14:08:33 CET 2009 - bwalle@suse.de
+
+- Copy the system resolv.conf for static IP configurations
+  to make name resolution work in the kdump case when static
+  IPs are used (bnc #459065).
+
+-------------------------------------------------------------------
 Mon Jan 12 16:56:19 CET 2009 - bwalle@suse.de
 
 - Implement -c option (show configuration) in lsinitrd(8).
