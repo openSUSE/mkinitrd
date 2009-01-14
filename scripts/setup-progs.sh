@@ -46,14 +46,16 @@ source boot/$file
 
                 # if we're given a symlink, always copy the linked file too
                 if [ -L "$SOURCE" ]; then
-                        LINK=$(readlink -e "$SOURCE")
-                        if [ -e "$LINK" ]; then
-                                mkdir -p .$(dirname "$LINK")
-                                cp_bin "$LINK" ."$LINK"
-                        fi
+                    LINK=$(readlink -e "$SOURCE")
+                    if [ -e "$LINK" ]; then
+                        mkdir -p .$(dirname "$LINK")
+                        cp_bin "$LINK" ."$LINK"
+                    else
+                        echo 2>&1 "WARNING: $LINK is a dangling symlink"
+                    fi
+                else
+                    cp_bin "$SOURCE" "$DEST"
                 fi
-
-                cp_bin "$SOURCE" "$DEST"
             done
         done
     fi

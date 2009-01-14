@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 14 16:49:55 CET 2009 - bwalle@suse.de
+
+- Fix symlink detection (bnc #431714).
+- Update version to 2.5.0.
+
+-------------------------------------------------------------------
 Tue Jan 13 14:08:33 CET 2009 - bwalle@suse.de
 
 - Copy the system resolv.conf for static IP configurations
