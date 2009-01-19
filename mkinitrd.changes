@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 19 17:30:12 CET 2009 - bwalle@suse.de
+
+- Use the mount options of the root file system from /etc/fstab
+  when building the initrd and save it in the initrd image
+  (bnc #449369).
+
+-------------------------------------------------------------------
 Wed Jan 14 16:49:55 CET 2009 - bwalle@suse.de
 
 - Fix symlink detection (bnc #431714).

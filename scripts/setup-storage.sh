@@ -353,5 +353,6 @@ save_var rootdev
 save_var resumedev
 save_var journaldev
 save_var dumpdev
+save_var rootfsopts
 blockdev="$(resolve_device Root $rootdev) $(resolve_device Resume $resumedev) $(resolve_device Journal $journaldev) $(resolve_device Dump $dumpdev)"
 
