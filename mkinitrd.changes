@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 19 17:30:12 CET 2009 - bwalle@suse.de
+
+- Use the mount options of the root file system from /etc/fstab
+  when building the initrd and save it in the initrd image
+  (bnc #449369).
+
+-------------------------------------------------------------------
 Tue Jan 13 14:08:33 CET 2009 - bwalle@suse.de
 
 - Copy the system resolv.conf for static IP configurations

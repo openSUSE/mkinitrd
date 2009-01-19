@@ -129,8 +129,19 @@ echo "Mounting root $rootdev"
 # check external journal
 [ "$rootfstype" = "xfs" -a -n "$journaldev" ] && opt="${opt},logdev=$journaldev"
 [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && opt="${opt},jdev=$journaldev"
-[ -n "$rootflags" ] && opt="${opt},$rootflags"
+
+# use options from /etc/fstab but allow that to be overwritten by the
+# "rootflags" command line
+if [ -n "$rootflags" ] ; then
+    opt="${opt},$rootflags"
+else
+    if [ -n "$rootfsopts" ] ; then
+        opt="${opt},$rootfsopts"
+    fi
+fi
+
 [ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
+echo mount $opt $rootdev /root
 mount $opt $rootdev /root
 if [ $? -ne 0 ] ; then
     echo "could not mount root filesystem -- exiting to /bin/sh"
