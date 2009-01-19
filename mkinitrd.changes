@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jan 19 17:39:19 CET 2009 - bwalle@suse.de
+
+- Mount /root/proc (/proc of the perspective of the system which is
+  booted) in initrd because of SELinux (bnc #467342).
+
+-------------------------------------------------------------------
 Mon Jan 19 17:30:12 CET 2009 - bwalle@suse.de
 
 - Use the mount options of the root file system from /etc/fstab
