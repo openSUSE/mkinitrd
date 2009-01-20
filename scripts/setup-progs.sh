@@ -44,6 +44,8 @@ source boot/$file
                         DEST="./bin/"
                 fi
 
+                cp_bin "$SOURCE" "$DEST"
+
                 # if we're given a symlink, always copy the linked file too
                 if [ -L "$SOURCE" ]; then
                     LINK=$(readlink -e "$SOURCE")
@@ -53,8 +55,6 @@ source boot/$file
                     else
                         echo 2>&1 "WARNING: $LINK is a dangling symlink"
                     fi
-                else
-                    cp_bin "$SOURCE" "$DEST"
                 fi
             done
         done
