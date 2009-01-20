@@ -138,12 +138,15 @@ default_kernel_images() {
     local regex kernel_image kernel_version version_version initrd_image
     local qf='%{NAME}-%{VERSION}-%{RELEASE}\n'
 
-    case "$(uname -m)" in
+    case "$(uname -i)" in
         s390|s390x)
             regex='image'
             ;;
         ppc|ppc64)
             regex='vmlinux'
+            ;;
+        i386|x86_64)
+            regex='vmlinuz'
             ;;
         *)  regex='vmlinu.'
             ;;
