@@ -25,7 +25,7 @@
 # git://git.opensuse.org/projects/mkinitrd.git
 #
 
-VERSION=2.5.0
+VERSION=2.5.1
 LOGDIR=/var/log/YaST2
 LOGFILE=$LOGDIR/mkinitrd.log
 declare -a cmd_option

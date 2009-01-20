@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 20 15:30:35 CET 2009 - bwalle@suse.de
+
+- Fix symlink detection again (bnc #467531).
+- Update version to 2.5.1.
+
+-------------------------------------------------------------------
 Mon Jan 19 17:30:12 CET 2009 - bwalle@suse.de
 
 - Use the mount options of the root file system from /etc/fstab
