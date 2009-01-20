@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 20 19:24:07 CET 2009 - bwalle@suse.de
+
+- Match for 'vmlinuz' on i386/x86_64 first.
+- Update version to 2.5.2.
+
+-------------------------------------------------------------------
 Tue Jan 20 15:30:35 CET 2009 - bwalle@suse.de
 
 - Fix symlink detection again (bnc #467531).
