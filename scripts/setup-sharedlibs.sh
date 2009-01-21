@@ -67,7 +67,7 @@ if [ -n "$lib_files" ]; then
     done
     lib_files=
     case "$(uname -m)" in
-        alpha|ia64)
+        ia64)
             mkdir -p $tmp_mnt/lib
             lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/lib{gcc_s,unwind}.so*`"
             ;;
