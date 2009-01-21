@@ -69,7 +69,7 @@ if [ -n "$lib_files" ]; then
     case "$(uname -m)" in
         alpha|ia64)
             mkdir -p $tmp_mnt/lib
-            lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
+            lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/lib{gcc_s,unwind}.so*`"
             ;;
         *)
             # no symlinks, most point into the running system
