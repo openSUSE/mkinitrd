@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 21 20:36:25 CET 2009 - bwalle@suse.de
+
+- Include libunwind on IA64 (bnc #459218).
+
+-------------------------------------------------------------------
 Mon Jan 19 17:39:19 CET 2009 - bwalle@suse.de
 
 - Mount /root/proc (/proc of the perspective of the system which is
