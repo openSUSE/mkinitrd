@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 22 16:33:58 CET 2009 - bwalle@suse.de
+
+- Resolve hostnames in /etc/hosts (bnc #468090).
+
+-------------------------------------------------------------------
 Wed Jan 21 20:36:25 CET 2009 - bwalle@suse.de
 
 - Include libunwind on IA64 (bnc #459218).
