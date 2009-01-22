@@ -114,7 +114,7 @@ if [ "$nettype" = "dhcp" ]; then
       if [ -n "$DOMAIN" ]; then
           echo "search $DOMAIN" >> /etc/resolv.conf
       fi
-      echo 'hosts: dns' > /etc/nsswitch.conf
+      echo 'hosts: files dns' > /etc/nsswitch.conf
     elif [ -n "$DNSSERVERS" ]; then
       oifs="$IFS"
       IFS=" "
@@ -125,7 +125,7 @@ if [ "$nettype" = "dhcp" ]; then
       if [ -n "$DNSDOMAIN" ]; then
           echo "search $DNSDOMAIN" >> /etc/resolv.conf
       fi
-      echo 'hosts: dns' > /etc/nsswitch.conf
+      echo 'hosts: files dns' > /etc/nsswitch.conf
     fi
   fi
 
@@ -147,5 +147,6 @@ elif [ "$nettype" = "static" ]; then
     ip="${ip#*:}" # first entry => iface
     INTERFACE="${ip%%:*}"
   fi
+  echo 'hosts: files dns' > /etc/nsswitch.conf
 fi
 
