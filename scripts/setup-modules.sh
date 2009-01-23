@@ -56,6 +56,7 @@ add_module() {
 check_builtin_module() {
     local config_file=${initrd_image/initrd/config}
     local config_option
+    local module=$1
 
     # if the config file does not exist => not compiled in
     if ! [ -f "$config_file" ] ; then
@@ -65,9 +66,9 @@ check_builtin_module() {
     case "$(basename $module .ko)" in
         usbcore)
             config_option=CONFIG_USB ;;
-        ohci_hcd)
+        ohci[_-]hcd)
             config_option=CONFIG_USB_OHCI_HCD ;;
-        ehci_hcd)
+        ehci[_-]hcd)
             config_option=CONFIG_USB_EHCI_HCD ;;
         usbhid)
             config_option=CONFIG_USB_HID ;;
@@ -247,13 +248,15 @@ get_add_module_deps()
         requirements=${entry/*:}
         if [ "$module" = "$mod" ] ; then
             for m in $requirements ; do
-                filename=$(modinfo -k "$version" -F filename $m)
-                if [ -z "$filename" ] ; then
-                    echo >&2 "Ignoring additional requirement $mod REQUIRES $m"
-                else
-                    echo -n "$filename "
-                    get_add_module_deps "$m" "$version" 1
-                    printed=$[printed+1]
+                if ! check_builtin_module "$m" ; then
+                    filename=$(modinfo -k "$version" -F filename $m)
+                    if [ -z "$filename" ] ; then
+                        echo >&2 "Ignoring additional requirement $mod REQUIRES $m"
+                    else
+                        echo -n "$filename "
+                        get_add_module_deps "$m" "$version" 1
+                        printed=$[printed+1]
+                    fi
                 fi
             done
         fi
