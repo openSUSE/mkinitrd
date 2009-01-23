@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 23 11:34:10 CET 2009 - bwalle@suse.de
+
+- Fix compiled-in module detection, mostly for PPC (bnc #449123).
+
+-------------------------------------------------------------------
 Thu Jan 22 16:33:58 CET 2009 - bwalle@suse.de
 
 - Resolve hostnames in /etc/hosts (bnc #468090).
