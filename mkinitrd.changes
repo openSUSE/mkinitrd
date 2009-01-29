@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 29 16:41:15 CET 2009 - bwalle@suse.de
+
+- Don't use the 'ip' from environment (bnc #450680).
+- Update version to 2.5.6.
+
+-------------------------------------------------------------------
 Fri Jan 23 11:31:02 CET 2009 - bwalle@suse.de
 
 - Fix compiled-in module detection, mostly for PPC (bnc #449123).
