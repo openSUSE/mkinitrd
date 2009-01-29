@@ -167,6 +167,7 @@ if [ -z "$interface" ] ; then
     done
 fi
 
+ip=
 interface=${interface#/dev/}
 [ "$param_D" ] && nettype=dhcp
 [ "$param_I" ] && nettype=static
