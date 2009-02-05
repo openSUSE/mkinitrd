@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb  5 21:07:57 CET 2009 - bwalle@suse.de
+
+- Require libxslt in spec file.
+- Update version to 2.5.7.
+
+-------------------------------------------------------------------
 Thu Jan 29 16:41:15 CET 2009 - bwalle@suse.de
 
 - Don't use the 'ip' from environment (bnc #450680).
