@@ -15,7 +15,7 @@ Name:           mkinitrd
 License:        GPL v2 or later
 Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
-BuildRequires:  asciidoc
+BuildRequires:  asciidoc libxslt
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
 AutoReqProv:    on
 Version:        @@VERSION@@
