@@ -118,9 +118,6 @@ Attach compiled ACPI DSDT (Differentiated System Description Table) to initrd.
 This replaces  the  DSDT of the BIOS. Defaults to the _ACPI_DSDT_ variable in
 */etc/sysconfig/kernel*.
 
-*-t* _tmp_dir_::
-tmp dir, defaults to "/tmp".
-
 *-e*::
 Use static binaries where possible. (currently unavailable)
 
@@ -333,6 +330,10 @@ Environment variables
 ---------------------
 You  can  specify  the  root  device  via  the  environment variable rootdev
 (e.g. "rootdev=/dev/hda mkinitrd").
+
+Also, the temporary directory which is used to build the initrd can be specified
+using the _TMPDIR_ environment. If not set, _/dev/shm_ is used as root (when
+it's writable) and _/tmp_ otherwise.
 
 Authors
 -------

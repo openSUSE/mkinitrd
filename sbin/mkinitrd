@@ -244,6 +244,17 @@ if [ -e "/etc/sysconfig/initrd" ]; then
     . /etc/sysconfig/initrd
 fi
 
+if [ -w /dev/shm ]; then
+    tmp_dir=/dev/shm
+else
+    tmp_dir=${TMPDIR:-/var/tmp}
+fi
+
+if [ ! -d "$tmp_dir" ]; then
+    echo "$tmp_dir is not a directory" >&2
+    exit 1
+fi
+
 saved_args=$@
 read_options
 while getopts $( cmd_getopts ) a ; do
@@ -297,16 +308,6 @@ else
 fi
 if [ ! -d "$boot_dir" ]; then
     echo "$boot_dir is not a directory" >&2
-    exit 1
-fi
-
-if [ -n "$tmp_dir" ]; then
-    tmp_dir="/${tmp_dir#/}"  # make sure it is an absolute path
-else
-    tmp_dir=/dev/shm
-fi
-if [ ! -d "$tmp_dir" ]; then
-    echo "$tmp_dir is not a directory" >&2
     exit 1
 fi
 
