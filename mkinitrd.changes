@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Feb  6 15:13:31 CET 2009 - bwalle@suse.de
+
+- Fix /sbin/mkinitrd -h as user.
+- Honor TMPDIR environment.
+- Remove -t parameter.
+- Update version to 2.5.8.
+
+-------------------------------------------------------------------
 Thu Feb  5 21:07:57 CET 2009 - bwalle@suse.de
 
 - Require libxslt in spec file.
