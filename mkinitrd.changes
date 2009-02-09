@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb  9 09:56:22 CET 2009 - bwalle@suse.de
+
+- Implement temporary directory selection exactly as specified in
+  the manual page.
+- Update version to 2.5.9.
+
+-------------------------------------------------------------------
 Fri Feb  6 15:13:31 CET 2009 - bwalle@suse.de
 
 - Fix /sbin/mkinitrd -h as user.
