@@ -245,9 +245,9 @@ if [ -e "/etc/sysconfig/initrd" ]; then
 fi
 
 if [ -w /dev/shm ]; then
-    tmp_dir=/dev/shm
+    tmp_dir=${TMPDIR:-/dev/shm}
 else
-    tmp_dir=${TMPDIR:-/var/tmp}
+    tmp_dir=${TMPDIR:-/tmp}
 fi
 
 if [ ! -d "$tmp_dir" ]; then
