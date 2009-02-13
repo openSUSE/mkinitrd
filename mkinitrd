@@ -2769,7 +2769,7 @@ mkinitrd_kernel() {
 	|	    if [ -e $root ]; then
 	|	        devn=$(devnumber $root)
 	|	        major=$(devmajor $devn)
-	|		if [ -z "$dm_major" ] || [ "$major" == "$dm_major" ] ; then
+	|		if [ -z "$dm_major" ] || [ "$major" == "$dm_major" ] || [ "$major" == "$md_major" ] ; then
 	|		    retval=0
 	|		    echo " ok"
 	|		    break;
@@ -2975,6 +2975,8 @@ mkinitrd_kernel() {
 
     if [ -n "$need_mdadm" ]; then
 	cat_linuxrc <<-EOF
+	|
+	|md_major=$(sed -n 's/ *\(.*\) md$/\1/p' /proc/devices)
 	|
 	|if [ -f /etc/mdadm.conf ] ; then
 	|    mdconf="-Ac /etc/mdadm.conf"
@@ -3769,6 +3771,7 @@ if [ -n "$root_dm" ] ; then
 	    add_module dm-emc
 	    add_module dm-rdac
 	    add_module dm-hp_sw
+	    add_module dm-alua
 	fi
     done
 fi
