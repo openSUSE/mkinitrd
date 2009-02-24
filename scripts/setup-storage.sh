@@ -39,8 +39,10 @@ devmajor() {
 
 # Extract the minor part from a device number
 devminor() {
-    local devn=${1:-0}
-    echo $(( $devn % 256 )) 
+    local devn=${1:-0} minorhi minorlo
+    minorlo=$(( $devn % 256 ))
+    minorhi=$(( $devn / 1048576 ))
+    echo $(( $minorhi * 256 + $minorlo )) 
 }
 
 # (We are using a devnumber binary inside the initrd.)
