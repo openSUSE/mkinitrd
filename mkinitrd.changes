@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar  5 15:31:37 CET 2009 - hare@suse.de
+
+- MD and multipath doesn't work together (bnc#449702)
+- Enable disk quotas correctly (bnc#430975)
+
+-------------------------------------------------------------------
 Mon Oct 13 16:02:52 CEST 2008 - hare@suse.de
 
 - Fix race condition between multipath and LVM (bnc#407512)
