@@ -3413,7 +3413,15 @@ mkinitrd_kernel() {
 	|    fsoptions=
 	|    while [ "$1" ] ; do
 	|        case $1 in
-	|        *quota) ;;
+	|        *quota)
+	|            if [ "$rootfstype" != "xfs" ] ; then
+	|                if [ "$fsoptions" ] ; then
+	|                    fsoptions="$fsoptions,$1"
+	|                else
+	|                    fsoptions="$1"
+	|                fi
+	|             fi
+	|             ;;
 	|        defaults) ;;
 	|        *)
 	|            if [ "$fsoptions" ] ; then
