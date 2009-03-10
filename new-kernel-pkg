@@ -56,7 +56,10 @@ update_zipl_conf() {
 	awk "$common"'
 	sec == "'"$boot"'" \
 			{ $1 == "image"		&& $3 = "/boot/image"
-			  $1 == "ramdisk"	&& $3 = "/boot/initrd"
+			  if ($1 == "ramdisk") {
+			  	 i = index($3,",")
+				 $3 = "/boot/initrd" ( i > 0 ? substr($3,i) : "" )
+			  }
                           if ($1 == "parameters" && $0 !~ /TERM=/) { \
 			      $0 = "parameters = \"" uq(fields(3)) \
 			         " TERM=dumb\"" } }
