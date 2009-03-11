@@ -1634,7 +1634,12 @@ mkinitrd_kernel() {
 	cp_bin /sbin/{vgscan,vgchange,lvm} $tmp_mnt/sbin
 	cp_bin /sbin/dmsetup $tmp_mnt/sbin
 	cp_bin /bin/{sed,mkdir,mknod,ls} $tmp_mnt/bin
-	cp -a /etc/lvm/lvm.conf $tmp_mnt/etc/lvm
+	# write a dump of the lvm configuration instead of copying lvm.conf if hosttags are in use
+	if  grep -v '^#' /etc/lvm/lvm.conf | grep '\bhosttags[[:space:]]*=[[:space:]]*1\b' >/dev/null  ; then 
+		/sbin/lvm dumpconfig > $tmp_mnt/etc/lvm/lvm.conf
+	else
+		cp -a /etc/lvm/lvm.conf $tmp_mnt/etc/lvm
+	fi
     fi
 
     if [ -n "$root_evms" ] ; then

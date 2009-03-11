@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 11 14:39:04 CET 2009 - mvancura@suse.cz
+
+- write a dump of the lvm configuration instead of copying lvm.conf
+  if hosttags are in use (bnc#476428)
+
+-------------------------------------------------------------------
 Thu Mar  5 15:31:37 CET 2009 - hare@suse.de
 
 - MD and multipath doesn't work together (bnc#449702)
