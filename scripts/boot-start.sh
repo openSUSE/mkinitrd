@@ -16,6 +16,7 @@
 ##
 ## console              the device we should redirect the output to (ttyS0 for serial console)
 ## linuxrc=trace        activates debugging for the initrd process
+## tmpfs_options	tmpfs extra mount options (for /dev)
 ## [module].param=value sets a kernel module parameter
 ##
 
@@ -33,7 +34,7 @@ die() {
 
 mount -t proc  proc  /proc
 mount -t sysfs sysfs /sys
-mount -t tmpfs -o mode=0755 udev /dev
+mount -t tmpfs -o mode=0755${tmpfs_options:+,$tmpfs_options} udev /dev
 
 mknod -m 0666 /dev/tty     c 5 0
 mknod -m 0600 /dev/console c 5 1
