@@ -4,7 +4,7 @@
 # dhcpcd reqires the af_packet module
 #%modules: af_packet $bonding_module
 #%udevmodules: $drvlink
-#%if: "$interface" -o "$dhcp" -o "$ip" -o "$nfsaddrs"
+#%if: "$interface" -o "$dhcp" -o "$ip" -o "$nfsaddrs" -o "$drvlink"
 #
 ##### network initialization
 ##
@@ -148,5 +148,12 @@ elif [ "$nettype" = "static" ]; then
     INTERFACE="${ip%%:*}"
   fi
   echo 'hosts: files dns' > /etc/nsswitch.conf
+elif [ "$nettype" = "ifup" ] ; then
+    for i in /etc/sysconfig/network/ifcfg-* ; do
+	interface=${i##*/ifcfg-}
+	[ -d /sys/class/net/$interface/device ] || continue
+	[ "$interface" = "lo" ] && continue
+	ifup $interface
+    done
 fi
 
