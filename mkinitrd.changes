@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun 30 12:01:18 CEST 2009 - hare@suse.de
+
+- Use correct multipath bindings file (bnc#500785)
+
+-------------------------------------------------------------------
 Wed Mar 11 14:39:04 CET 2009 - mvancura@suse.cz
 
 - write a dump of the lvm configuration instead of copying lvm.conf
