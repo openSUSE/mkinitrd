@@ -1,4 +1,50 @@
 -------------------------------------------------------------------
+Wed Jun 24 18:47:12 CEST 2009 - thomas@novell.com
+
+- only copy *.sh files to scripts directory 
+
+-------------------------------------------------------------------
+Wed Jun 24 16:23:12 CEST 2009 - thomas@novell.com
+
+- only include scripts with .sh extension in rpm file to fix
+  build failure 
+
+-------------------------------------------------------------------
+Tue Jun 23 07:38:22 CEST 2009 - thomas@novell.com
+
+- mounting /root/proc for SELinux (bnc#457984) 
+
+-------------------------------------------------------------------
+Mon May 25 12:15:08 CEST 2009 - ro@suse.de
+
+- silence warning about rightfully non existing modprobe.conf 
+
+-------------------------------------------------------------------
+Tue May 19 21:37:10 CEST 2009 - jeffm@suse.de
+
+- Added firmware rules to udev (bnc#494199)
+
+-------------------------------------------------------------------
+Mon May  4 17:53:55 CEST 2009 - werner@suse.de
+
+- Do not include binaries for bash builtins
+
+-------------------------------------------------------------------
+Wed Apr 29 17:41:38 CEST 2009 - werner@suse.de
+
+- Minor changes
+
+-------------------------------------------------------------------
+Tue Apr 28 16:10:31 CEST 2009 - werner@suse.de
+
+- sed is powerfull, use it instead using several pipes
+- use usleep for waiting on events
+- use the settimeofday feature to warp the system clock for
+  systems which use the localtime in the UTC
+- add scripts from aaa_base for loading rtc module and warp
+  the clock for systems with local time in RTC
+
+-------------------------------------------------------------------
 Mon Feb  9 09:56:22 CET 2009 - bwalle@suse.de
 
 - Implement temporary directory selection exactly as specified in
