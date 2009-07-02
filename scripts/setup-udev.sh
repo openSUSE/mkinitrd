@@ -13,6 +13,7 @@ mkdir -p $tmp_mnt/etc/udev/rules.d
 for rule in \
     05-udev-early.rules \
     50-udev-default.rules \
+    50-firmware.rules \
     59-dasd.rules \
     60-persistent-storage.rules \
     60-persistent-input.rules \
