@@ -18,7 +18,7 @@ Group:          System/Base
 BuildRequires:  asciidoc libxslt
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
 AutoReqProv:    on
-Version:        @@VERSION@@
+Version:        2.5.9
 Release:        1
 Conflicts:      udev < 118
 Requires:       dhcpcd
@@ -57,6 +57,7 @@ Authors:
 
 %build
 gcc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/run-init src/run-init.c
+gcc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/warpclock src/warpclock.c
 make -C man
 sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitrd
 echo "Checking scripts:"
@@ -76,7 +77,7 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
-cp -a scripts $RPM_BUILD_ROOT/lib/mkinitrd
+cp -a scripts/*.sh $RPM_BUILD_ROOT/lib/mkinitrd/scripts/
 cp -a lib/mkinitrd/bin $RPM_BUILD_ROOT/lib/mkinitrd/bin
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
@@ -105,7 +106,7 @@ EOF
 %dir /lib/mkinitrd/boot
 %dir /lib/mkinitrd/setup
 %config /etc/rpm/macros.mkinitrd
-/lib/mkinitrd/scripts/*
+/lib/mkinitrd/scripts/*.sh
 /lib/mkinitrd/bin/*
 /sbin/mkinitrd
 /sbin/mkinitrd_setup
