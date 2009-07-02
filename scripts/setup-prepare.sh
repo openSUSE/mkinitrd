@@ -146,8 +146,10 @@ echo -n > $tmp_mnt/etc/mtab
 
 # Add modprobe, modprobe.conf*, and a version of /bin/true: modprobe.conf
 # might use it.
-cp -r $root_dir/etc/modprobe.conf $root_dir/etc/modprobe.conf.local \
-    $root_dir/etc/modprobe.d $tmp_mnt/etc
+for mod in $root_dir/etc/modprobe.conf $root_dir/etc/modprobe.conf.local \
+    $root_dir/etc/modprobe.d ; do
+    test -e $mod && cp -r $mod $tmp_mnt/etc
+done
 cat > $tmp_mnt/bin/true <<-EOF
 #! /bin/sh
 :
