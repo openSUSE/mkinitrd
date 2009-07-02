@@ -456,6 +456,12 @@ Tue Oct 13 09:12:54 CEST 2009 - mvancura@suse.cz
   (bnc#494364)
 
 -------------------------------------------------------------------
+Thu Jul  2 08:29:18 UTC 2009 - hare@suse.de
+
+- Include firmware loading rules (bnc#494199, bnc#713127,
+  bnc#712899).
+
+-------------------------------------------------------------------
 Thu Apr 30 10:00:34 CEST 2009 - hare@suse.de
 
 - Using ifup for network initialisation (bnc#487723).
