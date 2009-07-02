@@ -10,7 +10,7 @@ for script in $INITRD_PATH/boot/*.sh; do
         file="${script##*/}"
         feature="${file#*-}"
         feature="${feature%.sh}"
-        if [ ! "$(cat $script | grep '%dontshow')" ]; then
+        if ! grep -q '%dontshow' < "$script" ; then
             features="$features $feature"
         fi
         # copy the script itself
@@ -21,16 +21,16 @@ for script in $INITRD_PATH/boot/*.sh; do
         [ -e "config/${file#*-}" ] && cat "config/${file#*-}" >> run_all.sh
         # echo "[ -e "config/${file#*-}" ] && . \"config/${file#*-}\"" >> run_all.sh
         # -- check if we should run the module
-        condition="$(sed -n 's/^#%if:\(.*\)$/if [ \1 ]; then/p' "$script")"
+        condition="$(sed -rn 's/^#[[:blank:]]*%if:[[:blank:]]*(.*)$/if [ \1 ]; then/p' < "$script")"
           echo "$condition" >> run_all.sh
           # -- remember dependent modules
-          sed -n 's/^#%modules:\(.*\)$/modules="\1"/p' $script >> run_all.sh
+          sed -rn 's/^#[[:blank:]]*%modules:[[:blank:]]*(.*)$/modules="\1"/p' < $script >> run_all.sh
           echo "[ \"\$debug\" ] && echo running $file
 source boot/$file
 [ \"\$modules\" ] && load_modules" >> run_all.sh
         [ "$condition" ] && echo "fi" >> run_all.sh
         # and all programs it needs
-        for files in $(cat $script | grep '%programs: ' | sed 's/^#%programs: \(.*\)$/\1/'); do
+        for files in $(sed -rn 's/^#[[:blank:]]*%programs:[[:blank:]]*(.*)$/\1/p' < "$script"); do
             for file in $(eval echo $files); do
                 if [ "${file:0:17}" = "/lib/mkinitrd/bin" ]; then
                         SOURCE=$file
@@ -40,7 +40,10 @@ source boot/$file
                         [ ! -e $file -a -e /usr$file ] && SOURCE="/usr$file"
                         DEST=".$file"
                 else
-                        SOURCE=$(which "$file")
+                        case "$(type -t "$file")" in
+                        builtin) continue
+                        esac
+                        SOURCE=$(type -p "$file")
                         DEST="./bin/"
                 fi
 

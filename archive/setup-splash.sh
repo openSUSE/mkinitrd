@@ -24,9 +24,7 @@ auto)
     modes=
     for file in $root_dir/{etc/lilo.conf,boot/grub/menu.lst,proc/cmdline}; do
 	[ -e $file ] || continue
- 	modes="$modes $(sed -e '/^[ \t]*#/d' $file \
-			| sed -ne 's/^.*vga[ \t]*=[ \t]*\([^ \t]*\).*/\1/p' \
-			| sed -ne '/^\([0-9]\+\|0[xX][0-9a-fA-F]\+\)$/p')"
+ 	modes="$modes $(sed -rn  '/^[[:blank:]]*[^#]/{ s/^.*vga[[:blank:]]*=[[:blank:]]*([[:digit:]]+|0[xX][[:xdigit:]]+)/\1/p; }' $file)"
     done
 
     for mode in $modes; do

@@ -45,9 +45,7 @@ if [ "$root_luks" ]; then
 	    luks_lang=$LANG
 	    ;;
     esac
-    for m in $(cat /proc/crypto | grep module | sed 's/^module .*: \(.*\)$/\1/'); do
-	cryptmodules="$cryptmodules $m"
-    done
+    cryptmodules="$(sed -rn 's/^module[[:blank:]]*:[[:blank:]]*(.*)$/\1/p' < /proc/crypto)"
 fi
 
 save_var root_luks	# do we have luks?

@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #%stage: boot
-#
+#%programs: usleep
 #%dontshow
 #
 ##### Device functions
@@ -45,10 +45,12 @@ check_for_device() {
     local root
     local type
     local retval=1
-    local timeout=$udev_timeout
     local dm_major
     local udev_devn
     local udev_major
+    local -i timeout
+
+    let timeout=$udev_timeout\*40
 
     root=$1
     type=$2
@@ -77,8 +79,8 @@ check_for_device() {
                         echo -n "!"
                         multipath -v0
                         wait_for_events
-                        sleep 1
-                        timeout=$(( $timeout - 1 ))
+                        usleep 25000
+                        let timeout--
                         continue;
                     fi
                 else
@@ -87,9 +89,9 @@ check_for_device() {
                     break;
                 fi
             fi
-            sleep 1
-            echo -n "."
-            timeout=$(( $timeout - 1 ))
+            usleep 25000
+            ((timeout % 40 == 1)) && echo -n "."
+            let timeout--
             # Recheck for LVM volumes
             if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
                 vgscan

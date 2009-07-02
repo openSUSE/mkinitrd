@@ -302,7 +302,7 @@ resolve_modules() {
             --set-version $kernel_version --ignore-install \
             --show-depends $module \
             $additional_args \
-            | sed -ne 's:.*insmod /\?::p' | sed -ne 's:\ .*\?::p' )
+            | sed -rn 's:.*insmod[[:blank:]]+/?::;s:[[:blank:]].*?$::;p' )
         if [ ! "$module_list" ]; then
             echo \
 "WARNING: no dependencies for kernel module '$module' found." >&2
@@ -343,7 +343,7 @@ modules=
 for script in $INITRD_PATH/boot/*.sh; do
     if use_script "$script"; then # only include the modules if the script gets used
         verbose -n ""
-        for module in $(cat $script | egrep '%udevmodules: |%modules: ' | sed 's/^.*s: \(.*\)$/\1/'); do
+        for module in $(sed -rn 's/^#[[:blank:]]*%(udevmodules|modules):[[:blank:]]*(.*)$/\2/p' < $script); do
             [ "$module" ] && verbose "[MODULES]\t$(basename $script): $(eval echo $module)"
             add_module $(eval echo $module)
         done

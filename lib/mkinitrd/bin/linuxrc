@@ -56,16 +56,14 @@ else
     [ -e "$config" ] && . "$config"
 
     # check if we should run the module
-    condition="$(cat $file | sed -n '/%if: /p')"
-    condition="${condition#*if: }"
+    condition="$(sed -rn 's/^#[[:blank:]]*%if:[[:blank:]]*(.*)$/\1/p' < $file)"
     if [ "$condition" ]; then
         if ! eval test $condition; then
             continue
         fi
     fi
     # remember dependent modules
-    modules=$(cat $file | sed -n '/%modules: /p')
-    modules="${modules#*les: }"
+    modules="$(sed -rn 's/^#[[:blank:]]*%modules:[[:blank:]]*(.*)$/\1/p' < $file)"
 
     # run the module
     [ "$debug" ] && echo "running $file"
