@@ -1481,7 +1481,7 @@ mkinitrd_kernel() {
 	# Always include dhcp programs, too
 	use_dhcp=1
 	# And we simulate root on iSCSI
-	iscsi_root=1
+	[ -z "$iscsi_root" ] && iscsi_root=session1
     fi
 
     if [ -n "$s390_dasd_disks" ]; then
