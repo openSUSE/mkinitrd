@@ -1445,9 +1445,10 @@ mkinitrd_kernel() {
 
     if has_module dm-multipath ; then
 	add_module dm-round-robin
-	add_module dm-emc
-	add_module dm-rdac
-	add_module dm-hp_sw
+	add_module scsi_dh_emc
+	add_module scsi_dh_rdac
+	add_module scsi_dh_hp_sw
+	add_module scsi_dh_alua
 	root_mpath=1
 	root_dm=1
     fi
@@ -3793,10 +3794,10 @@ if [ -n "$root_dm" ] ; then
 	if [ "$table" == "multipath" ] ; then
 	    root_mpath=1
 	    add_module dm-round-robin
-	    add_module dm-emc
-	    add_module dm-rdac
-	    add_module dm-hp_sw
-	    add_module dm-alua
+	    add_module scsi_dh_emc
+	    add_module scsi_dh_rdac
+	    add_module scsi_dh_hp_sw
+	    add_module scsi_dh_alua
 	fi
     done
 fi
