@@ -3608,6 +3608,9 @@ case "$rootdev" in
 	    error 1 "Could not expand $rootdev to real device"
 	fi
 	realrootdev=$(/usr/bin/readlink -m $realrootdev)
+	# Check for iSCSI
+	sid=$(check_iscsi_root $realrootdev)
+	iscsi_root="$sid"	
 	;;
     /dev/disk/*)
 	realrootdev=$(/usr/bin/readlink -m $rootdev)
