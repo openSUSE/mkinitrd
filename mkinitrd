@@ -2324,6 +2324,36 @@ mkinitrd_kernel() {
 	|modprobe $module \$params
 	EOF
 
+	case "$module" in
+	    qla2xxx)
+		# QLogic HBAs do an asynchronous scan, wait
+		cat_linuxrc <<-'EOF'
+		|# Wait for FC scan to finish
+		|i=0;
+		|wait=$udev_timeout
+		|while [ "$wait" -gt 0 ] ; do
+		|  i=0;
+		|  for p in /sys/class/fc_host/host* ; do
+		|    [ -d $p ] || continue
+		|    [ -r $p/port_state ] || continue
+		|    read s < $p/port_state
+		|    case "$s" in
+		|      Online|Linkdown|Error)
+		|        continue
+		|        ;;
+		|      *)
+		|        i=$(( $i + 1 ))
+		|        ;;
+		|    esac
+		|  done
+		|  [ "$i" -eq 0 ] && break
+		|  echo "${p##*/} busy"
+		|  wait=$((wait - 1))
+		|  sleep 1;
+		|done
+		EOF
+		;;
+	esac
 	initrd_is_using_modules=1
     done
 
