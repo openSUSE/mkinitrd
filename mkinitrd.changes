@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul 21 17:42:26 CEST 2009 - mvancura@suse.de
+
+- return status '1' if bogus args to -k or -i are given
+  (bnc#499950)
+
+-------------------------------------------------------------------
 Tue Mar 10 16:06:05 CET 2009 - mvancura@suse.cz
 
 - detect additional parameters of ramdisk at zipl.conf (bnc#444243)
