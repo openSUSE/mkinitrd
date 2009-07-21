@@ -1250,8 +1250,7 @@ mkinitrd_kernel() {
     linuxrc=$tmp_mnt/init
 
     if [ ! -f "$kernel_image" ] ; then
-	echo "No kernel image $kernel_image found" >&2
-	return
+	error 1 "No kernel image $kernel_image found" >&2
     fi
 
     kernel_version=$(/sbin/get_kernel_version $kernel_image)
