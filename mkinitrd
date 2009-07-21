@@ -3679,7 +3679,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	    vg_name=${vg_name#*:}
 	    vg_root=${vg_name%%:*}
 	    if [ "$vg_root" ] ; then
-		root_lvm2=1
+		root_lvm2=$(dmsetup info -o name --noheadings -c -j $major -m $minor)
 		realrootdev=${vg_dev##  }
 	    fi
 	else
@@ -3704,6 +3704,9 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 		case "$dev" in
 		    /dev/sd*)
 			sid=$(check_iscsi_root $dev)
+			;;
+		    /dev/dm-*)
+			root_mpath=1
 			;;
 		esac
 	    done
@@ -3781,21 +3784,30 @@ fi
 
 if [ -n "$root_dm" ] ; then
     # Add all required dm modules
-    dm_modules=$(dmsetup table | cut -f 4 -d ' ' | sort | uniq)
-    for table in $dm_modules; do
-	if [ "$table" ] && [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
+    if [ -n "root_lvm2" ] ; then
+	table=$(dmsetup table $root_lvm2 | cut -f 3 -d ' ')
+	if [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
 	    add_module dm-$table
 	fi
-	# Check for multipathing
-	if [ "$table" == "multipath" ] ; then
-	    root_mpath=1
-	    add_module dm-round-robin
-	    add_module dm-emc
-	    add_module dm-rdac
-	    add_module dm-hp_sw
-	    add_module dm-alua
-	fi
-    done
+    else
+	dm_modules=$(dmsetup table | cut -f 4 -d ' ' | sort | uniq)
+	for table in $dm_modules; do
+	    if [ "$table" ] && [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
+		add_module dm-$table
+	    fi
+	    # Always assume multipathing here if multipath table is loaded
+	    if [ "$table" == "multipath" ] ; then
+		root_mpath=1
+	    fi
+	done
+    fi
+    if [ "$root_mpath" ] ; then
+	add_module dm-round-robin
+	add_module dm-emc
+	add_module dm-rdac
+	add_module dm-hp_sw
+	add_module dm-alua
+    fi
 fi
 
 if [ -n "$iscsi_root" ] ; then
