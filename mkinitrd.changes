@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 21 17:51:33 CEST 2009 - mvancura@suse.de
+
+- Support large minor numbers (bnc#503242)
+
+-------------------------------------------------------------------
 Tue Jul 21 17:42:26 CEST 2009 - mvancura@suse.de
 
 - return status '1' if bogus args to -k or -i are given
