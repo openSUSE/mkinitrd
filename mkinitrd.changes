@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 22 16:01:02 CEST 2009 - mvancura@suse.de
+
+- check for iSCSI if root is found by LABEL (bnc#508105)
+
+-------------------------------------------------------------------
 Tue Jul 21 12:03:27 CEST 2009 - mvancura@suse.de
 
 - Include MPIO only if it is needed (bnc#414267)
