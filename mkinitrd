@@ -187,9 +187,9 @@ while getopts :ef:hk:i:m:u:b:d:s:l:St:D:I:V:a:M:j: a ; do
 		V)  echo "-V requires an executable to run inside linuxrc"
 		    ;;
 		M)  echo "-M requires the System.map file"
-		    ;;	
+		    ;;
 		j)  echo "-j requires the journal device"
-		    ;;	
+		    ;;
 		*)  echo "Unknown option: -$OPTARG"
 		    echo "Try mkinitrd -h"
 		    ;;
@@ -458,7 +458,7 @@ is_xen_kernel() {
 	return
     done
     test $kversion != "${kversion%-xen*}"
-    return 
+    return
 }
 
 # Check if module $1 is listed in $modules.
@@ -650,7 +650,7 @@ check_ide_modules_pcimap() {
     pcimap_file=$1
     vendor_id=$2
     device_id=$3
-	
+
     pci_vendor_id=$(printf "0x%08x" $(($2)))
     pci_device_id=$(printf "0x%08x" $(($3)))
     while read pcimap_module rest; do
@@ -686,10 +686,10 @@ check_ide_modules_hwinfo() {
 	    ide_modules="$ide_modules $hwinfo_module"
 	fi
     done < <(hwinfo --kernel-version $kernel_version \
-	            --db "pci ${pci_id_vendor:+vendor=$pci_id_vendor} 
-                         ${pci_id_device:+device=$pci_id_device} 
-                         ${pci_subid_vendor:+subvendor=$pci_subid_vendor}  
-                         ${pci_subid_device:+subdevice=$pci_subid_device} 
+	            --db "pci ${pci_id_vendor:+vendor=$pci_id_vendor}
+                         ${pci_id_device:+device=$pci_id_device}
+                         ${pci_subid_vendor:+subvendor=$pci_subid_vendor}
+                         ${pci_subid_device:+subdevice=$pci_subid_device}
                          ${pci_revision:+revision=$pci_revision}")
 
     echo "$ide_modules"
@@ -786,7 +786,7 @@ devminor() {
     local devn=${1:-0} minorhi minorlo
     minorlo=$(( $devn % 256 ))
     minorhi=$(( $devn / 1048576 ))
-    echo $(( $minorhi * 256 + $minorlo )) 
+    echo $(( $minorhi * 256 + $minorlo ))
 }
 
 block_driver() {
@@ -868,7 +868,7 @@ get_ip_config() {
 
 	ipaddr=${1%%/*}
 	prefix=${1##*/}
-	shift 
+	shift
 	if [ "$1" == "peer" ] ; then
 	    shift
 	    peeraddr=${1%%/*}
@@ -884,7 +884,7 @@ get_ip_config() {
     fi
     hostname=$(hostname)
     echo "$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:none"
-}  
+}
 
 check_iscsi_root() {
     local devname=$1
@@ -962,7 +962,7 @@ get_default_interface() {
 s390_check_lvm2() {
     local vgname
     local devname
-    
+
     # Check whether the LVM is on zfcp or DASD
     vgname=$(lvdisplay -c $1 | cut -d : -f 2)
 
@@ -1005,17 +1005,17 @@ s390_check_evms() {
 
     for reg in $evms_reg; do
 	evms_cmd="q:c,r=$reg"
-	
+
 	while read a b c d; do
 	    if [ "$a $b" = "Container Name:" ]; then
 		evms_cont="$evms_cont $c"
 	    fi
 	done < <(echo "$evms_cmd" | /sbin/evms -s -b )
     done
-    
+
     for cont in $evms_cont; do
 	evms_cmd="q:s,c=$cont"
-	
+
 	while read a b c d; do
 	    if [ "$a $b" = "Segment Name:" ]; then
 		evms_seg="$evms_seg $c"
@@ -1075,7 +1075,7 @@ s390_check_zfcp() {
 	    fi
 	fi
     done
-    
+
     if [ "$path" ] && [ -d "$path/../device" ] && [ -e "$path/../device/scsi_level" ] ; then
 	s390_enable_zfcp=1
     fi
@@ -1101,7 +1101,7 @@ s390_zfcp_sysfs() {
 		    read fcp_disk_hba < ./hba_id
 		    read fcp_disk_wwpn < ./wwpn
 		    read fcp_disk_lun < ./fcp_lun
-	    
+
 		    s390_zfcp_disks="$s390_zfcp_disks $fcp_disk_hba:$fcp_disk_wwpn:$fcp_disk_lun"
 
 		    for id in $s390_zfcp_hbas; do
@@ -1137,7 +1137,7 @@ s390_dasd_sysfs() {
 		cd $(readlink device)
 		if [ -r ./discipline ]; then
 		    read type < ./discipline
-		    
+
 		    case $type in
 			ECKD)
 			    add_module dasd_eckd_mod
@@ -1310,7 +1310,7 @@ mkinitrd_kernel() {
     if [ $shebang != /bin/sh ]; then
 	ln -s $shebang $tmp_mnt/bin/sh
     fi
-    
+
     if ! cp_bin $initrd_insmod $tmp_mnt/sbin/insmod 2>/dev/null ; then
 	error 5 "no static insmod"
     fi
@@ -1327,7 +1327,7 @@ mkinitrd_kernel() {
 	:
 	EOF
     chmod +x $tmp_mnt/bin/true
- 
+
     # Enable user-selected features
     if [ "$feature_list" ] ; then
 	for f in $feature_list ; do
@@ -1444,9 +1444,10 @@ mkinitrd_kernel() {
 
     if has_module dm-multipath ; then
 	add_module dm-round-robin
-	add_module dm-emc
-	add_module dm-rdac
-	add_module dm-hp_sw
+	add_module scsi_dh_emc
+	add_module scsi_dh_rdac
+	add_module scsi_dh_hp_sw
+	add_module scsi_dh_alua
 	root_mpath=1
 	root_dm=1
     fi
@@ -1643,7 +1644,7 @@ mkinitrd_kernel() {
 	cp_bin /sbin/dmsetup $tmp_mnt/sbin
 	cp_bin /bin/{sed,mkdir,mknod,ls} $tmp_mnt/bin
 	# write a dump of the lvm configuration instead of copying lvm.conf if hosttags are in use
-	if  grep -v '^#' /etc/lvm/lvm.conf | grep '\bhosttags[[:space:]]*=[[:space:]]*1\b' >/dev/null  ; then 
+	if  grep -v '^#' /etc/lvm/lvm.conf | grep '\bhosttags[[:space:]]*=[[:space:]]*1\b' >/dev/null  ; then
 		/sbin/lvm dumpconfig > $tmp_mnt/etc/lvm/lvm.conf
 	else
 		cp -a /etc/lvm/lvm.conf $tmp_mnt/etc/lvm
@@ -1725,7 +1726,7 @@ mkinitrd_kernel() {
 	cp_bin /bin/ping $tmp_mnt/bin/ping
 	cp_bin /sbin/ip $tmp_mnt/sbin/ip
     fi
-  
+
     if [ "$rootfstype" = "ext2" ] ; then
 	features=(${features[@]} fsck.ext2)
 	cp_bin /sbin/fsck $tmp_mnt/bin
@@ -2311,7 +2312,7 @@ mkinitrd_kernel() {
 		|      ;;
 		|  esac
 		|done
-		|if [ \$devflags != 0 ]; then 
+		|if [ \$devflags != 0 ]; then
 		|    params="default_dev_flags=\$devflags \$params"
 		|fi
 		EOF
@@ -2322,6 +2323,36 @@ mkinitrd_kernel() {
 	|modprobe $module \$params
 	EOF
 
+	case "$module" in
+	    qla2xxx)
+		# QLogic HBAs do an asynchronous scan, wait
+		cat_linuxrc <<-'EOF'
+		|# Wait for FC scan to finish
+		|i=0;
+		|wait=$udev_timeout
+		|while [ "$wait" -gt 0 ] ; do
+		|  i=0;
+		|  for p in /sys/class/fc_host/host* ; do
+		|    [ -d $p ] || continue
+		|    [ -r $p/port_state ] || continue
+		|    read s < $p/port_state
+		|    case "$s" in
+		|      Online|Linkdown|Error)
+		|        continue
+		|        ;;
+		|      *)
+		|        i=$(( $i + 1 ))
+		|        ;;
+		|    esac
+		|  done
+		|  [ "$i" -eq 0 ] && break
+		|  echo "${p##*/} busy"
+		|  wait=$((wait - 1))
+		|  sleep 1;
+		|done
+		EOF
+		;;
+	esac
 	initrd_is_using_modules=1
     done
 
@@ -3132,7 +3163,7 @@ mkinitrd_kernel() {
 	|
 	|    for reg in $evms_reg; do
 	|	evms_cmd="q:c,r=$reg"
-	|	
+	|
 	|	while read a b c d; do
 	|	    if [ "$a $b" = "Container Name:" ]; then
 	|		evms_cont="$evms_cont $c"
@@ -3144,7 +3175,7 @@ mkinitrd_kernel() {
 	|
 	|    for cont in $evms_cont; do
 	|	evms_cmd="q:s,c=$cont"
-	|	
+	|
 	|	while read a b c d; do
 	|	    if [ "$a $b" = "Segment Name:" ]; then
 	|		if [ "$evms_seg" ] ; then
@@ -3173,7 +3204,7 @@ mkinitrd_kernel() {
 	|    shift
 	|
 	|    rm -f $tblfile
-	|    
+	|
 	|    dmdevs=$(dmsetup info -c --noheadings -o name | sed -e 's.|./.g')
 	|    for d in $dmdevs ; do
 	|	# Check if device exists (ie is a partition)
@@ -3549,7 +3580,7 @@ mkinitrd_kernel() {
 
     pushd . > /dev/null 2>&1
     cd $tmp_mnt
-    find bin sbin -type f -print0 | xargs -0 chmod 0755 
+    find bin sbin -type f -print0 | xargs -0 chmod 0755
     find . ! -name "*~" | cpio -H newc --create | gzip -9 > $tmp_initrd.gz
     popd > /dev/null 2>&1
     if ! cp -f $tmp_initrd.gz $initrd_image ; then
@@ -3786,30 +3817,21 @@ fi
 
 if [ -n "$root_dm" ] ; then
     # Add all required dm modules
-    if [ -n "root_lvm2" ] ; then
-	table=$(dmsetup table $root_lvm2 | cut -f 3 -d ' ')
-	if [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
+    dm_modules=$(dmsetup table | cut -f 4 -d ' ' | sort | uniq)
+    for table in $dm_modules; do
+	if [ "$table" ] && [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
 	    add_module dm-$table
 	fi
-    else
-	dm_modules=$(dmsetup table | cut -f 4 -d ' ' | sort | uniq)
-	for table in $dm_modules; do
-	    if [ "$table" ] && [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
-		add_module dm-$table
-	    fi
-	    # Always assume multipathing here if multipath table is loaded
-	    if [ "$table" == "multipath" ] ; then
-		root_mpath=1
-	    fi
-	done
-    fi
-    if [ "$root_mpath" ] ; then
-	add_module dm-round-robin
-	add_module dm-emc
-	add_module dm-rdac
-	add_module dm-hp_sw
-	add_module dm-alua
-    fi
+	# Check for multipathing
+	if [ "$table" == "multipath" ] ; then
+	    root_mpath=1
+	    add_module dm-round-robin
+	    add_module scsi_dh_emc
+	    add_module scsi_dh_rdac
+	    add_module scsi_dh_hp_sw
+	    add_module scsi_dh_alua
+	fi
+    done
 fi
 
 if [ -n "$iscsi_root" ] ; then

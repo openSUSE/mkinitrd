@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Wed Jul 22 16:01:02 CEST 2009 - mvancura@suse.de
+Thu Jul  9 14:24:25 CEST 2009 - hare@suse.de
 
-- check for iSCSI if root is found by LABEL (bnc#508105)
+- Include SCSI device handler modules (bnc#519754)
+- Wait for FC scan to finish (bnc#517021)
 
 -------------------------------------------------------------------
 Tue Jul 21 12:03:27 CEST 2009 - mvancura@suse.de
