@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 30 13:51:00 CEST 2009 - hare@suse.de
+
+- Include Brocade Firmware (bnc#526670)
+
+-------------------------------------------------------------------
 Tue Jul 21 12:03:27 CEST 2009 - mvancura@suse.de
 
 - Include MPIO only if it is needed (bnc#414267)
