@@ -1,10 +1,17 @@
 #
 # spec file for package mkinitrd (Version 1.2)
 #
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
+# Copyright (c) 2009 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -18,7 +25,7 @@ Requires:       coreutils modutils util-linux grep e2fsprogs gzip sed gawk cpio 
 # bootsplash required only if creating splash initrd's.
 AutoReqProv:    on
 Version:        1.2
-Release:        0
+Release:        106.<RELEASE84>
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd
