@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  3 15:47:43 CEST 2009 - mvancura@suse.de
+
+- Fix a patch for bnc#414267 back after an update to SP3 state
+
+-------------------------------------------------------------------
 Thu Jul 30 13:51:00 CEST 2009 - hare@suse.de
 
 - Include Brocade Firmware (bnc#526670)
