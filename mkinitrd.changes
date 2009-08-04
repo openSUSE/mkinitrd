@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 15 15:34:38 CEST 2009 - mmarek@suse.cz
+
+- do not warn about built-in modules
+- prefix modprobe errors with "modprobe:" (less scary than "FATAL:")
+
+-------------------------------------------------------------------
 Thu Jul  2 08:53:25 CEST 2009 - hare@suse.de
 
 - Update version to 2.5.10
