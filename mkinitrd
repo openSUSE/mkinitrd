@@ -2069,10 +2069,10 @@ mkinitrd_kernel() {
 	|# Extract the minor part from a device number
 	|devminor() 
 	|    {
-	|    local devn=${1:-0} minorhi minorlo
-	|    minorlo=$(( $devn % 256 ))
-	|    minorhi=$(( $devn / 1048576 ))
-	|    echo $(( $minorhi * 256 + $minorlo )) 
+	|    local devn=\${1:-0} minorhi minorlo
+	|    minorlo=\$(( \$devn % 256 ))
+	|    minorhi=\$(( \$devn / 1048576 ))
+	|    echo \$(( \$minorhi * 256 + \$minorlo )) 
 	|    }
 	|
 	|fix_evms_root_node()
