@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec 16 15:34:38 CEST 2009 - mmarek@suse.cz
+
+- do not warn about built-in modules
+- prefix modprobe errors with "modprobe:" (less scary than "FATAL:")
+
+-------------------------------------------------------------------
 Mon Dec  7 13:43:39 UTC 2009 - eich@suse.de
 
 - only match PCI devices when parsing aliases. 

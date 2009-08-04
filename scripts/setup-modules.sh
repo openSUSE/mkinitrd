@@ -301,12 +301,13 @@ resolve_modules() {
             -C /dev/null \
             --set-version $kernel_version --ignore-install \
             --show-depends $module \
-            $additional_args \
-            | sed -ne 's:.*insmod /\?::p' | sed -ne 's:\ .*\?::p' )
-        if [ ! "$module_list" ]; then
+            $additional_args 2> >(sed 's/^FATAL:/modprobe:/' >&2) \
+            | grep -E '^(insmod|builtin) ')
+        if [ -z "$module_list" ]; then
             echo \
 "WARNING: no dependencies for kernel module '$module' found." >&2
         fi
+        module_list=$(echo "$module_list" | sed -rn 's/^insmod +//p')
         for mod in $module_list ; do
             if ! $(echo $resolved_modules | grep -q $mod) ; then
                 resolved_modules="$resolved_modules $mod"
