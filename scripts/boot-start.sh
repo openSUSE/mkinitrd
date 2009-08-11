@@ -63,8 +63,8 @@ tty_driver=
 for o in $(cat /proc/cmdline); do
     key="${o%%=*}"
     key="${key//-/_}"
-    if [ "${key%.*}" != "${key}" ]; then # module parameter
-        add_module_param "${key%.*}" "${o#*.}"
+    if [ "${key%.*}" != "${key}" ]; then
+        : # module parameter, ignored
     else
         # environment variable
         # set local variables too, in case somehow the kernel does not do this correctly
