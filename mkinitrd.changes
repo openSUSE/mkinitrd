@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 11 11:58:25 CEST 2009 - mmarek@suse.cz
+
+- do not copy module parameters from /proc/cmdline, modprobe does
+  it itself.
+
+-------------------------------------------------------------------
 Tue Aug 11 11:55:15 CEST 2009 - mmarek@suse.cz
 
 - rename the temporary file /etc/modprobe.d/options to options.conf
