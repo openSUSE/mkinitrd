@@ -6,7 +6,7 @@
 # e.g. add_module_param rtl8193too debug=1
 ##################################################
 add_module_param() {
-    echo "options $1 $2" >> /etc/modprobe.d/options
+    echo "options $1 $2" >> /etc/modprobe.d/options.conf
 }
 
 ##################################################

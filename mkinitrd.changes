@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 11 11:55:15 CEST 2009 - mmarek@suse.cz
+
+- rename the temporary file /etc/modprobe.d/options to options.conf
+  as required by new module-init-tools.
+
+-------------------------------------------------------------------
 Wed Jul 15 15:34:38 CEST 2009 - mmarek@suse.cz
 
 - do not warn about built-in modules
