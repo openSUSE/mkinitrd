@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 21 16:26:00 CEST 2009 - mmarek@suse.cz
+
+- sbin/module_upgrade: update to new modprobe config layout
+  (bnc#532069).
+
+-------------------------------------------------------------------
 Thu Oct 22 16:13:21 CEST 2009 - mmarek@suse.cz
 
 - Add support for compressed modules (bnc#458525)

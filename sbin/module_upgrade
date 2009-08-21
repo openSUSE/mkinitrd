@@ -82,7 +82,7 @@ sub ifcfg_script($) {
     return script $rename, ['MODULE'], $_;
 }
 
-# A file sourced by modprobe (/etc/modprobe.conf and friends).
+# A file sourced by modprobe
 sub modprobe_conf($) {
     if (/^(\s*alias\s+\S+\s+)(\S+)(.*)/
         && exists $rename->{$2}) {
@@ -95,17 +95,11 @@ sub modprobe_conf($) {
 
 my $errors = 0;
 
-# Update all modprobe.conf files
+# Update local modprobe config
 eval {
-    update_file \&modprobe_conf, '/etc/modprobe.conf';
-};
-if ($@) {
-    warn $@;
-    $errors++;
-}
-
-eval {
-    update_file \&modprobe_conf, '/etc/modprobe.conf.local';
+    if (-e '/etc/modprobe.d/99-local.conf') {
+        update_file \&modprobe_conf, '/etc/modprobe.d/99-local.conf';
+    }
 };
 if ($@) {
     warn $@;
