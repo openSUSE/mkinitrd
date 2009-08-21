@@ -44,6 +44,12 @@ Mon Aug 31 14:54:40 CEST 2009 - mvancura@suse.cz
 - note that we adjusted clock (bnc#534816)
 
 -------------------------------------------------------------------
+Fri Aug 21 16:26:00 CEST 2009 - mmarek@suse.cz
+
+- sbin/module_upgrade: update to new modprobe config layout
+  (bnc#532069).
+
+-------------------------------------------------------------------
 Tue Aug 11 11:58:25 CEST 2009 - mmarek@suse.cz
 
 - do not copy module parameters from /proc/cmdline, modprobe does
