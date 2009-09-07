@@ -3817,7 +3817,7 @@ fi
 
 if [ -n "$root_dm" ] ; then
     # Add all required dm modules
-    if [ -n "root_lvm2" ] ; then
+    if [ -n "$root_lvm2" ] ; then
  	table=$(dmsetup table $root_lvm2 | cut -f 3 -d ' ')
  	if [ "$table" != "linear" ] && [ "$table" != "striped" ] ; then
 	    add_module dm-$table
