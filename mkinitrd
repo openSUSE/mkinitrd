@@ -3721,7 +3721,7 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 	if [ "$root_lvm2" ] ; then
 	    # Check for LVM2 on top of md
 	    md_list=
-	    pv_list=$(vgs --noheadings --options devices $vg_root 2> /dev/null | sed "s@,@\n@g" | sed -n "s@([0-9]*)@@p;s@ @@g" | sort | uniq)
+	    pv_list=$(vgs --noheadings --options pv_name $vg_root 2> /dev/null | sed "s@ @@g" | sort | uniq)
 	    for dev in $pv_list ; do
 		mdconf=$(mdadm -Db $dev 2> /dev/null)
 		if [ -n "$mdconf" ] ; then
