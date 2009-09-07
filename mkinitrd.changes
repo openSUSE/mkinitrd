@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 26 05:34:57 CEST 2009 - xwhu@suse.de
+
+- bnc#528918, unused pv is not recognized by mkinitrd 
+
+-------------------------------------------------------------------
 Wed Jul 22 16:01:02 CEST 2009 - mvancura@suse.de
 
 - check for iSCSI if root is found by LABEL (bnc#508105)
