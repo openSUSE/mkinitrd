@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  7 16:42:28 CEST 2009 - mvancura@suse.cz
+
+- a typo fixed (bnc#535619)
+
+-------------------------------------------------------------------
 Wed Aug 26 05:34:57 CEST 2009 - xwhu@suse.de
 
 - bnc#528918, unused pv is not recognized by mkinitrd 
