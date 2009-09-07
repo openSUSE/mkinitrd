@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 22 16:13:21 CEST 2009 - mmarek@suse.cz
+
+- Add support for compressed modules (bnc#458525)
+
+-------------------------------------------------------------------
 Thu Oct 22 14:34:46 CEST 2009 - mvancura@suse.cz
 
 - scripts/setup-blockpartition.sh: fix sed regexp converting a

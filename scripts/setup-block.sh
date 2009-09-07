@@ -153,7 +153,8 @@ update_blockmodules()
 if [ "$create_monster_initrd" ]; then
     for d in $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi,s390/block,s390/scsi}; do
         if [ -d "$d" ]; then
-            for i in $(find "$d" -name "*.ko"); do
+            for i in $(find "$d" -name "*.ko" -o -name "*.ko.gz"); do
+                i="${i%*.gz}"
                 i=${i%*.ko}
                 block_modules="$block_modules ${i##*/}"
             done
@@ -181,7 +182,8 @@ else
 
                 # but do that only once
                 if [ "$all_libata_modules_included" -eq 0 ] ; then
-                    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/ata -name "*.ko"); do
+                    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/ata -name "*.ko" -o -name "*.ko.gz"); do
+                        i="${i%*.gz}"
                         i=${i%*.ko}
                         block_modules="$block_modules ${i##*/}"
                     done

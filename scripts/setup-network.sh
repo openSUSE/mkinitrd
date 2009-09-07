@@ -188,7 +188,8 @@ fi
 
 if [ "$create_monster_initrd" ]; then
     # include all network card modules
-    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/net -name "*.ko"); do
+    for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/net -name "*.ko" -o -name "*.ko.gz"); do
+        i="${i%*.gz}"
         i=${i%*.ko}
         drvlink="$drvlink ${i##*/}"
     done

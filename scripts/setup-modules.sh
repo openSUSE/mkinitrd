@@ -287,6 +287,7 @@ resolve_modules() {
     fi
 
     for module in "$@"; do
+        module="${module%.gz}"
         module=${module%.o}  # strip trailing ".o" just in case.
         module=${module%.ko}  # strip trailing ".ko" just in case.
 
@@ -376,6 +377,7 @@ if [ "$resolved_modules" ] ; then
     echo -ne "Kernel Modules:\t"
     for mod in $resolved_modules ; do
         modname=${mod##*/}
+        modname="${modname%.gz}"
             echo -n "${modname%%.ko} "
     done
     echo

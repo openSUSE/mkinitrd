@@ -335,7 +335,7 @@ rootfsmod=$rootfstype
 
 # Check if we have to load a module for the rootfs type
 # XXX: This check should happen more generically for all modules
-if [ ! "$(find $root_dir/lib/modules/$kernel_version/ -name $rootfstype.ko)" ]; then
+if [ ! "$(find $root_dir/lib/modules/$kernel_version/ -name $rootfstype.ko -o -name $rootfstype.ko.gz)" ]; then
     if grep -q ${rootfstype}_fs_type $map ; then
         # No need to load a module, since this is compiled in
         rootfsmod=
