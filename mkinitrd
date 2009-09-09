@@ -48,7 +48,9 @@ usage() {
           -u "DomU module list" Modules to include in initrd. Defaults to
                            the DOMU_INITRD_MODULES variable in
                            /etc/sysconfig/kernel.
-          -f "feature list" Features to be enabled when generating initrd.
+          -f "feature list" Features to be enabled when generating initrd
+                           in addition to features from INITRD_FEATURES
+                           variable in /etc/sysconfig/kernel.
                            Available features are:
                            iscsi, md, mpath, lvm, lvm2, evms
           -b boot_dir      Boot directory. Defaults to /boot.
@@ -1328,9 +1330,10 @@ mkinitrd_kernel() {
 	EOF
     chmod +x $tmp_mnt/bin/true
 
-    # Enable user-selected features
-    if [ "$feature_list" ] ; then
-	for f in $feature_list ; do
+    # Enable user-selected features from command line and
+    # /etc/sysconfig/kernel
+    if [ "$feature_list$INITRD_FEATURES" ] ; then
+	for f in $feature_list $INITRD_FEATURES; do
 	    case $f in
 		iscsi)
 		    add_module iscsi_tcp

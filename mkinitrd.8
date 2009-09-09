@@ -39,7 +39,8 @@ modules to include in initrd, defaults to INITRD_MODULES variable in
 .TP
 \fB-f "feature list"\fR 
 features to be enabled for the initrd. In general mkinitrd configures
-the initrd for the root device it is started from. With this option
+the initrd for the root device it is started from. Then, features from
+INITRD_FEATURES in /etc/sysconfig/kernel are added. With this option
 additional feature can be enabled.
 .TP
 \fB-b boot_dir\fR

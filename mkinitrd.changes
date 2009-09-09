@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep  9 15:09:41 CEST 2009 - mvancura@suse.de
+
+- Enable to workaround a bad feature detection (bnc#533853)
+
+-------------------------------------------------------------------
 Mon Sep  7 16:42:28 CEST 2009 - mvancura@suse.cz
 
 - a typo fixed (bnc#535619)
