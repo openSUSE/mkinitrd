@@ -48,6 +48,14 @@ if [ -f /root/etc/fstab ] ; then
     while [ "$1" ] ; do
         case $1 in
         *quota) ;;
+             if [ "$rootfstype" != "xfs" ] ; then
+                if [ "$fsoptions" ] ; then
+                    fsoptions="$fsoptions,$1"
+                else
+                    fsoptions="$1"
+                fi
+             fi
+             ;;
         defaults) ;;
         rw) ;;
         *)
