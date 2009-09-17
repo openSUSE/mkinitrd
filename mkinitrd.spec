@@ -1,10 +1,17 @@
 #
-# spec file for package mkinitrd (Version 2.4)
+# spec file for package mkinitrd (Version 2.5.10)
 #
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -19,7 +26,7 @@ BuildRequires:  asciidoc libxslt
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
 AutoReqProv:    on
 Version:        @@VERSION@@
-Release:        1
+Release:        3
 Conflicts:      udev < 118
 Requires:       dhcpcd
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
@@ -118,4 +125,3 @@ EOF
 %doc %{_mandir}/man8/lsinitrd.8.gz
 
 %changelog
-
