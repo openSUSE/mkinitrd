@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  7 12:49:01 CEST 2009 - werner@suse.de
+
+- Use bash builtin touch
+
+-------------------------------------------------------------------
 Mon Aug 31 14:54:40 CEST 2009 - mvancura@suse.cz
 
 - note that we adjusted clock (bnc#534816)

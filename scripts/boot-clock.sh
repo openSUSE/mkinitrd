@@ -10,6 +10,6 @@ then
     . /etc/sysconfig/clock
     case "$HWCLOCK" in
     *-l*) /bin/warpclock
-    	  touch /dev/shm/warpclock
+    	  > /dev/shm/warpclock
     esac
 fi
