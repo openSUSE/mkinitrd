@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep 17 13:31:44 CEST 2009 - mvancura@suse.cz
+
+- Enable quota mount option for root partition (bnc#532701 and
+  related to bnc#430975)
+
+-------------------------------------------------------------------
 Mon Sep  7 12:49:01 CEST 2009 - werner@suse.de
 
 - Use bash builtin touch
