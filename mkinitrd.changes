@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct 13 09:12:54 CEST 2009 - mvancura@suse.cz
+
+- In case running kernel and kernel initrd is being build for are
+  different modinfo got wrong information about modules.
+  (bnc#494364)
+
+-------------------------------------------------------------------
 Thu Jan 29 16:44:11 CET 2009 - bwalle@suse.de
 
 - Don't use the 'ip' from environment (bnc #450680).
