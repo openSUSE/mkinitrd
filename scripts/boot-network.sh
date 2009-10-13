@@ -17,6 +17,7 @@
 ## dhcp=<device>                                                                                                        if set runs dhcp on the given device (no dhcp if device is "off")
 ## ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:$autoconf     defines the ip configuration to use
 ## nfsaddrs                                                                                                                     an alias for "ip"
+## net_delay=<seconds>                                                  additional delay after the network is set up
 ##
 
 # load the modules before detecting which device we are going to use
@@ -160,3 +161,7 @@ elif [ "$nettype" = "ifup" ] ; then
     done
 fi
 
+if [ "$(get_param net_delay)" -a "$(get_param net_delay)" -gt 0 ]; then
+        echo "[NETWORK] sleeping for $net_delay seconds."
+        sleep "$(get_param net_delay)"
+fi

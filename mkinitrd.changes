@@ -413,6 +413,12 @@ Tue Oct 13 15:12:54 CEST 2009 - mvancura@suse.cz
   (bnc#531252)
 
 -------------------------------------------------------------------
+Tue Oct 13 14:12:54 CEST 2009 - mvancura@suse.cz
+
+- scripts/boot-network.sh: add "net_delay" kernel cmdline option
+  for kdump purposes (bnc#471943)
+
+-------------------------------------------------------------------
 Tue Oct 13 09:12:54 CEST 2009 - mvancura@suse.cz
 
 - In case running kernel and kernel initrd is being build for are
