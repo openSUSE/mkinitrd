@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 10 14:59:51 CEST 2009 - mvancura@suse.de
+
+- bug-469954_mkinitrd-2.5.9.patch: backported patch from STABLE
+  (git master branch, commit b2c008ca8674a412e97c901)
+  to fix localtime issue (bnc#469954)
+
+-------------------------------------------------------------------
 Mon Sep  7 16:42:28 CEST 2009 - mvancura@suse.cz
 
 - a typo fixed (bnc#535619)

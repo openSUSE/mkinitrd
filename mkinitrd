@@ -1327,6 +1327,25 @@ mkinitrd_kernel() {
 	:
 	EOF
     chmod +x $tmp_mnt/bin/true
+
+    # Setup clock
+    if test -e /etc/localtime
+    then
+	mkdir -m 0755 -p $tmp_mnt/etc
+	cp -p /etc/localtime $tmp_mnt/etc/
+    fi
+    if test -e /usr/share/zoneinfo/UTC
+    then
+	mkdir -m 0755 -p $tmp_mnt/usr/share/zoneinfo
+	cp -p /usr/share/zoneinfo/UTC $tmp_mnt/usr/share/zoneinfo/
+    fi
+    if test -e /etc/sysconfig/clock
+    then
+	. /etc/sysconfig/clock
+	mkdir -m 0755 -p $tmp_mnt/etc/sysconfig
+	echo HWCLOCK='"'"$HWCLOCK"'"' > $tmp_mnt/etc/sysconfig/clock
+    fi
+    cp_bin /bin/usleep $tmp_mnt/bin/usleep
  
     # Enable user-selected features
     if [ "$feature_list" ] ; then
@@ -2113,6 +2132,35 @@ mkinitrd_kernel() {
 	|/sbin/udevsettle --timeout=\$udev_timeout
 	|
 	EOF
+
+
+    # Correct clock
+    if test -n "$(modprobe -C /dev/null --set-version $kernel_version --ignore-install --show-depends rtc_cmos 2>/dev/null)"
+    then
+	add_module rtc_cmos
+	cat_linuxrc <<-EOF
+	|if test ! -e /sys/class/rtc/rtc0
+	|then
+	|   modprobe rtc_cmos
+	|   typeset -i rtccount=300
+	|   while ((rtccount-- > 0)) ; do
+	|       test -e /sys/class/rtc/rtc0 && break
+	|       usleep 10000
+	|   done
+	|   unset rtccount
+	|fi
+	EOF
+    fi
+    cat_linuxrc <<-EOF
+	|if test -e /etc/sysconfig/clock -a -e /etc/localtime
+	|then
+	|    . /etc/sysconfig/clock
+	|    case "$HWCLOCK" in
+	|    *-l*) /bin/warpclock
+	|    esac
+	|fi
+	EOF
+
 
     # FIXME: we should only load IDE modules if we need them for booting
     # Check for IDE modules
