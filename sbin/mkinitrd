@@ -515,6 +515,7 @@ fi
 if [ "$exit_code" -eq 0 ] ; then
     if [ -z "$no_bootloader_update" ] ; then
         /sbin/update-bootloader --refresh
+	exit_code=$?
     else
         echo 2>&1 "Don't refresh the bootloader. You may have to do " \
                   "that manually!"
