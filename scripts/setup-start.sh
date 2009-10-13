@@ -62,7 +62,7 @@ fi
 RESOLVED_INITRD_MODULES_UDEV=
 RESOLVED_INITRD_MODULES_NEW=
 for m in $RESOLVED_INITRD_MODULES ; do
-    if [ $(modinfo -F firmware $m 2> /dev/null | wc -l) -gt 0 ] ; then
+    if [ $(modinfo -k $kernel_version -F firmware $m 2> /dev/null | wc -l) -gt 0 ] ; then
         verbose "[SETUP]\tDon't load $m on boot with modprobe because "\
                 "it requires firmware"
         RESOLVED_INITRD_MODULES_UDEV="$RESOLVED_INITRD_MODULES_UDEV $m"
