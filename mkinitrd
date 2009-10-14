@@ -931,7 +931,10 @@ get_default_interface() {
 	# Get info from install.inf during installation
 	BOOTPROTO=$(sed -ne 's/NetConfig: \(.*\)/\1/p' /etc/install.inf)
 	ifname=$(sed -ne 's/Netdevice: \(.*\)/\1/p' /etc/install.inf)
-	macaddress=$(sed -ne 's/HWAddr: \(.*\)/\1/p' /etc/install.inf)
+	macaddress=$(sed -ne 's/OSAHWAddr: \(.*\)/\1/p' /etc/install.inf)
+	if [ -z "$macaddress" ] ; then
+	    macaddress=$(sed -ne 's/^HWAddr: \(.*\)/\1/p' /etc/install.inf)
+	fi
 	if [ "$macaddress" ] ; then
 	    for dev in /sys/class/net/* ; do
 		read tmpmac < $dev/address
@@ -1228,6 +1231,44 @@ s390_get_ctc_ccwdevs()
     popd > /dev/null 2>&1
 
     echo "$cdev0,$cdev1"
+}
+
+s390_get_qeth_ccwdevs()
+{
+    local interface=$1
+
+    pushd /sys/class/net/$interface/device > /dev/null 2>&1
+    pushd cdev0 > /dev/null 2>&1
+    cd -P $PWD
+    cdev0=$(basename $PWD)
+    popd > /dev/null 2>&1
+    pushd cdev1 > /dev/null 2>&1
+    cd -P $PWD
+    cdev1=$(basename $PWD)
+    popd > /dev/null 2>&1
+    pushd cdev2 > /dev/null 2>&1
+    cd -P $PWD
+    cdev2=$(basename $PWD)
+    popd > /dev/null 2>&1
+    popd > /dev/null 2>&1
+
+    echo "$cdev0,$cdev1,$cdev2"
+}
+
+s390_get_qeth_attr()
+{
+    local interface=$1
+    local attr=$2
+
+    if [ ! -d /sys/class/net/$interface/device ] ; then
+	error 1 "No device link for interface $interface"
+    fi
+
+    pushd /sys/class/net/$interface/device > /dev/null 2>&1
+    if [ -r $attr ] ; then
+	cat $attr
+    fi
+    popd > /dev/null 2>&1
 }
 
 ###################################################################
@@ -2353,6 +2394,35 @@ mkinitrd_kernel() {
 		|  wait=$((wait - 1))
 		|  sleep 1;
 		|done
+		EOF
+		;;
+	    qeth)
+		# S/390 qeth device require manual setup
+		ccwdevs=$(s390_get_qeth_ccwdevs $interface)
+		qeth_layer2=$(s390_get_qeth_attr $interface layer2)
+		qeth_portno=$(s390_get_qeth_attr $interface portno)
+		qeth_portname=$(s390_get_qeth_attr $interface portname)
+		cat_linuxrc <<-EOF
+		|# configure $interface
+		|if [ -d /sys/bus/ccwgroup/drivers/qeth ]; then
+		|  echo "$ccwdevs" > /sys/bus/ccwgroup/drivers/qeth/group
+		|  # Wait for the device to appear
+		|  i=100
+		|  while [ "\$i" -gt 0 ]; do
+		|    [ -d /sys/bus/ccwgroup/devices/${ccwdevs%%,*} ] && break
+		|    i=\$(( \$i - 1 ))
+		|  done
+		|  if [ "\$i" -le 0 ] ; then
+		|    echo "Interface $interface could not be setup, exiting to /bin/sh"
+		|    cd /
+		|    PATH=\$PATH PS1='\$ ' /bin/sh -i
+		|  else
+		|    echo $qeth_layer2 > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/layer2
+		|    echo $qeth_portno > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/portno
+		|    echo $qeth_portname > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/portname
+		|    echo 1 > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/online
+		|  fi
+		|fi
 		EOF
 		;;
 	esac
@@ -3881,6 +3951,9 @@ if [ -n "$interface" ] ; then
 		    break;
 		fi
 	    done
+	fi
+	if [ "$ifmod" == "qeth" ] ; then
+	    add_module ipv6
 	fi
 	if [ "$ifmod " ] ; then
 	    add_module $ifmod
