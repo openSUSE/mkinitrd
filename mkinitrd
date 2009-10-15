@@ -2418,14 +2418,40 @@ mkinitrd_kernel() {
 		qeth_layer2=$(s390_get_qeth_attr $interface layer2)
 		qeth_portno=$(s390_get_qeth_attr $interface portno)
 		qeth_portname=$(s390_get_qeth_attr $interface portname)
+		qeth_macaddr=$(cat /sys/class/net/$interface/address)
 		cat_linuxrc <<-EOF
 		|# configure $interface
 		|if [ -d /sys/bus/ccwgroup/drivers/qeth ]; then
-		|  echo "$ccwdevs" > /sys/bus/ccwgroup/drivers/qeth/group
+		|  # Scan commandline parameter
+		|  for p in \$(cat /proc/cmdline) ; do
+		|    case \$p in
+		|      qeth_devs=*)
+		|	 ccwdevs="\${p#qeth_devs=}"
+		|	 ;;
+		|      qeth_layer2=*)
+		|	 qeth_layer2="\${p#qeth_layer2=}"
+		|	 ;;
+		|      qeth_portno=*)
+		|	 params="\${p#qeth_portno=}"
+		|	 ;;
+		|      qeth_portname=*)
+		|	 params="\${p#qeth_portname=}"
+		|	 ;;
+		|      qeth_macaddr=*)
+		|	 params="\${p#qeth_macaddr=}"
+		|	 ;;
+		|    esac
+		|  done
+		|  [ -z "\$ccw_devs" ] && ccwdevs=$ccwdevs
+		|  [ -z "\$qeth_layer2" ] && qeth_layer2=$qeth_layer2
+		|  [ -z "\$qeth_portno" ] && qeth_portno=$qeth_portno
+		|  [ -z "\$qeth_macaddr" ] && qeth_macaddr=$qeth_macaddr
+		|  echo "\$ccwdevs" > /sys/bus/ccwgroup/drivers/qeth/group
+		|  qeth_dev="/sys/bus/ccwgroup/devices/\${ccwdevs%%,*}"
 		|  # Wait for the device to appear
 		|  i=100
 		|  while [ "\$i" -gt 0 ]; do
-		|    [ -d /sys/bus/ccwgroup/devices/${ccwdevs%%,*} ] && break
+		|    [ -d "\$qeth_dev" ] && break
 		|    i=\$(( \$i - 1 ))
 		|  done
 		|  if [ "\$i" -le 0 ] ; then
@@ -2433,10 +2459,41 @@ mkinitrd_kernel() {
 		|    cd /
 		|    PATH=\$PATH PS1='\$ ' /bin/sh -i
 		|  else
-		|    echo $qeth_layer2 > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/layer2
-		|    echo $qeth_portno > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/portno
-		|    echo $qeth_portname > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/portname
-		|    echo 1 > /sys/bus/ccwgroup/devices/${ccwdevs%%,*}/online
+		|    if [ "\$qeth_layer2" = 1 ] ; then
+		|      echo 1 > "\${qeth_dev}/layer2"
+		|    else
+		|      echo 0 > "\${qeth_dev}/layer2"
+		|    fi
+		|    if [ -w "\${qeth_dev}/portno" ] && [ "\$qeth_portno" ] ; then
+		|      echo \$qeth_portno > "\${qeth_dev}/portno"
+		|    fi
+		|    if [ -w "\${qeth_dev}/portname" ] && [ "\$qeth_portname" ] ; then
+		|      echo "\$qeth_portname" > "\${qeth_dev}/portname"
+		|    fi
+		|    echo 1 > "\${qeth_dev}/online"
+		|  fi
+		|  # Wait for the device to appear
+		|  i=100
+		|  tmp_interface=
+		|  while [ "\$i" -gt 0 ]; do
+		|    for d in \${qeth_dev}/net:* ; do
+		|      if [ -e "\$d" ] ; then
+		|        tmp_interface=\${d##*/net:}
+		|        break
+		|      fi
+		|    done
+		|    [ "\$tmp_interface" ] && break
+		|    i=\$(( \$i - 1 ))
+		|  done
+		|  if [ -z "\$tmp_interface" ] ; then
+		|    echo "Interface $interface could not be setup, exiting to /bin/sh"
+		|    cd /
+		|    PATH=\$PATH PS1='\$ ' /bin/sh -i
+		|  else
+		|    interface=\$tmp_interface
+		|    if [ "\$qeth_macaddr" ] ; then
+		|      ip link set \$interface address \$qeth_macaddr
+		|    fi
 		|  fi
 		|fi
 		EOF
