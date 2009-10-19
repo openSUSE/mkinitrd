@@ -1,5 +1,6 @@
 #!/bin/bash
 #%stage: device
+#%depends: ibft
 #%programs: /sbin/dhcpcd /sbin/ip
 # dhcpcd reqires the af_packet module
 #%modules: af_packet $bonding_module
