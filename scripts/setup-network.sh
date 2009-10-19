@@ -255,14 +255,14 @@ mkdir -p $tmp_mnt/var/run
 cp_bin /lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
 if [ -f /etc/udev/rules.d/70-persistent-net.rules ] ; then
     cp /etc/udev/rules.d/70-persistent-net.rules $tmp_mnt/etc/udev/rules.d
-    if [ "$nettype" = "ifup" ] ; then
-	cp /etc/udev/rules.d/77-network.rules $tmp_mnt/etc/udev/rules.d
-	cp_bin /sbin/ifup $tmp_mnt/sbin/ifup
-	cp_bin /bin/awk $tmp_mnt/bin/awk
-	cp_bin /bin/grep $tmp_mnt/bin/grep
-	cp_bin /bin/logger $tmp_mnt/bin/logger
-	cp_bin /bin/touch $tmp_mnt/bin/touch
-    fi
+fi
+if [ -f /etc/udev/rules.d/77-network.rules ] ; then
+    cp /etc/udev/rules.d/77-network.rules $tmp_mnt/etc/udev/rules.d
+    cp_bin /sbin/ifup $tmp_mnt/sbin/ifup
+    cp_bin /bin/awk $tmp_mnt/bin/awk
+    cp_bin /bin/grep $tmp_mnt/bin/grep
+    cp_bin /bin/logger $tmp_mnt/bin/logger
+    cp_bin /bin/touch $tmp_mnt/bin/touch
 fi
 
 [ "$interface" ] && verbose "[NETWORK]\t$interface ($nettype)"
