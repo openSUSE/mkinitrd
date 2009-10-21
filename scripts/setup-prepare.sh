@@ -184,7 +184,8 @@ getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/g
 (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
 
 # scsi_id config file
-cp /etc/scsi_id.config $tmp_mnt/etc/scsi_id.config
+f=/etc/scsi_id.config
+test -f $f && cp $f $tmp_mnt/$f
 
 # Store the commandline
 echo $build_cmdline > $tmp_mnt/mkinitrd.config
