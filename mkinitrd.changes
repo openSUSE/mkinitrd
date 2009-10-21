@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct 16 11:41:02 UTC 2009 - aj@suse.de
+
+- Be silent if /etc/scsi_id.config does not exist (bnc#544298).
+
+-------------------------------------------------------------------
 Tue Oct 13 15:12:54 CEST 2009 - mvancura@suse.cz
 
 - report the right exit_codeif update-bootloader was called
