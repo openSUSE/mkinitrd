@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct 16 11:46:11 UTC 2009 - aj@suse.de
+
+- Fix scripts/boot-remount.sh syntax.
+
+-------------------------------------------------------------------
 Fri Oct 16 11:41:02 UTC 2009 - aj@suse.de
 
 - Be silent if /etc/scsi_id.config does not exist (bnc#544298).

@@ -47,7 +47,7 @@ if [ -f /root/etc/fstab ] ; then
     fi
     while [ "$1" ] ; do
         case $1 in
-        *quota) ;;
+        *quota)
              if [ "$rootfstype" != "xfs" ] ; then
                 if [ "$fsoptions" ] ; then
                     fsoptions="$fsoptions,$1"
