@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Oct 22 14:34:46 CEST 2009 - mvancura@suse.cz
+
+- scripts/setup-blockpartition.sh: fix sed regexp converting a
+  partition device name to the disk name (bnc#531663)
+
+-------------------------------------------------------------------
 Fri Oct 16 11:46:11 UTC 2009 - aj@suse.de
 
 - Fix scripts/boot-remount.sh syntax.
