@@ -12,7 +12,7 @@ for bd in $blockdev; do
         # are partitionable
         if [ "$blkpart" ]; then
             blkpart=$(echo ${blkpart#/dev/} | sed 's./.!.g')
-            blkdev=$(echo $blkpart | sed 's/\([a-z]\)[0-9]*$/\1/;s/p$//')
+            blkdev=$(echo $blkpart | sed -r '/[0-9][a-z][0-9]+$/{s/p[0-9]+$//;b};s/[0-9]+$//')
             if [ -d /sys/block/$blkdev/$blkpart ] ; then
                 blkdev=$(echo $blkdev | sed 's.!./.g')
                 bd="/dev/$blkdev"
