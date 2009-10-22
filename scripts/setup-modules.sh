@@ -392,6 +392,14 @@ for module in $resolved_modules; do
         rm -rf $tmp_mnt
         return 1
     fi
+    for fwl in $(modinfo -F firmware $module) ; do
+       bmod=$(basename $module)
+       bfwl=$(basename $fwl)
+       for fw in $(find /lib/firmware -name "$bfwl") ; do
+               cp -p --parents $fw $tmp_mnt
+               echo -n "(module $bmod firmware $fw) "
+       done
+    done
 done
 
 if [ "$resolved_modules" ] ; then

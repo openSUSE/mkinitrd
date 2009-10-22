@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 22 16:54:45 CEST 2009 - ro@suse.de
+
+- add any required firmware to the initrd
+
+-------------------------------------------------------------------
 Thu Oct 22 14:34:46 CEST 2009 - mvancura@suse.cz
 
 - scripts/setup-blockpartition.sh: fix sed regexp converting a
