@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 22 16:54:45 CEST 2009 - ro@suse.de
+
+- add any required firmware to the initrd
+
+-------------------------------------------------------------------
 Fri Aug 21 16:26:00 CEST 2009 - mmarek@suse.cz
 
 - sbin/module_upgrade: update to new modprobe config layout
