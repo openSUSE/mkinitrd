@@ -351,6 +351,14 @@ for script in $INITRD_PATH/boot/*.sh; do
     fi
 done
 
+# iscsi_ibft module is listed in the $INITRD_PATH/boot/*iscsi.sh script
+# but is not valid on some archs. There should be a better way to handle
+# this, but just remove it on such archs for now.
+if [ ! -d /sys/firmware/ibft -a "${modules//iscsi_ibft/}" != "$modules" ] ; then
+        modules=${modules//iscsi_ibft/}
+	verbose "[MODULES]\tiscsi_ibft not present on this architecture, deleted from the list"
+fi
+
 # parsing of '# SUSE INITRD' lines
 load_additional_dependencies
 resolved_modules="$(resolve_modules $kernel_version $modules)"
