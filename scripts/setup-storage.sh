@@ -194,11 +194,6 @@ resolve_device() {
     local x="$2"
     local realrootdev="$2"
 
-    # root device was already checked and non-existing
-    # non-root device is not fatal, but may not be
-    # shown to the following block resolver modules
-    [ -b "$realrootdev" ] || exit 0
-
     case "$realrootdev" in
       LABEL=*|UUID=*)
         # get real root via fsck hack
@@ -217,6 +212,12 @@ resolve_device() {
       *:*|//*)
         [ "$type" = "Root" ] && x="$rootfstype-root"
         ;;
+      *)
+	# root device was already checked and non-existing
+	# non-root device is not fatal, but may not be
+	# shown to the following block resolver modules
+	[ -b "$realrootdev" ] || exit 0
+	;;
     esac
 
     [ "$x" != "$realrootdev" ] && x="$x ($realrootdev)"
