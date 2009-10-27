@@ -200,7 +200,7 @@ resolve_device() {
         realrootdev=$(fsck -N "$rootdev" \
                       | sed -ne '2s/.* \/dev/\/dev/p' \
                       | sed -e 's/  *//g')
-        if [ -z "$realrootdev" ] ; then
+        if [ -z "$realrootdev"  -o ! -b "$realrootdev" ] ; then
             echo "Could not expand $x to real device" >&2
             exit 1
         fi
@@ -212,13 +212,12 @@ resolve_device() {
       *:*|//*)
         [ "$type" = "Root" ] && x="$rootfstype-root"
         ;;
-      *)
-	# root device was already checked and non-existing
-	# non-root device is not fatal, but may not be
-	# shown to the following block resolver modules
-	[ -b "$realrootdev" ] || exit 0
-	;;
     esac
+
+    # root device was already checked and non-existing
+    # non-root device is not fatal, but may not be
+    # shown to the following block resolver modules
+    [ -b "$realrootdev" ] || exit 0
 
     [ "$x" != "$realrootdev" ] && x="$x ($realrootdev)"
 
