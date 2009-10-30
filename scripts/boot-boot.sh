@@ -29,6 +29,12 @@ unset check_for_device
 ROOTFS_BLKDEV="$rootdev"
 export ROOTFS_BLKDEV
 
+# restart mdmon in the new root (exits silently if there are no arrays with
+# external metadata)
+if test -x /sbin/mdmon; then
+    /sbin/mdmon /proc/mdstat /root
+fi
+
 exec /bin/run-init -c ./dev/console /root $init ${kernel_cmdline[@]}
 echo could not exec run-init!
 die 0
