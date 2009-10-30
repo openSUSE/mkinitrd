@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct 30 14:39:03 CET 2009 - mmarek@suse.cz
+
+- restart mdmon before switching to the new root (fate#306823).
+
+-------------------------------------------------------------------
 Thu Oct 22 16:54:45 CEST 2009 - ro@suse.de
 
 - add any required firmware to the initrd
