@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #%stage: setup
-#%param_f: "Features to be enabled when generating initrd.\nAvailable features are:\niscsi, md, multipath, lvm, lvm2, ifup" "\"feature list\"" ADDITIONAL_FEATURES
+#%param_f: "Features to be enabled when generating initrd.\nAvailable features are:\niscsi, md, multipath, lvm, lvm2, ifup, fcoe, dcbd" "\"feature list\"" ADDITIONAL_FEATURES
 #%param_k: "List of kernel images for which initrd files are created. Defaults to all kernels found in /boot." "\"kernel list\"" kernel_images
 #%param_i: "List of file names for the initrd; position have match to \"kernel list\". Defaults to all kernels found in /boot." "\"initrd list\"" initrd_images
 #%param_l: "mkinitrd directory. Defaults to /lib/mkinitrd." "\"lib_dir\"" INITRD_PATH
