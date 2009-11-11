@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 11 13:14:08 CET 2009 - mcihar@suse.cz
+
+- add a bridge to support fcoe and dcbd (fate#307444)
+
+-------------------------------------------------------------------
 Fri Oct 30 14:39:03 CET 2009 - mmarek@suse.cz
 
 - restart mdmon before switching to the new root (fate#306823).
