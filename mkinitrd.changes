@@ -24,6 +24,11 @@ Tue Oct 13 09:12:54 CEST 2009 - mvancura@suse.cz
   (bnc#494364)
 
 -------------------------------------------------------------------
+Tue Feb 24 10:54:02 CET 2009 - hare@suse.de
+
+- Detect disk with extended minor numbers correctly (bnc#471815)
+
+-------------------------------------------------------------------
 Thu Jan 29 16:44:11 CET 2009 - bwalle@suse.de
 
 - Don't use the 'ip' from environment (bnc #450680).
