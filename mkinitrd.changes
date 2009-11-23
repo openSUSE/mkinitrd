@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov 23 15:13:01 CET 2009 - mvancura@suse.cz
+
+- store the git repo URL in the package metadata
+
+-------------------------------------------------------------------
 Thu Oct 22 16:54:45 CEST 2009 - ro@suse.de
 
 - add any required firmware to the initrd
