@@ -172,11 +172,3 @@ test -f $f && cp $f $tmp_mnt/$f
 
 # Store the commandline
 echo $build_cmdline > $tmp_mnt/mkinitrd.config
-
-# HBA firmware
-mkdir -p $tmp_mnt/lib/firmware
-for fw in /lib/firmware/ql*.bin /lib/firmware/aic94xx* ; do
-    if [ -f "$fw" ] ; then
-        cp -a $fw $tmp_mnt/lib/firmware
-    fi
-done
