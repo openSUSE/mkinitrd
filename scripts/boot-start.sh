@@ -33,7 +33,7 @@ die() {
 
 mount -t proc  proc  /proc
 mount -t sysfs sysfs /sys
-mount -t tmpfs -o mode=0755 udev /dev
+mount -t tmpfs -o mode=0755,nr_inodes=0 udev /dev
 
 mknod -m 0666 /dev/tty     c 5 0
 mknod -m 0600 /dev/console c 5 1
