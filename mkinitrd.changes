@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 14 16:10:50 CET 2009 - mvancura@suse.cz
+
+- set number of inodes in /dev to unlimited (bnc#529839)
+
+-------------------------------------------------------------------
 Mon Nov 23 15:13:01 CET 2009 - mvancura@suse.cz
 
 - store the git repo URL in the package metadata
