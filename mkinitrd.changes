@@ -20,6 +20,12 @@ Thu Oct 22 14:34:46 CEST 2009 - mvancura@suse.cz
   partition device name to the disk name (bnc#531663)
 
 -------------------------------------------------------------------
+Wed Oct 28 00:35:44 CET 2009 - ro@suse.de
+
+- remove hack for qlogic and aix and use modinfo -F firmware to
+  find out and copy if a module requires firmware files 
+
+-------------------------------------------------------------------
 Fri Oct 16 11:46:11 UTC 2009 - aj@suse.de
 
 - Fix scripts/boot-remount.sh syntax.
