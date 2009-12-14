@@ -1,7 +1,7 @@
 #
 # spec file for package mkinitrd (Version 2.5.10)
 #
-# package are under the same license as the package itself.
+# Copyright (c) 2009 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
