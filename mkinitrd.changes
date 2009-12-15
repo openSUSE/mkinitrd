@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
+
+- don't run fsck if on batteries (bnc#521419)
+
+-------------------------------------------------------------------
 Mon Dec 14 16:10:50 CET 2009 - mvancura@suse.cz
 
 - set number of inodes in /dev to unlimited (bnc#529839)

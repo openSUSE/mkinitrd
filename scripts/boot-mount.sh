@@ -3,7 +3,7 @@
 #%stage: filesystem
 #%depends: resume
 #
-#%programs: /sbin/fsck $rootfsck
+#%programs: /sbin/fsck $rootfsck /bin/on_ac_power
 #%if: ! "$root_already_mounted"
 #%dontshow
 #
@@ -88,6 +88,9 @@ if [ -z "$rootfstype" ]; then
     echo "invalid root filesystem -- exiting to /bin/sh"
     cd /
     PATH=$PATH PS1='$ ' /bin/sh -i
+# skip fsck if running on battery                                                                                                                                         
+elif [ -x /usr/bin/on_ac_power ] && ! /usr/bin/on_ac_power -q ; then
+    echo skipping fsck because running on batteries 
 # don't run fsck in the kdump kernel
 elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # fsck is unhappy without it
