@@ -1771,6 +1771,9 @@ mkinitrd_kernel() {
 	cp_bin /sbin/ip $tmp_mnt/sbin/ip
     fi
 
+    # don't run fsck if running on batteries
+    cp_bin /usr/bin/on_ac_power $tmp_mnt/bin/
+
     if [ "$rootfstype" = "ext2" ] ; then
 	features=(${features[@]} fsck.ext2)
 	cp_bin /sbin/fsck $tmp_mnt/bin
@@ -3501,6 +3504,8 @@ mkinitrd_kernel() {
 	|    echo "invalid root filesystem -- exiting to /bin/sh"
 	|    cd /
 	|    PATH=$PATH PS1='$ ' /bin/sh -i
+	|elif [ -x /bin/on_ac_power ] && ! /bin/on_ac_power -q ; then
+	|    echo "skipping fsck because running on batteries"
 	|elif [ -x /bin/fsck.${rootfstype} ]; then
 	|    # fsck is unhappy without it
 	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
+
+- don't run fsck if on batteries (bnc#521419)
+
+-------------------------------------------------------------------
 Wed Sep  9 15:09:41 CEST 2009 - mvancura@suse.de
 
 - Enable to workaround a bad feature detection (bnc#533853)
