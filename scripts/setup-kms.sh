@@ -99,12 +99,12 @@ pciids_on_system()
 	    entries[$n]=$i
 	    n=$(( $n + 1 ))
 	done
-	tmp=${entries[0]//\"/}; m_slot[$ct]=${tmp^^*}
-	tmp=${entries[1]//\"/}; m_class[$ct]=${tmp^^*}
-	tmp=${entries[2]//\"/}; m_vendor[$ct]=${tmp^^*}
-	tmp=${entries[3]//\"/}; m_device[$ct]=${tmp^^*}
-	tmp=${entries[4]//\"/}; m_subvendor[$ct]=${tmp^^*}
-	tmp=${entries[5]//\"/}; m_subdevice[$ct]=${tmp^^*}
+	m_slot[$ct]=${entries[0]//\"/}
+	m_class[$ct]=${entries[1]//\"/}
+	m_vendor[$ct]=${entries[2]//\"/}
+	m_device[$ct]=${entries[3]//\"/}
+	m_subvendor[$ct]=${entries[4]//\"/}
+	m_subdevice[$ct]=${entries[5]//\"/}
 	ct=$(( $ct + 1 ))
     done
     IFS=$OFS
@@ -134,6 +134,7 @@ is_driver()
     local pcilist=$(/sbin/modinfo -F alias -k $kernel_version $driver \
 	| sed -n "s/pci:v\([0-9A-F\*]\+\)d\([0-9A-F\*]\+\)sv\([0-9A-F\*]\+\)sd\([0-9A-F\*]\+\)bc\([0-9A-F\*]\+\)sc\([0-9A-F\*]\+\)i\([0-9A-F\*]\+\).*/v=\1 d=\2 sv=\3 sd=\4 bc=\5 sc=\6 ii=\7/p")
     parse_pciids_from_driver "$pcilist"
+    shopt -s nocasematch
     for i in ${!m_slot[@]}
     do
 	for j in ${!device[@]}
@@ -167,6 +168,7 @@ is_driver()
 	done
     done
     echo $level
+    shopt -u nocasematch
     return 0
 }
 
@@ -223,6 +225,7 @@ class_drivers()
 
     [ -z "$kver" ] && return 1
 
+    shopt -s nocasematch
     for i in ${!m_class[@]}
     do
 	for j in $classlist
@@ -238,6 +241,8 @@ class_drivers()
 	    fi
 	done
     done
+    shopt -u nocasematch
+
     echo $gfxs
 }
 
