@@ -1,4 +1,53 @@
 -------------------------------------------------------------------
+Mon Dec  7 13:43:39 UTC 2009 - eich@suse.de
+
+- only match PCI devices when parsing aliases. 
+
+-------------------------------------------------------------------
+Fri Dec  4 16:16:33 UTC 2009 - eich@suse.de
+
+- delete waitfor_agp udev rule.
+- delete device specific blacklisting. 
+ 
+
+-------------------------------------------------------------------
+Wed Dec  2 21:11:22 UTC 2009 - eich@suse.de
+
+- copy waitfor_agp rule to initrd.
+
+-------------------------------------------------------------------
+Mon Nov 30 21:13:35 UTC 2009 - eich@suse.de
+
+- remove code which fixed /etc/sysconfig/bootloader from
+  setup-kms.sh. This was moved to yast2-bootloader. 
+
+-------------------------------------------------------------------
+Mon Nov 30 08:53:14 UTC 2009 - eich@suse.de
+
+- add support for driver specific blacklist files.
+- add support for a 'nomodeset' boot parameter.
+
+-------------------------------------------------------------------
+Sat Nov 28 14:00:30 UTC 2009 - eich@novell.com
+
+- match PCI class and if also when looking for agp driver. 
+
+-------------------------------------------------------------------
+Fri Nov 27 16:09:09 CET 2009 - eich@novell.com
+
+- replaced 'X' by '*' as wild char. 
+
+-------------------------------------------------------------------
+Fri Nov 27 11:02:32 CET 2009 - eich@novell.com
+
+- change handling of upper<>lower case matching for SLE-11.  
+
+-------------------------------------------------------------------
+Thu Nov 26 13:45:22 CET 2009 - eich@novell.com
+
+- add KMS support to initrd. 
+
+-------------------------------------------------------------------
 Wed Nov 11 13:14:08 CET 2009 - mcihar@suse.cz
 
 - add a bridge to support fcoe and dcbd (fate#307444)
