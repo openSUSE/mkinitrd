@@ -4,6 +4,11 @@ Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 - don't run fsck if on batteries (bnc#521419)
 
 -------------------------------------------------------------------
+Wed Dec 16 14:08:42 CET 2009 - hare@suse.de
+
+- Enabling setup of qeth devices for root on iSCSI.
+
+-------------------------------------------------------------------
 Tue Sep 15 18:13:03 CEST 2009 - mvancura@suse.de
 
 - A check for evms feature should not be OES specific (bnc#533853)
