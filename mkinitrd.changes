@@ -4,7 +4,7 @@ Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 - don't run fsck if on batteries (bnc#521419)
 
 -------------------------------------------------------------------
-Wed Dec 16 14:08:42 CET 2009 - hare@suse.de
+Wed Oct 14 10:47:21 CET 2009 - hare@suse.de
 
 - Enabling setup of qeth devices for root on iSCSI.
 
