@@ -4,6 +4,16 @@ Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 - don't run fsck if on batteries (bnc#521419)
 
 -------------------------------------------------------------------
+Tue Sep 15 18:13:03 CEST 2009 - mvancura@suse.de
+
+- A check for evms feature should not be OES specific (bnc#533853)
+
+-------------------------------------------------------------------
+Tue Sep 15 16:33:03 CEST 2009 - mvancura@suse.de
+
+- Add an exception for OES how to check for evms feature (bnc#533853)
+
+-------------------------------------------------------------------
 Wed Sep  9 15:09:41 CEST 2009 - mvancura@suse.de
 
 - Enable to workaround a bad feature detection (bnc#533853)

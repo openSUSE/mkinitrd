@@ -1371,6 +1371,13 @@ mkinitrd_kernel() {
 	EOF
     chmod +x $tmp_mnt/bin/true
 
+    # add 'evms' feature automagically if root device is /dev/evms/*
+    case "$rootdev" in
+	/dev/evms/*)
+	feature_list="evms $feature_list"
+	evms_policy="disk";;
+    esac
+
     # Enable user-selected features from command line and
     # /etc/sysconfig/kernel
     if [ "$feature_list$INITRD_FEATURES" ] ; then
