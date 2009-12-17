@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 17 16:10:50 CET 2009 - mvancura@suse.cz
+
+- set number of inodes in /dev to unlimited (bnc#529839)
+
+-------------------------------------------------------------------
 Wed Dec 16 15:58:25 CEST 2009 - mmarek@suse.cz
 
 - do not copy module parameters from /proc/cmdline, modprobe does
