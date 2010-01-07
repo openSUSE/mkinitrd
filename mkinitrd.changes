@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan  7 19:58:00 CET 2010 - agruen@suse.de
+
+- Add read-only root filesystem support (fate#307235) using bind
+  mounts.
+
+-------------------------------------------------------------------
 Mon Dec 17 16:10:50 CET 2009 - mvancura@suse.cz
 
 - set number of inodes in /dev to unlimited (bnc#529839)

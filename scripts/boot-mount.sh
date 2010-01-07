@@ -88,6 +88,10 @@ if [ -z "$rootfstype" ]; then
     echo "invalid root filesystem -- exiting to /bin/sh"
     cd /
     PATH=$PATH PS1='$ ' /bin/sh -i
+    # skip filesystem check of shared read-only root filesystems
+elif [ -n "$cmd_readonlyroot" -a -z "$cmd_noreadonlyroot" ] ; then
+    echo "Skipping fsck of shared read-only root filesystem."
+    read_only=1
 # don't run fsck in the kdump kernel
 elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # fsck is unhappy without it
