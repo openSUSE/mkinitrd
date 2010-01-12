@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 12 14:36:36 CET 2010 - mmarek@suse.cz
+
+- Require module-init-tools >= 3.11.
+
+-------------------------------------------------------------------
 Thu Jan  7 19:58:00 CET 2010 - agruen@suse.de
 
 - Add read-only root filesystem support (fate#307235) using bind

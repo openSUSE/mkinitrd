@@ -16,7 +16,9 @@ License:        GPL v2 or later
 Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
 BuildRequires:  asciidoc
-Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
+Requires:       coreutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
+# needed for modprobe --resolve-alias
+Requires:       module-init-tools >= 3.11
 AutoReqProv:    on
 Version:        2.4
 Release:        1
