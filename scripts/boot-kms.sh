@@ -4,7 +4,7 @@
 #
 #%depends: start
 #
-#%modules: "$kms_modules"
+#%modules: $kms_modules
 #
 #%if: "$kms_modules"
 

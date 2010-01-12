@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  1 14:59:47 CET 2010 - eich@freedesktop.org
+
+- boot-kmps.sh: Remove unnecessary quotes around %modules value
+  (bnc#560419).
+
+-------------------------------------------------------------------
 Thu Jan 28 13:01:16 CET 2010 - mmarek@suse.cz
 
 - scripts/setup-kms.sh: properly restore $IFS (bnc#574683).
