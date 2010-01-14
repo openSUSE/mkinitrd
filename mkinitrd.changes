@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 14 15:58:13 CET 2010 - mmarek@suse.cz
+
+- Set shopt -s nullglob so that for-loops behave as expected.
+
+-------------------------------------------------------------------
 Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 
 - don't run fsck if on batteries (bnc#521419)
