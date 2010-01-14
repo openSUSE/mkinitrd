@@ -29,6 +29,7 @@ LOGDIR=/var/log/YaST2
 LOGFILE=$LOGDIR/mkinitrd.log
 declare -a cmd_option
 declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name
+shopt -s nullglob
 
 read_options_eval() {
     [ "$#" = 0 ] && return
@@ -38,7 +39,7 @@ read_options_eval() {
 }
 
 read_options() {
-        egrep -h '%param_' $INITRD_PATH/setup/*.sh | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > $tmp_dir/$$.params
+        egrep -h '%param_' $INITRD_PATH/setup/*.sh /dev/null | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > $tmp_dir/$$.params
         . $tmp_dir/$$.params
         rm -f $tmp_dir/$$.params
 }
