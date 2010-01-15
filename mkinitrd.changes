@@ -5,6 +5,12 @@ Tue Jan 19 11:34:09 CET 2010 - mmarek@suse.cz
   recent kernel and m-i-t handle it properly.
 
 -------------------------------------------------------------------
+Fri Jan 15 17:22:31 CET 2010 - lmuelle@suse.de
+
+- Use ID_FS_LABEL_ENC instead of ID_FS_LABEL_SAFE in scripts/boot-storage.sh;
+  (bnc#483136).
+
+-------------------------------------------------------------------
 Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 
 - don't run fsck if on batteries (bnc#521419)
