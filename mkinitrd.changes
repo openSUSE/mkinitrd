@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 15 17:14:30 CET 2010 - mmarek@suse.cz
+
+- scripts/boot-block.sh: mdmon fixes.
+
+-------------------------------------------------------------------
 Thu Jan 14 15:58:13 CET 2010 - mmarek@suse.cz
 
 - Set shopt -s nullglob so that for-loops behave as expected.
@@ -24,15 +29,15 @@ Fri Oct 30 14:39:03 CET 2009 - mmarek@suse.cz
 - restart mdmon before switching to the new root (fate#306823).
 
 -------------------------------------------------------------------
+Wed Oct 28 00:35:44 CET 2009 - ro@suse.de
+
+- remove hack for qlogic and aix and use modinfo -F firmware to
+  find out and copy if a module requires firmware files 
+
+-------------------------------------------------------------------
 Thu Oct 22 16:54:45 CEST 2009 - ro@suse.de
 
 - add any required firmware to the initrd
-
--------------------------------------------------------------------
-Fri Aug 21 16:26:00 CEST 2009 - mmarek@suse.cz
-
-- sbin/module_upgrade: update to new modprobe config layout
-  (bnc#532069).
 
 -------------------------------------------------------------------
 Thu Oct 22 16:13:21 CEST 2009 - mmarek@suse.cz
@@ -44,12 +49,6 @@ Thu Oct 22 14:34:46 CEST 2009 - mvancura@suse.cz
 
 - scripts/setup-blockpartition.sh: fix sed regexp converting a
   partition device name to the disk name (bnc#531663)
-
--------------------------------------------------------------------
-Wed Oct 28 00:35:44 CET 2009 - ro@suse.de
-
-- remove hack for qlogic and aix and use modinfo -F firmware to
-  find out and copy if a module requires firmware files 
 
 -------------------------------------------------------------------
 Fri Oct 16 11:46:11 UTC 2009 - aj@suse.de
@@ -89,6 +88,12 @@ Mon Sep  7 12:49:01 CEST 2009 - werner@suse.de
 Mon Aug 31 14:54:40 CEST 2009 - mvancura@suse.cz
 
 - note that we adjusted clock (bnc#534816)
+
+-------------------------------------------------------------------
+Fri Aug 21 16:26:00 CEST 2009 - mmarek@suse.cz
+
+- sbin/module_upgrade: update to new modprobe config layout
+  (bnc#532069).
 
 -------------------------------------------------------------------
 Tue Aug 11 11:58:25 CEST 2009 - mmarek@suse.cz
