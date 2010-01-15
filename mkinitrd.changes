@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 15 17:14:30 CET 2010 - mmarek@suse.cz
+
+- scripts/boot-block.sh: mdmon fixes.
+
+-------------------------------------------------------------------
 Thu Jan 14 15:58:13 CET 2010 - mmarek@suse.cz
 
 - Set shopt -s nullglob so that for-loops behave as expected.
