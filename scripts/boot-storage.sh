@@ -48,7 +48,7 @@ case $rootdev in
             ;;
         LABEL=*)
             label=${rootdev#LABEL=}
-            echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_LABEL_SAFE}==\"$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-label.rules
+            echo "ENV{ID_FS_USAGE}==\"filesystem|other\", ENV{ID_FS_LABEL_ENC}==\"$label\", SYMLINK+=\"root\"" > /etc/udev/rules.d/99-mkinitrd-label.rules
             rootdev=/dev/root
             ;;
         UUID=*)
