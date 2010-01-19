@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 19 11:34:09 CET 2010 - mmarek@suse.cz
+
+- scripts/setup-modules.sh: remove the check_builtin_module() hack,
+  recent kernel and m-i-t handle it properly.
+
+-------------------------------------------------------------------
 Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 
 - don't run fsck if on batteries (bnc#521419)
@@ -14,6 +20,12 @@ Mon Nov 23 15:13:01 CET 2009 - mvancura@suse.cz
 - store the git repo URL in the package metadata
 
 -------------------------------------------------------------------
+Wed Oct 28 00:35:44 CET 2009 - ro@suse.de
+
+- remove hack for qlogic and aix and use modinfo -F firmware to
+  find out and copy if a module requires firmware files 
+
+-------------------------------------------------------------------
 Thu Oct 22 16:54:45 CEST 2009 - ro@suse.de
 
 - add any required firmware to the initrd
@@ -23,12 +35,6 @@ Thu Oct 22 14:34:46 CEST 2009 - mvancura@suse.cz
 
 - scripts/setup-blockpartition.sh: fix sed regexp converting a
   partition device name to the disk name (bnc#531663)
-
--------------------------------------------------------------------
-Wed Oct 28 00:35:44 CET 2009 - ro@suse.de
-
-- remove hack for qlogic and aix and use modinfo -F firmware to
-  find out and copy if a module requires firmware files 
 
 -------------------------------------------------------------------
 Fri Oct 16 11:46:11 UTC 2009 - aj@suse.de
