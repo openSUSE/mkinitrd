@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 19 11:34:09 CET 2010 - mmarek@suse.cz
+
+- scripts/setup-modules.sh: remove the check_builtin_module() hack,
+  recent kernel and m-i-t handle it properly.
+
+-------------------------------------------------------------------
 Fri Jan 15 17:14:30 CET 2010 - mmarek@suse.cz
 
 - scripts/boot-block.sh: mdmon fixes.
