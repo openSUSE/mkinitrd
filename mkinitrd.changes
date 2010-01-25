@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 25 16:03:04 CET 2010 - eich@freedesktop.org
+
+- Add support for KMS.
+
+-------------------------------------------------------------------
 Tue Jan 19 11:34:09 CET 2010 - mmarek@suse.cz
 
 - scripts/setup-modules.sh: remove the check_builtin_module() hack,
