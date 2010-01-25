@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 10 15:54:34 CET 2010 - mmarek@suse.cz
+
+- setup-block: Add warning for loop devices (bnc#523749).
+
+-------------------------------------------------------------------
 Wed Mar 10 15:53:27 CET 2010 - mmarek@suse.cz
 
 - setup-storage: Ignore error messages from dmsetup.
