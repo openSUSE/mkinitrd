@@ -113,7 +113,7 @@ dm_resolvedeps() {
                 update_blockdev $bd >&2
                 if [ "$blockdriver" = device-mapper ]; then
                         root_dm=1
-                        dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor)
+                        dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor 2> /dev/null)
                         dm_deps=${dm_deps#*: }
                         dm_deps=${dm_deps//, /:}
                         dm_deps=${dm_deps//(/}
@@ -137,7 +137,7 @@ dm_resolvedeps_recursive() {
                 update_blockdev $bd >&2
                 if [ "$blockdriver" = device-mapper ]; then
                         root_dm=1
-                        dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor)
+                        dm_deps=$(dmsetup deps -j $blockmajor -m $blockminor 2> /dev/null)
                         dm_deps=${dm_deps#*: }
                         dm_deps=${dm_deps//, /:}
                         dm_deps=${dm_deps//(/}

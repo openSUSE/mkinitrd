@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 10 15:53:27 CET 2010 - mmarek@suse.cz
+
+- setup-storage: Ignore error messages from dmsetup.
+
+-------------------------------------------------------------------
 Wed Mar 10 12:38:37 CET 2010 - mmarek@suse.cz
 
 - Use udevsettle before killing udevd (bnc#543612).
