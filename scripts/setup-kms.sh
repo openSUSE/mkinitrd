@@ -71,13 +71,18 @@ pciids_on_system()
     local line
     local n tmp
     local ct=0
+    local ret=1
     declare -a entries
     OFS=$IFS
     IFS="
 "
-    for line in $(lspci -mn)
+
+    [ -d /sys/bus/pci ] && [ -x /sbin/lspci ] || return 1
+
+    for line in $(/sbin/lspci -mn 2>/dev/null)
     do
 	unset entries
+	ret=0
 	m_if[$ct]=00
 	n=0
 	IFS=$OFS
@@ -103,6 +108,7 @@ pciids_on_system()
 	ct=$(( $ct + 1 ))
     done
     IFS=$OFS
+    return $ret
 }
 
 #
@@ -187,7 +193,8 @@ agp_drivers()
     for i in /lib/modules/$kver/kernel/drivers/char/agp/*.ko
     do
 	i=${i##*/}
-	agps="$agps ${i%.ko}"
+	i=${i%.ko}
+	[ "$i" != "*" ] && agps="$agps $i"
     done
     echo "$agps"
 }
@@ -242,9 +249,8 @@ class_drivers()
 
 ################## end of functions ######################
 
-if [ "$NO_KMS_IN_INITRD" != "yes" ]
+if [ "$NO_KMS_IN_INITRD" != "yes" ] && pciids_on_system
 then
-    pciids_on_system
 
     gfx_modules=$(class_drivers $kernel_version $supported_classes)
 
