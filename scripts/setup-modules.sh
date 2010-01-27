@@ -307,7 +307,7 @@ resolve_modules() {
             echo \
 "WARNING: no dependencies for kernel module '$module' found." >&2
         fi
-        module_list=$(echo "$module_list" | sed -rn 's/^insmod +//p')
+        module_list=$(echo "$module_list" | sed -rn 's/^insmod +([^ ]+).*/\1/p')
         for mod in $module_list ; do
             if ! $(echo $resolved_modules | grep -q $mod) ; then
                 resolved_modules="$resolved_modules $mod"
