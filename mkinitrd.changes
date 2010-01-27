@@ -7,7 +7,7 @@ Wed Jan 27 14:59:02 CET 2010 - mmarek@suse.cz
 -------------------------------------------------------------------
 Tue Jan 26 16:58:03 CET 2010 - eich@freedesktop.org
 
-- Bail out of kms setup if no pci devices can be found (bnc#567652).
+- Bail out of kms setup if no pci devices can be found (bnc#573454).
 
 -------------------------------------------------------------------
 Fri Jan 15 17:14:30 CET 2010 - mmarek@suse.cz
