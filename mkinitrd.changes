@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 27 14:59:02 CET 2010 - mmarek@suse.cz
+
+- scripts/setup-modules.sh: fix for module options in /proc/cmdline
+  (bnc#567868, bnc#574261).
+
+-------------------------------------------------------------------
 Tue Jan 19 11:34:09 CET 2010 - mmarek@suse.cz
 
 - scripts/setup-modules.sh: remove the check_builtin_module() hack,
