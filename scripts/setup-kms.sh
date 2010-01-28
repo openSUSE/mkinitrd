@@ -33,7 +33,7 @@ parse_pciids_from_driver() {
     local line
     local num=0
     OFS=$IFS
-    IFS="
+    local IFS="
 "
     for i in $pcilist
     do
@@ -74,7 +74,7 @@ pciids_on_system()
     local ret=1
     declare -a entries
     OFS=$IFS
-    IFS="
+    local IFS="
 "
 
     [ -d /sys/bus/pci ] && [ -x /sbin/lspci ] || return 1
