@@ -242,6 +242,7 @@ if [ -z "$rootdev" ] ; then
   rootminor="$(echo $(( 0x${rootcpio:70:8} )) )"
 
   # get opts from fstab and device too if stat failed
+  sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab >"$work_dir/pipe"
   while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
     if [ "$fstab_mountpoint" = "/" ]; then
       update_blockdev "$fstab_device" # get major and minor
@@ -254,7 +255,7 @@ if [ -z "$rootdev" ] ; then
       rootfsopts="$fstab_options"
       break
     fi
-  done < <(sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab)
+  done < "$work_dir/pipe"
 
   if [ $((rootmajor)) -gt 0 -a -z "$rootdev" ] ; then
       # don't check for non-device mounts

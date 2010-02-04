@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb  4 16:15:45 CET 2010 - mmarek@suse.cz
+
+- Avoid using process substitution in setup scripts (bnc#575819).
+
+-------------------------------------------------------------------
 Thu Jan 28 13:01:16 CET 2010 - mmarek@suse.cz
 
 - scripts/setup-kms.sh: properly restore $IFS (bnc#574683).
