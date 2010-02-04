@@ -126,6 +126,7 @@ load_additional_dependencies()
             continue
         fi
 
+        grep '^# SUSE INITRD: ' $file >"$work_dir/pipe"
         while read line ; do
             local string module requirement dependencies dependency
 
@@ -167,7 +168,7 @@ load_additional_dependencies()
                             "$module:$requirement" )
                 fi
             fi
-        done < <(grep '^# SUSE INITRD: ' $file)
+        done < "$work_dir/pipe"
     done
 }
 
@@ -249,8 +250,9 @@ resolve_modules() {
             -C /dev/null \
             --set-version $kernel_version --ignore-install \
             --show-depends $module \
-            $additional_args 2> >(sed 's/^FATAL:/modprobe:/' >&2) \
+            $additional_args 2> "$work_dir/pipe" \
             | grep -E '^(insmod|builtin) ')
+        sed 's/^FATAL:/modprobe:/' "$work_dir/pipe" >&2
         if [ -z "$module_list" ]; then
             echo \
 "WARNING: no dependencies for kernel module '$module' found." >&2
