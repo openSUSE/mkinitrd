@@ -40,9 +40,9 @@ read_options_eval() {
 }
 
 read_options() {
-        egrep -h '%param_' $INITRD_PATH/setup/*.sh /dev/null | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > $tmp_dir/$$.params
-        . $tmp_dir/$$.params
-        rm -f $tmp_dir/$$.params
+        egrep -h '%param_' $INITRD_PATH/setup/*.sh /dev/null | sed 's/^.*_\(.\): \(.*\)$/ tmp_option=\$(read_options_eval \1 \2); [ \"$tmp_option\" ] \&\& cmd_option[\${#cmd_option[@]}]=\"\$tmp_option\"/' > $work_dir/params
+        . $work_dir/params
+        rm -f $work_dir/params
 }
 
 parse_option() {
@@ -256,6 +256,13 @@ if [ ! -d "$tmp_dir" ]; then
     exit 1
 fi
 
+work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
+if [ $? -ne 0 ]; then
+        echo "$0: Can't create temp dir, exiting." >&2
+        exit 1
+fi
+
+
 saved_args=$@
 read_options
 while getopts $( cmd_getopts ) a ; do
@@ -363,12 +370,6 @@ PATH=/sbin:/usr/sbin:$PATH
 
 # Fixup old installations
 unset CDPATH
-
-work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
-if [ $? -ne 0 ]; then
-        echo "$0: Can't create temp dir, exiting." >&2
-        exit 1
-fi
 
 umount_proc() {
     [ "$mounted_proc" ] && umount -n $mounted_proc
