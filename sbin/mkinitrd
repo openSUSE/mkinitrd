@@ -241,16 +241,36 @@ if [ -e "/etc/sysconfig/initrd" ]; then
     . /etc/sysconfig/initrd
 fi
 
-if [ -w /dev/shm ]; then
-    tmp_dir=${TMPDIR:-/dev/shm}
-else
-    tmp_dir=${TMPDIR:-/tmp}
-fi
+find_tmpdir()
+{
+    local dir st size last_size=0
 
-if [ ! -d "$tmp_dir" ]; then
-    echo "$tmp_dir is not a directory" >&2
-    exit 1
-fi
+    for dir in "$TMPDIR" /dev/shm /tmp /var/tmp; do
+        if test ! -w "$dir"; then
+            continue
+        fi
+        # try to find a directory with at least 50MB free space
+        st=`stat -f -c '%f * %S' "$dir/"`
+        if test -z "$st"; then
+            continue
+        fi
+        size=$(($st))
+        if test "$size" -ge $((50 << 20)); then
+            tmp_dir="$dir"
+            return
+        elif test "$size" -gt "$last_size"; then
+            tmp_dir="$dir"
+            last_size="$size"
+        fi
+    done
+    if [ ! -d "$tmp_dir" ]; then
+        echo "$tmp_dir is not a directory" >&2
+        exit 1
+    fi
+    echo "warning: using $tmp_dir with $(($last_size >> 20))MB free space" >&2
+    echo "this might not be enough" >&2
+}
+find_tmpdir
 
 work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
 if [ $? -ne 0 ]; then
