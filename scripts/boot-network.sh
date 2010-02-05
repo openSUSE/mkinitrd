@@ -23,7 +23,7 @@
 load_modules
 
 # mac address based config
-if [ "$macaddress" ] ; then
+if [ -n "$macaddress" ] ; then
     for dev in /sys/class/net/* ; do
       # skip files that are no directories
       if ! [ -d $dev ] ; then
@@ -36,7 +36,8 @@ if [ "$macaddress" ] ; then
         echo "[NETWORK] using interface $interface"
       fi
     done
-    if [ "$ip" ] ; then
+
+    if [ -n "$ip" ] ; then
         nettype=${ip##*:}
         ip=${ip%:*}
         tmpip=${ip%:*}
@@ -44,11 +45,11 @@ if [ "$macaddress" ] ; then
     fi
 fi
 
-if [ "$nfsaddrs" -a ! "$(get_param ip)" ]; then
+if [ -n "$nfsaddrs" -a -z "$(get_param ip)" ]; then
         ip=$nfsaddrs
 fi
 
-if [ "$ip" -a ! "$(echo $ip | sed '/:/P;d')" ]; then
+if [ -n "$ip" -a ! "$(echo $ip | sed '/:/P;d')" ]; then
         echo "[NETWORK] using dhcp on $interface based on ip=$ip"
         nettype=dhcp
 elif [ "${ip##*:}" = dhcp ]; then
@@ -59,7 +60,7 @@ elif [ "${ip##*:}" = dhcp ]; then
         echo "[NETWORK] using dhcp on $interface based on ip=$ip"
 fi
 
-if [ "$(get_param dhcp)" -a "$(get_param dhcp)" != "off" ]; then
+if [ -n "$(get_param dhcp)" -a "$(get_param dhcp)" != "off" ]; then
         echo "[NETWORK] using dhcp based on dhcp=$dhcp"
         interface=$(get_param dhcp)
         nettype=dhcp
@@ -67,7 +68,7 @@ fi
 
 [ "$(get_param dhcp)" = "off" ] && nettype=static
 
-if [ "$ip" -a "$nettype" != "dhcp" ]; then
+if [ -n "$ip" -a "$nettype" != "dhcp" ]; then
         echo "[NETWORK] using static config based on ip=$ip"
         nettype=static
 fi
@@ -158,7 +159,7 @@ elif [ "$nettype" = "ifup" ] ; then
     done
 fi
 
-if [ "$(get_param net_delay)" -a "$(get_param net_delay)" -gt 0 ]; then
+if [ -n "$(get_param net_delay)" -a "$(get_param net_delay)" -gt 0 ]; then
         echo "[NETWORK] sleeping for $net_delay seconds."
         sleep "$(get_param net_delay)"
 fi

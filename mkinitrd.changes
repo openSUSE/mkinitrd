@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  5 16:22:29 CET 2010 - mmarek@suse.cz
+
+- scripts/setup-network.sh: change [ "$foo" ] to [ -n "$foo" ]
+  (bnc#471943).
+
+-------------------------------------------------------------------
 Fri Feb  5 15:27:15 CET 2010 - mmarek@suse.cz
 
 - scripts/boot-start.sh: fallback to tmpfs for kerneles without
