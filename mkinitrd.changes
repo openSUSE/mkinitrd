@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Fri Feb  5 15:27:15 CET 2010 - mmarek@suse.cz
+
+- scripts/boot-start.sh: fallback to tmpfs for kerneles without
+  devtmpfs.
+
+-------------------------------------------------------------------
+Thu Feb  4 22:53:27 CET 2010 - kasievers@novell.com
+
+- Use devtmpfs and mount /dev/shm as its own tmpfs mount
+  (bnc#561994).
+
+-------------------------------------------------------------------
 Thu Feb  4 22:27:55 CET 2010 - mmarek@suse.cz
 
 - Handle low space below /dev/shm better (bnc#553629).

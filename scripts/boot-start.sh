@@ -2,7 +2,7 @@
 #
 #%stage: boot
 #%depends: devfunctions
-#%programs: /bin/bash umount mount mkdir ln date sleep cat /bin/sed /sbin/insmod /sbin/modprobe kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/*
+#%programs: /bin/bash umount mount mknod mkdir ln date sleep cat /bin/sed /sbin/insmod /sbin/modprobe kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/*
 #%modules: $RESOLVED_INITRD_MODULES
 #%udevmodules: $RESOLVED_INITRD_MODULES_UDEV
 #%dontshow
@@ -33,7 +33,21 @@ die() {
 
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
-mount -t devtmpfs -o mode=0755,nr_inodes=0 devtmpfs /dev
+if mount -t devtmpfs -o mode=0755,nr_inodes=0 devtmpfs /dev; then
+    have_devtmpfs=true
+else
+    have_devtmpfs=false
+    mount -t tmpfs -o mode=0755,nr_inodes=0 udev /dev
+
+    mknod -m 0666 /dev/tty     c 5 0
+    mknod -m 0600 /dev/console c 5 1
+    mknod -m 0666 /dev/ptmx    c 5 2
+    mknod -m 0666 /dev/null c 1 3
+    mknod -m 0600 /dev/kmsg c 1 11
+    mknod -m 0660 /dev/snapshot c 10 231
+    mknod -m 0666 /dev/random c 1 8
+    mknod -m 0644 /dev/urandom c 1 9
+fi
 mkdir -m 1777 /dev/shm
 mount -t tmpfs -o mode=1777 tmpfs /dev/shm
 mkdir -m 0755 /dev/pts
@@ -63,6 +77,37 @@ for o in $(cat /proc/cmdline); do
         eval $key="${value}" 2> /dev/null
     fi
 done
+
+if ! $have_devtmpfs; then
+    tty_driver=
+    if [ "$console" ]; then
+        tty_driver="${tty_driver:+$tty_driver }${console%%,*}"
+    fi
+
+    for o in $tty_driver; do
+        case "$o" in
+            ttyS*) test -e /dev/$o || mknod -m 0660 /dev/$o c 4 64 ;;
+            tty*)  test -e /dev/$o || mknod -m 0660 /dev/$o c 4  1 ;;
+        esac
+    done
+
+    # create the tty device nodes
+    tty_driver=$(showconsole -n 2>/dev/null)
+    if test -n "$tty_driver" ; then
+        major=${tty_driver%% *}
+        minor=${tty_driver##* }
+        if test $major -eq 4 -a $minor -lt 64 ; then
+            tty=/dev/tty$minor
+            test -e $tty || mknod -m 0660 $tty c 4 $minor
+        fi
+        if test $major -eq 4 -a $minor -ge 64 ; then
+            tty=/dev/ttyS$((64-$minor))
+            test -e $tty || mknod -m 0660 $tty c 4 $minor
+        fi
+        unset major minor tty
+    fi
+    unset tty_driver
+fi
 
 kernel_cmdline=($@)
 
