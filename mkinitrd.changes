@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  5 16:22:29 CET 2010 - mmarek@suse.cz
+
+- scripts/setup-network.sh: change [ "$foo" ] to [ -n "$foo" ]
+  (bnc#471943).
+
+-------------------------------------------------------------------
 Thu Feb  4 22:27:55 CET 2010 - mmarek@suse.cz
 
 - Handle low space below /dev/shm better (bnc#553629).
