@@ -29,15 +29,16 @@ supported_classes="0300"
 declare -a device vendor subdevice subvendor class intf
 
 parse_pciids_from_driver() {
-    local pcilist=$1
+    local pcilist="$1"
     local line
     local num=0
     OFS=$IFS
     local IFS="
 "
-    for i in $pcilist
+    # get rid of the wicked "*"
+    pcilist="${pcilist//\*/X}"
+    for line in $pcilist
     do
-	line=${i//\*/X}
 	eval $line
 	device[$num]=${d#0000}
 	vendor[$num]=${v#0000}
