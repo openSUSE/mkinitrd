@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 17 12:13:10 CET 2010 - mmarek@suse.cz
+
+- Update the URL in the specfile.
+
+-------------------------------------------------------------------
 Fri Feb  5 16:22:29 CET 2010 - mmarek@suse.cz
 
 - scripts/setup-network.sh: change [ "$foo" ] to [ -n "$foo" ]
