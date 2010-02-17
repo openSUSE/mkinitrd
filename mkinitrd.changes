@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug  7 11:44:53 CEST 2009 - mvancura@suse.de
+
+- backport patch for bnc#503242 correctly
+
+-------------------------------------------------------------------
 Tue Jul 21 17:51:33 CEST 2009 - mvancura@suse.de
 
 - Support large minor numbers (bnc#503242)
