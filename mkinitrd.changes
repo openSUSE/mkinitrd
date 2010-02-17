@@ -34,6 +34,13 @@ Wed Aug 26 05:34:57 CEST 2009 - xwhu@suse.de
 - bnc#528918, unused pv is not recognized by mkinitrd 
 
 -------------------------------------------------------------------
+Mon Aug 10 14:59:51 CEST 2009 - mvancura@suse.de
+
+- bug-469954_mkinitrd-2.5.9.patch: backported patch from STABLE
+  (git master branch, commit b2c008ca8674a412e97c901)
+  to fix localtime issue (bnc#469954)
+
+-------------------------------------------------------------------
 Mon Aug  3 15:47:43 CEST 2009 - mvancura@suse.de
 
 - Fix a patch for bnc#414267 back after an update to SP3 state
