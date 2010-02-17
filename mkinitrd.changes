@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 17 13:33:55 CET 2010 - mmarek@suse.cz
+
+- scripts/boot-mount.sh: Fix fsck progressbar (bnc#564325).
+
+-------------------------------------------------------------------
 Wed Feb 17 12:13:10 CET 2010 - mmarek@suse.cz
 
 - Update the URL in the specfile.

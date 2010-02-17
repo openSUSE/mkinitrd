@@ -98,7 +98,8 @@ elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # Display progress bar if possible
     fsckopts="-V -a"
     [ "$forcefsck" ] && fsckopts="$fsckopts -f"
-    [ "`/sbin/showconsole`" = "/dev/tty1" ] && fsckopts="$fsckopts -C"
+    console=`/sbin/showconsole`
+    [ "${console##*/}" = "tty1" ] && fsckopts="$fsckopts -C"
     # Check external journal for reiserfs
     [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && fsckopts="-j $journaldev $fsckopts"
     fsck -t $rootfstype $fsckopts $rootdev
