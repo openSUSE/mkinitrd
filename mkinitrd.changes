@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 17 12:13:10 CET 2010 - mmarek@suse.cz
+
+- Update the URL in the specfile.
+
+-------------------------------------------------------------------
 Wed Feb 10 12:22:38 CET 2010 - eich@novell.com
 
 - Fix bogus wildchar substitution in pci device list (bnc#566624) et.al.
