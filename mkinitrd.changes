@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 19 10:30:01 CET 2010 - mmarek@suse.cz
+
+- scripts/boot-network.sh: really fix net_delay handling
+  (bnc#575816).
+
+-------------------------------------------------------------------
 Wed Feb 10 12:22:38 CET 2010 - eich@novell.com
 
 - Fix bogus wildchar substitution in pci device list (bnc#566624) et.al.

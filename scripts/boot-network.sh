@@ -159,7 +159,7 @@ elif [ "$nettype" = "ifup" ] ; then
     done
 fi
 
-if [ -n "$(get_param net_delay)" -a "$(get_param net_delay)" -gt 0 ]; then
+if [ "0$(get_param net_delay)" -gt 0 ]; then
         echo "[NETWORK] sleeping for $net_delay seconds."
         sleep "$(get_param net_delay)"
 fi
