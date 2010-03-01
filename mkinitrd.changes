@@ -14,6 +14,12 @@ Wed Mar  3 22:22:47 CET 2010 - mmarek@suse.cz
 - Fix syntax error in network setup (bnc#575683).
 
 -------------------------------------------------------------------
+Mon Mar  1 13:53:41 CET 2010 - mvancura@suse.cz
+
+- LVM on top of DM: add multipath support only if needed
+  (bnc#581523).
+
+-------------------------------------------------------------------
 Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 
 - don't run fsck if on batteries (bnc#521419)
