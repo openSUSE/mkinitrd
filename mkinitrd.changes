@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  3 13:23:31 UTC 2010 - coolo@novell.com
+
+- do not require sysvinit but the tools and sbin_init
+
+-------------------------------------------------------------------
 Wed Feb 17 13:33:55 CET 2010 - mmarek@suse.cz
 
 - scripts/boot-mount.sh: Fix fsck progressbar (bnc#564325).
