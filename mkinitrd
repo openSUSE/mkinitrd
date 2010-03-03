@@ -2519,7 +2519,7 @@ mkinitrd_kernel() {
 	|for o in $(cat /proc/cmdline); do
 	|  case $o in
 	|    dhcp=*)
-	|      if [ "${o#dhcp=}" ] && [ "${o#dhcp=}" = "off"] ; then
+	|      if [ "${o#dhcp=}" ] && [ "${o#dhcp=}" = "off" ] ; then
 	|          dhcp_mode=
 	|      else
 	|          interface="${o#dhcp=}"

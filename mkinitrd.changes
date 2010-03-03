@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  3 22:22:47 CET 2010 - mmarek@suse.cz
+
+- Fix syntax error in network setup (bnc#575683).
+
+-------------------------------------------------------------------
 Mon Aug 10 14:59:51 CEST 2009 - mvancura@suse.de
 
 - bug-469954_mkinitrd-2.5.9.patch: backported patch from STABLE
