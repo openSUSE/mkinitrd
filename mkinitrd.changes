@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  3 21:45:06 CET 2010 - eich@novell.com
+
+- scripts/setup-kms.sh: Fix for shopt -s nocasematch (bnc#566624).
+
+-------------------------------------------------------------------
 Wed Mar  3 15:10:42 CET 2010 - mmarek@suse.cz
 
 - Require sysvinit on older dists
