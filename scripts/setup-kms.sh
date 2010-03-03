@@ -144,19 +144,19 @@ is_driver()
 	    if [ "${vendor[$j]}" = "X" -o "${m_vendor[$i]}" = "${vendor[$j]}" ]
 	    then
 		[ "${vendor[$j]}" != "X" ] && thislevel=$(( $thislevel + 1 ))
-		if [ "${class[$j]}" = "X" -o "${m_class[$i]}" = "${class[$j]}" ]
+		if [ "${class[$j]}" = "X" ] || [[ "${m_class[$i]}" == "${class[$j]}" ]]
 		then
 		    [ "${class[$j]}" != "X" ] && thislevel=$(( $thislevel + 2 ))
-		    if [ "${intf[$j]}" = "X" -o "${m_if[$i]}" = "${intf[$j]}" ]
+		    if [ "${intf[$j]}" = "X" ] || [[ "${m_if[$i]}" == "${intf[$j]}" ]]
 		    then
 			[ "${intf[$j]}" != "X" ] && thislevel=$(( $thislevel + 4 ))
-			if [ "${device[$j]}" = "X" -o "${m_device[$i]}" = "${device[$j]}" ]
+			if [ "${device[$j]}" = "X" ] || [[ "${m_device[$i]}" == "${device[$j]}" ]]
 			then
 			    [ "${device[$j]}" != "X" ] && thislevel=$(( $thislevel + 6 ))
-			    if [ "${subvendor[$j]}" = "X" -o "${m_subvendor[$i]}" = "${subvendor[$j]}" ]
+			    if [ "${subvendor[$j]}" = "X" ] || [[ "${m_subvendor[$i]}" == "${subvendor[$j]}" ]]
 			    then
 				[ "${subvendor[$j]}" != "X" ] && thislevel=$(( $thislevel + 16 ))
-				if [ "${subdevice[$j]}" = "X" -o "${m_subdevice[$i]}" = "${subdevice[$j]}" ]
+				if [ "${subdevice[$j]}" = "X" ] || [[ "${m_subdevice[$i]}" == "${subdevice[$j]}" ]]
 				then
 				    [ "${subdevice[$j]}" = "X" ] && thislevel=$(( $thislevel + 32 ))
 				    [ $thislevel -gt $level ] && level=$thislevel
@@ -231,7 +231,7 @@ class_drivers()
     do
 	for j in $classlist
 	do
-	    if [ "${m_class[$i]}" == "$j" ]
+	    if [[ "${m_class[$i]}" == "$j" ]]
 	    then
 		class=${m_class[$i]}
 		alias=pci:v0000${m_vendor[$i]}d0000${m_device[$i]}sv0000${m_subvendor[$i]}sd0000${m_subdevice[$i]}
