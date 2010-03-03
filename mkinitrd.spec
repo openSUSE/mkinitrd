@@ -23,7 +23,12 @@ License:        GPL v2 or later
 Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
 BuildRequires:  asciidoc libxslt
-Requires:       coreutils modutils util-linux grep gzip sed cpio udev sysvinit-tools sbin_init file perl-Bootloader
+Requires:       coreutils modutils util-linux grep gzip sed cpio udev file perl-Bootloader
+%if 0%{?suse_version} > 1120
+Requires:       sysvinit-tools sbin_init
+%else
+Requires:       sysvinit
+%endif
 AutoReqProv:    on
 Version:        @@VERSION@@
 Release:        3
