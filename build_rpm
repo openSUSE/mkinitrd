@@ -24,10 +24,6 @@ while [ $# -gt 0 ] ; do
 	    BRANCH=${1##*=};
 	    shift;
 	    ;;
-	-f|--force)
-	    force=1;
-	    shift;
-	    ;;
 	-p)
 	    RPMDIR=$2;
 	    shift 2;
@@ -43,34 +39,15 @@ while [ $# -gt 0 ] ; do
     esac
 done
 
-if ! which git-archive > /dev/null ; then
-    echo "git-archive not found, cannot continue"
-    exit 1
-fi
-
 if [ -z "$BRANCH" ] ; then
-    BRANCH="SLES10_BRANCH"
+    BRANCH="HEAD"
     echo "Branch is not set, using default $BRANCH"
 fi
 
-if [ -d "$DESTDIR/$RPMDIR" ] ; then
-    if ! rm -rf "$DESTDIR/$RPMDIR" ; then
-	echo "Cannot remove directory $DESTDIR/$RPMDIR"
-	exit 1
-    fi
-else
-    if ! mkdir "$DESTDIR/$RPMDIR" ; then
-	echo "Cannot create directory $DESTDIR/$RPMDIR"
-	exit 1
-    fi
-fi
-
-if ! git branch | grep -q "$BRANCH" ; then
-    echo "Branch \"$BRANCH\" does not exist"
-    exit 1
-else
-    echo "Checking out from $BRANCH"
-fi
+set -e
+set -o pipefail
+rm -rf "$DESTDIR/$RPMDIR"
+mkdir -p "$DESTDIR/$RPMDIR"
 
 git archive --format=tar --prefix=$RPMDIR/ "$BRANCH" \
     | (cd $DESTDIR && tar xf -)
