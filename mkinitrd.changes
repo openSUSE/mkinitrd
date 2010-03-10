@@ -19,6 +19,12 @@ Wed Mar 10 12:38:37 CET 2010 - mmarek@suse.cz
 - Use udevsettle before killing udevd (bnc#543612).
 
 -------------------------------------------------------------------
+Wed Nov 11 14:11:27 CET 2009 - mvancura@suse.cz
+
+- fix the name of multipath feature in doc, add a check of fetures
+  list on input (sysconfig file or cmdline options) (bnc#551339)
+
+-------------------------------------------------------------------
 Thu Oct 22 14:34:46 CEST 2009 - mvancura@suse.cz
 
 - scripts/setup-blockpartition.sh: fix sed regexp converting a
