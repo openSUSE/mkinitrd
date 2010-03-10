@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 10 12:38:37 CET 2010 - mmarek@suse.cz
+
+- Use udevsettle before killing udevd (bnc#543612).
+
+-------------------------------------------------------------------
 Wed Mar  3 22:29:30 CET 2010 - mmarek@suse.cz
 
 - Fix for lvm with multiple disks (bnc#579256).
@@ -9,13 +14,6 @@ Wed Mar  3 22:22:47 CET 2010 - mmarek@suse.cz
 - Fix syntax error in network setup (bnc#575683).
 
 -------------------------------------------------------------------
-Mon Aug 10 14:59:51 CEST 2009 - mvancura@suse.de
-
-- bug-469954_mkinitrd-2.5.9.patch: backported patch from STABLE
-  (git master branch, commit b2c008ca8674a412e97c901)
-  to fix localtime issue (bnc#469954)
-
--------------------------------------------------------------------
 Mon Sep  7 16:42:28 CEST 2009 - mvancura@suse.cz
 
 - a typo fixed (bnc#535619)
@@ -24,6 +22,13 @@ Mon Sep  7 16:42:28 CEST 2009 - mvancura@suse.cz
 Wed Aug 26 05:34:57 CEST 2009 - xwhu@suse.de
 
 - bnc#528918, unused pv is not recognized by mkinitrd 
+
+-------------------------------------------------------------------
+Mon Aug 10 14:59:51 CEST 2009 - mvancura@suse.de
+
+- bug-469954_mkinitrd-2.5.9.patch: backported patch from STABLE
+  (git master branch, commit b2c008ca8674a412e97c901)
+  to fix localtime issue (bnc#469954)
 
 -------------------------------------------------------------------
 Wed Jul 22 16:01:02 CEST 2009 - mvancura@suse.de
