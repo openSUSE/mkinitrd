@@ -140,6 +140,12 @@ Mon Nov 23 15:13:01 CET 2009 - mvancura@suse.cz
 - store the git repo URL in the package metadata
 
 -------------------------------------------------------------------
+Wed Nov 11 14:11:27 CET 2009 - mvancura@suse.cz
+
+- fix the name of multipath feature in doc, add a check of fetures
+  list on input (sysconfig file or cmdline options) (bnc#551339)
+
+-------------------------------------------------------------------
 Fri Oct 30 14:39:03 CET 2009 - mmarek@suse.cz
 
 - restart mdmon before switching to the new root (fate#306823).

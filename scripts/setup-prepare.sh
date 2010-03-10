@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #%stage: setup
-#%param_f: "Features to be enabled when generating initrd.\nAvailable features are:\niscsi, md, mpath, lvm, lvm2, ifup" "\"feature list\"" ADDITIONAL_FEATURES
+#%param_f: "Features to be enabled when generating initrd.\nAvailable features are:\niscsi, md, multipath, lvm, lvm2, ifup" "\"feature list\"" ADDITIONAL_FEATURES
 #%param_k: "List of kernel images for which initrd files are created. Defaults to all kernels found in /boot." "\"kernel list\"" kernel_images
 #%param_i: "List of file names for the initrd; position have match to \"kernel list\". Defaults to all kernels found in /boot." "\"initrd list\"" initrd_images
 #%param_l: "mkinitrd directory. Defaults to /lib/mkinitrd." "\"lib_dir\"" INITRD_PATH
@@ -44,10 +44,12 @@ cp_bin() {
 
 # check if we should use script or feature $1
 use_script() {
-    local condition feature script file
+    local condition feature script file check
+
+    check="$2"
 
     # always use when creating monster initrd
-    [ "$create_monster_initrd" ] && return 0
+    [ -z "$check" -a "$create_monster_initrd" ] && return 0
 
     # Normalize to feature name
     feature="${1##*/}"
@@ -56,7 +58,7 @@ use_script() {
 
     # when using additional features defined in the sysconfig
     # script / command line, always use them
-    if [ "$ADDITIONAL_FEATURES" ]; then
+    if [ -z "$check" -a "$ADDITIONAL_FEATURES" ]; then
       for addfeature in $ADDITIONAL_FEATURES; do
         if [ "$addfeature" = "$feature" ]; then
             return 0
@@ -127,6 +129,12 @@ fi
 if [ ! -f $map ]; then
     oops 9 "Could not find map $map, please specify a correct file with -M."
 fi
+
+# check features
+
+for feature in $ADDITIONAL_FEATURES ; do
+    use_script "$feature" "check" || echo "[WARNING] Feature \"$feature\" not found. A typo?"
+done
 
 # create an empty initrd
 if ! mkdir $tmp_mnt ; then
