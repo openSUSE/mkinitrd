@@ -3689,6 +3689,7 @@ mkinitrd_kernel() {
 	|fi
 	|
 	|# kill udevd, we will run the one from the real root
+	|/sbin/udevsettle
 	|kill $(pidof udevd)
 	|
 	|# kill iscsid, will be restarted from the real root

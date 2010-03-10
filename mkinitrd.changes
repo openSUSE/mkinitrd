@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 10 12:38:37 CET 2010 - mmarek@suse.cz
+
+- Use udevsettle before killing udevd (bnc#543612).
+
+-------------------------------------------------------------------
 Wed Mar  3 22:29:30 CET 2010 - mmarek@suse.cz
 
 - Fix for lvm with multiple disks (bnc#579256).
