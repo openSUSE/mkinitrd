@@ -76,6 +76,9 @@ get_devmodule() {
             ida*)
                 echo cpqarray
                 ;;
+	    loop*)
+		echo "[BLOCK] WARNING: Loop device detected. Include the required drivers manually." >&2
+		;;
             *)
                 if [ ! -d /sys/block/$blkdev/device ] ; then
                     echo "Device $blkdev not handled" >&2

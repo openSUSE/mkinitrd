@@ -72,6 +72,8 @@ static const char *program;
 static void __attribute__((noreturn)) die(const char *msg)
 {
   fprintf(stderr, "%s: %s: %s\n", program, msg, strerror(errno));
+  /* make sure the fprintf can get to the console */
+  sleep(10);
   exit(1);
 }
 

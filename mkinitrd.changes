@@ -1,7 +1,27 @@
 -------------------------------------------------------------------
+Wed Mar 10 16:00:03 CET 2010 - mmarek@suse.cz
+
+- Parse iBFT settings correctly (bnc#541892).
+
+-------------------------------------------------------------------
+Wed Mar 10 15:54:34 CET 2010 - mmarek@suse.cz
+
+- setup-block: Add warning for loop devices (bnc#523749).
+
+-------------------------------------------------------------------
+Wed Mar 10 15:53:27 CET 2010 - mmarek@suse.cz
+
+- setup-storage: Ignore error messages from dmsetup.
+
+-------------------------------------------------------------------
 Wed Mar 10 15:50:01 CET 2010 - mmarek@suse.cz
 
 - Do not use devtmpfs on SLE11 (bnc#582661).
+
+-------------------------------------------------------------------
+Wed Mar 10 12:38:37 CET 2010 - mmarek@suse.cz
+
+- Use udevsettle before killing udevd (bnc#543612).
 
 -------------------------------------------------------------------
 Wed Mar 10 10:11:52 CET 2010 - werner@suse.de
@@ -166,6 +186,12 @@ Fri Nov 27 11:02:32 CET 2009 - eich@novell.com
 Thu Nov 26 13:45:22 CET 2009 - eich@novell.com
 
 - add KMS support to initrd. 
+
+-------------------------------------------------------------------
+Wed Nov 11 14:11:27 CET 2009 - mvancura@suse.cz
+
+- fix the name of multipath feature in doc, add a check of fetures
+  list on input (sysconfig file or cmdline options) (bnc#551339)
 
 -------------------------------------------------------------------
 Wed Nov 11 13:14:08 CET 2009 - mcihar@suse.cz

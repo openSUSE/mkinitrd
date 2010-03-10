@@ -14,5 +14,6 @@
 ##
 
 # kill udevd, we will run the one from the real root
+/sbin/udevsettle
 kill $(pidof udevd)
 
