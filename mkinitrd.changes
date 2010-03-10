@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 10 15:50:01 CET 2010 - mmarek@suse.cz
+
+- Do not use devtmpfs on SLE11 (bnc#582661).
+
+-------------------------------------------------------------------
 Wed Mar 10 10:11:52 CET 2010 - werner@suse.de
 
 - Port back the warpclock facility for CMOS clocks running in

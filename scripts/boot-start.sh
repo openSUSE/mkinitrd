@@ -34,7 +34,7 @@ die() {
 
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
-if mount -t devtmpfs -o mode=0755,nr_inodes=0${tmpfs_options:+,$tmpfs_options} devtmpfs /dev; then
+if false && mount -t devtmpfs -o mode=0755,nr_inodes=0${tmpfs_options:+,$tmpfs_options} devtmpfs /dev; then
     have_devtmpfs=true
 else
     have_devtmpfs=false
