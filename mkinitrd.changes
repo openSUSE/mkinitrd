@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 10 10:11:52 CET 2010 - werner@suse.de
+
+- Port back the warpclock facility for CMOS clocks running in
+  localtime (bnc#550697)
+
+-------------------------------------------------------------------
 Wed Mar  3 21:45:06 CET 2010 - eich@novell.com
 
 - scripts/setup-kms.sh: Fix for shopt -s nocasematch (bnc#566624).
@@ -190,6 +196,14 @@ Tue Oct 13 09:12:54 CEST 2009 - mvancura@suse.cz
 - In case running kernel and kernel initrd is being build for are
   different modinfo got wrong information about modules.
   (bnc#494364)
+
+-------------------------------------------------------------------
+Tue Apr 28 16:10:31 CEST 2009 - werner@suse.de
+
+- use the settimeofday feature to warp the system clock for
+  systems which use the localtime in the UTC
+- add scripts from aaa_base for loading rtc module and warp
+  the clock for systems with local time in RTC
 
 -------------------------------------------------------------------
 Tue Feb 24 10:54:02 CET 2009 - hare@suse.de
