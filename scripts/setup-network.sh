@@ -159,13 +159,17 @@ get_network_module()
     echo "$drvlink"
 }
 
-if [ -z "$interface" ] ; then
-    for addfeature in $ADDITIONAL_FEATURES; do
-        if [ "$addfeature" = "network" ]; then
+for addfeature in $ADDITIONAL_FEATURES; do
+    if [ "$addfeature" = "network" ]; then
+	if [ -z "$interface" ] ; then
             interface=default
         fi
-    done
-fi
+    fi
+    if [ "$addfeature" = "ifup" ] ; then
+	nettype=ifup
+	interface=
+    fi
+done
 
 ip=
 interface=${interface#/dev/}
@@ -216,6 +220,21 @@ if [ -n "$interface" ] ; then
     fi
 fi
 
+# Copy ifcfg settings
+if [ "$nettype" = "ifup" ] ; then
+    mkdir -p $tmp_mnt/etc/sysconfig
+    cp -rp /etc/sysconfig/network $tmp_mnt/etc/sysconfig
+    for i in /etc/sysconfig/network/ifcfg-*; do
+	interface=${i##*/ifcfg-}
+	if [ -d /sys/class/net/$interface/device ] ; then
+	    mod=$(get_network_module $interface)
+	    drvlink="$drvlink $mod"
+	    verbose "[NETWORK]\t$interface ($nettype)"
+	fi
+    done
+    interface=
+fi
+
 # Copy the /etc/resolv.conf when the IP is static
 if [ "$interface" -a "$nettype" = "static" -a -f /etc/resolv.conf ] ; then
     verbose "[NETWORK]\tUsing /etc/resolv.conf from the system in the initrd"
@@ -237,6 +256,14 @@ mkdir -p $tmp_mnt/var/run
 cp_bin /lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
 if [ -f /etc/udev/rules.d/70-persistent-net.rules ] ; then
     cp /etc/udev/rules.d/70-persistent-net.rules $tmp_mnt/etc/udev/rules.d
+    if [ "$nettype" = "ifup" ] ; then
+	cp /etc/udev/rules.d/77-network.rules $tmp_mnt/etc/udev/rules.d
+	cp_bin /sbin/ifup $tmp_mnt/sbin/ifup
+	cp_bin /bin/awk $tmp_mnt/bin/awk
+	cp_bin /bin/grep $tmp_mnt/bin/grep
+	cp_bin /bin/logger $tmp_mnt/bin/logger
+	cp_bin /bin/touch $tmp_mnt/bin/touch
+    fi
 fi
 
 [ "$interface" ] && verbose "[NETWORK]\t$interface ($nettype)"

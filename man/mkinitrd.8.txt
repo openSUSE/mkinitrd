@@ -232,11 +232,13 @@ Include support for Software-Raid over device mapper (known as Fake-Raid)
 *dm*::
 Include support for device mapper in general
 
-*evms*::
-Add support for EVMS
-
 *firewire*::
 Include firewire storage
+
+*ifup*::
+Include all network devices configured via ifup. The user should
+ensure to set the STARTMODE to 'onboot' in the corresponding ifcfg
+files.
 
 *iscsi*::
 Include iSCSI support
