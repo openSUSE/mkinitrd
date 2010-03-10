@@ -20,7 +20,7 @@ Requires:       coreutils util-linux grep gzip sed cpio udev sysvinit file perl-
 # needed for modprobe --resolve-alias
 Requires:       module-init-tools >= 3.11
 AutoReqProv:    on
-Version:        2.4
+Version:        2.4.1
 Release:        1
 Conflicts:      udev < 118
 Requires:       dhcpcd

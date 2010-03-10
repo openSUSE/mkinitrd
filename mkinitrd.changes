@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 10 22:02:55 CET 2010 - mmarek@suse.cz
+
+- Bump version to 2.4.1 for SP1.
+
+-------------------------------------------------------------------
 Wed Mar 10 16:00:03 CET 2010 - mmarek@suse.cz
 
 - Parse iBFT settings correctly (bnc#541892).
