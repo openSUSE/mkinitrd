@@ -117,6 +117,9 @@ get_devmodule()
         ida*)
             result=cpqarray
             ;;
+        mmc*)
+            result=mmc_block
+            ;;
         *)
             if [ ! -d /sys/block/$blkdev/device ] ; then
                 echo "Device $blkdev not handled" >&2
