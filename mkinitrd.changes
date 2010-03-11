@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 11 16:08:55 CET 2010 - mmarek@suse.cz
+
+- setup-block: map /dev/mmc* to the mmc_block driver (bnc#480808).
+
+-------------------------------------------------------------------
 Wed Mar 10 22:02:55 CET 2010 - mmarek@suse.cz
 
 - Bump version to 2.4.1 for SP1.
