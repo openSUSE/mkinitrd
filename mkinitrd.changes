@@ -20,6 +20,12 @@ Mon Mar  1 13:53:41 CET 2010 - mvancura@suse.cz
   (bnc#581523).
 
 -------------------------------------------------------------------
+Wed Dec 16 20:23:54 CET 2009 - mvancura@suse.cz
+
+- check for LUKS feature only if applications and kernel modules
+  needed for that check are available (bnc#556942)
+
+-------------------------------------------------------------------
 Tue Dec 15 14:32:24 CET 2009 - mvancura@suse.cz
 
 - don't run fsck if on batteries (bnc#521419)
