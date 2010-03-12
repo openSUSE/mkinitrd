@@ -3930,10 +3930,12 @@ if [ -n "$realrootdev" -a -b "$root_dir/${realrootdev#/}" ] ; then
 			sid=$(check_iscsi_root $dev)
 			;;
 		    /dev/dm-*)
-		        table=$(dmsetup table $dev | cut -f 3 -d ' ')
-			if [ "$table" == "multipath" ] ; then
+			dm_modules=$(dmsetup table $dev | cut -f 3 -d ' ' | sort -u)
+			for table in $dm_modules; do
+			    if [ "$table" == "multipath" ] ; then
 				root_mpath=1
-			fi
+			    fi
+			done
 			;;
 		esac
 	    done
