@@ -73,8 +73,8 @@ for o in $(cat /proc/cmdline); do
         # set local variables too, in case somehow the kernel does not do this correctly
         value="${o#*=}"
         value=${value:=1}
-        eval cmd_$key="${value}"
-        eval $key="${value}" 2> /dev/null
+        read cmd_$key < <(echo "$value")
+        read $key < <(echo "$value")
     fi
 done
 
