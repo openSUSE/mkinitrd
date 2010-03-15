@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 15 13:59:11 CET 2010 - mmarek@suse.cz
+
+- scripts/boot-start.sh: avoid using eval statements (bnc#525668).
+
+-------------------------------------------------------------------
 Wed Mar 10 16:00:03 CET 2010 - mmarek@suse.cz
 
 - Parse iBFT settings correctly (bnc#541892).
