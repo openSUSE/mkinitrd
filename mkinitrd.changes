@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 17 13:18:03 CET 2010 - mmarek@suse.cz
+
+- setup-sharedlibs.sh: Do not run ldd on scripts (bnc#588609).
+
+-------------------------------------------------------------------
 Fri Mar 12 12:07:11 CET 2010 - coolo@suse.de
 
 - support upstart in providing a file with the initrd exports.
