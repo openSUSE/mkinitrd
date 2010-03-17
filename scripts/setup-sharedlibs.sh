@@ -5,21 +5,30 @@
 #
 # copy shared libraries to the initrd (dynamically resolved)
 
-# Resolve dynamic library dependencies. Returns a list of symbolic links
-# to shared objects and shared object files for the binaries in $*.
-shared_object_files() {
-    local LDD CHROOT initrd_libs lib_files lib_links lib link
+# helper
+ldd_files() {
+    local LDD file
 
     LDD=/usr/bin/ldd
     if [ ! -x $LDD ]; then
         error 2 "I need $LDD."
     fi
 
-    initrd_libs=( $(
-        for i in "$@" ; do $LDD "$i" ; done \
-        | sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p' \
-        | sort | uniq
-    ) )
+    for file; do
+        if file -b "$file" | grep -q ' script '; then
+            verbose "$file is a script"
+            continue
+        fi
+        $LDD "$file"
+    done | sed -ne 's:\t\(.* => \)\?\(/.*\) (0x[0-9a-f]*):\2:p' | sort -u
+}
+
+# Resolve dynamic library dependencies. Returns a list of symbolic links
+# to shared objects and shared object files for the binaries in $*.
+shared_object_files() {
+    local CHROOT initrd_libs lib_files lib_links lib link
+
+    initrd_libs=( $(ldd_files "$@") )
 
     for lib in "${initrd_libs[@]}"; do
         case "$lib" in
