@@ -55,6 +55,17 @@ Tue Oct 13 09:12:54 CEST 2009 - mvancura@suse.cz
   (bnc#494364)
 
 -------------------------------------------------------------------
+Thu Apr 30 10:00:34 CEST 2009 - hare@suse.de
+
+- Using ifup for network initialisation (bnc#487723).
+
+-------------------------------------------------------------------
+Wed Mar 18 21:01:43 CEST 2009 - mvancura@suse.cz
+
+- Add a support for "tmpfs_options" option on command line
+  (bnc#483965).
+
+-------------------------------------------------------------------
 Tue Feb 24 10:54:02 CET 2009 - hare@suse.de
 
 - Detect disk with extended minor numbers correctly (bnc#471815)
