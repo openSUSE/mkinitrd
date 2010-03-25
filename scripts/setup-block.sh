@@ -22,10 +22,11 @@ handle_scsi() {
     fi
     procname=$(cat /sys/class/scsi_host/host$hostnum/proc_name)
     # some drivers do not include proc_name so we need a fallback
-    if [ "$procname" = "<NULL>" ] ; then
+    case "$procname" in
+    "<NULL>" | "(null)")
         procname="$(readlink /sys/class/scsi_host/host${hostnum}/device/../driver)"
         procname="${procname##*/}"
-    fi
+    esac
 
     # let's see if that driver is on libata
     if [ -L "/sys/module/libata/holders/$procname" ]; then
