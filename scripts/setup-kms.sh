@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #%stage: setup
-#%depends: prepare
+#%depends: start
 
 DRIVERS="i915"
 supported_classes="0300"

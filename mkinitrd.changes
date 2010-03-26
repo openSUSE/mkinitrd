@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 26 14:34:47 CET 2010 - mmarek@suse.cz
+
+- setup-start: include /etc/sysconfig/kernel early enough
+  (bnc#591398, bnc#591400).
+
+-------------------------------------------------------------------
 Thu Mar 25 14:35:24 CET 2010 - mmarek@suse.cz
 
 - setup-block: catch "(null)" in /sys/class/scsi_host/*/proc_name
