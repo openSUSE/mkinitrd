@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 26 15:25:22 CET 2010 - mmarek@suse.cz
+
+- setup-storage: Do not assume that anything that contains a colon
+  is nfs (bnc#590135).
+
+-------------------------------------------------------------------
 Fri Mar 26 14:34:47 CET 2010 - mmarek@suse.cz
 
 - setup-start: include /etc/sysconfig/kernel early enough

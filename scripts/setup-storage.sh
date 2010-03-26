@@ -308,6 +308,8 @@ case "$rootdev" in
         rootfstype=${rootdev%%://*}
         interface=${interface:-default}
         ;;
+    scsi:*)
+        ;;
     *:*)
         rootfstype=nfs
         interface=${interface:-default}
