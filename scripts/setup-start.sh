@@ -25,15 +25,13 @@ is_xen_kernel() {
 # Set in the mkinitrd script
 save_var build_day
 
+# get variables INITRD_MODULES, DOMU_INITRD_MODULES etc. from configuration
+. $root_dir/etc/sysconfig/kernel
 if [ -z "$param_m" ]; then
-    # get INITRD_MODULES from system configuration
-    . $root_dir/etc/sysconfig/kernel
     modules="$INITRD_MODULES"
 fi
 
 if [ -z "$param_u" ]; then
-    # get DOMU_INITRD_MODULES from system configuration
-    . $root_dir/etc/sysconfig/kernel
     domu_modules="$DOMU_INITRD_MODULES"
 fi
 

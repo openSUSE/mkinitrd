@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 26 14:34:47 CET 2010 - mmarek@suse.cz
+
+- setup-start: include /etc/sysconfig/kernel early enough
+  (bnc#591398, bnc#591400).
+
+-------------------------------------------------------------------
 Wed Mar 17 13:18:03 CET 2010 - mmarek@suse.cz
 
 - setup-sharedlibs.sh: Do not run ldd on scripts (bnc#588609).
