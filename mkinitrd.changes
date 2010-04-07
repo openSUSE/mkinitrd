@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  7 14:18:30 CEST 2010 - thomas@novell.com
+
+- added call to load_policy to load the SELinux policy during
+  the boot process (bnc#594041).
+
+-------------------------------------------------------------------
 Fri Mar 26 15:25:22 CET 2010 - mmarek@suse.cz
 
 - setup-storage: Do not assume that anything that contains a colon
