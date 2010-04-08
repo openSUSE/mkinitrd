@@ -1,7 +1,7 @@
 #
 # spec file for package mkinitrd (Version 2.5.10)
 #
-# Copyright (c) 2009 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2010 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -19,7 +19,7 @@
 
 
 Name:           mkinitrd
-License:        GPL v2 or later
+License:        GPLv2+
 Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
 BuildRequires:  asciidoc libxslt

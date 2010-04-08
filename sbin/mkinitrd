@@ -3,7 +3,7 @@
 # mkinitrd - create the initramfs images
 # usage: see below usage() or call with -h
 #
-# Copyright (C) 1999-2006 SuSE Linux Products GmbH, Nuernberg, Germany
+# Copyright (C) 1999-2010 SuSE Linux Products GmbH, Nuernberg, Germany
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
