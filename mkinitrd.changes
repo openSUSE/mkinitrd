@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr  9 15:50:40 CEST 2010 - mmarek@suse.cz
+
+- Do not call update-bootloader if not available (bnc#595071).
+
+-------------------------------------------------------------------
 Wed Apr  7 14:18:30 CEST 2010 - thomas@novell.com
 
 - added call to load_policy to load the SELinux policy during
