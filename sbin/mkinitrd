@@ -509,7 +509,7 @@ done
 cleanup_finish
 
 if [ ! -x /sbin/update-bootloader ] ; then
-    no_bootloader_update=
+    no_bootloader_update=1
 fi
 
 if [ "$exit_code" -eq 0 ] ; then

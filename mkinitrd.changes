@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr  9 15:50:40 CEST 2010 - mmarek@suse.cz
+
+- Do not call update-bootloader if not available (bnc#595071).
+
+-------------------------------------------------------------------
 Mon Mar 15 13:59:11 CET 2010 - mmarek@suse.cz
 
 - scripts/boot-start.sh: avoid using eval statements (bnc#525668).
