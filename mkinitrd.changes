@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 13 14:19:45 CEST 2010 - mmarek@suse.cz
+
+- setup-prepare: Fix feature check (bnc#596086).
+
+-------------------------------------------------------------------
 Tue Apr 13 13:16:28 CEST 2010 - mmarek@suse.cz
 
 - setup-ibft: Include the NIC driver (bnc#596076).
