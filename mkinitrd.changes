@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 13 13:16:28 CEST 2010 - mmarek@suse.cz
+
+- setup-ibft: Include the NIC driver (bnc#596076).
+
+-------------------------------------------------------------------
 Tue Apr 13 08:56:06 CEST 2010 - hare@suse.de
 
 - Only set nettype to 'dhcp' if a valid DHCP address was found
