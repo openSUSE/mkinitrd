@@ -9,6 +9,8 @@ ibft_set_iface() {
 	interface=$if
 	if [ ! "$nettype" -a -e $ibft_nic/dhcp ]; then
 	    nettype=dhcp
+	    read ibft_dhcp < $ibft_nic/dhcp
+	    [ "$ibft_dhcp" = "0.0.0.0" ] && nettype=static
 	else
 	    nettype=static
 	fi
