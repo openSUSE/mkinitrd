@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 13 11:06:59 CEST 2010 - mmarek@suse.cz
+
+- Add repository URL to the specfile.
+
+-------------------------------------------------------------------
 Tue Apr 13 08:56:06 CEST 2010 - hare@suse.de
 
 - Only set nettype to 'dhcp' if a valid DHCP address was found

@@ -27,6 +27,7 @@ Requires:       dhcpcd
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tar.bz2
+Url:            http://gitorious.org/opensuse/mkinitrd
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk
