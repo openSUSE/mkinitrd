@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 13 13:16:28 CEST 2010 - mmarek@suse.cz
+
+- setup-ibft: Include the NIC driver (bnc#596076).
+
+-------------------------------------------------------------------
 Tue Apr 13 11:06:59 CEST 2010 - mmarek@suse.cz
 
 - Add repository URL to the specfile.

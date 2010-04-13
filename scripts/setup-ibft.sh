@@ -7,6 +7,7 @@ ibft_set_iface() {
     local if=$(cd $ibft_nic/device/net; ls -d eth* 2>/dev/null)
     [ "$if" ] && {
 	interface=$if
+	drvlink=$(get_network_module $interface)
 	if [ ! "$nettype" -a -e $ibft_nic/dhcp ]; then
 	    nettype=dhcp
 	    read ibft_dhcp < $ibft_nic/dhcp
