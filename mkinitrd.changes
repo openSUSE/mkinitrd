@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 13 08:56:06 CEST 2010 - hare@suse.de
+
+- Only set nettype to 'dhcp' if a valid DHCP address was found
+  (bnc#576601)
+
+-------------------------------------------------------------------
 Fri Apr  9 15:50:40 CEST 2010 - mmarek@suse.cz
 
 - Do not call update-bootloader if not available (bnc#595071).
