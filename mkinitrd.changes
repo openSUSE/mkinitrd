@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 14 16:33:52 CEST 2010 - mmarek@suse.cz
+
+- setup-prepare: Fix feature check if nullglob is not set.
+
+-------------------------------------------------------------------
 Tue Apr 13 14:19:45 CEST 2010 - mmarek@suse.cz
 
 - setup-prepare: Fix feature check (bnc#596086).
