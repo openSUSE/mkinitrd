@@ -91,6 +91,9 @@ feature_exists() {
     local feature=$1 script
 
     for script in $INITRD_PATH/boot/*-$feature.sh; do
+        if test ! -e "$script"; then
+            return 1
+        fi
         return 0
     done
     return 1
