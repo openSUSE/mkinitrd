@@ -158,6 +158,12 @@ Fri Apr 16 13:20:21 UTC 2010 - mmarek@novell.com
   (bnc#551967).
 
 -------------------------------------------------------------------
+Fri Apr 16 11:30:39 UTC 2010 - mmarek@novell.com
+
+- Load KMS modules after udev has started (bnc#596268, bnc#713127,
+  bnc#712899).
+
+-------------------------------------------------------------------
 Wed Apr 14 16:33:52 CEST 2010 - mmarek@suse.cz
 
 - setup-prepare: Fix feature check if nullglob is not set.
