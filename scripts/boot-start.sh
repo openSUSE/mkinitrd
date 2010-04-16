@@ -60,20 +60,65 @@ ln -s fd/2 /dev/stderr
 tty_driver=
 
 # kernel commandline parsing
-for o in $(cat /proc/cmdline); do
-    key="${o%%=*}"
+cmdline=$(cat /proc/cmdline)
+pos=0
+
+# stores next character from /proc/cmdline in $c
+next_char() {
+	c=${cmdline:pos++:1}
+	test -n "$c"
+}
+
+# stores next var[=value] string from /proc/cmdline in $var
+# supports double quotes to some extent
+next_var() {
+	local c quoted=false
+
+	var=
+	# eat leading whitespace
+	next_char || return
+	while test "$c" = ' ' -o "$c" = $'\t'; do
+		next_char || return
+	done
+	while true; do
+		case "$c" in
+		' ' | $'\t')
+			if $quoted; then
+				var="$var$c"
+			else
+				break
+			fi
+			;;
+		'"')
+			if $quoted; then
+				quoted=false
+			else
+				quoted=true
+			fi
+			;;
+		*)
+			var="$var$c"
+			;;
+		esac
+		next_char || break
+	done
+}
+
+while next_var; do
+    key="${var%%=*}"
     key="${key//-/_}"
     if [ "${key%.*}" != "${key}" ]; then # module parameter
         add_module_param "${key%.*}" "${o#*.}"
     else
         # environment variable
         # set local variables too, in case somehow the kernel does not do this correctly
-        value="${o#*=}"
+        value="${var#*=}"
         value=${value:=1}
         read cmd_$key < <(echo "$value")
         read $key < <(echo "$value")
     fi
 done
+unset next_char next_var c pos cmdline var
 
 if [ "$console" ]; then
     tty_driver="${tty_driver:+$tty_driver }${console%%,*}"

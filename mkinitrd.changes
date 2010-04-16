@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 16 13:20:21 UTC 2010 - mmarek@novell.com
+
+- boot-start: Support double-quoted strings in /proc/cmdline
+  (bnc#551967).
+
+-------------------------------------------------------------------
 Wed Apr 14 16:33:52 CEST 2010 - mmarek@suse.cz
 
 - setup-prepare: Fix feature check if nullglob is not set.
