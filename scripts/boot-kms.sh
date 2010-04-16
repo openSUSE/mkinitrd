@@ -2,7 +2,7 @@
 #
 #%stage: boot
 #
-#%depends: start
+#%depends: start udev
 #
 #%modules: $kms_modules
 #

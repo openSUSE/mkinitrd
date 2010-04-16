@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 16 11:30:39 UTC 2010 - mmarek@novell.com
+
+- Load KMS modules after udev has started (bnc#596268).
+
+-------------------------------------------------------------------
 Tue Apr 13 14:19:45 CEST 2010 - mmarek@suse.cz
 
 - setup-prepare: Fix feature check (bnc#596086).
