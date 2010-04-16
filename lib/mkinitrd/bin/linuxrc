@@ -10,30 +10,6 @@ add_module_param() {
 }
 
 ##################################################
-# mod_opt $kernelmodule
-# get module parameter from kernel command line
-##################################################
-mod_opt()
-{
-     local module=$1
-     local name=${module%%.ko}
-     local param
- 
-     test -e /proc/cmdline || return 1
-     
-     name=$(eval echo $name | sed "s/[-_]/\*/g")
-     for i in `cat /proc/cmdline`
-     do
- 	case $i in
- 	    ${name}.*=*)
-              param="${param}${param:+ }${i##${name}.}"
- 	     ;;
- 	esac
-     done
-     echo $param
-}
-
-##################################################
 # load_modules
 # loads all kernelmodules that belong to the 
 # current init module
@@ -42,19 +18,10 @@ mod_opt()
 # e.g. load_modules
 ##################################################
 load_modules() {
-    local option
-    local i
-    for file in $(eval echo $modules)
+    local module
+    for module in $(eval echo $modules)
     do
-	options=$(mod_opt $file)
-	if [ "n" != "n$options" ]
-	then
-	    for i in $options
-	    do
-		add_module_param ${file%%.ko} $i
-	    done
-	fi
-        modprobe $file
+        modprobe $module
     done
     modules=""
 }

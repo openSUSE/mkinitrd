@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 16 12:07:20 UTC 2010 - mmarek@novell.com
+
+- Clean up load_modules().
+
+-------------------------------------------------------------------
 Fri Apr 16 11:30:39 UTC 2010 - mmarek@novell.com
 
 - Load KMS modules after udev has started (bnc#596268).
