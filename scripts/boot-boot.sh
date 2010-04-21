@@ -25,13 +25,19 @@ selinux_load_policy()
 	[ -e "$NEWROOT/etc/selinux/config" ] && . "$NEWROOT/etc/selinux/config"
 
 	# If SELinux is disabled exit now
-	if [ $cmd_selinux = "0" ]; then
+	if [ -z $cmd_selinux ]; then
+		return 0
+	fi
+	if [ -z $cmd_enforcing ]; then
+		return 0
+	fi
+	if [ $cmd_selinux == 0 ]; then
 		return 0
 	fi
 
 	# Check whether SELinux is in permissive mode
 	local permissive=0
-	if [ $cmd_enforcing = "0" ]; then
+	if [ $cmd_enforcing == 0 ]; then
 		permissive=1
 	fi
 

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 21 10:38:18 CEST 2010 - thomas@novell.com
+
+- boot-boot.sh: Load selinux only if selinux=1 and enforcing=[0|1]
+  is given on the command line (bnc#598075)
+
+-------------------------------------------------------------------
 Fri Apr 16 13:20:21 UTC 2010 - mmarek@novell.com
 
 - boot-start: Support double-quoted strings in /proc/cmdline
