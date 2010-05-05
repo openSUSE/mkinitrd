@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May  5 14:04:52 CEST 2010 - mmarek@suse.cz
+
+- boot-start.sh: Parse /proc/cmdline more robustly (bnc#598063#c3).
+
+-------------------------------------------------------------------
 Wed Apr 21 10:38:18 CEST 2010 - thomas@novell.com
 
 - boot-boot.sh: Load selinux only if selinux=1 and enforcing=[0|1]
