@@ -106,19 +106,27 @@ next_var() {
 
 while next_var; do
     key="${var%%=*}"
-    key="${key//-/_}"
-    if [ "${key%.*}" != "${key}" ]; then # module parameter
-        add_module_param "${key%.*}" "${o#*.}"
-    else
-        # environment variable
-        # set local variables too, in case somehow the kernel does not do this correctly
-        value="${var#*=}"
-        value=${value:=1}
-        read cmd_$key < <(echo "$value")
+    key="${key//[^a-zA-Z0-9_.]/_}"
+    cmd_key="cmd_$key"
+    case "$key" in
+    *.*)
+        # module parameter, ignored
+        continue
+        ;;
+    [^a-zA-Z_]*)
+        # starts with a digit - set only the cmd_ variant
+        key=
+        ;;
+    esac
+    # set local variables too, in case somehow the kernel does not do this correctly
+    value="${var#*=}"
+    value=${value:=1}
+    read $cmd_key < <(echo "$value")
+    if test -n "$key"; then
         read $key < <(echo "$value")
     fi
 done
-unset next_char next_var c pos cmdline var
+unset next_char next_var c pos cmdline key cmd_key value var
 
 if [ "$console" ]; then
     tty_driver="${tty_driver:+$tty_driver }${console%%,*}"
