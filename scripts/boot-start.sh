@@ -64,20 +64,73 @@ exec < /dev/console > /dev/console 2>&1
 [ "$debug" ] && set -a
 
 # kernel commandline parsing
-for o in $(cat /proc/cmdline); do
-    key="${o%%=*}"
-    key="${key//-/_}"
-    if [ "${key%.*}" != "${key}" ]; then
-        : # module parameter, ignored
-    else
-        # environment variable
-        # set local variables too, in case somehow the kernel does not do this correctly
-        value="${o#*=}"
-        value=${value:=1}
-        read cmd_$key < <(echo "$value")
+cmdline=$(cat /proc/cmdline)
+pos=0
+
+# stores next character from /proc/cmdline in $c
+next_char() {
+	c=${cmdline:pos++:1}
+	test -n "$c"
+}
+
+# stores next var[=value] string from /proc/cmdline in $var
+# supports double quotes to some extent
+next_var() {
+	local c quoted=false
+
+	var=
+	# eat leading whitespace
+	next_char || return
+	while test "$c" = ' ' -o "$c" = $'\t'; do
+		next_char || return
+	done
+	while true; do
+		case "$c" in
+		' ' | $'\t')
+			if $quoted; then
+				var="$var$c"
+			else
+				break
+			fi
+			;;
+		'"')
+			if $quoted; then
+				quoted=false
+			else
+				quoted=true
+			fi
+			;;
+		*)
+			var="$var$c"
+			;;
+		esac
+		next_char || break
+	done
+}
+
+while next_var; do
+    key="${var%%=*}"
+    key="${key//[^a-zA-Z0-9_.]/_}"
+    cmd_key="cmd_$key"
+    case "$key" in
+    *.*)
+        # module parameter, ignored
+        continue
+        ;;
+    [^a-zA-Z_]*)
+        # starts with a digit - set only the cmd_ variant
+        key=
+        ;;
+    esac
+    # set local variables too, in case somehow the kernel does not do this correctly
+    value="${var#*=}"
+    value=${value:=1}
+    read $cmd_key < <(echo "$value")
+    if test -n "$key"; then
         read $key < <(echo "$value")
     fi
 done
+unset next_char next_var c pos cmdline key cmd_key value var
 
 if ! $have_devtmpfs; then
     tty_driver=
