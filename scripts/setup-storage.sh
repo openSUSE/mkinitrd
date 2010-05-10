@@ -65,6 +65,12 @@ majorminor2blockdev() {
 beautify_blockdev() {
         local olddev="$1" udevdevs dev
         
+        case "$olddev" in
+        /dev/md*)
+                # setup-md.sh doesn't understand the md-uuid-* symlinks
+                echo "$olddev"
+                return
+        esac
         # search for udev information
         udevdevs=$(/sbin/udevadm info -q symlink --name=$olddev)
         #   look up ata device links
@@ -83,8 +89,14 @@ beautify_blockdev() {
         done
         #   take the first guess
         for dev in $udevdevs; do
-                echo "/dev/$dev"
-                return
+                case "$dev" in
+                block/* | root)
+                        continue
+                        ;;
+                *)
+                        echo "/dev/$dev"
+                        return
+                esac
         done
         
         # get pretty name from device-mapper
