@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 10 13:20:45 CEST 2010 - mmarek@suse.cz
+
+- setup-storage.sh: Fix beautify_blockdev() (bnc#604150).
+
+-------------------------------------------------------------------
 Wed May  5 14:04:52 CEST 2010 - mmarek@suse.cz
 
 - boot-start.sh: Parse /proc/cmdline more robustly (bnc#598063#c3).
