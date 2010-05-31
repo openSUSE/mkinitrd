@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 31 13:33:02 CEST 2010 - eich@novell.com
+
+- setup-kmp.sh: Fix for nouveau (bnc#595570).
+
+-------------------------------------------------------------------
 Mon May 10 13:20:45 CEST 2010 - mmarek@suse.cz
 
 - setup-storage.sh: Fix beautify_blockdev() (bnc#604150).
