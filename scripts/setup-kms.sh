@@ -80,7 +80,7 @@ pciids_on_system()
 
     [ -d /sys/bus/pci ] && [ -x /sbin/lspci ] || return 1
 
-    for line in $(/sbin/lspci -mn 2>/dev/null)
+    for line in $(/sbin/lspci -mn 2>/dev/null | tr "[:lower:]" "[:upper:]")
     do
 	unset entries
 	ret=0
@@ -90,7 +90,7 @@ pciids_on_system()
 	for i in $line
 	do
 	    case $i in
-		-p) 
+		-P)
 		    m_if[$ct]=${p#-p}
 		    continue;
 		    ;;
