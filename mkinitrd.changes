@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun  1 12:34:27 CEST 2010 - mvancura@suse.cz
+
+- Fix typo in initrd function udev_check_for_device() (bnc#607099).
+
+-------------------------------------------------------------------
 Wed Mar 10 12:38:37 CET 2010 - mmarek@suse.cz
 
 - Use udevsettle before killing udevd (bnc#543612).

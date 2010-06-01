@@ -3029,7 +3029,7 @@ mkinitrd_kernel() {
     if [ -n "$root_lvm2" ] ; then
 	cat_linuxrc <<-'EOF'
 	|	    /sbin/vgscan
-	|	    /sbin/vgchange -a y $vgname
+	|	    /sbin/vgchange -a y $vg_root
 	|           /sbin/udevsettle --timeout=$udev_timeout
 	EOF
     fi
@@ -3045,7 +3045,7 @@ mkinitrd_kernel() {
 	|        multipath -v 0
 	|        /sbin/udevsettle --timeout=$udev_timeout
 	|        vgscan
-	|        vgchange -a y $vgname
+	|        vgchange -a y $vg_root
 	|        /sbin/udevsettle --timeout=$udev_timeout
 	|    fi
 	|    return $retval;
