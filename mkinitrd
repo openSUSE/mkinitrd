@@ -1800,7 +1800,9 @@ mkinitrd_kernel() {
     fi
 
     # don't run fsck if running on batteries
-    cp_bin /usr/bin/on_ac_power $tmp_mnt/bin/
+    if [ -x /usr/bin/on_ac_power ]; then
+        cp_bin /usr/bin/on_ac_power $tmp_mnt/bin/
+    fi
 
     if [ "$rootfstype" = "ext2" ] ; then
 	features=(${features[@]} fsck.ext2)

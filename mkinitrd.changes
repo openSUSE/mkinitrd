@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun  4 14:41:06 CEST 2010 - mmarek@suse.cz
+
+- Check if /usr/bin/on_ac_power exists before including it
+  (bnc#611696).
+
+-------------------------------------------------------------------
 Tue Jun  1 12:34:27 CEST 2010 - mvancura@suse.cz
 
 - Fix typo in initrd function udev_check_for_device() (bnc#607099).
