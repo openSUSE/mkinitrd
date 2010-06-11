@@ -4188,4 +4188,7 @@ You may now have to update your boot loader configuration."
     ;;
 esac
 
+if test $exit_code -ne 0; then
+	echo "There was an error generating the initrd ($exit_code)"
+fi
 exit $exit_code
