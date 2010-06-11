@@ -545,4 +545,7 @@ if [ "$exit_code" -eq 0 ] ; then
     fi
 fi
 
+if test $exit_code -ne 0; then
+	echo "There was an error generating the initrd ($exit_code)"
+fi
 exit $exit_code

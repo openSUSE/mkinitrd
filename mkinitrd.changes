@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jun 11 16:25:26 CEST 2010 - mmarek@suse.cz
+
+- Report non-zero exit code before exiting (bnc#611696).
+
+-------------------------------------------------------------------
 Mon May 10 13:20:45 CEST 2010 - mmarek@suse.cz
 
 - setup-storage.sh: Fix beautify_blockdev() (bnc#604150).
