@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun 21 14:25:16 CEST 2010 - mmarek@suse.cz
+
+- Bump version to 2.6.0
+
+-------------------------------------------------------------------
 Fri Jun 11 16:25:26 CEST 2010 - mmarek@suse.cz
 
 - Report non-zero exit code before exiting (bnc#611696).
