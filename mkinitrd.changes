@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun 24 06:14:52 CEST 2010 - mmarek@suse.cz
+
+- Copy modules.builtin to the initrd (bnc#541519).
+
+-------------------------------------------------------------------
 Mon Jun 21 14:25:16 CEST 2010 - mmarek@suse.cz
 
 - Bump version to 2.6.0

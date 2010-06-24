@@ -364,6 +364,9 @@ done
 
 if [ "$resolved_modules" ] ; then
     [ ! -d $tmp_mnt/lib/modules/$kernel_version ] && oops 10 "No modules have been installed"
+    if test -e "/lib/modules/$kernel_version/modules.builtin"; then
+	    cp "$_" "$tmp_mnt/lib/modules/$kernel_version/"
+    fi
     ( cd $tmp_mnt; /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version )
 fi
 
