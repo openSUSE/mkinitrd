@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul  9 22:47:32 CEST 2010 - mmarek@suse.cz
+
+- Load SELinux policy during boot if enabled (bnc#598567,
+  backported from Factory).
+
+-------------------------------------------------------------------
 Fri Jun 11 16:25:26 CEST 2010 - mmarek@suse.cz
 
 - Report non-zero exit code before exiting (bnc#611696).
