@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul  9 15:09:56 CEST 2010 - kasievers@novell.com
+
+- handle /sbin/init being a symlink (bnc#621147).
+
+-------------------------------------------------------------------
 Thu Jun 24 06:14:52 CEST 2010 - mmarek@suse.cz
 
 - Copy modules.builtin to the initrd (bnc#541519).

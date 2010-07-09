@@ -19,14 +19,14 @@
 
 # Look for an init binary on the root filesystem
 if [ -n "$init" ] ; then
-    if [ ! -f "/root$init" ]; then
+    if [ ! -x "/root$init" -a ! -L "/root$init" ]; then
         init=
     fi
 fi
 
 if [ -z "$init" ] ; then
     for i in /sbin/init /etc/init /bin/init /bin/sh ; do
-        if [ ! -f "/root$i" ] ; then continue ; fi
+        if [ ! -x "/root$i" -a ! -L "/root$i" ]; then continue; fi
         init="$i"
         break
     done
