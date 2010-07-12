@@ -15,7 +15,7 @@
 ## -----------------------
 ##
 ## root                 the root device (the device /bin/init is on)
-## nfsroot              alias for root
+## nfsroot              nfs root if root=/dev/nfs, otherwise alias for root
 ## resume               the resume device (the device software suspend puts its image to)
 ## journal              the journaling device (if journaling is being done on a seperate device)
 ## 
@@ -27,8 +27,8 @@ if [ "$root" ]; then
     rootdev="$root"
 fi
 
-if [ "$nfsroot" ]; then
-    rootdev=$nfsroot
+if [ -n "$nfsroot" -a -z "$root" ]; then
+    rootdev=/dev/nfs
 fi
 
 [ "$resume" ] && resumedev="$resume"
@@ -43,6 +43,10 @@ case $rootdev in
         /dev/md*)
             md_dev=$rootdev
             md_minor=${rootdev#/dev/md}
+            ;;
+        /dev/nfs)
+            rootfstype="nfs"
+            rootdev=$nfsroot
             ;;
         /dev/*)
             ;;

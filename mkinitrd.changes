@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul 13 00:55:18 CEST 2010 - mmarek@suse.cz
+
+- Add support for root=/dev/nfs (bnc#617830).
+
+
+-------------------------------------------------------------------
 Fri Jun 11 16:25:26 CEST 2010 - mmarek@suse.cz
 
 - Report non-zero exit code before exiting (bnc#611696).
