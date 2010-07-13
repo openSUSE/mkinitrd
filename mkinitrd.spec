@@ -34,7 +34,6 @@ Source3:        mkinitrd.8
 Source4:        hotplug.sh
 Source5:        ipconfig.sh
 Source10:       run-init.c
-Source11:       warpclock.c
 Source20:       module_upgrade
 Source21:       update-initrd-modules
 
@@ -64,21 +63,16 @@ Authors:
     Hannes Reinecke <hare@suse.de>
 
 %prep
-cp %{S:0} .
 cp %{S:10} .
-cp %{S:11} .
 
 %build
-gcc $RPM_OPT_FLAGS -Wall -Os -o run-init run-init.c
-gcc $RPM_OPT_FLAGS -Wall -Os -o warpclock warpclock.c
-
+gcc -Wall -Os -o run-init run-init.c
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 install -D -m 755 run-init $RPM_BUILD_ROOT/lib/mkinitrd/bin/run-init
-install -D -m 755 warpclock $RPM_BUILD_ROOT/lib/mkinitrd/bin/warpclock
-install -D -m 755 mkinitrd $RPM_BUILD_ROOT/sbin/mkinitrd
+install -D -m 755 %{S:0} $RPM_BUILD_ROOT/sbin/mkinitrd
 install -D -m 755 %{S:1} $RPM_BUILD_ROOT/sbin/installkernel
 install -D -m 755 %{S:20} $RPM_BUILD_ROOT/sbin/module_upgrade
 install -D -m 755 %{S:21} $RPM_BUILD_ROOT/sbin/update-initrd-modules
@@ -94,7 +88,6 @@ install -D -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 %dir /lib/mkinitrd/dev
 %dir /lib/mkinitrd/bin
 /lib/mkinitrd/bin/run-init
-/lib/mkinitrd/bin/warpclock
 /lib/mkinitrd/bin/ipconfig.sh
 /sbin/*
 /usr/share/mkinitrd/hotplug.sh
