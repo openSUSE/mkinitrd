@@ -40,6 +40,11 @@ Wed Aug 25 15:05:03 CEST 2010 - mmarek@suse.cz
 - setup-modules.sh: Cleanup.
 
 -------------------------------------------------------------------
+Tue Jul 20 22:32:08 CEST 2010 - mmarek@suse.cz
+
+- setup-block.sh: Map /dev/VxDMP* to vxdmp.ko (bnc#623776)
+
+-------------------------------------------------------------------
 Fri Jul  9 15:09:56 CEST 2010 - kasievers@novell.com
 
 - handle /sbin/init being a symlink (bnc#621147).

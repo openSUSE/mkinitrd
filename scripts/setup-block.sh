@@ -118,6 +118,9 @@ get_devmodule()
         ida*)
             result=cpqarray
             ;;
+        VxDMP*)
+            result=vxdmp
+            ;;
         loop*)
             echo "[BLOCK] WARNING: Loop device detected. Include the required drivers manually." >&2
             ;;
