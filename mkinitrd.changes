@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 20 22:32:08 CEST 2010 - mmarek@suse.cz
+
+- setup-block.sh: Map /dev/VxDMP* to vxdmp.ko (bnc#623776)
+
+-------------------------------------------------------------------
 Fri Jul  9 22:47:32 CEST 2010 - mmarek@suse.cz
 
 - Load SELinux policy during boot if enabled (bnc#598567,
