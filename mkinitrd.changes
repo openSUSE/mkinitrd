@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 20 22:32:08 CEST 2010 - mmarek@suse.cz
+
+- setup-block.sh: Map /dev/VxDMP* to vxdmp.ko (bnc#623776)
+
+-------------------------------------------------------------------
 Wed May  5 14:04:52 CEST 2010 - mmarek@suse.cz
 
 - boot-start.sh: Parse /proc/cmdline more robustly (bnc#598063#c3).
