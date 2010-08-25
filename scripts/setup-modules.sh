@@ -367,7 +367,7 @@ if [ "$resolved_modules" ] ; then
     if test -e "/lib/modules/$kernel_version/modules.builtin"; then
 	    cp "$_" "$tmp_mnt/lib/modules/$kernel_version/"
     fi
-    ( cd $tmp_mnt; /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version )
+    /sbin/depmod -b $tmp_mnt -e -F $map $kernel_version
 fi
 
 

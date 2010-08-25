@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 25 15:05:03 CEST 2010 - mmarek@suse.cz
+
+- setup-modules.sh: Cleanup.
+
+-------------------------------------------------------------------
 Fri Jul  9 15:09:56 CEST 2010 - kasievers@novell.com
 
 - handle /sbin/init being a symlink (bnc#621147).
