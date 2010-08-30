@@ -15,25 +15,22 @@
 ##
 
 # Convert a major:minor pair into a device number
+# See /usr/src/linux/include/linux/kdev_t.h
 mkdevn() {
-    local major=$1 minor=$2 minorhi minorlo
-    major=$(($major * 256))
-    minorhi=$(($minor / 256))
-    minorlo=$(($minor % 256))
-    minor=$(($minorhi * 256 * 4096))
-    echo $(( $minorlo + $major + $minor ))
+    local major=$1 minor=$2
+    echo $(( ($major * 0x100000) + $minor))  # 0x100000 == 2**20
 }
 
 # Extract the major part from a device number
 devmajor() {
-    local devn=$(($1 / 256))
-    echo $(( $devn % 4096 ))
+    local devn=$1
+    echo $(( $devn / 0x100000 ))
 }
 
 # Extract the minor part from a device number
 devminor() {
     local devn=${1:-0}
-    echo $(( $devn % 256 )) 
+    echo $(( $devn % 0x100000 ))
 }
 
 # (We are using a devnumber binary inside the initrd.)
