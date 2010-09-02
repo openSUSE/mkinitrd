@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  2 13:22:46 CEST 2010 - mmarek@suse.cz
+
+- Do not use the chroot binary from the target system (bnc#635856).
+
+-------------------------------------------------------------------
 Mon Aug 30 18:44:20 CEST 2010 - mmarek@suse.cz
 
 - Fix handling of minor device numbers greater than 255
