@@ -224,6 +224,11 @@ Wed Nov 24 15:55:31 CET 2010 - pth@suse.de
 - Fix for new coreutils (bnc#654364).
 
 -------------------------------------------------------------------
+Thu Sep  2 13:22:46 CEST 2010 - mmarek@suse.cz
+
+- Do not use the chroot binary from the target system (bnc#635856).
+
+-------------------------------------------------------------------
 Wed Aug 25 15:05:03 CEST 2010 - mmarek@suse.cz
 
 - setup-modules.sh: Cleanup.

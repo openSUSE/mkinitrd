@@ -19,7 +19,6 @@
 selinux_load_policy()
 {
 	local NEWROOT=$1
-	local CR="${NEWROOT}/usr/bin/chroot"
 
 	local SELINUX="enforcing"
 	[ -e "$NEWROOT/etc/selinux/config" ] && . "$NEWROOT/etc/selinux/config"
@@ -48,10 +47,10 @@ selinux_load_policy()
 		# load_policy does mount /proc and /selinux in
 		# libselinux,selinux_init_load_policy()
 		if [ -x "$NEWROOT/sbin/load_policy" ]; then
-			$CR "$NEWROOT" /sbin/load_policy -i
+			chroot "$NEWROOT" /sbin/load_policy -i
 			ret=$?
 		else
-			$CR "$NEWROOT" /usr/sbin/load_policy -i
+			chroot "$NEWROOT" /usr/sbin/load_policy -i
 			ret=$?
 		fi
 
