@@ -3517,7 +3517,7 @@ mkinitrd_kernel() {
 	|    PATH=$PATH PS1='$ ' /bin/sh -i
 	|elif [ -x /bin/on_ac_power ] && ! /bin/on_ac_power -q ; then
 	|    echo "skipping fsck because running on batteries"
-	|elif [ -x /bin/fsck.${rootfstype} ]; then
+	|elif [ -x /bin/fsck.${rootfstype} ] && ! [ -s /proc/vmcore ]; then
 	|    # fsck is unhappy without it
 	|    echo "$rootdev / $rootfstype defaults 1 1" > /etc/fstab
 	|    fsckopts="-V -a"
