@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep 21 00:57:54 CEST 2010 - mmarek@suse.cz
+
+- Don't run fsck in the kdump kernel (bnc#438192, bnc#636847).
+
+-------------------------------------------------------------------
 Thu Jul 22 17:39:45 CEST 2010 - mmarek@suse.cz
 
 - Restore the warpclock patch for SP4.
