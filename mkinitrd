@@ -2430,7 +2430,7 @@ mkinitrd_kernel() {
 	EOF
 
 	case "$module" in
-	    qla2xxx)
+	    qla2xxx|lpfc)
 		# QLogic HBAs do an asynchronous scan, wait
 		cat_linuxrc <<-'EOF'
 		|# Wait for FC scan to finish
@@ -2443,7 +2443,14 @@ mkinitrd_kernel() {
 		|    [ -r $p/port_state ] || continue
 		|    read s < $p/port_state
 		|    case "$s" in
-		|      Online|Linkdown|Error)
+		|      Linkdown)
+		|        if [ $i -gt 15 ] ; then
+		|          continue
+		|        else
+		|          i=$(( $i + 1 ))
+		|        fi
+		|        ;;
+		|      Online|Error)
 		|        continue
 		|        ;;
 		|      *)

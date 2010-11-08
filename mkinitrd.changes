@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov  8 14:23:14 CET 2010 - hare@suse.de
+
+- lfpc: wait 15 seconds for linkup (bnc#635869).
+
+-------------------------------------------------------------------
 Tue Sep 21 00:57:54 CEST 2010 - mmarek@suse.cz
 
 - Don't run fsck in the kdump kernel (bnc#438192, bnc#636847).
