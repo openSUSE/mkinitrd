@@ -59,6 +59,10 @@ majorminor2blockdev() {
             return
         fi
         local retval=$(cat /proc/partitions | egrep "^[ ]*$major[ ]*$minor ")
+        if [ -z "$retval" ]; then
+            echo "WARNING: Partition $major:$minor not available" >&2
+            return
+        fi
         echo /dev/${retval##* }
 }
 
@@ -136,7 +140,7 @@ dm_resolvedeps() {
 }
 
 dm_resolvedeps_recursive() {
-        local dm_uuid dm_deps dm_dep bd
+        local dm_uuid dm_deps dm_dep dm_dep_name bd
         local bds="$@"
         [ ! "$bds" ] && bds=$blockdev
         # resolve dependencies
@@ -150,7 +154,10 @@ dm_resolvedeps_recursive() {
                         dm_deps=${dm_deps//(/}
                         dm_deps=${dm_deps//)/}
                         for dm_dep in $dm_deps; do
-                                dm_resolvedeps $(majorminor2blockdev $dm_dep)
+                                dm_dep_name=$(majorminor2blockdev $dm_dep)
+                                if [ -n "$dm_dep_name" ]; then
+                                        dm_resolvedeps "$dm_dep_name"
+                                fi
                         done
                 else
                         echo -n "$bd "
@@ -272,6 +279,9 @@ if [ -z "$rootdev" ] ; then
   if [ $((rootmajor)) -gt 0 -a -z "$rootdev" ] ; then
       # don't check for non-device mounts
       rootdev="$(majorminor2blockdev $rootmajor $rootminor)"
+      if [ -z "$rootdev" ]; then
+          error 1 "Cannot determine the root device"
+      fi
       update_blockdev $rootdev
       rootdev="$(beautify_blockdev $rootdev)"
   fi
