@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 17 18:39:43 CET 2010 - bphilips@suse.de
+
+- Add new HBA firmware names (bnc#654063)
+
+-------------------------------------------------------------------
 Mon Nov  8 14:23:14 CET 2010 - hare@suse.de
 
 - lfpc: wait 15 seconds for linkup (bnc#635869).
