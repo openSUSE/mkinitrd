@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec 17 14:20:15 UTC 2010 - mmarek@novell.com
+
+- Really check mtime when determining whether to run mkinitrd_setup.
+
+-------------------------------------------------------------------
 Wed Nov 24 15:55:31 CET 2010 - pth@suse.de
 
 - Fix for new coreutils (bnc#654364).

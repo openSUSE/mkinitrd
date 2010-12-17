@@ -494,9 +494,9 @@ exit_code=0
 initrd_images=( $initrd_images )
 kernel_images=( $kernel_images )
 
-scripts_mtime=$( stat -c "%X" "$INITRD_PATH/scripts" )
-setup_mtime=$( stat -c "%X" "$INITRD_PATH/setup" )
-boot_mtime=$( stat -c "%X" "$INITRD_PATH/boot" )
+scripts_mtime=$( stat -c "%Y" "$INITRD_PATH/scripts" )
+setup_mtime=$( stat -c "%Y" "$INITRD_PATH/setup" )
+boot_mtime=$( stat -c "%Y" "$INITRD_PATH/boot" )
 scripts_mtime=${scripts_mtime%.*}
 setup_mtime=${setup_mtime%.*}
 boot_mtime=${boot_mtime%.*}
