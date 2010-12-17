@@ -471,11 +471,13 @@ mkinitrd_kernel() {
 
         for setupfile in $INITRD_PATH/setup/*.sh; do
                 [ -d "$tmp_mnt" ] && cd "$tmp_mnt" # process setup files in the initrd root dir
-                if [ ! -d "$setupfile" ]; then
+                if [ -f "$setupfile" ]; then
                     curscript="${setupfile##*-}"
 #                   echo "[$curscript] $blockdev"
                     source $setupfile
                     [ $? -ne 0 ] && oops 1 "Script $setupfile failed!"
+                else
+                    echo "warning: skipping non-regular file $setupfile"
                 fi
         done
         cd "$oldpwd"

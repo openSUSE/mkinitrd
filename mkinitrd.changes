@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec 17 14:40:56 UTC 2010 - mmarek@novell.com
+
+- Survive dangling symlinks in /lib/mkinitrd/setup.
+
+-------------------------------------------------------------------
 Fri Dec 17 14:20:15 UTC 2010 - mmarek@novell.com
 
 - Really check mtime when determining whether to run mkinitrd_setup.
