@@ -80,6 +80,11 @@ selinux_load_policy()
 # Move device nodes
 /bin/mount --move /dev /root/dev
 /bin/mount -t proc proc /root/proc
+if [ -d /root/run ]; then
+	mount --move /run /root/run
+else
+	umount -l /run
+fi
 
 # SELinux load policy
 selinux_load_policy "/root"

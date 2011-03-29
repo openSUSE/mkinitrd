@@ -35,8 +35,6 @@ mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 if mount -t devtmpfs -o mode=0755,nr_inodes=0 devtmpfs /dev; then
     have_devtmpfs=true
-    mkdir /dev/.run
-    mount -t tmpfs -o mode=0755 tmpfs /dev/.run
 else
     have_devtmpfs=false
     mount -t tmpfs -o mode=0755,nr_inodes=0 udev /dev
@@ -52,6 +50,8 @@ else
 fi
 mkdir -m 1777 /dev/shm
 mount -t tmpfs -o mode=1777 tmpfs /dev/shm
+mkdir /run
+mount -t tmpfs -o mode=0755,nodev,noexec,nosuid tmpfs /run
 mkdir -m 0755 /dev/pts
 mount -t devpts -o mode=0620,gid=5 devpts /dev/pts
 ln -s /proc/self/fd /dev/fd
