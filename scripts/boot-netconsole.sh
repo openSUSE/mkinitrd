@@ -24,8 +24,12 @@ if [ "$netc_loghost" = "$netc_udpport" ]; then
         netc_udpport="514"      # syslog
 fi
 ping -w5 -c1 $netc_loghost >/dev/null 2>&1
-netc_lladdr=$(arp $netc_loghost | while read ip type mac o; do [ "$mac" != "HWaddress" ] && echo $mac; done)
-netc_ipaddr=$(arp -n | while read ip type mac o; do [ "$mac" == "$netc_lladdr" ] && echo $ip; done)
-echo -e "Netconsole:\tlog to $netc_loghost:$netc_udpport [ $netc_ipaddr / $netc_lladdr ] via $interface"
+netc_lladdr=$(arp $netc_loghost | while read ip type mac o; do [ "$mac" != "HWaddress" -a "$type" != "(incomplete)" ] && echo $mac; done)
+if [ "z$netc_lladdr" != "z" ]; then
+    netc_ipaddr=$(arp -n | while read ip type mac o; do [ "$mac" == "$netc_lladdr" ] && echo $ip; done)
+    echo -e "Netconsole:\tlog to $netc_loghost:$netc_udpport [ $netc_ipaddr / $netc_lladdr ] via $interface"
 
-add_module_param netconsole "netconsole=@/,${netc_udpport}@${netc_ipaddr}/${netc_lladdr}"
+    add_module_param netconsole "netconsole=@/,${netc_udpport}@${netc_ipaddr}/${netc_lladdr}"
+else
+    echo -e "Cannot configure netconsole: cannot find logging host $netc_loghost on $interface"
+fi
