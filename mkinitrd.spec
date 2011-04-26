@@ -1,7 +1,7 @@
 #
 # spec file for package mkinitrd (Version 2.5.10)
 #
-# Copyright (c) 2010 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -121,9 +121,9 @@ EOF
 %config /etc/rpm/macros.mkinitrd
 /lib/mkinitrd/scripts/*.sh
 /lib/mkinitrd/bin/*
+/bin/lsinitrd
 /sbin/mkinitrd
 /sbin/mkinitrd_setup
-/sbin/lsinitrd
 /sbin/module_upgrade
 /sbin/installkernel
 %doc %{_mandir}/man5/mkinitrd.5.gz
