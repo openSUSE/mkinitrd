@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 26 19:46:08 UTC 2011 - johannesobermayr@gmx.de
+
+- Move lsinitrd to /bin (feature#312272).
+
+-------------------------------------------------------------------
 Tue Mar 29 21:37:28 UTC 2011 - mmarek@novell.com
 
 - Change from /dev/.run to /run (bnc#678270#c2).
