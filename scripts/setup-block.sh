@@ -34,7 +34,7 @@ handle_scsi()
     tgtnum=${devpath##*/}
     hostnum=${tgtnum%%:*}
     if [ ${tgtnum%%-*} = "vbd" ] ; then
-        modules="xenblk"
+        modules="xen:vbd"
     else
         if [ ! -d /sys/class/scsi_host/host$hostnum ] ; then
             echo "scsi host$hostnum not found"
@@ -94,7 +94,7 @@ get_devmodule()
             devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)
             devname=${devpath##*/}
             if [ ${devname%%-*} = "vbd" ] ; then
-                result=xenblk
+                result=xen:vbd
             else
                 devpath=$(cd -P "$devpath/../.."; echo $PWD)
                 if [ -f "$devpath/modalias" ] ; then
@@ -110,7 +110,7 @@ get_devmodule()
             result="i2o_block i2o_config"
             ;;
         xvd*)
-            result=xenblk
+            result=xen:vbd
             ;;
         rd*)
             result=DAC960
