@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May  4 14:32:00 UTC 2011 - mmarek@novell.com
+
+- Fix typo in boot-devfunctions.sh (bnc#642011).
+
+-------------------------------------------------------------------
 Thu Sep  2 13:22:46 CEST 2010 - mmarek@suse.cz
 
 - Do not use the chroot binary from the target system (bnc#635856).

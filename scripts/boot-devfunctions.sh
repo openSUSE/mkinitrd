@@ -101,7 +101,7 @@ check_for_device() {
             fi
         done
     fi
-    if [ -x /sbin/multipath ] && [ -n "vg_root" -a -n "$vg_roots" ] ; then
+    if [ -x /sbin/multipath ] && [ -n "$vg_root" -a -n "$vg_roots" ] ; then
         echo "Resetting LVM for multipath"
         vgchange -a n
         multipath -v 0
