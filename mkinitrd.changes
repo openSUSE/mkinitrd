@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May  4 14:32:00 UTC 2011 - mmarek@novell.com
+
+- Fix typo in boot-devfunctions.sh (bnc#642011).
+
+-------------------------------------------------------------------
 Tue Apr 26 19:46:08 UTC 2011 - johannesobermayr@gmx.de
 
 - Move lsinitrd to /bin (feature#312272).
