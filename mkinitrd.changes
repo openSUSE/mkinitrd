@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May  4 14:42:49 UTC 2011 - mmarek@novell.com
+
+- Do not hardcode the xenblk driver, use the xen:vbd alias instead
+  (bnc#558278).
+
+-------------------------------------------------------------------
 Wed May  4 14:32:00 UTC 2011 - mmarek@novell.com
 
 - Fix typo in boot-devfunctions.sh (bnc#642011).
