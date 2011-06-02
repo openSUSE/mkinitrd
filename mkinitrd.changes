@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun  2 11:35:12 UTC 2011 - mmarek@novell.com
+
+- Map /dev/fio* to the iomemory-vsl driver (bnc#695620).
+
+-------------------------------------------------------------------
 Wed May  4 14:42:49 UTC 2011 - mmarek@novell.com
 
 - Do not hardcode the xenblk driver, use the xen:vbd alias instead
