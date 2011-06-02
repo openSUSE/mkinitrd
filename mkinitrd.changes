@@ -56,6 +56,11 @@ Tue Jun 14 13:30:07 UTC 2011 - mmarek@novell.com
 - boot-start: Mount /run without noexec to match systemd.
 
 -------------------------------------------------------------------
+Thu Jun  2 11:35:12 UTC 2011 - mmarek@novell.com
+
+- Map /dev/fio* to the iomemory-vsl driver (bnc#695620).
+
+-------------------------------------------------------------------
 Mon May  9 16:55:56 CEST 2011 - ro@suse.de
 
 - move sysconfig/kernel related parts to this package 
