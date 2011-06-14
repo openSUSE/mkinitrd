@@ -51,7 +51,7 @@ fi
 mkdir -m 1777 /dev/shm
 mount -t tmpfs -o mode=1777 tmpfs /dev/shm
 mkdir /run
-mount -t tmpfs -o mode=0755,nodev,noexec,nosuid tmpfs /run
+mount -t tmpfs -o mode=0755,nodev,nosuid tmpfs /run
 mkdir -m 0755 /dev/pts
 mount -t devpts -o mode=0620,gid=5 devpts /dev/pts
 ln -s /proc/self/fd /dev/fd
