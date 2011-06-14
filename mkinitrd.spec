@@ -38,6 +38,10 @@ PreReq:         %fillup_prereq
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tar.bz2
+# Note: the whole package is maintained in this git repository, please
+# don't change it in the build service without sending the author a
+# pull request or patch first. Otherwise, you risk that your changes will be
+# silently overwritten by the next submission.
 Url:            http://gitorious.org/opensuse/mkinitrd
 
 %description

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun 14 13:56:11 UTC 2011 - mmarek@novell.com
+
+- Add a note to the spec file that the package is maintained in git.
+
+-------------------------------------------------------------------
 Tue Jun 14 13:30:07 UTC 2011 - mmarek@novell.com
 
 - boot-start: Mount /run without noexec to match systemd.
