@@ -250,7 +250,7 @@ class_drivers()
 
 ################## end of functions ######################
 
-if [ "$NO_KMS_IN_INITRD" != "yes" ] && pciids_on_system
+if [ "$KMS_IN_INITRD" != "no" ] && pciids_on_system
 then
 
     gfx_modules=$(class_drivers $kernel_version $supported_classes)

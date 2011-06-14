@@ -4,6 +4,11 @@ Tue Jun 14 13:30:07 UTC 2011 - mmarek@novell.com
 - boot-start: Mount /run without noexec to match systemd.
 
 -------------------------------------------------------------------
+Mon May  9 16:55:56 CEST 2011 - ro@suse.de
+
+- move sysconfig/kernel related parts to this package 
+
+-------------------------------------------------------------------
 Wed May  4 14:42:49 UTC 2011 - mmarek@novell.com
 
 - Do not hardcode the xenblk driver, use the xen:vbd alias instead

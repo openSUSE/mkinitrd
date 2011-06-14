@@ -34,6 +34,7 @@ Version:        @@VERSION@@
 Release:        3
 Conflicts:      udev < 118
 Requires:       dhcpcd
+PreReq:         %fillup_prereq
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tar.bz2
@@ -90,6 +91,8 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
+mkdir -p $RPM_BUILD_ROOT/etc/init.d
+mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates
 cp -a scripts/*.sh $RPM_BUILD_ROOT/lib/mkinitrd/scripts/
 cp -a lib/mkinitrd/bin $RPM_BUILD_ROOT/lib/mkinitrd/bin
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
@@ -104,6 +107,19 @@ cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 #
 %install_mkinitrd   /usr/bin/perl /sbin/mkinitrd_setup
 EOF
+install -m 755 etc/boot.loadmodules $RPM_BUILD_ROOT/etc/init.d/
+install -m 644 etc/sysconfig.kernel-mkinitrd $RPM_BUILD_ROOT/var/adm/fillup-templates/
+
+%post
+%{remove_and_set -n kernel SKIP_RUNNING_KERNEL NO_KMS_IN_INITRD}
+%{fillup_only -an kernel}
+%{insserv_force_if_yast /etc/init.d/boot.loadmodules}
+case "$NO_KMS_IN_INITRD" in
+	no)
+		sed -i -e "s@^KMS_IN_INITRD=.*@KMS_IN_INITRD=\"yes\"@" /etc/sysconfig/kernel ;;
+	yes)
+		sed -i -e "s@^KMS_IN_INITRD=.*@KMS_IN_INITRD=\"no\"@" /etc/sysconfig/kernel ;;
+esac
 
 %posttrans
 /sbin/mkinitrd_setup
@@ -119,6 +135,7 @@ EOF
 %dir /lib/mkinitrd/boot
 %dir /lib/mkinitrd/setup
 %config /etc/rpm/macros.mkinitrd
+/etc/init.d/boot.loadmodules
 /lib/mkinitrd/scripts/*.sh
 /lib/mkinitrd/bin/*
 /bin/lsinitrd
@@ -126,6 +143,7 @@ EOF
 /sbin/mkinitrd_setup
 /sbin/module_upgrade
 /sbin/installkernel
+/var/adm/fillup-templates/sysconfig.kernel-%name
 %doc %{_mandir}/man5/mkinitrd.5.gz
 %doc %{_mandir}/man8/mkinitrd.8.gz
 %doc %{_mandir}/man8/lsinitrd.8.gz
