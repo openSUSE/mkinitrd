@@ -28,7 +28,7 @@
 LOGDIR=/var/log/YaST2
 LOGFILE=$LOGDIR/mkinitrd.log
 declare -a cmd_option
-declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name
+declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name cmd_param_is_array
 shopt -s nullglob
 
 read_options_eval() {
@@ -66,7 +66,13 @@ next_param() {
     shift
     cmd_option_param="$*"
     IFS="$OLDIFS"
-    [ "$cmd_param_name" ]
+    if test "${cmd_param_name:0:1}" = "@"; then
+        cmd_param_name=${cmd_param_name:1}
+        cmd_param_is_array=true
+    else
+        cmd_param_is_array=false
+    fi
+    test -n "$cmd_param_name"
 }
 
 cmd_docmd() {
@@ -287,7 +293,13 @@ while getopts $( cmd_getopts ) a ; do
             exit 0
             ;;
         *)  if cmd_docmd $a; then
-                next_param && eval "$cmd_param_name='$OPTARG'"
+                if next_param; then
+                    if $cmd_param_is_array; then
+                        eval "$cmd_param_name=\"\$$cmd_param_name $OPTARG\""
+                    else
+                        eval "$cmd_param_name='$OPTARG'"
+                    fi
+                fi
                 eval param_$a=1
             else
                 exit 1
