@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 16 13:31:38 UTC 2011 - mmarek@novell.com
+
+- Call udevadm trigger --action=add, because the default is "change"
+  in newer udev.
+
+-------------------------------------------------------------------
 Tue Jun 14 13:56:11 UTC 2011 - mmarek@novell.com
 
 - Add a note to the spec file that the package is maintained in git.
