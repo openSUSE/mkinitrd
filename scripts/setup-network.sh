@@ -2,8 +2,8 @@
 #
 #%stage: device
 #%depends: iscsi nfs lldpad fcoe
-#%param_D: "Run dhcp on the specified interface." interface interface
-#%param_I: "Configure the specified interface statically." interface interface
+#%param_D: "Run dhcp on the specified interface." interface @dhcp_interfaces
+#%param_I: "Configure the specified interface statically." interface @static_interfaces
 #
 # Calculate the netmask for a given prefix
 calc_netmask() {
@@ -161,33 +161,33 @@ get_network_module()
 
 for addfeature in $ADDITIONAL_FEATURES; do
     if [ "$addfeature" = "network" ]; then
-	if [ -z "$interface" ] ; then
+        if test -z "$interface$static_interfaces$dhcp_interfaces"; then
             interface=default
         fi
     fi
     if [ "$addfeature" = "ifup" ] ; then
 	nettype=ifup
 	interface=
+        dhcp_interfaces=
+        static_interfaces=
     fi
 done
 
 ip=
-interface=${interface#/dev/}
-[ "$param_D" ] && nettype=dhcp
-[ "$param_I" ] && nettype=static
-
 # get the default interface if requested
 if [ "$interface" = "default" ]; then
-    ifspec=$(get_default_interface)
-    interface=${ifspec%%/*}
-    case "${ifspec##*/}" in
-        dhcp*)
-            nettype=dhcp
-            ;;
-        *)
-            nettype=static
-            ;;
-    esac
+    interface=
+    if -z "$static_interfaces$dhcp_interfaces"; then
+        ifspec=$(get_default_interface)
+        case "${ifspec##*/}" in
+            dhcp*)
+                dhcp_interfaces=${ifspec%%/*}
+                ;;
+            *)
+                static_interfaces=${ifspec%%/*}
+                ;;
+        esac
+    fi
 fi
 
 if [ "$create_monster_initrd" ]; then
@@ -199,26 +199,47 @@ if [ "$create_monster_initrd" ]; then
     done
 fi
 
-if [ -n "$interface" ] ; then
-    # Pull in network module
-    if [ -d /sys/class/net/$interface/device ] ; then
-        drvlink=$(get_network_module $interface)
-        read macaddress < /sys/class/net/$interface/address
-    elif [ -d /sys/class/net/$interface/bonding ] ; then
-        verbose "[NETWORK]\tConfigure bonding for $interface"
-        bonding_module=bonding
-        drvlink=bonding
-        mode=$(< /sys/class/net/$interface/bonding/mode)
-        miimon=$(< /sys/class/net/$interface/bonding/miimon)
-        slave_macaddresses=$(sed -ne 's/Permanent HW addr: \(.*\)/\1/p' /proc/net/bonding/$interface)
+if test -n "$interface"; then
+    echo "XXX: \$interface still set (to $interface), should not happen." >&2
+fi
 
-        # include hardware modules for the slaves
-        for interf in $(< /sys/class/net/$interface/bonding/slaves) ; do
+static=true
+for iface in $static_interfaces -- $dhcp_interfaces; do
+    if test "x$iface" = "x--"; then
+        static=false
+        continue
+    fi
+    if [ -d /sys/class/net/$iface/device ] ; then
+        drvlink="$drvlink $(get_network_module $iface)"
+        read macaddress < /sys/class/net/$iface/address
+        if $static; then
+            static_macaddresses="$static_macaddresses $macaddress"
+        else
+            dhcp_macaddresses="$dhcp_macaddresses $macaddress"
+        fi
+    elif [ -d /sys/class/net/$iface/bonding ] ; then
+        verbose "[NETWORK]\tConfigure bonding for $iface"
+        bonding_module=bonding
+        drvlink="$drvlink bonding"
+        config=
+        for param in mode miimon arp_interval arp_ip_target; do
+            config="${config:+$config~}$param:$(< /sys/class/net/$iface/bonding/$param)"
+        done
+        slaves=$(< /sys/class/net/$iface/bonding/slaves)
+        for interf in $slaves; do
+            # include hardware modules for the slaves
             mod=$(get_network_module $interf)
             drvlink="$drvlink $mod"
         done
+        read bonding_$iface <<<"slaves:$slaves~$config"
+        save_var bonding_$iface
+        if $static; then
+            static_macaddresses="$static_macaddresses BONDING:$iface"
+        else
+            dhcp_macaddresses="$dhcp_macaddresses BONDING:$iface"
+        fi
     fi
-fi
+done
 
 # Copy ifcfg settings
 if [ "$nettype" = "ifup" ] ; then
@@ -229,14 +250,14 @@ if [ "$nettype" = "ifup" ] ; then
 	if [ -d /sys/class/net/$interface/device ] ; then
 	    mod=$(get_network_module $interface)
 	    drvlink="$drvlink $mod"
-	    verbose "[NETWORK]\t$interface ($nettype)"
+	    verbose "[NETWORK]\tifup: $interface"
 	fi
     done
     interface=
 fi
 
 # Copy the /etc/resolv.conf when the IP is static
-if [ "$interface" -a "$nettype" = "static" -a -f /etc/resolv.conf ] ; then
+if test -n "$static_interfaces"; then
     verbose "[NETWORK]\tUsing /etc/resolv.conf from the system in the initrd"
     cp /etc/resolv.conf $tmp_mnt/etc
 fi
@@ -246,9 +267,9 @@ fi
 cp /etc/hosts $tmp_mnt/etc
 
 # Get static IP configuration if requested
-if [ "$interface" -a "$nettype" = "static" ] ; then
-    ip=$(get_ip_config $interface)
-fi
+for iface in $static_interfaces; do
+    static_ips="$static_ips $(get_ip_config $iface)"
+done
 
 mkdir -p $tmp_mnt/var/lib/dhcpcd
 mkdir -p $tmp_mnt/var/run
@@ -266,14 +287,14 @@ if [ -f /etc/udev/rules.d/77-network.rules ] ; then
     cp_bin /bin/touch $tmp_mnt/bin/touch
 fi
 
-[ "$interface" ] && verbose "[NETWORK]\t$interface ($nettype)"
+test -n "$static_interfaces" && verbose "[NETWORK]\tstatic: $static_interfaces"
+test -n "$dhcp_interfaces" && verbose "[NETWORK]\tdynamic: $dhcp_interfaces"
 
 save_var nettype
-save_var ip
-save_var interface
-save_var macaddress
+save_var static_macaddresses
+save_var static_ips
+save_var dhcp_macaddresses
 save_var drvlink
-save_var mode
-save_var miimon
-save_var slave_macaddresses
 save_var bonding_module
+
+# vim:sw=4:et
