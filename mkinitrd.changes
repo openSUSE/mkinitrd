@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 16 13:31:38 UTC 2011 - mmarek@novell.com
+
+- Call udevadm trigger --action=add, because the default is "change"
+  in newer udev.
+
+-------------------------------------------------------------------
 Thu Jun 16 12:35:09 UTC 2011 - mmarek@novell.com
 
 - New udev will need /sbin/blkid in initramfs (bnc#513994).

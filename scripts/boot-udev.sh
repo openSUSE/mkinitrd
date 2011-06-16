@@ -27,5 +27,5 @@ fi
 # Start udev
 echo "Creating device nodes with udev"
 /sbin/udevd --daemon
-/sbin/udevadm trigger
+/sbin/udevadm trigger --action=add
 wait_for_events
