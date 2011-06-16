@@ -23,119 +23,10 @@
 # load the modules before detecting which device we are going to use
 load_modules
 
-# mac address based config
-if [ -n "$macaddress" ] ; then
-    for dev in /sys/class/net/* ; do
-      # skip files that are no directories
-      if ! [ -d $dev ] ; then
-          continue
-      fi
+configure_static()
+{
+    local ip=$1
 
-      read tmpmac < $dev/address
-      if [ "$tmpmac" == "$macaddress" ] ; then
-        interface=${dev##*/}
-        echo "[NETWORK] using interface $interface"
-      fi
-    done
-
-    if [ -n "$ip" ] ; then
-        nettype=${ip##*:}
-        ip=${ip%:*}
-        tmpip=${ip%:*}
-        ip="${tmpip}:${interface}:${nettype}"
-    fi
-fi
-
-if [ -n "$nfsaddrs" -a -z "$(get_param ip)" ]; then
-        ip=$nfsaddrs
-fi
-
-if [ -n "$ip" -a ! "$(echo $ip | sed '/:/P;d')" ]; then
-        echo "[NETWORK] using dhcp on $interface based on ip=$ip"
-        nettype=dhcp
-elif [ "${ip##*:}" = dhcp ]; then
-        nettype=dhcp
-        newinterface="${ip%*:dhcp}"
-        newinterface="${newinterface##*:}"
-        [ "$newinterface" != dhcp -a "$newinterface" ] && interface="$newinterface"
-        echo "[NETWORK] using dhcp on $interface based on ip=$ip"
-fi
-
-if [ -n "$(get_param dhcp)" -a "$(get_param dhcp)" != "off" ]; then
-        echo "[NETWORK] using dhcp based on dhcp=$dhcp"
-        interface=$(get_param dhcp)
-        nettype=dhcp
-fi
-
-[ "$(get_param dhcp)" = "off" ] && nettype=static
-
-if [ -n "$ip" -a "$nettype" != "dhcp" ]; then
-        echo "[NETWORK] using static config based on ip=$ip"
-        nettype=static
-fi
-
-if [[ "$drvlink" = *bonding* ]]; then
-    ip link set $interface down
-    echo "$miimon" > /sys/class/net/$interface/bonding/miimon
-    echo "$mode" > /sys/class/net/$interface/bonding/mode
-    ip link set $interface up
-    for address in $slave_macaddresses ; do
-        for dev in /sys/class/net/* ; do
-            if ! [ -d $dev ] ; then
-                continue
-            fi
-            read tmpmac < $dev/address
-            if [ "$tmpmac" == "$address" ] ; then
-                slave=${dev##*/}
-                echo "+$slave" > /sys/class/net/$interface/bonding/slaves
-            fi
-        done
-    done
-fi
-
-# dhcp based ip config
-if [ "$nettype" = "dhcp" ]; then
-  # run dhcp
-  if [ "$interface" != "off" ]; then
-    echo "running dhcpcd on interface $interface"
-    dhcpcd -R -Y -N -t 120 $interface
-    if [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] ; then
-      . /var/lib/dhcpcd/dhcpcd-$interface.info
-    else
-      echo "no response from dhcp server -- exiting to /bin/sh"
-      cd /
-      PATH=$PATH PS1='$ ' /bin/sh -i
-    fi
-    [ -e "/var/run/dhcpcd-$interface.pid" ] && kill -9 $(cat /var/run/dhcpcd-$interface.pid)
-    if [ -n "$DNS" ]; then
-      oifs="$IFS"
-      IFS=","
-      for ns in $DNS ; do
-        echo "nameserver $ns" >> /etc/resolv.conf
-      done
-      IFS="$oifs"
-      if [ -n "$DOMAIN" ]; then
-          echo "search $DOMAIN" >> /etc/resolv.conf
-      fi
-      echo 'hosts: files dns' > /etc/nsswitch.conf
-    elif [ -n "$DNSSERVERS" ]; then
-      oifs="$IFS"
-      IFS=" "
-      for ns in $DNSSERVERS ; do
-        echo "nameserver $ns" >> /etc/resolv.conf
-      done
-      IFS="$oifs"
-      if [ -n "$DNSDOMAIN" ]; then
-          echo "search $DNSDOMAIN" >> /etc/resolv.conf
-      fi
-      echo 'hosts: files dns' > /etc/nsswitch.conf
-    fi
-  fi
-
-# static ip config
-elif [ "$nettype" = "static" ]; then
-  # configure interface
-  if [ -n "$ip" ]; then
     /bin/ipconfig $ip
     # dhcp information emulation
     IPADDR="${ip%%:*}"
@@ -149,9 +40,138 @@ elif [ "$nettype" = "static" ]; then
     HOSTNAME="${ip%%:*}"
     ip="${ip#*:}" # first entry => iface
     INTERFACE="${ip%%:*}"
-  fi
-  echo 'hosts: files dns' > /etc/nsswitch.conf
-elif [ "$nettype" = "ifup" ] ; then
+    echo 'hosts: files dns' > /etc/nsswitch.conf
+}
+
+configure_dynamic()
+{
+    local interface=$1
+
+    echo "running dhcpcd on interface $interface"
+    dhcpcd -R -Y -N -t 120 $interface
+    if [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] ; then
+        . /var/lib/dhcpcd/dhcpcd-$interface.info
+    else
+        echo "no response from dhcp server -- exiting to /bin/sh"
+        cd /
+        PATH=$PATH PS1='$ ' /bin/sh -i
+    fi
+    [ -e "/var/run/dhcpcd-$interface.pid" ] && kill -9 $(cat /var/run/dhcpcd-$interface.pid)
+    if [ -n "$DNS" ]; then
+        oifs="$IFS"
+        IFS=","
+        for ns in $DNS ; do
+            echo "nameserver $ns" >> /etc/resolv.conf
+        done
+        IFS="$oifs"
+        if [ -n "$DOMAIN" ]; then
+                echo "search $DOMAIN" >> /etc/resolv.conf
+        fi
+        echo 'hosts: files dns' > /etc/nsswitch.conf
+    elif [ -n "$DNSSERVERS" ]; then
+        oifs="$IFS"
+        IFS=" "
+        for ns in $DNSSERVERS ; do
+            echo "nameserver $ns" >> /etc/resolv.conf
+        done
+        IFS="$oifs"
+        if [ -n "$DNSDOMAIN" ]; then
+                echo "search $DNSDOMAIN" >> /etc/resolv.conf
+        fi
+        echo 'hosts: files dns' > /etc/nsswitch.conf
+    fi
+}
+
+# configure_bonding iface "slaves:eth0 eth1~miimon:..."
+configure_bonding()
+{
+    local iface=$1 config=$2 param value
+    local slaves slave mode miimon arp_interval arp_ip_target
+
+    if test ! -d /sys/class/net/$iface; then
+        echo "+$iface" >/sys/class/net/bonding_masters
+    fi
+    ip link set $iface down
+
+    local saveifs="$IFS"
+    local IFS='~'
+    set -- $config
+    for param; do
+        : "$param"
+        value=${param#*:}
+        case "$param" in
+        slaves:*)
+            slaves=(${value// /\~})
+            ;;
+        *)
+            if test -n "$value"; then
+                echo "$value" >/sys/class/net/$iface/bonding/${param%%:*}
+            fi
+        esac
+    done
+    IFS="$saveifs"
+
+    ip link set $iface up
+    for slave in "${slaves[@]}"; do
+        echo "+$slave" > /sys/class/net/$iface/bonding/slaves
+    done
+}
+
+
+macaddr2if()
+{
+    local macaddress=$1 tmpmac dev
+
+    for dev in /sys/class/net/* ; do
+        # skip files that are no directories
+        if ! [ -d $dev ] ; then
+            continue
+        fi
+
+        read tmpmac < $dev/address
+        if [ "$tmpmac" == "$macaddress" ] ; then
+            echo ${dev##*/}
+            return
+        fi
+    done
+}
+
+i=0
+static_ips=($static_ips)
+static=true
+for macaddr in $static_macaddresses -- $dhcp_macaddresses; do
+    if test "x$macaddr" = "x--"; then
+        static=false
+        continue
+    fi
+    case "$macaddr" in
+    BONDING:*)
+        iface=${macaddr#*:}
+        var=bonding_$iface
+        configure_bonding "$iface" "${!var}"
+        ;;
+    *)
+        iface=$(macaddr2if "$macaddr")
+    esac
+
+    if $static; then
+        ip="${static_ips[i++]}"
+
+        # the interface name in the ip config string can differ from the actual
+        # one, replace it
+        nettype=${ip##*:}
+        ip=${ip%:*}
+        tmpip=${ip%:*}
+        ip="${tmpip}:${iface}:${nettype}"
+
+        configure_static "$ip"
+    else
+        configure_dynamic "$iface"
+    fi
+done
+
+# static ip config
+if [ "$nettype" = "ifup" ] ; then
     for i in /etc/sysconfig/network/ifcfg-* ; do
 	interface=${i##*/ifcfg-}
 	[ -d /sys/class/net/$interface/device ] || continue
@@ -164,3 +184,5 @@ if [ "0$(get_param net_delay)" -gt 0 ]; then
         echo "[NETWORK] sleeping for $net_delay seconds."
         sleep "$(get_param net_delay)"
 fi
+
+# vim: et:sw=4:sts=4
