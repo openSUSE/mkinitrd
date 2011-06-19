@@ -5,7 +5,7 @@
 sbindir = /sbin
 bindir = /bin
 
-PRGS = mkinitrd installkernel module_upgrade mkinitrd_setup
+PRGS = mkinitrd installkernel module_upgrade mkinitrd_setup purge-kernels
 UPRGS = lsinitrd
 all: install
 install: install_prgs install_uprgs

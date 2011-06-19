@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Sun Jun 19 13:25:10 UTC 2011 - mmarek@novell.com
+
+- Add purge-kernels script to automatically delete old kernel packages
+  on boot, based on configuration in /etc/zypp/zypp.conf, variable
+  multiversion_kernels (fate#312018).
+
+-------------------------------------------------------------------
 Thu Jun 16 13:31:38 UTC 2011 - mmarek@novell.com
 
 - Call udevadm trigger --action=add, because the default is "change"

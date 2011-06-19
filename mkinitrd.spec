@@ -112,18 +112,23 @@ cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 %install_mkinitrd   /usr/bin/perl /sbin/mkinitrd_setup
 EOF
 install -m 755 etc/boot.loadmodules $RPM_BUILD_ROOT/etc/init.d/
+install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
 install -m 644 etc/sysconfig.kernel-mkinitrd $RPM_BUILD_ROOT/var/adm/fillup-templates/
 
 %post
 %{remove_and_set -n kernel SKIP_RUNNING_KERNEL NO_KMS_IN_INITRD}
 %{fillup_only -an kernel}
 %{insserv_force_if_yast /etc/init.d/boot.loadmodules}
+%{fillup_and_insserv -f -Y purge-kernels}
 case "$NO_KMS_IN_INITRD" in
 	no)
 		sed -i -e "s@^KMS_IN_INITRD=.*@KMS_IN_INITRD=\"yes\"@" /etc/sysconfig/kernel ;;
 	yes)
 		sed -i -e "s@^KMS_IN_INITRD=.*@KMS_IN_INITRD=\"no\"@" /etc/sysconfig/kernel ;;
 esac
+
+%postun
+%insserv_cleanup
 
 %posttrans
 /sbin/mkinitrd_setup
@@ -140,6 +145,7 @@ esac
 %dir /lib/mkinitrd/setup
 %config /etc/rpm/macros.mkinitrd
 /etc/init.d/boot.loadmodules
+/etc/init.d/purge-kernels
 /lib/mkinitrd/scripts/*.sh
 /lib/mkinitrd/bin/*
 /bin/lsinitrd
@@ -147,6 +153,7 @@ esac
 /sbin/mkinitrd_setup
 /sbin/module_upgrade
 /sbin/installkernel
+/sbin/purge-kernels
 /var/adm/fillup-templates/sysconfig.kernel-%name
 %doc %{_mandir}/man5/mkinitrd.5.gz
 %doc %{_mandir}/man8/mkinitrd.8.gz

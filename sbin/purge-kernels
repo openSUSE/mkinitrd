@@ -1,0 +1,265 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+sub usage {
+	print "Usage: $0 <kernels to keep>...\n";
+	print "kernels can be given as <version>, latest(-N), running, oldest(+N).\n";
+}
+
+# arch/flavor => version-release => [ subpackages ]
+my %kernels;
+my %kmps;
+
+my @keep_spec;
+my ($want_running, $running_version, $running_flavor);
+
+# do not actually delete anything
+my $test_only;
+
+sub load_config {
+	my $file = "/etc/zypp/zypp.conf";
+	my @kernels;
+
+	if (!-e $file) {
+		print STDERR "$0: /etc/zypp/zypp.conf does not exist, exiting.\n";
+		exit 0;
+	}
+	open(my $fh, '<', $file) or die "$0: $file: $!\n";
+	while (<$fh>) {
+		chomp;
+		next unless /^\s*multiversion_kernels\b/;
+		s/^[^=]*=\s*//;
+		@kernels = split;
+		last;
+	}
+	close($fh);
+	for my $kernel (@kernels) {
+		if ($kernel =~ /^(latest|oldest|running)([-+]\d+)?$/) {
+			my $new = { whence => $1, offset => $2 || 0 };
+			if ($new->{whence} eq "running") {
+				$want_running = 1;
+			}
+			push (@keep_spec, $new);
+		} elsif ($kernel =~ /^\d+\.\d+/) {
+			my $new = { version => $kernel };
+			push (@keep_spec, $new);
+		} else {
+			print STDERR "$0: Ignoring unknow kernel specification in\n";
+			print STDERR "/etc/zypp/zypp.conf:multiversion_kernels: $kernel\n";
+		}
+	}
+}
+
+sub add_package {
+	my ($name, $vr, $arch) = @_;
+	my ($flavor, $table);
+
+	#print STDERR "add_package: $name $vr $arch\n";
+	if ($name eq "kernel-firmware" || $name eq "kernel-coverage") {
+		return;
+	}
+	if ($name =~ /^kernel-/) {
+		($flavor = $name) =~ s/^kernel-//;
+		$table = \%kernels;
+	} elsif ($name =~ /-kmp-/) {
+		($flavor = $name) =~ s/.*-kmp-//;
+		$table = \%kmps;
+	}
+	$flavor =~ s/-.*//; # XXX: No dashes in flavor names
+	if ($flavor eq "devel") {
+		# kernel-devel is a subpackage of kernel-source
+		$flavor = "source";
+	}
+	$table->{"$arch/$flavor"} ||= {};
+	$table->{"$arch/$flavor"}{$vr} ||= [];
+	push(@{$table->{"$arch/$flavor"}{$vr}}, "$name-$vr.$arch");
+}
+
+sub load_packages {
+	open(my $pipe, '-|', 'rpm', '-qa', '--qf', '%{n} %{v}-%{r} %{arch}\n',
+		'kernel-*', '*-kmp-*') or die "rpm: $!\n";
+	while (<$pipe>) {
+		chomp;
+		my ($name, $vr, $arch) = split;
+		add_package($name, $vr, $arch);
+	}
+}
+
+sub sort_versions {
+	my @versions = @_;
+
+	pipe (my $read, my $write);
+	my $pid = fork();
+	if (!defined($pid)) {
+		die "Cannot fork: $!\n";
+	} elsif ($pid == 0) {
+		# child
+		close($read);
+		open STDOUT, '>&', $write;
+		open(my $fh, '|-', "/usr/lib/rpm/rpmsort") or die "/usr/lib/rpm/rpmsort: $!\n";
+		print $fh join("\n", @versions), "\n";
+		close($fh);
+		die "rpmsort failed ($?)\n" if $? != 0;
+
+		exit 0;
+	}
+	# parent
+	close($write);
+	@versions = <$read>;
+	chomp @versions;
+	close($read);
+	waitpid($pid, 0);
+	die "rpmsort failed ($?)\n" if $? != 0;
+
+	return @versions;
+}
+
+# return true if VER1 is a prefix of VER2 (to handle the .x rebuild counter)
+sub version_match {
+	my ($ver1, $ver2) = @_;
+
+	return ($ver1 eq substr($ver2, 0, length($ver1)));
+}
+
+sub list_old_packages {
+	my ($flavor) = @_;
+
+	# ignore kernel-source for now
+	return if $flavor =~ /\/source$/;
+
+	my $kernels = $kernels{$flavor};
+	my @versions = sort_versions(keys(%$kernels));
+	my %idx = (
+		oldest => 0,
+		latest => scalar(@versions) - 1,
+	);
+	if ($want_running && $running_flavor eq $flavor) {
+		for (my $i = scalar(@versions) - 1; $i >= 0; $i--) {
+			if (version_match($running_version, $versions[$i])) {
+				$idx{running} = $i;
+				last;
+			}
+		}
+		if (!exists($idx{running})) {
+			print STDERR "$0: Running kernel $running_version-$running_flavor not installed.\n";
+			print "NOT removing any packages for flavor $flavor.\n";
+			return;
+		}
+	}
+	my %delete = map { $_ => 1 } @versions;
+	for my $keep (@keep_spec) {
+		if ($keep->{version}) {
+			for my $ver (@versions) {
+				if (version_match($keep->{version}, $ver)) {
+					$delete{$ver} = 0;
+				}
+			}
+		} elsif ($keep->{whence}) {
+			next unless exists($idx{$keep->{whence}});
+			my $idx = $idx{$keep->{whence}};
+			$idx += $keep->{offset};
+			next unless $idx >= 0 && $idx < scalar(@versions);
+			$delete{$versions[$idx]} = 0;
+		} else {
+			die "??";
+		}
+	}
+	my @packages;
+	for my $ver (grep { $delete{$_} } @versions) {
+		push(@packages, @{$kernels->{$ver}});
+	}
+	return @packages;
+}
+
+sub remove_packages {
+	my @packages = @_;
+
+	while (1) {
+		pipe(my $read, my $write);
+		my $pid = fork();
+		if (!defined($pid)) {
+			die "Cannot fork: $!\n";
+		} elsif($pid == 0) {
+			# child
+			close($read);
+			open STDOUT, '>&', $write;
+			open STDERR, '>&', $write;
+			$ENV{LC_ALL} = "C";
+			my @cmd = qw(rpm -e);
+			push(@cmd, "--test") if $test_only;
+			exec(@cmd, @packages) or die "rpm: $!\n";
+		}
+		# parent
+		close($write);
+		my @out = <$read>;
+		chomp @out;
+		close($read);
+		waitpid($pid, 0);
+		if ($? == 0) {
+			print "Removed:\n    ", join("\n    ", @packages), "\n";
+			return 1;
+		}
+		my ($retry, @problems);
+		my %old_packages = map { $_ => 1 } @packages;
+		my %new_packages;
+		for (@out) {
+			if (/ is needed by \(installed\) (.*-kmp-.*)/ &&
+					!$old_packages{$1}) {
+				push(@packages, $1) unless $new_packages{$1};
+				$new_packages{$1} = 1;
+				$retry = 1;
+			} else {
+				push(@problems, $_);
+			}
+		}
+		if (!$retry) {
+			print STDERR join("\n", @problems), "\n";
+			print STDERR "$0: giving up.\n";
+			return 0;
+		}
+	}
+}
+
+for my $arg (@ARGV) {
+	if ($arg eq "-h" || $arg eq "--help") {
+		usage();
+		exit;
+	} elsif ($arg eq "--test") {
+		$test_only = 1;
+	} elsif ($arg =~ /^-/) {
+		print STDERR "Unknown option: $arg\n";
+		usage();
+		exit 1;
+	}
+}
+load_config();
+if (!@keep_spec) {
+	print STDERR "$0: multiversion_kernels not configured in /etc/zypp/zypp.conf, exiting.\n";
+	exit 0;
+}
+
+load_packages();
+if ($want_running) {
+	$running_version = `uname -r`;
+	chomp($running_version);
+	($running_flavor = $running_version) =~ s/.*-//;
+	$running_version =~ s/-[^-]*$//;
+	my $arch = `uname -m`;
+	chomp($arch);
+	$arch =~ s/^i.86$/i586/;
+	$running_flavor = "$arch/$running_flavor";
+}
+my @remove;
+for my $flavor (sort(keys(%kernels))) {
+	push(@remove, list_old_packages($flavor));
+}
+if (!@remove) {
+	print STDERR "$0: Nothing to do.\n";
+	exit 0;
+}
+if (remove_packages(@remove)) {
+	exit 0;
+}
+exit 1;
