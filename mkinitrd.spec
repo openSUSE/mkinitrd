@@ -94,6 +94,13 @@ cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 #
 %install_mkinitrd   /usr/bin/perl /sbin/mkinitrd_setup
 EOF
+install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
+
+%post
+%{fillup_and_insserv -f -Y purge-kernels}
+
+%postun
+%insserv_cleanup
 
 %posttrans
 /sbin/mkinitrd_setup
@@ -110,12 +117,14 @@ EOF
 %dir /lib/mkinitrd/setup
 %config /etc/rpm/macros.mkinitrd
 /lib/mkinitrd/scripts/*
+/etc/init.d/purge-kernels
 /lib/mkinitrd/bin/*
 /sbin/mkinitrd
 /sbin/mkinitrd_setup
 /sbin/lsinitrd
 /sbin/module_upgrade
 /sbin/installkernel
+/sbin/purge-kernels
 %doc %{_mandir}/man5/mkinitrd.5.gz
 %doc %{_mandir}/man8/mkinitrd.8.gz
 %doc %{_mandir}/man8/lsinitrd.8.gz
