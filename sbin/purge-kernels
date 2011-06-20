@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 sub usage {
-	print "Usage: $0 <kernels to keep>...\n";
+	print "Usage: $0 [--test]\n";
+	print "Reads list of kernels to keep from /etc/zypp/zypp.conf:multiversion_kernels\n";
 	print "kernels can be given as <version>, latest(-N), running, oldest(+N).\n";
 }
 
