@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 20 08:58:35 UTC 2011 - mmarek@novell.com
+
+- purge-kernels: Change the multiversion_kernels variable to a 
+  comma separated list, update help.
+
+-------------------------------------------------------------------
 Sun Jun 19 13:25:10 UTC 2011 - mmarek@novell.com
 
 - Add purge-kernels script to automatically delete old kernel packages
