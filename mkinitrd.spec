@@ -80,6 +80,7 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
+mkdir -p $RPM_BUILD_ROOT/etc/init.d
 cp -a scripts $RPM_BUILD_ROOT/lib/mkinitrd
 cp -a lib/mkinitrd/bin $RPM_BUILD_ROOT/lib/mkinitrd/bin
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
