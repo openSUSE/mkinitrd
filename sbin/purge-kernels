@@ -32,13 +32,14 @@ sub load_config {
 		chomp;
 		next unless /^\s*multiversion_kernels\b/;
 		s/^[^=]*=\s*//;
-		@kernels = split;
+		@kernels = split(/,\s*/);
 		last;
 	}
 	close($fh);
 	for my $kernel (@kernels) {
-		if ($kernel =~ /^(latest|oldest|running)([-+]\d+)?$/) {
+		if ($kernel =~ /^\s*(latest|oldest|running)(\s*[-+]\s*\d+)?\s*$/) {
 			my $new = { whence => $1, offset => $2 || 0 };
+			$new->{offset} =~ s/\s*//g;
 			if ($new->{whence} eq "running") {
 				$want_running = 1;
 			}
@@ -46,6 +47,8 @@ sub load_config {
 		} elsif ($kernel =~ /^\d+\.\d+/) {
 			my $new = { version => $kernel };
 			push (@keep_spec, $new);
+		} elsif ($kernel =~ /^\s*$/) {
+			next;
 		} else {
 			print STDERR "$0: Ignoring unknow kernel specification in\n";
 			print STDERR "/etc/zypp/zypp.conf:multiversion_kernels: $kernel\n";
