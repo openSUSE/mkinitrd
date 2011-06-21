@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 21 09:11:06 UTC 2011 - mmarek@novell.com
+
+- purge-kernels: Change the variable to multiversion.kernels to
+  match the syntax of other zypp variables.
+
+-------------------------------------------------------------------
 Mon Jun 20 11:05:50 UTC 2011 - mmarek@novell.com
 
 - Bump version to 2.4.2, so that new udev can require a working

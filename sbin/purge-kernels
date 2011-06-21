@@ -5,7 +5,7 @@ use warnings;
 
 sub usage {
 	print "Usage: $0 [--test]\n";
-	print "Reads list of kernels to keep from /etc/zypp/zypp.conf:multiversion_kernels\n";
+	print "Reads list of kernels to keep from /etc/zypp/zypp.conf:multiversion.kernels\n";
 	print "kernels can be given as <version>, latest(-N), running, oldest(+N).\n";
 }
 
@@ -30,7 +30,7 @@ sub load_config {
 	open(my $fh, '<', $file) or die "$0: $file: $!\n";
 	while (<$fh>) {
 		chomp;
-		next unless /^\s*multiversion_kernels\b/;
+		next unless /^\s*multiversion\.kernels\b/;
 		s/^[^=]*=\s*//;
 		@kernels = split(/,\s*/);
 		last;
@@ -51,7 +51,7 @@ sub load_config {
 			next;
 		} else {
 			print STDERR "$0: Ignoring unknow kernel specification in\n";
-			print STDERR "/etc/zypp/zypp.conf:multiversion_kernels: $kernel\n";
+			print STDERR "/etc/zypp/zypp.conf:multiversion.kernels: $kernel\n";
 		}
 	}
 }
@@ -240,7 +240,7 @@ for my $arg (@ARGV) {
 }
 load_config();
 if (!@keep_spec) {
-	print STDERR "$0: multiversion_kernels not configured in /etc/zypp/zypp.conf, exiting.\n";
+	print STDERR "$0: multiversion.kernels not configured in /etc/zypp/zypp.conf, exiting.\n";
 	exit 0;
 }
 
