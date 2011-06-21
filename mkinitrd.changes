@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 21 09:11:06 UTC 2011 - mmarek@novell.com
+
+- purge-kernels: Change the variable to multiversion.kernels to
+  match the syntax of other zypp variables.
+
+-------------------------------------------------------------------
 Mon Jun 20 08:58:35 UTC 2011 - mmarek@novell.com
 
 - purge-kernels: Change the multiversion_kernels variable to a 
