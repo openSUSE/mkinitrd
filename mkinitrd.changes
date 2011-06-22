@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun 22 15:02:26 UTC 2011 - mmarek@novell.com
+
+- dcbd was replaced with lldpad.
+
+-------------------------------------------------------------------
 Tue Jun 21 09:11:06 UTC 2011 - mmarek@novell.com
 
 - purge-kernels: Change the variable to multiversion.kernels to

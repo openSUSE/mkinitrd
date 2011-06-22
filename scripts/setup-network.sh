@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #%stage: device
-#%depends: iscsi nfs dcbd fcoe
+#%depends: iscsi nfs lldpad fcoe
 #%param_D: "Run dhcp on the specified interface." interface interface
 #%param_I: "Configure the specified interface statically." interface interface
 #
