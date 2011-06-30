@@ -190,6 +190,22 @@ if [ "$interface" = "default" ]; then
     fi
 fi
 
+for iface in $interface; do
+    cfg=/etc/sysconfig/network/ifcfg-$iface
+    BOOTPROTO=
+    if test -e "$cfg"; then
+        eval $(grep BOOTPROTO "$cfg")
+    fi
+    case "$BOOTPROTO" in
+    dhcp*)
+        dhcp_interfaces="$dhcp_interfaces $iface"
+        ;;
+    *)
+        static_interfaces="$static_interfaces $iface"
+    esac
+done
+interface=
+
 if [ "$create_monster_initrd" ]; then
     # include all network card modules
     for i in $(find $root_dir/lib/modules/$kernel_version/kernel/drivers/net -name "*.ko"); do
@@ -198,16 +214,18 @@ if [ "$create_monster_initrd" ]; then
     done
 fi
 
-if test -n "$interface"; then
-    echo "XXX: \$interface still set (to $interface), should not happen." >&2
-fi
-
 static=true
+seen_interfaces=
 for iface in $static_interfaces -- $dhcp_interfaces; do
     if test "x$iface" = "x--"; then
         static=false
         continue
     fi
+    case " $seen_interfaces " in
+    *" $iface "*)
+        continue
+    esac
+    seen_interfaces="$seen_interfaces $iface"
     if [ -d /sys/class/net/$iface/device ] ; then
         drvlink="$drvlink $(get_network_module $iface)"
         read macaddress < /sys/class/net/$iface/address
