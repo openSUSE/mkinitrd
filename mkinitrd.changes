@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 30 21:07:11 UTC 2011 - mmarek@novell.com
+
+- Allow scripts to set multiple interfaces in the $interface
+  variable (fate#311345).
+
+-------------------------------------------------------------------
 Thu Jun 30 09:47:17 UTC 2011 - mmarek@novell.com
 
 - Fix typo in resolve_device() (bnc#698946).
