@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun 30 09:47:17 UTC 2011 - mmarek@novell.com
+
+- Fix typo in resolve_device() (bnc#698946).
+
+-------------------------------------------------------------------
 Wed Jun 22 15:02:26 UTC 2011 - mmarek@novell.com
 
 - dcbd was replaced with lldpad.
