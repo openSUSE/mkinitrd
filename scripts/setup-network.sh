@@ -177,7 +177,7 @@ ip=
 # get the default interface if requested
 if [ "$interface" = "default" ]; then
     interface=
-    if -z "$static_interfaces$dhcp_interfaces"; then
+    if test -z "$static_interfaces$dhcp_interfaces"; then
         ifspec=$(get_default_interface)
         case "${ifspec##*/}" in
             dhcp*)
