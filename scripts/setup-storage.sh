@@ -216,7 +216,7 @@ resolve_device() {
     case "$realrootdev" in
       LABEL=*|UUID=*)
         # get real root via fsck hack
-        realrootdev=$(fsck -N "$rootdev" \
+        realrootdev=$(fsck -N "$realrootdev" \
                       | sed -ne '2s/.* \/dev/\/dev/p' \
                       | sed -e 's/  *//g')
         if [ -z "$realrootdev"  -o ! -b "$realrootdev" ] ; then
