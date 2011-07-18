@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 18 11:16:42 UTC 2011 - mmarek@novell.com
+
+- purge-kernels: Fix matching of -rc kernels.
+
+-------------------------------------------------------------------
 Thu Jun 30 21:07:11 UTC 2011 - mmarek@novell.com
 
 - Allow scripts to set multiple interfaces in the $interface

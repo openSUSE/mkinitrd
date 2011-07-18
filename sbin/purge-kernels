@@ -250,6 +250,16 @@ if ($want_running) {
 	chomp($running_version);
 	($running_flavor = $running_version) =~ s/.*-//;
 	$running_version =~ s/-[^-]*$//;
+	(my $release = $running_version) =~ s/.*-//;
+	$running_version =~ s/-[^-]*$//;
+
+	# copied from kernel-source/rpm/mkspec
+	$running_version =~ s/\.0-rc/.rc/;
+	$running_version =~ s/-rc\d+//;
+	$running_version =~ s/-/./g;
+
+	$running_version .= "-$release";
+
 	my $arch = `uname -m`;
 	chomp($arch);
 	$arch =~ s/^i.86$/i586/;
