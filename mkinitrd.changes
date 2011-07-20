@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 20 08:32:49 UTC 2011 - mmarek@novell.com
+
+- Fix typo in boot-mount.sh (bnc#704867#c6).
+
+-------------------------------------------------------------------
 Wed May  4 14:32:00 UTC 2011 - mmarek@novell.com
 
 - Fix typo in boot-devfunctions.sh (bnc#642011).
