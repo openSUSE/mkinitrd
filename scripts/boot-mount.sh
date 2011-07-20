@@ -79,7 +79,7 @@ fi
 if [ -z "$rootfstype" -a -x /sbin/udevadm -a -n "$sysdev" ]; then
     eval $(/sbin/udevadm info -q env -p $sysdev | sed -n '/ID_FS_TYPE/p')
     rootfstype=$ID_FS_TYPE
-    [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && $rootfstype=
+    [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && rootfstype=
     ID_FS_TYPE=
 fi
 
