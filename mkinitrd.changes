@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul 29 13:46:54 UTC 2011 - mmarek@suse.cz
+
+- Add the dmesg utility for easier debugging.
+
+-------------------------------------------------------------------
 Wed Jul 20 08:32:49 UTC 2011 - mmarek@novell.com
 
 - Fix typo in boot-mount.sh (bnc#704867#c6).
