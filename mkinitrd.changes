@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  1 15:09:15 UTC 2011 - mmarek@suse.cz
+
+- Only copy /usr/bin/on_ac_power if it exists (bnc#708326).
+
+-------------------------------------------------------------------
 Fri Jul 29 13:46:54 UTC 2011 - mmarek@suse.cz
 
 - Add the dmesg utility for easier debugging.

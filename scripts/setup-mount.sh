@@ -20,5 +20,12 @@ fi
 
 verbose "[MOUNT] Root:\t$rootdev"
 
+for file in {/usr,}/bin/on_ac_power; do
+    if test -e $file; then
+        cp_bin $file $tmp_mnt/usr/bin
+        break
+    fi
+done
+
 save_var rootdev
 save_var rootfsck
