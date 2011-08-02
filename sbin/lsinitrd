@@ -70,11 +70,11 @@ fi
 
 if [ "$config" -eq 1 ] ; then
     # yes, that's snow, but doesn't use any temporary files :)
-    for configfile in $(zcat $initrd | cpio $args 2>/dev/null | grep '^config/') ; do
+    for configfile in $(zcat $initrd | cpio $args --quiet | grep '^config/') ; do
         echo "=========> $configfile <============"
-        zcat $initrd | cpio -i --to-stdout $configfile 2>/dev/null
+        zcat $initrd | cpio --quiet -i --to-stdout $configfile
         echo
     done
 else
-    zcat $initrd | cpio $args
+    zcat $initrd | cpio --quiet $args
 fi

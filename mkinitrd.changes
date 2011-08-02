@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  2 12:12:04 UTC 2011 - mmarek@novell.com
+
+- Run cpio with the --quiet option.
+
+-------------------------------------------------------------------
 Mon Aug  1 15:09:15 UTC 2011 - mmarek@suse.cz
 
 - Only copy /usr/bin/on_ac_power if it exists (bnc#708326).
