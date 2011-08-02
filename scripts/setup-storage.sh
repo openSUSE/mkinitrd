@@ -244,68 +244,145 @@ resolve_device() {
     echo -en "$type device:\t$x" >&2
     if [ "$type" = "Root" ]; then
         echo " (mounted on ${root_dir:-/} as $rootfstype)" >&2
+    elif [ "$type" = "/usr" ]; then
+        echo " (mounted on ${root_dir:-/}usr as $usrfstype)" >&2
     else
         echo >&2
     fi
     echo $realrootdev
 }
 
-#######################################################################################
+##############################################################################
 
-if [ -z "$rootdev" ] ; then
-  # no rootdev specified, get current root opts from /etc/fstab and device from stat
+# usage: resolve_mountpoint name path
+resolve_mountpoint()
+{
+    local name=$1 mountpoint=$2
+    local var_dev=${name}dev var_fstype=${name}fstype var_fsopts=${name}fsopts
+    local var_major=${name}major var_minor=${name}minor
+    local dev fstype fsopts mod
+    local cpio major minor x1
+    local fstab_device fstab_mountpoint fstab_type fstab_options dummy
 
-  # get rootdev via stat
-  rootcpio=`echo / | /bin/cpio --quiet -o -H newc`
-  rootmajor="$(echo $(( 0x${rootcpio:62:8} )) )"
-  rootminor="$(echo $(( 0x${rootcpio:70:8} )) )"
+    if [ -z "${!var_dev}" ] ; then
+        # no dev specified, get current opts from /etc/fstab and device from stat
+        cpio=`echo "$mountpoint" | /bin/cpio --quiet -o -H newc`
+        major="$(echo $(( 0x${cpio:62:8} )) )"
+        minor="$(echo $(( 0x${cpio:70:8} )) )"
+	# check if /usr is part of /
+        if test "$name" = "usr" -a "$major:$minor" = "$rootmajor:$rootminor"; then
+            return
+        fi
 
-  # get opts from fstab and device too if stat failed
-  sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab >"$work_dir/pipe"
-  while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
-    if [ "$fstab_mountpoint" = "/" ]; then
-      update_blockdev "$fstab_device" # get major and minor
-      # let's see if the stat device is the same as the fstab device
-      if [ "$rootmajor" -eq 0 ] || [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
-        rootdev="$fstab_device" # use the fstab device so the user can decide
-                                # how to access the root device
-      fi
-      rootfstype="$fstab_type"
-      rootfsopts="$fstab_options"
-      break
+        # get opts from fstab and device too if stat failed
+        sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab >"$work_dir/pipe"
+        while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
+          if [ "$fstab_mountpoint" = "$mountpoint" ]; then
+            update_blockdev "$fstab_device" # get major and minor
+            # let's see if the stat device is the same as the fstab device
+            if [ "$major" -eq 0 ] || [ "$blockmajor" -eq "$major" -a "$blockminor" -eq "$minor" ]; then # if both match
+              dev="$fstab_device" # use the fstab device so the user can decide
+                                  # how to access the device
+            fi
+            fstype="$fstab_type"
+            fsopts="$fstab_options"
+            break
+          fi
+        done < "$work_dir/pipe"
+
+        if [ $((major)) -gt 0 -a -z "$dev" ] ; then
+            # don't check for non-device mounts
+            dev="$(majorminor2blockdev $major $minor)"
+            if [ -z "$dev" ]; then
+                error 1 "Cannot determine the $name device"
+            fi
+            update_blockdev $dev
+            dev="$(beautify_blockdev $dev)"
+        fi
     fi
-  done < "$work_dir/pipe"
 
-  if [ $((rootmajor)) -gt 0 -a -z "$rootdev" ] ; then
-      # don't check for non-device mounts
-      rootdev="$(majorminor2blockdev $rootmajor $rootminor)"
-      if [ -z "$rootdev" ]; then
-          error 1 "Cannot determine the root device"
-      fi
-      update_blockdev $rootdev
-      rootdev="$(beautify_blockdev $rootdev)"
-  fi
-fi
-
-#if we don't know where the root device belongs to
-if [ -z "$rootfstype" ] ; then
-  # get type from /etc/fstab or /proc/mounts (actually not needed)
-  x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
-       | grep -E "$rootdev[[:space:]]" | tail -n 1)
-  rootfstype=$(echo $x1 | cut -f 3 -d " ")
-fi
-
-# check for journal device
-if [ "$rootfsopts" -a -z "$journaldev" ] ; then
-    jdev=${rootfsopts#*,jdev=}
-    if [ "$jdev" != "$rootfsopts" ] ; then
-        journaldev=${jdev%%,*}
+    #if we don't know where the device belongs to
+    if [ -z "$fstype" ] ; then
+      # get type from /etc/fstab or /proc/mounts (actually not needed)
+      x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
+           | grep -E "$dev[[:space:]]" | tail -n 1)
+      fstype=$(echo $x1 | cut -f 3 -d " ")
     fi
-    logdev=${rootfsopts#*,logdev=}
-    if [ "$logdev" != "$rootfsopts" ] ; then
-        journaldev=${logdev%%,*}
+
+    # check for journal device
+    if [ "$fsopts" -a -z "$journaldev" ] ; then
+        jdev=${fsopts#*,jdev=}
+        if [ "$jdev" != "$fsopts" ] ; then
+            journaldev=${jdev%%,*}
+        fi
+        logdev=${fsopts#*,logdev=}
+        if [ "$logdev" != "$fsopts" ] ; then
+            journaldev=${logdev%%,*}
+        fi
     fi
-fi
+
+    # check for nfs root and set the fstype accordingly
+    case "$dev" in
+        /dev/nfs)
+            fstype=nfs
+            ;;
+        /dev/*)
+            if [ ! -e "$dev" ]; then
+                error 1 "$name device ($dev) not found"
+            fi
+            ;;
+        *://*) # URL type
+            fstype=${dev%%://*}
+            interface=${interface:-default}
+            ;;
+        scsi:*)
+            ;;
+        *:*)
+            fstype=nfs
+            interface=${interface:-default}
+            ;;
+    esac
+
+    if [ -z "$fstype" ]; then
+        eval $(udevadm info -q env -n $dev | sed -n '/ID_FS_TYPE/p' )
+        fstype=$ID_FS_TYPE
+        [ $? -ne 0 ] && fstype=
+        [ "$fstype" = "unknown" ] && $fstype=
+        ID_FS_TYPE=
+    fi
+
+    if [ ! "$fstype" ]; then
+        error 1 "Could not find the filesystem type for $name device $dev
+
+    Currently available -d parameters are:
+            Block devices   /dev/<device>
+            NFS             <server>:<path>
+            URL             <protocol>://<path>"
+    fi
+
+    # We assume that we always have to load a module for the fs
+    mod=$fstype
+
+    # Check if we have to load a module for the fs type
+    # XXX: This check should happen more generically for all modules
+    if [ ! "$(find $root_dir/lib/modules/$kernel_version/ -name $fstype.ko -o -name $fstype.ko.gz)" ]; then
+        if grep -q ${fstype}_fs_type $map ; then
+            # No need to load a module, since this is compiled in
+            mod=
+        fi
+    fi
+    # Now save the rootXXX or usrXXX variables
+
+    read $var_dev < <(echo "$dev")
+    read $var_fstype < <(echo "$fstype")
+    read $var_fsopts < <(echo "$fsopts")
+    read $var_major < <(echo "$major")
+    read $var_minor < <(echo "$minor")
+    rootfsmod="$rootfsmod $mod"
+}
+
+resolve_mountpoint root /
+resolve_mountpoint usr /usr
 
 # WARNING: dirty hack to get the resume device of the current system
 for o in $(cat /proc/cmdline); do
@@ -316,57 +393,6 @@ for o in $(cat /proc/cmdline); do
     esac
 done
 
-# check for nfs root and set the rootfstype accordingly
-case "$rootdev" in
-    /dev/nfs)
-        rootfstype=nfs
-        ;;
-    /dev/*)
-        if [ ! -e "$rootdev" ]; then
-            error 1 "Root device ($rootdev) not found"
-        fi
-        ;;
-    *://*) # URL type
-        rootfstype=${rootdev%%://*}
-        interface=${interface:-default}
-        ;;
-    scsi:*)
-        ;;
-    *:*)
-        rootfstype=nfs
-        interface=${interface:-default}
-        ;;
-esac
-
-if [ -z "$rootfstype" ]; then
-    eval $(udevadm info -q env -n $rootdev | sed -n '/ID_FS_TYPE/p' )
-    rootfstype=$ID_FS_TYPE
-    [ $? -ne 0 ] && rootfstype=
-    [ "$rootfstype" = "unknown" ] && $rootfstype=
-    ID_FS_TYPE=
-fi
-
-if [ ! "$rootfstype" ]; then
-    error 1 "Could not find the filesystem type for root device $rootdev
-
-Currently available -d parameters are:
-        Block devices   /dev/<device>
-        NFS             <server>:<path>
-        URL             <protocol>://<path>"
-fi
-
-# We assume that we always have to load a module for the rootfs
-rootfsmod=$rootfstype
-
-# Check if we have to load a module for the rootfs type
-# XXX: This check should happen more generically for all modules
-if [ ! "$(find $root_dir/lib/modules/$kernel_version/ -name $rootfstype.ko -o -name $rootfstype.ko.gz)" ]; then
-    if grep -q ${rootfstype}_fs_type $map ; then
-        # No need to load a module, since this is compiled in
-        rootfsmod=
-    fi
-fi
-
 # blockdev is the list current block devices.
 # It will get modified by the various scrips as they descend through
 # the device setup, starting with the mount information
@@ -374,11 +400,13 @@ fi
 
 fallback_rootdev="$rootdev"
 save_var fallback_rootdev
-save_var rootdev
+for name in root usr; do
+    save_var ${name}dev
+    save_var ${name}fsopts
+    save_var ${name}fstype
+done
 save_var resumedev
 save_var journaldev
 save_var dumpdev
-save_var rootfsopts
-save_var rootfstype
-blockdev="$(resolve_device Root $rootdev) $(resolve_device Resume $resumedev) $(resolve_device Journal $journaldev) $(resolve_device Dump $dumpdev)"
+blockdev="$(resolve_device Root $rootdev) $(resolve_device /usr $usrdev) $(resolve_device Resume $resumedev) $(resolve_device Journal $journaldev) $(resolve_device Dump $dumpdev)"
 

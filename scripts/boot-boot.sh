@@ -2,7 +2,7 @@
 #
 #%stage: setup
 #%depends: killprogs
-#%programs:
+#%programs: chroot
 #%modules:
 #%dontshow
 #
@@ -84,6 +84,15 @@ if [ -d /root/run ]; then
 	mount --move /run /root/run
 else
 	umount -l /run
+fi
+
+# Mount the /usr filesystem if possible
+# XXX: handle journaldev for the /usr device separately
+if test -n "$usrdev"; then
+	if chroot /root /sbin/fsck -t $usrfstype $fsckopts $usrdev; then
+	    echo "Mounting /usr"
+	    chroot /root /bin/mount /usr
+	fi
 fi
 
 # SELinux load policy
