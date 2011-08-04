@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug  4 10:36:54 CEST 2011 - fcrozat@suse.com
+
+- Output fsck result on root partition to /run/initramfs/root-fsck,
+  to prevent systemd to do it again.
+
+-------------------------------------------------------------------
 Wed Aug  3 13:35:19 UTC 2011 - mmarek@suse.cz
 
 - Mount the /usr filesystem in the initrd

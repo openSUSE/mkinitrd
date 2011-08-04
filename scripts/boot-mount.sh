@@ -106,6 +106,8 @@ elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # Return the fsck status
     ROOTFS_FSCK=$?
     export ROOTFS_FSCK
+    mkdir /run/initramfs
+    echo $ROOTFS_FSCK >/run/initramfs/root-fsck
     ROOTFS_FSTYPE=$rootfstype
     export ROOTFS_FSTYPE
     if [ $ROOTFS_FSCK -gt 1 -a $ROOTFS_FSCK -lt 4 ]; then
