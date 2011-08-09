@@ -29,7 +29,7 @@ discover_root() {
     if [ -z "$root" ]; then
         return 0
     fi
-    if check_for_device $rootdev  ; then
+    if check_for_device $rootdev root ; then
         # Get major:minor number of the device node
         devn=$(devnumber $rootdev)
     fi

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  9 14:51:37 UTC 2011 - hare@suse.de
+
+- Add the 'root' argument in the call to check_for_device()
+  (bnc#699870).
+
+-------------------------------------------------------------------
 Wed Jul 20 08:32:49 UTC 2011 - mmarek@novell.com
 
 - Fix typo in boot-mount.sh (bnc#704867#c6).
