@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  9 14:51:37 UTC 2011 - hare@suse.de
+
+- Add the 'root' argument in the call to check_for_device()
+  (bnc#699870).
+
+-------------------------------------------------------------------
 Fri Jul 29 13:46:54 UTC 2011 - mmarek@suse.cz
 
 - Add the dmesg utility for easier debugging.
