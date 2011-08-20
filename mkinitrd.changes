@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Aug 20 12:26:20 UTC 2011 - mmarek@suse.cz
+
+- Fix mkinitrd -D default (bnc#713103).
+
+-------------------------------------------------------------------
 Tue Aug  9 14:51:37 UTC 2011 - hare@suse.de
 
 - Add the 'root' argument in the call to check_for_device()

@@ -174,7 +174,7 @@ for addfeature in $ADDITIONAL_FEATURES; do
 done
 
 ip=
-# get the default interface if requested
+# get the default interface if requested by some script
 if [ "$interface" = "default" ]; then
     interface=
     if test -z "$static_interfaces$dhcp_interfaces"; then
@@ -220,6 +220,12 @@ for iface in $static_interfaces -- $dhcp_interfaces; do
     if test "x$iface" = "x--"; then
         static=false
         continue
+    fi
+    # resolve default interface if requested via the commandline -D or -I
+    # option
+    if test "$iface" = "default"; then
+        iface=$(get_default_interface)
+        iface=${iface%%/*}
     fi
     case " $seen_interfaces " in
     *" $iface "*)
