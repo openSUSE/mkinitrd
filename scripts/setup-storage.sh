@@ -264,11 +264,13 @@ resolve_mountpoint()
     local cpio major minor x1
     local fstab_device fstab_mountpoint fstab_type fstab_options dummy
 
+    cpio=`echo "$mountpoint" | /bin/cpio --quiet -o -H newc`
+    major="$(echo $(( 0x${cpio:62:8} )) )"
+    minor="$(echo $(( 0x${cpio:70:8} )) )"
+
     if [ -z "${!var_dev}" ] ; then
         # no dev specified, get current opts from /etc/fstab and device from stat
-        cpio=`echo "$mountpoint" | /bin/cpio --quiet -o -H newc`
-        major="$(echo $(( 0x${cpio:62:8} )) )"
-        minor="$(echo $(( 0x${cpio:70:8} )) )"
+
 	# check if /usr is part of /
         if test "$name" = "usr" -a "$major:$minor" = "$rootmajor:$rootminor"; then
             return
@@ -299,6 +301,8 @@ resolve_mountpoint()
             update_blockdev $dev
             dev="$(beautify_blockdev $dev)"
         fi
+    else
+        dev="${!var_dev}"
     fi
 
     #if we don't know where the device belongs to
