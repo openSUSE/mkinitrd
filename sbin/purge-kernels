@@ -71,11 +71,13 @@ sub add_package {
 		($flavor = $name) =~ s/.*-kmp-//;
 		$table = \%kmps;
 	}
-	$flavor =~ s/-.*//; # XXX: No dashes in flavor names
-	if ($flavor eq "devel") {
-		# kernel-devel is a subpackage of kernel-source
-		$flavor = "source";
+	# Put all subpackages into the same group, except for
+	# kernel-source-{vanilla,rt}, which are packages on their own
+	if ($flavor !~ /^source/) {
+		$flavor =~ s/-.*//; # XXX: No dashes in flavor names
 	}
+	# kernel-devel is a subpackage of kernel-source
+	$flavor =~ s/^devel/source/;
 	$table->{"$arch/$flavor"} ||= {};
 	$table->{"$arch/$flavor"}{$vr} ||= [];
 	push(@{$table->{"$arch/$flavor"}{$vr}}, "$name-$vr.$arch");
@@ -130,23 +132,21 @@ sub version_match {
 sub list_old_packages {
 	my ($flavor) = @_;
 
-	# ignore kernel-source for now
-	return if $flavor =~ /\/source$/;
-
+	my $is_source = $flavor =~ /\/source/;
 	my $kernels = $kernels{$flavor};
 	my @versions = sort_versions(keys(%$kernels));
 	my %idx = (
 		oldest => 0,
 		latest => scalar(@versions) - 1,
 	);
-	if ($want_running && $running_flavor eq $flavor) {
+	if ($want_running && ($running_flavor eq $flavor || $is_source)) {
 		for (my $i = scalar(@versions) - 1; $i >= 0; $i--) {
 			if (version_match($running_version, $versions[$i])) {
 				$idx{running} = $i;
 				last;
 			}
 		}
-		if (!exists($idx{running})) {
+		if (!exists($idx{running}) && !$is_source) {
 			print STDERR "$0: Running kernel $running_version-$running_flavor not installed.\n";
 			print "NOT removing any packages for flavor $flavor.\n";
 			return;
