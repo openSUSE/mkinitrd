@@ -286,9 +286,8 @@ if test -n "$static_interfaces"; then
     cp /etc/resolv.conf $tmp_mnt/etc
 fi
 
-# Copy /etc/hosts in any case to be able to resolve static host names in the
-# initrd (bnc #468090)
-cp /etc/hosts $tmp_mnt/etc
+# Copy netcfg files (bnc#468090, bnc#714945)
+cp /etc/{hosts,protocols,services,netconfig} $tmp_mnt/etc
 
 # Get static IP configuration if requested
 for iface in $static_interfaces; do
