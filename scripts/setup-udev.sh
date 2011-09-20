@@ -13,12 +13,14 @@ mkdir -p $tmp_mnt/etc/udev/rules.d
 for rule in \
     05-udev-early.rules \
     50-udev-default.rules \
+    50-firmware.rules \
     59-dasd.rules \
     60-persistent-storage.rules \
     60-persistent-input.rules \
     62-dm_linear.rules \
     64-device-mapper.rules \
     64-md-raid.rules \
+    79-kms.rules \
     80-drivers.rules; do
     if [ -f /lib/udev/rules.d/$rule ]; then
         cp /lib/udev/rules.d/$rule $tmp_mnt/lib/udev/rules.d
