@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 20 21:20:09 UTC 2011 - mmarek@suse.com
+
+- Add /etc/{protocols,netconfig,services} to the initrd
+  (bnc#714945).
+
+-------------------------------------------------------------------
 Sat Aug 20 12:26:20 UTC 2011 - mmarek@suse.cz
 
 - Fix mkinitrd -D default (bnc#713103).
