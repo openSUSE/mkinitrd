@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 21 08:19:47 UTC 2011 - mmarek@suse.cz
+
+- setup-network: 77-network.rules has moved to /lib/udev/rules.d/
+  (bnc#707855).
+
+-------------------------------------------------------------------
 Wed Sep 21 07:27:32 UTC 2011 - eich@suse.de
 
 - netconsole: Make the setup more robust and add error detection.

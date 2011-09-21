@@ -301,14 +301,18 @@ cp_bin /lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
 if [ -f /etc/udev/rules.d/70-persistent-net.rules ] ; then
     cp /etc/udev/rules.d/70-persistent-net.rules $tmp_mnt/etc/udev/rules.d
 fi
-if [ -f /etc/udev/rules.d/77-network.rules ] ; then
-    cp /etc/udev/rules.d/77-network.rules $tmp_mnt/etc/udev/rules.d
+for f in /{lib,etc}/udev/rules.d/77-network.rules; do
+    if ! test -e "$f"; then
+        continue
+    fi
+    cp --parents "$f" $tmp_mnt/
     cp_bin /sbin/ifup $tmp_mnt/sbin/ifup
     cp_bin /bin/awk $tmp_mnt/bin/awk
     cp_bin /bin/grep $tmp_mnt/bin/grep
     cp_bin /bin/logger $tmp_mnt/bin/logger
     cp_bin /bin/touch $tmp_mnt/bin/touch
-fi
+    break
+done
 
 test -n "$static_interfaces" && verbose "[NETWORK]\tstatic: $static_interfaces"
 test -n "$dhcp_interfaces" && verbose "[NETWORK]\tdynamic: $dhcp_interfaces"
