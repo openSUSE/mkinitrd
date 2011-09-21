@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep 21 07:27:32 UTC 2011 - eich@suse.de
+
+- netconsole: Make the setup more robust and add error detection.
+
+-------------------------------------------------------------------
 Tue Sep 20 21:20:09 UTC 2011 - mmarek@suse.com
 
 - Add /etc/{protocols,netconfig,services} to the initrd
