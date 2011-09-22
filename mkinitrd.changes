@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 22 12:18:39 UTC 2011 - mmarek@suse.cz
+
+- Include sd_mod if scsi_mod is used (bnc#714924).
+
+-------------------------------------------------------------------
 Wed Sep 21 08:19:47 UTC 2011 - mmarek@suse.cz
 
 - setup-network: 77-network.rules has moved to /lib/udev/rules.d/
