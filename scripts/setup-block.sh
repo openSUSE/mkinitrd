@@ -47,7 +47,6 @@ get_devmodule() {
         case "$blkdev" in
             sd*)
                 handle_scsi $blkdev
-                echo sd_mod
                 ;;
             hd*)
                 devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)

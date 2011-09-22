@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 22 12:18:39 UTC 2011 - mmarek@suse.cz
+
+- Include sd_mod if scsi_mod is used (bnc#714924).
+
+-------------------------------------------------------------------
 Tue Sep 20 21:20:09 UTC 2011 - mmarek@suse.com
 
 - Add /etc/{protocols,netconfig,services} to the initrd

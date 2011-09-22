@@ -13,6 +13,7 @@
 # in the load_additional_dependencies function.
 additional_module_dependencies=(
         "virtio:virtio_pci virtio_ring"
+        "scsi_mod:sd_mod"
 )
 
 # Check if module $1 is listed in $modules.
