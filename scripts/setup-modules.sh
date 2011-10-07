@@ -288,9 +288,10 @@ resolve_modules() {
         additional_args=--allow-unsupported-modules
     fi
 
-    for module in "$@"; do
-        module=${module%.o}  # strip trailing ".o" just in case.
-        module=${module%.ko}  # strip trailing ".ko" just in case.
+    while test $# -gt 0; do
+        module=${1%.ko}
+        module=${module##*/}
+        shift
 
         # skip if the feature is compiled into the kernel
         if check_builtin_module "$module" ; then
@@ -312,7 +313,7 @@ resolve_modules() {
         fi
         module_list=$(echo "$module_list" | sed -rn 's/^insmod +([^ ]+).*/\1/p')
         for mod in $module_list ; do
-            if ! $(echo $resolved_modules | grep -q $mod) ; then
+            if ! $(echo $resolved_modules | grep -qF $mod) ; then
                 resolved_modules="$resolved_modules $mod"
 
                 # check for additional requirements specified by
@@ -322,8 +323,10 @@ resolve_modules() {
                     local req
 
                     for req in $additional_reqs ; do
-                        if ! $(echo $resolved_modules | grep -q $req) ; then
-                            resolved_modules="$resolved_modules $req"
+                        if ! $(echo $resolved_modules | grep -qF $req) ; then
+                            # put $req on the todo list to check for it's
+                            # dependencies
+                            set -- "$@" "$req"
                         fi
                     done
                 fi
