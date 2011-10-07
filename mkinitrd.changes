@@ -5,6 +5,11 @@ Fri Oct  7 08:50:45 UTC 2011 - mmarek@suse.cz
   sd_mod (bnc#722484).
 
 -------------------------------------------------------------------
+Fri Sep 30 15:38:07 UTC 2011 - uli@suse.com
+
+- cross-build fix: use %__cc macro
+
+-------------------------------------------------------------------
 Thu Sep 22 12:18:39 UTC 2011 - mmarek@suse.cz
 
 - Include sd_mod if scsi_mod is used (bnc#714924).
