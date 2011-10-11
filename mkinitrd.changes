@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 11 13:50:35 UTC 2011 - mmarek@suse.com
+
+- Include thermal, processor and fan acpi modules on x86 and ia64
+  (bnc#716785#c11).
+
+-------------------------------------------------------------------
 Fri Oct  7 08:50:45 UTC 2011 - mmarek@suse.cz
 
 - Fix the module dependency resolver to include dependencies of

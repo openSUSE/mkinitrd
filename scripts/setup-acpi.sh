@@ -55,3 +55,7 @@ attach_dsdt() {
 
 attach_dsdt
 
+case "$(uname -m)" in
+i?86 | x86_64 | ia64)
+	acpi_modules="thermal processor fan"
+esac
