@@ -151,10 +151,10 @@ sub version_match {
 	return ($ver1 eq substr($ver2, 0, length($ver1)));
 }
 
-sub list_old_packages {
+sub list_old_versions {
 	my ($flavor) = @_;
 
-	my $is_source = $flavor =~ /\/source/;
+	my $is_source = $flavor =~ /\/(source|syms)/;
 	my $kernels = $kernels{$flavor};
 	my @versions = sort_versions(keys(%$kernels));
 	my %idx = (
@@ -192,9 +192,83 @@ sub list_old_packages {
 			die "??";
 		}
 	}
-	my @packages;
-	for my $ver (grep { $delete{$_} } @versions) {
-		push(@packages, @{$kernels->{$ver}});
+	return grep { $delete{$_} } @versions;
+}
+
+sub package_exists {
+	my ($version, $archs, $flavors) = @_;
+
+	for my $arch (@$archs) {
+		for my $flavor (@$flavors) {
+			my $config = "$arch/$flavor";
+			if (exists($kernels{$config})
+				&& exists($kernels{$config}->{$version})) {
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+sub list_old_packages {
+	my (@packages, @archs, @flavors);
+	my (@syms_flavors, @binary_flavors, @source_configs);
+
+	# there are some inter-dependencies among the kernel packages,
+	# so we have to be careful
+	my %t = map { s:/.*::; $_ => 1 } keys(%kernels);
+	@archs = sort(keys(%t));
+	%t = map { s:.*/::; $_ => 1 } keys(%kernels);
+	@flavors = sort(keys(%t));
+	@syms_flavors = grep { /^syms/ } @flavors;
+	@binary_flavors = grep { !/^(source|syms)/ } @flavors;
+	@source_configs = grep { /\/source/ } sort(keys(%kernels));
+
+	for my $arch (@archs) {
+		for my $flavor (@syms_flavors) {
+			my $config = "$arch/$flavor";
+			next unless exists($kernels{$config});
+			my @versions = list_old_versions($config);
+			for my $ver (@versions) {
+				push(@packages, @{$kernels{$config}->{$ver}});
+				delete($kernels{$config}->{$ver});
+			}
+		}
+		for my $flavor (@binary_flavors) {
+			my $config = "$arch/$flavor";
+			next unless exists($kernels{$config});
+			my @versions = list_old_versions($config);
+			for my $ver (@versions) {
+				my @pacs = @{$kernels{$config}->{$ver}};
+				my $remove_all = 1;
+				# do not remove kernel-$flavor-devel-$ver
+				# if kernel-syms-$ver still exists
+				if (grep { /-devel$/ } @pacs) {
+					my $syms = "syms";
+					if ($flavor =~ /^rt/) {
+						$syms = "syms-rt";
+					}
+					if (exists($kernels{$syms}->{$ver})) {
+						$remove_all = 0;
+						@pacs = grep { !/-devel$/ }
+							@pacs;
+					}
+				}
+				push(@packages, @pacs);
+				if ($remove_all) {
+					delete($kernels{$config}->{$ver});
+				}
+			}
+		}
+	}
+	for my $config (@source_configs) {
+		my @versions = list_old_versions($config);
+		for my $ver (@versions) {
+			# Remove kernel-{devel,source} only if no other package
+			# of the same version exists
+			next if package_exists($ver, \@archs, \@binary_flavors);
+			push(@packages, @{$kernels{$config}->{$ver}});
+		}
 	}
 	return @packages;
 }
@@ -285,10 +359,7 @@ if ($want_running) {
 	$arch =~ s/^i.86$/i586/;
 	$running_flavor = "$arch/$running_flavor";
 }
-my @remove;
-for my $flavor (sort(keys(%kernels))) {
-	push(@remove, list_old_packages($flavor));
-}
+my @remove = list_old_packages();
 if (!@remove) {
 	print STDERR "$0: Nothing to do.\n";
 	exit 0;
