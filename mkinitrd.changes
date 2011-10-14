@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct 14 13:01:41 UTC 2011 - mmarek@suse.cz
+
+- purge-kernels: Only remove kernel-source and kernel-devel, if
+  there is no runtime package left (bnc#721481, bnc#723647).
+
+-------------------------------------------------------------------
 Tue Oct 11 13:50:35 UTC 2011 - mmarek@suse.com
 
 - Include thermal, processor and fan acpi modules on x86 and ia64
