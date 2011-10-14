@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
+
 sub usage {
 	print "Usage: $0 [--test]\n";
 	print "Reads list of kernels to keep from /etc/zypp/zypp.conf:multiversion.kernels\n";
@@ -19,10 +21,15 @@ my ($want_running, $running_version, $running_flavor);
 # do not actually delete anything
 my $test_only;
 
-sub load_config {
-	my $file = "/etc/zypp/zypp.conf";
-	my @kernels;
+# undocumented debugging options
+my ($fake_config, $fake_rpm_qa, $fake_uname_r, $fake_uname_m);
 
+sub get_config_line {
+	my $file = "/etc/zypp/zypp.conf";
+
+	if ($fake_config) {
+		return $fake_config;
+	}
 	if (!-e $file) {
 		print STDERR "$0: /etc/zypp/zypp.conf does not exist, exiting.\n";
 		exit 0;
@@ -32,10 +39,17 @@ sub load_config {
 		chomp;
 		next unless /^\s*multiversion\.kernels\b/;
 		s/^[^=]*=\s*//;
-		@kernels = split(/,\s*/);
-		last;
+		close($fh);
+		return $_;
 	}
 	close($fh);
+	return "";
+}
+
+sub load_config {
+	my @kernels;
+
+	@kernels = split(/,\s*/, get_config_line());
 	for my $kernel (@kernels) {
 		if ($kernel =~ /^\s*(latest|oldest|running)(\s*[-+]\s*\d+)?\s*$/) {
 			my $new = { whence => $1, offset => $2 || 0 };
@@ -84,13 +98,21 @@ sub add_package {
 }
 
 sub load_packages {
-	open(my $pipe, '-|', 'rpm', '-qa', '--qf', '%{n} %{v}-%{r} %{arch}\n',
-		'kernel-*', '*-kmp-*') or die "rpm: $!\n";
+	my $pipe;
+
+	if ($fake_rpm_qa) {
+		open($pipe, '<', $fake_rpm_qa) or die "$fake_rpm_qa: $!\n";
+	} else {
+		open($pipe, '-|', 'rpm', '-qa', '--qf',
+			'%{n} %{v}-%{r} %{arch}\n', 'kernel-*', '*-kmp-*')
+			or die "rpm: $!\n";
+	}
 	while (<$pipe>) {
 		chomp;
 		my ($name, $vr, $arch) = split;
 		add_package($name, $vr, $arch);
 	}
+	close($pipe)
 }
 
 sub sort_versions {
@@ -226,17 +248,15 @@ sub remove_packages {
 	}
 }
 
-for my $arg (@ARGV) {
-	if ($arg eq "-h" || $arg eq "--help") {
-		usage();
-		exit;
-	} elsif ($arg eq "--test") {
-		$test_only = 1;
-	} elsif ($arg =~ /^-/) {
-		print STDERR "Unknown option: $arg\n";
-		usage();
-		exit 1;
-	}
+if (!GetOptions(
+		"h|help" => sub { usage(); exit; },
+		"--test" => \$test_only,
+		"--fake-config=s" => \$fake_config,
+		"--fake-rpm-qa=s" => \$fake_rpm_qa,
+		"--fake-uname-r=s" => \$fake_uname_r,
+		"--fake-uname-m=s" => \$fake_uname_m)) {
+	usage();
+	exit 1;
 }
 load_config();
 if (!@keep_spec) {
@@ -246,7 +266,7 @@ if (!@keep_spec) {
 
 load_packages();
 if ($want_running) {
-	$running_version = `uname -r`;
+	$running_version = $fake_uname_r ? $fake_uname_r : `uname -r`;
 	chomp($running_version);
 	($running_flavor = $running_version) =~ s/.*-//;
 	$running_version =~ s/-[^-]*$//;
@@ -260,7 +280,7 @@ if ($want_running) {
 
 	$running_version .= "-$release";
 
-	my $arch = `uname -m`;
+	my $arch = $fake_uname_m ? $fake_uname_m : `uname -m`;
 	chomp($arch);
 	$arch =~ s/^i.86$/i586/;
 	$running_flavor = "$arch/$running_flavor";
