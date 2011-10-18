@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 18 08:45:11 UTC 2011 - mmarek@suse.cz
+
+- Do not create /dev/shm/initrd_exports.sh, it was only needed by
+  upstart (bnc#724494).
+
+-------------------------------------------------------------------
 Fri Oct 14 13:01:41 UTC 2011 - mmarek@suse.cz
 
 - purge-kernels: Only remove kernel-source and kernel-devel, if
