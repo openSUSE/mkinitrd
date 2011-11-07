@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov  7 12:54:16 UTC 2011 - mmarek@suse.cz
+
+- Revert the NO_KMS_IN_INITRD -> KMS_IN_INITRD rename, it breaks
+  other scripts for no good reason (bnc#619218#c12).
+
+-------------------------------------------------------------------
 Tue Oct 18 08:45:11 UTC 2011 - mmarek@suse.cz
 
 - Do not create /dev/shm/initrd_exports.sh, it was only needed by

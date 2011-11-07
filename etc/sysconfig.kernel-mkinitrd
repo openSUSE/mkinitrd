@@ -9,7 +9,7 @@
 #
 INITRD_MODULES=""
 
-## Type:        string(yes)
+## Type:        yesno
 ## Command:     /sbin/mkinitrd
 ## Default:     ""
 #
@@ -19,7 +19,7 @@ INITRD_MODULES=""
 # supported on the underlying hardware.
 # After changing run mkinitrd again.
 #
-KMS_IN_INITRD="yes"
+NO_KMS_IN_INITRD="no"
  
 ## Type:        string
 ## Command:     /sbin/mkinitrd

@@ -116,16 +116,9 @@ install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
 install -m 644 etc/sysconfig.kernel-mkinitrd $RPM_BUILD_ROOT/var/adm/fillup-templates/
 
 %post
-%{remove_and_set -n kernel SKIP_RUNNING_KERNEL NO_KMS_IN_INITRD}
 %{fillup_only -an kernel}
 %{insserv_force_if_yast /etc/init.d/boot.loadmodules}
 %{fillup_and_insserv -f -Y purge-kernels}
-case "$NO_KMS_IN_INITRD" in
-	no)
-		sed -i -e "s@^KMS_IN_INITRD=.*@KMS_IN_INITRD=\"yes\"@" /etc/sysconfig/kernel ;;
-	yes)
-		sed -i -e "s@^KMS_IN_INITRD=.*@KMS_IN_INITRD=\"no\"@" /etc/sysconfig/kernel ;;
-esac
 
 %postun
 %insserv_cleanup
