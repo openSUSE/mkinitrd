@@ -194,7 +194,7 @@ load_additional_dependencies()
             else
                 number=0
                 added=0
-                for entry in ${additional_module_dependencies[@]} ; do
+                for entry in "${additional_module_dependencies[@]}" ; do
                     local module2 requirements2 val
                     module2=${entry/:*}
                     requirements2=${entry/*:}
