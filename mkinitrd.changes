@@ -4,6 +4,12 @@ Tue Nov 22 16:15:05 UTC 2011 - puzel@suse.cz
 - Pick multhipath bindings file from /etc/bindings (bnc#723620).
 
 -------------------------------------------------------------------
+Thu Aug 11 15:46:37 CEST 2011 - ro@suse.de
+
+- touch marker in /dev/shm/warpclock if warpclock has run
+  (bnc#689095) 
+
+-------------------------------------------------------------------
 Wed Nov 17 18:39:43 CET 2010 - bphilips@suse.de
 
 - Add new HBA firmware names (bnc#654063)

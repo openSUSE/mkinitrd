@@ -2223,6 +2223,7 @@ mkinitrd_kernel() {
 	|    . /etc/sysconfig/clock
 	|    case "$HWCLOCK" in
 	|    *-l*) /bin/warpclock
+	|       > /dev/shm/warpclock
 	|    esac
 	|fi
 	EOF
