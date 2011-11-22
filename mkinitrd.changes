@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 22 11:02:18 UTC 2011 - mmarek@suse.cz
+
+- setup-modules: Fix adding more than one additional dependency to
+  modules (bnc#730617).
+
+-------------------------------------------------------------------
 Mon Nov  7 12:54:16 UTC 2011 - mmarek@suse.cz
 
 - Revert the NO_KMS_IN_INITRD -> KMS_IN_INITRD rename, it breaks
