@@ -181,52 +181,25 @@ load_additional_dependencies()
 #       Checks for a given kernel modules if there are additional dependencies
 #       found by load_additional_dependencies.
 #
-#       Prints a list (separated by ' ') of modules if there are additional
-#       dependencies.
+#       Prints a list (separated by whitespace or newlines) of modules
+#       if there are additional dependencies.
 #
 # Parameters
 #       mod: the module for which additional depdencies should be found
-#       ver: the kernel version
-#       recursive: recursive call if 1, don't print the final newline
-#
-# Return value
-#       0 (true) if there are additional dependencies, 1 (false) otherwise
 get_add_module_deps()
 {
     local mod=${1##*/}
-    local version=$2
-    local recursive=$3
-    local printed=0
     mod=${mod%.ko}
 
     for entry in "${additional_module_dependencies[@]}" ; do
-        local module requirements m
+        local module requirements
 
         module=${entry/:*}
         requirements=${entry/*:}
         if [ "$module" = "$mod" ] ; then
-            for m in $requirements ; do
-                filename=$(modinfo -k "$version" -F filename $m)
-                if [ -z "$filename" ] ; then
-                    echo >&2 "Ignoring additional requirement $mod REQUIRES $m"
-                else
-                    echo -n "$filename "
-                    get_add_module_deps "$m" "$version" 1
-                    printed=$[printed+1]
-                fi
-            done
+            echo $requirements
         fi
     done
-
-    # build the return value
-    if [ $printed -ne 0 ] ; then
-        if [ "$recursive" -ne 1 ] ; then
-            echo ""
-        fi
-        return 0
-    fi
-
-    return 1
 }
 
 # Resolve module dependencies and parameters. Returns a list of modules and
@@ -236,6 +209,7 @@ resolve_modules() {
     local module=
     local supported=
     local additional_args=
+    local seen=
     shift
 
     if ! check_supported_kernel $kernel_version ; then
@@ -248,6 +222,7 @@ resolve_modules() {
         module=${module##*/}
         shift
 
+        seen="$seen $module"
         # don't use a modprobe.conf to get rid of the install lines
         module_list=$(/sbin/modprobe \
             -C /dev/null \
@@ -267,18 +242,16 @@ resolve_modules() {
 
                 # check for additional requirements specified by
                 # SUSE INITRD comments in /etc/modprobe.conf{,local,.d/*}
-                additional_reqs=$(get_add_module_deps "$mod" "$kernel_version" 0)
-                if [ $? -eq 0 ] ; then
-                    local req
+                local additional_reqs req
 
-                    for req in $additional_reqs ; do
-                        if ! $(echo $resolved_modules | grep -qF $req) ; then
-                            # put $req on the todo list to check for it's
-                            # dependencies
-                            set -- "$@" "$req"
-                        fi
-                    done
-                fi
+                additional_reqs=$(get_add_module_deps "$mod" "$kernel_version")
+                for req in $additional_reqs ; do
+                    if ! printf '%s\n' "$@" $seen | grep -qFx "$req"; then
+                        # put $req on the todo list to check for its
+                        # dependencies
+                        set -- "$@" "$req"
+                    fi
+                done
             fi
         done
     done

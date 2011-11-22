@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 22 12:29:02 UTC 2011 - mmarek@suse.cz
+
+- setup-modules: Allow aliases as dependencies in the SUSE INITRD
+  REQUIRES syntax (bnc#730617).
+
+-------------------------------------------------------------------
 Tue Nov 22 11:02:18 UTC 2011 - mmarek@suse.cz
 
 - setup-modules: Fix adding more than one additional dependency to
