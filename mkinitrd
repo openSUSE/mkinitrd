@@ -1690,8 +1690,15 @@ mkinitrd_kernel() {
 	for pp in /sbin/mpath_prio_* ; do
 	    cp_bin $pp $tmp_mnt/sbin
 	done
-	bindings_dir=/var/lib/multipath
-	bindings_file=${bindings_dir}/bindings
+	bindings_dir=/etc
+	bindings_file=${bindings_dir}/multipath.bindings
+	bindings_dir_fb=/var/lib/multipath
+	bindings_file_fb=${bindings_dir_fb}/bindings
+	if [ ! -f ${bindings_file} -a -f ${bindings_file_fb} ]; then
+		# Fall back to old path to bindings file (bnc#723620)
+		bindings_dir=${bindings_dir_fb}
+		bindings_file=${bindings_file_fb}
+	fi
 	if [ -f /etc/multipath.conf ] ; then
 	    cp -a /etc/multipath.conf $tmp_mnt/etc
 	    f=$(sed -n '/^[ \t]*#.*/b;s/.*bindings_file *\"\?\([^" ]*\)\"\? */\1/p' /etc/multipath.conf)

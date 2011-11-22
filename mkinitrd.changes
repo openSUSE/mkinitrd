@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 22 16:15:05 UTC 2011 - puzel@suse.cz
+
+- Pick multhipath bindings file from /etc/bindings (bnc#723620).
+
+-------------------------------------------------------------------
 Wed Nov 17 18:39:43 CET 2010 - bphilips@suse.de
 
 - Add new HBA firmware names (bnc#654063)
