@@ -4,9 +4,15 @@
 #%depends: network
 
 ibft_set_iface() {
-    local if=$(cd $ibft_nic/device/net; ls -d eth* 2>/dev/null)
-    [ "$if" ] && {
-	interface=$if
+    local iface
+
+    for iface in $ibft_nic/device/net/*/addr_len; do
+	    break
+    done
+    iface=${iface%/*}
+    iface=${iface##*/}
+    if test -n "$iface"; then
+	interface=$iface
 	drvlink=$(get_network_module $interface)
 	if [ ! "$nettype" -a -e $ibft_nic/dhcp ]; then
 	    nettype=dhcp
@@ -15,7 +21,7 @@ ibft_set_iface() {
 	else
 	    nettype=static
 	fi
-    }
+    fi
 }
 
 ibft_nic=/sys/firmware/ibft/ethernet0
