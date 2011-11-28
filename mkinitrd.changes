@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov 28 15:31:26 UTC 2011 - mmarek@suse.cz
+
+- setup-ibft: Do not assume that interface names start with 'eth'
+  (bnc#728631).
+
+-------------------------------------------------------------------
 Tue Nov 22 12:29:02 UTC 2011 - mmarek@suse.cz
 
 - setup-modules: Allow aliases as dependencies in the SUSE INITRD
