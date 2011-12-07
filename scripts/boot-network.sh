@@ -118,9 +118,10 @@ configure_bonding()
 }
 
 
+# macaddr2if eth0:00:00:de:ad:be:ef
 macaddr2if()
 {
-    local macaddress=$1 tmpmac dev
+    local macaddress=${1#*:} fallback=${1%%:*} tmpmac dev
 
     for dev in /sys/class/net/* ; do
         # skip files that are no directories
@@ -134,6 +135,7 @@ macaddr2if()
             return
         fi
     done
+    echo "$fallback"
 }
 
 i=0
