@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec  7 21:14:12 UTC 2011 - mmarek@suse.cz
+
+- setup-network: Remember the interface name as a fallback if the
+  mac address does not match (bnc#733375).
+
+-------------------------------------------------------------------
 Mon Nov 28 15:31:26 UTC 2011 - mmarek@suse.cz
 
 - setup-ibft: Do not assume that interface names start with 'eth'

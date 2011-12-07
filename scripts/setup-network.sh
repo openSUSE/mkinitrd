@@ -237,9 +237,9 @@ for iface in $static_interfaces -- $dhcp_interfaces; do
         drvlink="$drvlink $(get_network_module $iface)"
         read macaddress < /sys/class/net/$iface/address
         if $static; then
-            static_macaddresses="$static_macaddresses $macaddress"
+            static_macaddresses="$static_macaddresses $iface:$macaddress"
         else
-            dhcp_macaddresses="$dhcp_macaddresses $macaddress"
+            dhcp_macaddresses="$dhcp_macaddresses $iface:$macaddress"
         fi
     elif [ -d /sys/class/net/$iface/bonding ] ; then
         verbose "[NETWORK]\tConfigure bonding for $iface"
