@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Dec  8 10:56:45 UTC 2011 - cfarrell@suse.com
+
+- license update: GPL-2.0+
+  Use SPDX format (http://www.spdx.org/licenses)
+
+-------------------------------------------------------------------
 Wed Dec  7 21:14:12 UTC 2011 - mmarek@suse.cz
 
 - setup-network: Remember the interface name as a fallback if the
