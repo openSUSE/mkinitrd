@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan  3 14:24:46 UTC 2012 - mmarek@suse.cz
+
+- Fix ibft for virtio devices (bnc#735058).
+
+-------------------------------------------------------------------
 Tue Jan  3 14:20:54 UTC 2012 - mmarek@suse.cz
 
 - boot-ibft: Do not hardcode eth* device names (bnc#728631,
