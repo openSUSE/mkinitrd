@@ -6,9 +6,15 @@
 ibft_set_iface() {
     local iface
 
-    for iface in $ibft_nic/device/net/*/addr_len; do
+    if test -d "$ibft_nic/device/net" ; then
+	for iface in $ibft_nic/device/net/*/addr_len; do
 	    break
-    done
+        done
+    else
+	for iface in $ibft_nic/device/*/*/addr_len; do
+            break
+	done
+    fi
     iface=${iface%/*}
     iface=${iface##*/}
     if test -n "$iface"; then
