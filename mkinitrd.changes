@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan  3 14:20:54 UTC 2012 - mmarek@suse.cz
+
+- boot-ibft: Do not hardcode eth* device names (bnc#728631,
+  bnc#735058#c1).
+
+-------------------------------------------------------------------
 Thu Dec  8 10:56:45 UTC 2011 - cfarrell@suse.com
 
 - license update: GPL-2.0+
