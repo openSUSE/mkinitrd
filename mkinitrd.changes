@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan  3 14:20:54 UTC 2012 - mmarek@suse.cz
+
+- boot-ibft: Do not hardcode eth* device names (bnc#728631,
+  bnc#735058#c1).
+
+-------------------------------------------------------------------
 Wed Dec  7 21:14:12 UTC 2011 - mmarek@suse.cz
 
 - setup-network: Remember the interface name as a fallback if the

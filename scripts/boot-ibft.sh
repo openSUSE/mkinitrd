@@ -20,7 +20,15 @@ ibft_get_att() {
 }
 
 ibft_get_ethdev() {
-    (cd $ibft_nic/device/net; ls -d eth* 2>/dev/null)
+    local iface
+
+    for iface in $ibft_nic/device/net/*/addr_len; do
+	    break
+    done
+    iface=${iface%/*}
+    iface=${iface##*/}
+
+    echo "$iface"
 }
 
 ibft_get_initiatorname() {
