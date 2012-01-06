@@ -303,7 +303,12 @@ fi
 if [ -f /etc/udev/rules.d/77-network.rules ] ; then
     cp /etc/udev/rules.d/77-network.rules $tmp_mnt/etc/udev/rules.d
     cp_bin /sbin/ifup $tmp_mnt/sbin/ifup
-    cp_bin /bin/awk $tmp_mnt/bin/awk
+    mkdir -p $tmp_mnt/etc/alternatives
+    for bin in /bin/{g,}awk /etc/alternatives/awk; do
+        if test -e $bin; then
+            cp_bin $bin $tmp_mnt/$bin
+        fi
+    done
     cp_bin /bin/grep $tmp_mnt/bin/grep
     cp_bin /bin/logger $tmp_mnt/bin/logger
     cp_bin /bin/touch $tmp_mnt/bin/touch

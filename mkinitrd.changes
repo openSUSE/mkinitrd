@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan  6 12:53:47 UTC 2012 - mmarek@suse.cz
+
+- setup-network: Properly install awk.
+
+-------------------------------------------------------------------
 Tue Jan  3 14:24:46 UTC 2012 - mmarek@suse.cz
 
 - Fix ibft for virtio devices (bnc#735058).
