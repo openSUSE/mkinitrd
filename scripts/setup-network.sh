@@ -307,7 +307,12 @@ for f in /{lib,etc}/udev/rules.d/77-network.rules; do
     fi
     cp --parents "$f" $tmp_mnt/
     cp_bin /sbin/ifup $tmp_mnt/sbin/ifup
-    cp_bin /bin/awk $tmp_mnt/bin/awk
+    mkdir -p $tmp_mnt/etc/alternatives
+    for bin in /bin/{g,}awk /etc/alternatives/awk; do
+        if test -e $bin; then
+            cp_bin $bin $tmp_mnt/$bin
+        fi
+    done
     cp_bin /bin/grep $tmp_mnt/bin/grep
     cp_bin /bin/logger $tmp_mnt/bin/logger
     cp_bin /bin/touch $tmp_mnt/bin/touch
