@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 20 16:18:20 UTC 2012 - mmarek@suse.cz
+
+- Load all scsi_dh_* modules early during boot (bnc#727428).
+
+-------------------------------------------------------------------
 Fri Jan  6 12:53:47 UTC 2012 - mmarek@suse.cz
 
 - setup-network: Properly install awk.
