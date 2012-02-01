@@ -49,6 +49,17 @@ while [ "$1" ] ; do
     esac
 done
 
+use_gzip=true
+uncomp()
+{
+	if $use_gzip && gzip -cd "$1" 2>/dev/null; then
+		return
+	fi
+	use_gzip=false
+	xz -cd "$1"
+}
+
+
 initrd=$1
 
 if [ -z "$initrd" ] ; then
@@ -63,4 +74,4 @@ else
     args="-t"
 fi
 
-zcat $initrd | cpio $args
+uncomp $initrd | cpio $args

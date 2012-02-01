@@ -17,6 +17,7 @@ Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
 BuildRequires:  asciidoc
 Requires:       coreutils util-linux grep gzip sed cpio udev sysvinit file perl-Bootloader
+Requires:       xz
 # needed for modprobe --resolve-alias
 Requires:       module-init-tools >= 3.11
 AutoReqProv:    on
