@@ -5,6 +5,12 @@ Thu Feb  9 10:57:19 UTC 2012 - lchiquitto@suse.com
   installkernel script (bnc#739822).
 
 -------------------------------------------------------------------
+Wed Feb  1 16:14:25 UTC 2012 - ohering@suse.de
+
+- Include PV drivers even if running on emulated hardware, to
+  be able to boot when the virtualization setup changes (bnc#710035).
+
+-------------------------------------------------------------------
 Tue Aug  9 14:51:37 UTC 2011 - hare@suse.de
 
 - Add the 'root' argument in the call to check_for_device()
