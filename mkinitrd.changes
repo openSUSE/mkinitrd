@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  1 16:14:25 UTC 2012 - ohering@suse.de
+
+- Include PV drivers even if running on emulated hardware, to
+  be able to boot when the virtualization setup changes (bnc#710035).
+
+-------------------------------------------------------------------
 Wed Feb  1 10:50:46 UTC 2012 - mmarek@suse.cz
 
 - Add support for xz compressed initrd and use it on PPC
