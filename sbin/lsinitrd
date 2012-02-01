@@ -54,6 +54,17 @@ while [ "$1" ] ; do
     esac
 done
 
+use_gzip=true
+uncomp()
+{
+	if $use_gzip && gzip -cd "$1" 2>/dev/null; then
+		return
+	fi
+	use_gzip=false
+	xz -cd "$1"
+}
+
+
 initrd=$1
 
 if [ -z "$initrd" ] ; then
@@ -70,11 +81,11 @@ fi
 
 if [ "$config" -eq 1 ] ; then
     # yes, that's snow, but doesn't use any temporary files :)
-    for configfile in $(zcat $initrd | cpio $args --quiet | grep '^config/') ; do
+    for configfile in $(uncomp $initrd | cpio $args --quiet | grep '^config/') ; do
         echo "=========> $configfile <============"
-        zcat $initrd | cpio --quiet -i --to-stdout $configfile
+        uncomp $initrd | cpio --quiet -i --to-stdout $configfile
         echo
     done
 else
-    zcat $initrd | cpio --quiet $args
+    uncomp $initrd | cpio --quiet $args
 fi

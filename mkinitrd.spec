@@ -24,6 +24,7 @@ Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
 BuildRequires:  asciidoc libxslt
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev file perl-Bootloader
+Requires:       xz
 %if 0%{?suse_version} > 1120
 Requires:       sysvinit-tools sbin_init
 %else

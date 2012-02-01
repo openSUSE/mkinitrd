@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  1 10:50:46 UTC 2012 - mmarek@suse.cz
+
+- Add support for xz compressed initrd and use it on PPC
+  (bnc#742328).
+
+-------------------------------------------------------------------
 Fri Jan 20 16:18:20 UTC 2012 - mmarek@suse.cz
 
 - Load all scsi_dh_* modules early during boot (bnc#727428).
