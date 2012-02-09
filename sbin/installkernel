@@ -68,6 +68,19 @@ if [ -e $KERNTYPES ]; then
     cp -fp $KERNTYPES $INSTALL_PATH/Kerntypes-$KERNEL_VERSION
 fi
 
+case "$(uname -m)" in
+i?86 | x86_64)
+    KERNBIN=$(dirname $MAPFILE)/vmlinux
+    if [ -e $KERNBIN ]; then
+        if [ -f $INSTALL_PATH/vmlinux-$KERNEL_VERSION.gz ]; then
+            mv $INSTALL_PATH/vmlinux-$KERNEL_VERSION.gz \
+                $INSTALL_PATH/vmlinux-$KERNEL_VERSION.gz.old;
+        fi
+        gzip -c $KERNBIN > $INSTALL_PATH/vmlinux-$KERNEL_VERSION.gz
+    fi
+    ;;
+esac
+
 #
 # Generate initial ramdisk
 #
