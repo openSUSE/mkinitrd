@@ -2,7 +2,7 @@
 #
 #%stage: boot
 #%depends: devfunctions
-#%programs: /bin/bash umount mount mknod mkdir ln date sleep cat /bin/sed /sbin/insmod /sbin/modprobe kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof mv chmod rm true ls /lib/mkinitrd/bin/* dmesg
+#%programs: /bin/bash umount mount /bin/mknod /bin/mkdir /bin/ln /bin/date /bin/sleep /bin/cat /bin/sed /sbin/insmod /sbin/modprobe /bin/kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole cp /sbin/pidof /bin/mv /bin/chmod /bin/rm /bin/true /bin/ls /lib/mkinitrd/bin/* dmesg
 #%modules: $RESOLVED_INITRD_MODULES
 #%udevmodules: $RESOLVED_INITRD_MODULES_UDEV
 #%dontshow
