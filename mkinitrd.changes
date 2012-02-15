@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 15 14:58:47 UTC 2012 - mmarek@suse.cz
+
+- Simplify calling of get_kernel_version.
+
+-------------------------------------------------------------------
 Wed Feb 15 13:55:39 UTC 2012 - ms@suse.de
 
 - Add support for ARM uImages.

@@ -113,11 +113,7 @@ if [ ! -f "$kernel_image" ] ; then
     error 1 "No kernel image $kernel_image found"
 fi
 
-kernel_version=$(/sbin/get_kernel_version $kernel_image)
-if [ -z "$kernel_version" ];then
-   kernel_image_gz=${kernel_image//uImage/vmlinux}.gz
-   kernel_version=$(/sbin/get_kernel_version $kernel_image_gz)
-fi
+kernel_version=$(kernel_version_from_image $kernel_image)
 modules_dir=$root_dir/lib/modules/$kernel_version
 
 #echo -e "Kernel version:\t$kernel_version"
