@@ -114,6 +114,10 @@ if [ ! -f "$kernel_image" ] ; then
 fi
 
 kernel_version=$(/sbin/get_kernel_version $kernel_image)
+if [ -z "$kernel_version" ];then
+   kernel_image_gz=${kernel_image//uImage/vmlinux}.gz
+   kernel_version=$(/sbin/get_kernel_version $kernel_image_gz)
+fi
 modules_dir=$root_dir/lib/modules/$kernel_version
 
 #echo -e "Kernel version:\t$kernel_version"

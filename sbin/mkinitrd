@@ -155,6 +155,9 @@ default_kernel_images() {
         i386|x86_64)
             regex='vmlinuz'
             ;;
+        arm*)
+            regex='uImage'
+            ;;
         *)  regex='vmlinu.'
             ;;
     esac
@@ -178,6 +181,11 @@ default_kernel_images() {
         [ "${kernel_image%%.gz}" != "$kernel_image" ] && continue
         kernel_version=$(/sbin/get_kernel_version \
                          /boot/$kernel_image 2> /dev/null)
+	if [ -z "$kernel_version" ];then
+		kernel_image_gz=${kernel_image//uImage/vmlinux}.gz
+		kernel_version=$(/sbin/get_kernel_version \
+                         /boot/$kernel_image_gz 2> /dev/null)
+	fi
         initrd_image=$(echo $kernel_image | sed -e "s|${regex}|initrd|")
         if [ "$kernel_image" != "$initrd_image" -a \
              -n "$kernel_version" -a \
