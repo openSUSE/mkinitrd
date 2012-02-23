@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 23 15:31:57 UTC 2012 - rjschwei@suse.com
+
+- support binaries in /usr tree.
+
+-------------------------------------------------------------------
 Wed Feb 15 14:58:47 UTC 2012 - mmarek@suse.cz
 
 - Simplify calling of get_kernel_version.
