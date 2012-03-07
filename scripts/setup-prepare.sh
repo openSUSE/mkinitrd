@@ -23,23 +23,57 @@
 ##
 
 # Install a binary file
+cp_link() {
+    # Copy the target of the given link $1 to the destination $2
+    # spaces and special characters in file names will break things
+    if [ -h "$1" ]; then
+        lnkTarget=$(readlink $1)
+        if [ -e $lnkTarget ];then
+	    cp -a $lnkTarget $2/$lnkTarget
+        else
+            # This link points to something in the same directory
+            lnkSrc="$1"
+            # Get the base bath of the link origin
+            lnkSrcBase=${lnkSrc%/*}
+            cp -a $lnkSrcBase/$lnkTarget $2/$lnkSrcBase/$lnkTarget
+        fi
+	return 1
+    fi
+    return 0
+}
+
 cp_bin() {
     cp -a "$@" \
     || exit_code=1
 
-    # Remember the binaries installed. We need the list for checking
-    # for dynamic libraries.
-    while [ $# -gt 1 ]; do
-        initrd_bins[${#initrd_bins[@]}]=$1
-        shift
-   done
-   # file may print '^setuid ELF ...'
-   # suid mount will fail if mkinitrd was called as user
-   if [ -L "$1" ]; then
-        : do nothing with symlinks
-   elif [ -d "$1" -o -f "$1" ]; then
-     find "$1" -type f -print0 | xargs -0 chmod 0755
-   fi
+    if [ -h "$1" ]; then
+        lnkTarget=$1
+	# Determine the base bath of the target
+        targetPath="$2"
+        targetBase=${targetPath%$1*}
+        while [ 1 ]; do
+            cp_link $lnkTarget $targetBase
+            lnkCopied=$?
+            if [ $lnkCopied = 0 ]; then
+               if [ -e $lnkTarget ]; then
+                   initrd_bins[${#initrd_bins[@]}]=$lnkTarget
+               fi
+	       break
+            fi
+        done 
+    else
+        # Remember the binaries installed. We need the list for checking
+        # for dynamic libraries.
+        while [ $# -gt 1 ]; do
+            initrd_bins[${#initrd_bins[@]}]=$1
+            shift
+        done
+        # file may print '^setuid ELF ...'
+        # suid mount will fail if mkinitrd was called as user
+        if [ -d "$1" -o -f "$1" ]; then
+            find "$1" -type f -print0 | xargs -0 chmod 0755
+        fi
+    fi
 }
 
 # check if we should use script or feature $1
