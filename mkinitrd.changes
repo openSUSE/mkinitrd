@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 14 13:32:58 UTC 2012 - rubin@raaftech.nl
+
+- Copy ifcfg settings regardless of nettype value (bnc#724775).
+
+-------------------------------------------------------------------
 Thu Feb 23 15:31:57 UTC 2012 - rjschwei@suse.com
 
 - support binaries in /usr tree.
