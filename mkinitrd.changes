@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 14 13:32:58 UTC 2012 - rubin@raaftech.nl
+
+- Copy ifcfg settings regardless of nettype value (bnc#724775).
+
+-------------------------------------------------------------------
 Mon Nov  7 12:54:16 UTC 2011 - mmarek@suse.cz
 
 - Revert the NO_KMS_IN_INITRD -> KMS_IN_INITRD rename, it breaks
