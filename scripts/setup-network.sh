@@ -127,9 +127,9 @@ get_default_interface() {
         done
 
         if [ "$count" -ne 1 ] ; then
-            echo "WARNING: $port is a bridge with more than one interfaces"
-            echo "         behind the bridge. Please call mkinitrd with a"
-            echo "         device name manually (-D or -I)."
+            echo >&2 "WARNING: $port is a bridge with more than one interfaces"
+            echo >&2 "         behind the bridge. Please call mkinitrd with a"
+            echo >&2 "         device name manually (-D or -I)."
         else
             ifname="$ports"
         fi

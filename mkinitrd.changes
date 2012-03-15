@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 15 15:12:25 UTC 2012 - mmarek@suse.cz
+
+- setup-network: Print warnings to stderr.
+
+-------------------------------------------------------------------
 Wed Mar 14 13:32:58 UTC 2012 - rubin@raaftech.nl
 
 - Copy ifcfg settings regardless of nettype value (bnc#724775).
