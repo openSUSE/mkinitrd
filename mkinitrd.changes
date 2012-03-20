@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 20 13:19:12 UTC 2012 - mmarek@suse.cz
+
+- boot-udev: Trigger add action for subsystems (bnc#750668).
+
+-------------------------------------------------------------------
 Thu Mar 15 15:12:25 UTC 2012 - mmarek@suse.cz
 
 - setup-network: Print warnings to stderr.
