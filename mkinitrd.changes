@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 22 10:29:58 UTC 2012 - seife+obs@b1-systems.com
+
+- boot-udev: add blkid dependency
+
+-------------------------------------------------------------------
 Tue Mar 20 13:19:12 UTC 2012 - mmarek@suse.cz
 
 - boot-udev: Trigger add action for subsystems (bnc#750668).
