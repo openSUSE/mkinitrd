@@ -332,7 +332,12 @@ for module in $resolved_modules; do
     for fwl in $(modinfo -F firmware $module) ; do
        bmod=$(basename $module)
        bfwl=$(basename $fwl)
-       for fw in $(find /lib/firmware -name "$bfwl") ; do
+
+       # Using find -L instead of a trailing slash means
+       # we get /lib/firmware instead of /usr/lib/firmware.
+       firmwaredir="/usr/lib/firmware/"
+       [ -e "$firmwaredir" ] || firmwaredir="/lib/firmware/"
+       for fw in $(find "$firmwaredir" -name "$bfwl") ; do
                cp -p --parents $fw $tmp_mnt
                echo -n "(module $bmod firmware $fw) "
        done
