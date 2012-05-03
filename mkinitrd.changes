@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
+
+- Avoid accidental tilde expansion when parsing parameters
+  (bnc#760364).
+
+-------------------------------------------------------------------
 Thu Mar 15 15:12:25 UTC 2012 - mmarek@suse.cz
 
 - setup-network: Print warnings to stderr.
