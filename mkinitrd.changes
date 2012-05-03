@@ -10,6 +10,12 @@ Fri May  4 13:57:48 UTC 2012 - mmarek@suse.cz
   the mkinitrd package (bnc#755924).
 
 -------------------------------------------------------------------
+Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
+
+- Avoid accidental tilde expansion when parsing parameters
+  (bnc#760364).
+
+-------------------------------------------------------------------
 Tue Mar 20 13:19:12 UTC 2012 - mmarek@suse.cz
 
 - boot-udev: Trigger add action for subsystems (bnc#750668).
