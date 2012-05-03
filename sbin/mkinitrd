@@ -78,7 +78,7 @@ next_param() {
 
 cmd_docmd() {
     for i in "${cmd_option[@]}"; do
-        if [ "${i%%~*}" = "$1" ]; then
+        if [ "${i%%\~*}" = "$1" ]; then
             parse_option "$i"
             return 0
         fi

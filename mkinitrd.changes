@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
+
+- Avoid accidental tilde expansion when parsing parameters
+  (bnc#760364).
+
+-------------------------------------------------------------------
 Thu Mar 22 10:29:58 UTC 2012 - seife+obs@b1-systems.com
 
 - boot-udev: add blkid dependency
