@@ -20,6 +20,12 @@ Fri May 11 11:04:06 UTC 2012 - mmarek@suse.cz
 - setup-network.sh: Fix handling of bridge interfaces (bnc#759623)
 
 -------------------------------------------------------------------
+Fri May  4 13:57:48 UTC 2012 - mmarek@suse.cz
+
+- Recreate the initrd for all installed kernels after updating
+  the mkinitrd package (bnc#755924).
+
+-------------------------------------------------------------------
 Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
 
 - Avoid accidental tilde expansion when parsing parameters

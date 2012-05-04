@@ -126,6 +126,7 @@ install -m 644 etc/sysconfig.kernel-mkinitrd $RPM_BUILD_ROOT/var/adm/fillup-temp
 
 %posttrans
 /sbin/mkinitrd_setup
+/sbin/mkinitrd
 
 %files
 %defattr(-,root,root)
