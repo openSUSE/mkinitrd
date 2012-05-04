@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May  4 14:00:37 UTC 2012 - mmarek@suse.cz
+
+- Conflict with udev before SP2 (bnc#755924).
+
+-------------------------------------------------------------------
 Fri May  4 13:57:48 UTC 2012 - mmarek@suse.cz
 
 - Recreate the initrd for all installed kernels after updating

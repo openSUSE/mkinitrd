@@ -23,7 +23,7 @@ Requires:       module-init-tools >= 3.11
 AutoReqProv:    on
 Version:        2.4.2
 Release:        1
-Conflicts:      udev < 118
+Conflicts:      udev < 147
 Requires:       dhcpcd
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
