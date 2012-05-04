@@ -106,6 +106,7 @@ install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
 
 %posttrans
 /sbin/mkinitrd_setup
+/sbin/mkinitrd
 
 %files
 %defattr(-,root,root)

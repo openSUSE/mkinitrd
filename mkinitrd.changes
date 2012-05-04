@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri May  4 13:57:48 UTC 2012 - mmarek@suse.cz
+
+- Recreate the initrd for all installed kernels after updating
+  the mkinitrd package (bnc#755924).
+
+-------------------------------------------------------------------
 Tue Mar 20 13:19:12 UTC 2012 - mmarek@suse.cz
 
 - boot-udev: Trigger add action for subsystems (bnc#750668).
