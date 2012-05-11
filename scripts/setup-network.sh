@@ -113,25 +113,26 @@ get_default_interface() {
     fi
 
     # if the interface is a bridge, then try to use the underlying interface
-    # if the contains only one network device (as usual when giving virtual
-    # machines network access)
+    # if it is the only non-virtual interface (not tap or vif)
     if [ -d "/sys/class/net/$ifname/bridge" -a \
             -d "/sys/class/net/$ifname/brif" ] ; then
 
-        ports=$(ls "/sys/class/net/$ifname/brif")
-
-        # count the number of ports without using 'wc'
-        count=0
-        for port in $ports ; do
+        local ifname2 res count=0
+        for ifname2 in "/sys/class/net/$ifname/brif"/*; do
+            case "$(readlink -f "$ifname2")" in
+            /sys/devices/virtual/*)
+                continue
+            esac
+            res=${ifname2##*/}
             count=$[count+1]
         done
 
         if [ "$count" -ne 1 ] ; then
-            echo >&2 "WARNING: $port is a bridge with more than one interfaces"
+            echo >&2 "WARNING: $ifname is a bridge with more than one interfaces"
             echo >&2 "         behind the bridge. Please call mkinitrd with a"
             echo >&2 "         device name manually (-D or -I)."
         else
-            ifname="$ports"
+            ifname="$res"
         fi
     fi
 

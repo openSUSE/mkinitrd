@@ -15,6 +15,11 @@ Wed May 23 12:48:47 UTC 2012 - werner@suse.de
 - Make warpclock working with upstream systemd HW clock management
 
 -------------------------------------------------------------------
+Fri May 11 11:04:06 UTC 2012 - mmarek@suse.cz
+
+- setup-network.sh: Fix handling of bridge interfaces (bnc#759623)
+
+-------------------------------------------------------------------
 Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
 
 - Avoid accidental tilde expansion when parsing parameters
