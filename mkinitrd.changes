@@ -5,6 +5,17 @@ Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
   (bnc#760364).
 
 -------------------------------------------------------------------
+Mon Apr 30 19:39:01 UTC 2012 - jeffm@suse.com
+
+- Add Logitech Unifying devices to initrd (bnc#741451).
+
+-------------------------------------------------------------------
+Tue Apr 17 22:58:25 UTC 2012 - jeffm@suse.com
+
+- Change firmware search path to /usr/lib/firmware -- udev as of 182
+  doesn't look in /lib/firmware (bnc#757655).
+
+-------------------------------------------------------------------
 Thu Mar 22 10:29:58 UTC 2012 - seife+obs@b1-systems.com
 
 - boot-udev: add blkid dependency
