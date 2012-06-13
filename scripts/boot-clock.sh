@@ -12,4 +12,14 @@ then
     *-l*) /bin/warpclock
     	  > /dev/shm/warpclock
     esac
+elif test -e /etc/adjtime -a -e /etc/localtime
+then
+    while read line
+    do
+	if test "$line" = LOCAL
+	then
+	    /bin/warpclock
+	    > /dev/shm/warpclock
+	fi
+    done < /etc/adjtime
 fi

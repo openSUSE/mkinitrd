@@ -15,6 +15,14 @@ fi
 if test -e /etc/sysconfig/clock
 then
     . /etc/sysconfig/clock
-    mkdir -m 0755 -p $tmp_mnt/etc/sysconfig
-    echo HWCLOCK='"'"$HWCLOCK"'"' > $tmp_mnt/etc/sysconfig/clock
+    if test -n "$HWCLOCK"
+    then
+	mkdir -m 0755 -p $tmp_mnt/etc/sysconfig
+	echo HWCLOCK='"'"$HWCLOCK"'"' > $tmp_mnt/etc/sysconfig/clock
+    fi
+fi
+if test -e /etc/adjtime
+then
+    mkdir -m 0755 -p $tmp_mnt/etc
+    cp -p /etc/adjtime $tmp_mnt/etc/
 fi

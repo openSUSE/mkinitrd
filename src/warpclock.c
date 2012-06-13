@@ -82,7 +82,7 @@ int main()
     time_t now, delta, gmtoff;
     struct stat st;
     int universal = 1;
-    int count;
+    int count, adj;
 
     err = "warpclock: /etc/localtime";
     if (stat("/etc/localtime", &st) < 0)
@@ -92,9 +92,16 @@ int main()
 
     memset(&zone, 0, sizeof(struct timezone));
 
-    err = "warpclock: /etc/sysconfig/clock";
-    if ((conf = fopen("/etc/sysconfig/clock", "r")) == (FILE *)0)
-	goto err;
+    adj = 1;
+    err = "warpclock: /etc/adjtime";
+    if ((conf = fopen("/etc/adjtime", "r")) == (FILE *)0) {
+	if (errno != ENOENT)
+	    goto err;
+	adj = 0;
+	err = "warpclock: /etc/sysconfig/clock";
+	if ((conf = fopen("/etc/sysconfig/clock", "r")) == (FILE *)0)
+	    goto err;
+    }
     while ((fgets(&buffer[0], sizeof(buffer), conf))) {
 	const char * ptr = &buffer[0];
 	while (isblank(*ptr))
@@ -103,7 +110,15 @@ int main()
 	    continue;
 	if (*ptr == '\n')
 	    continue;
-	if (strncmp("HWCLOCK=", ptr, 8) == 0) {
+	if (adj) {
+	    char *end;
+	    if ((end = strrchr(ptr, '\n')))
+		*end = '\0';
+	    if (strcmp("UTC", ptr) == 0) {
+		universal = 1;
+		break;
+	    }
+	} else if (strncmp("HWCLOCK=", ptr, 8) == 0) {
 	    universal = !strstr(ptr, "-l");
 	    break;
 	}

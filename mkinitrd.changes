@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue May 29 07:38:50 UTC 2012 - werner@suse.de
+
+- Fix clock scriptlet by adding `then'
+
+-------------------------------------------------------------------
+Wed May 23 12:48:47 UTC 2012 - werner@suse.de
+
+- Make warpclock working with upstream systemd HW clock management
+
+-------------------------------------------------------------------
 Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
 
 - Avoid accidental tilde expansion when parsing parameters
