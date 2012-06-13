@@ -75,6 +75,18 @@ selinux_load_policy()
 	fi
 }
 
+# Mount the /usr filesystem if possible
+# XXX: handle journaldev for the /usr device separately
+if test -n "$usrdev"; then
+        if /sbin/fsck -t $usrfstype $fsckopts $usrdev; then
+            echo "Mounting /usr"
+            fsoptions=$(get_options_from_fstab "/usr")
+            if [ "$fsoptions" ]; then
+                  fsoptions="-o $fsoptions"
+            fi
+            /bin/mount -t $usrfstype $fsoptions $usrdev /root/usr
+        fi
+fi
 
 # Move device nodes
 /bin/mount --move /dev /root/dev
@@ -83,15 +95,6 @@ if [ -d /root/run ]; then
 	mount --move /run /root/run
 else
 	umount -l /run
-fi
-
-# Mount the /usr filesystem if possible
-# XXX: handle journaldev for the /usr device separately
-if test -n "$usrdev"; then
-	if chroot /root /sbin/fsck -t $usrfstype $fsckopts $usrdev; then
-	    echo "Mounting /usr"
-	    chroot /root /bin/mount /usr
-	fi
 fi
 
 # SELinux load policy

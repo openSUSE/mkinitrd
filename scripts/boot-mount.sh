@@ -3,7 +3,7 @@
 #%stage: filesystem
 #%depends: resume
 #
-#%programs: /sbin/fsck $rootfsck
+#%programs: /sbin/fsck $rootfsck $usrfsck
 #%if: ! "$root_already_mounted"
 #%dontshow
 #

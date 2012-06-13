@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 12 15:28:45 UTC 2012 - coolo@suse.com
+
+- mount /usr without chrooting into root fs first, /usr carries
+  important binaries by now (bnc#752796)
+
+-------------------------------------------------------------------
 Tue May 29 07:38:50 UTC 2012 - werner@suse.de
 
 - Fix clock scriptlet by adding `then'

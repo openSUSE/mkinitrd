@@ -37,9 +37,8 @@ if [ -z "$init" ] ; then
     die 1
 fi
 
-# Parse root mount options
-if [ -f /root/etc/fstab ] ; then
-    fsoptions=$(while read d m f o r; do if [ "$m" == "/" ] ; then echo $o; fi; done < <(sed -e '/^[ \t]*#/d' < /root/etc/fstab))
+function get_options_from_fstab() {
+    local fsoptions=$(while read d m f o r; do if [ "$m" == "$1" ] ; then echo $o; fi; done < <(sed -e '/^[ \t]*#/d' < /root/etc/fstab))
     set -- $(IFS=,; echo $fsoptions)
     fsoptions=
     if [ "$read_only" ]; then
@@ -68,6 +67,13 @@ if [ -f /root/etc/fstab ] ; then
         esac
         shift
     done
+    echo "$fsoptions"
+}
+
+
+# Parse root mount options
+if [ -f /root/etc/fstab ] ; then
+    fsoptions=$(get_options_from_fstab "/")
     if [ "$fsoptions" ] ; then
         mount -o remount,$fsoptions $rootdev /root
     fi
