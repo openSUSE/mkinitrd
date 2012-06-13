@@ -26,6 +26,14 @@ Tue Apr 17 22:58:25 UTC 2012 - jeffm@suse.com
   doesn't look in /lib/firmware (bnc#757655).
 
 -------------------------------------------------------------------
+Wed Mar 28 20:35:35 UTC 2012 - rschweikert@suse.com
+
+- add patches mkinitrd_cpbin_follow_link.patch and
+  mkinitrd_simplify_netsetup.patch; pull requests 6 & 7 in gitorious
+  - setup-prepare: cp_bin() needs to follow links
+  - setup-network: move loop independent operation outside the loop
+
+-------------------------------------------------------------------
 Thu Mar 22 10:29:58 UTC 2012 - seife+obs@b1-systems.com
 
 - boot-udev: add blkid dependency
