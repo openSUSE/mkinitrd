@@ -4,6 +4,13 @@ Wed Jul 18 14:23:18 UTC 2012 - mmarek@suse.cz
 - Add xhci-hcd to the initrd (bnc#755113).
 
 -------------------------------------------------------------------
+Wed Jul  4 14:43:05 UTC 2012 - werner@suse.de
+
+- Fix boot clock scriptlet by testing /etc/adjtime before
+  /etc/sysconfig/clock to make sure that warpclock is executed
+  if CMOS clock is in local time
+
+-------------------------------------------------------------------
 Tue Jun 12 15:28:45 UTC 2012 - coolo@suse.com
 
 - mount /usr without chrooting into root fs first, /usr carries
