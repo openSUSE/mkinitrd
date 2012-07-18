@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 18 14:23:18 UTC 2012 - mmarek@suse.cz
+
+- Add xhci-hcd to the initrd (bnc#755113).
+
+-------------------------------------------------------------------
 Tue Jun 12 15:28:45 UTC 2012 - coolo@suse.com
 
 - mount /usr without chrooting into root fs first, /usr carries
