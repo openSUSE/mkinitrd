@@ -1,6 +1,6 @@
 #!/bin/bash
 #%stage: device
-#%udevmodules: usbcore ohci_hcd uhci-hcd ehci_hcd usbhid
+#%udevmodules: usbcore ohci_hcd uhci-hcd ehci_hcd xhci-hcd usbhid
 #%if: "$use_usb"
 #
 ##### usb module helper
