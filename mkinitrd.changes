@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 19 09:08:26 UTC 2012 - dmzhang@suse.com
+
+- boot-devfunctions.sh: Call vgchange with --partial --sysinit
+  (bnc#731317).
+
+-------------------------------------------------------------------
 Fri May 11 11:04:06 UTC 2012 - mmarek@suse.cz
 
 - setup-network.sh: Fix handling of bridge interfaces (bnc#759623)
