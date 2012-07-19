@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 19 11:58:40 UTC 2012 - mmarek@suse.cz
+
+- Do not copy firmware files of all kernel packages installed
+  (bnc#769627).
+
+-------------------------------------------------------------------
 Thu Jul 19 09:08:26 UTC 2012 - dmzhang@suse.com
 
 - boot-devfunctions.sh: Call vgchange with --partial --sysinit

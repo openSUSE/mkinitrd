@@ -319,6 +319,7 @@ if [ "$resolved_modules" ] ; then
 fi
 
 # Copy all modules into the initrd
+has_firmware=false
 for module in $resolved_modules; do
     if [ ! -r $root_dir/$module ]; then
         oops 9 "Module $module not found."
@@ -329,20 +330,26 @@ for module in $resolved_modules; do
         rm -rf $tmp_mnt
         return 1
     fi
-    for fwl in $(modinfo -F firmware $module) ; do
-       bmod=$(basename $module)
-       bfwl=$(basename $fwl)
-
-       # Using find -L instead of a trailing slash means
-       # we get /lib/firmware instead of /usr/lib/firmware.
-       firmwaredir="/usr/lib/firmware/"
-       [ -e "$firmwaredir" ] || firmwaredir="/lib/firmware/"
-       for fw in $(find "$firmwaredir" -name "$bfwl") ; do
-               cp -p --parents $fw $tmp_mnt
-               echo -n "(module $bmod firmware $fw) "
-       done
+    # add any required firmware files
+    for fw in $(modinfo -F firmware $module) ; do
+        for dir in {/usr,}/lib/firmware{,/updates}; do
+            for subdir in "" "$kernel_version"; do
+                if test -e "$dir/$subdir/$fw"; then
+                    cp -p --parents "$_" "$tmp_mnt"
+                    if ! $has_firmware; then
+                        echo -ne "Firmware:\t"
+			has_firmware=true
+                    fi
+                    echo -n "$fw "
+                fi
+            done
+        done
     done
 done
+if $has_firmware; then
+    echo
+fi
+unset has_firmware
 
 if [ "$resolved_modules" ] ; then
     [ ! -d $tmp_mnt/lib/modules/$kernel_version ] && oops 10 "No modules have been installed"
