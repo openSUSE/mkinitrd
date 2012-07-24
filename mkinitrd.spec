@@ -23,6 +23,10 @@ License:        GPL-2.0+
 Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
 BuildRequires:  asciidoc libxslt
+%if 0%{?suse_version} >= 1210
+BuildRequires: systemd
+%{?systemd_requires}
+%endif
 Requires:       coreutils modutils util-linux grep gzip sed cpio udev file perl-Bootloader
 Requires:       xz
 %if 0%{?suse_version} > 1120
@@ -116,13 +120,34 @@ install -m 755 etc/boot.loadmodules $RPM_BUILD_ROOT/etc/init.d/
 install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
 install -m 644 etc/sysconfig.kernel-mkinitrd $RPM_BUILD_ROOT/var/adm/fillup-templates/
 
+%if 0%{?suse_version} >= 1210
+mkdir -p $RPM_BUILD_ROOT/%{_unitdir}/
+install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
+%endif
+
+%pre
+%if 0%{?suse_version} >= 1210
+%service_add_pre purge-kernels.service
+%endif
+
+%preun
+%if 0%{?suse_version} >= 1210
+%service_del_preun purge-kernels.service
+%endif
+
 %post
 %{fillup_only -an kernel}
 %{insserv_force_if_yast /etc/init.d/boot.loadmodules}
 %{fillup_and_insserv -f -Y purge-kernels}
+%if 0%{?suse_version} >= 1210
+%service_add_post purge-kernels.service
+%endif
 
 %postun
 %insserv_cleanup
+%if 0%{?suse_version} >= 1210
+%service_del_postun purge-kernels.service
+%endif
 
 %posttrans
 /sbin/mkinitrd_setup

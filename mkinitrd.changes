@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 25 20:08:03 UTC 2012 - mvyskocil@suse.cz
+
+- Add purge-kernels.service
+
+-------------------------------------------------------------------
 Thu Jul 19 11:58:40 UTC 2012 - mmarek@suse.cz
 
 - Do not copy firmware files of all kernel packages installed
