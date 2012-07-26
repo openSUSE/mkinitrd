@@ -166,6 +166,7 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %config /etc/rpm/macros.mkinitrd
 /etc/init.d/boot.loadmodules
 /etc/init.d/purge-kernels
+%_unitdir/purge-kernels.service
 /lib/mkinitrd/scripts/*.sh
 /lib/mkinitrd/bin/*
 /bin/lsinitrd

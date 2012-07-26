@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 26 07:47:57 UTC 2012 - mmarek@suse.cz
+
+- Add purge-kernels.service to the filelist.
+
+-------------------------------------------------------------------
 Wed Jul 25 20:08:03 UTC 2012 - mvyskocil@suse.cz
 
 - Add purge-kernels.service
