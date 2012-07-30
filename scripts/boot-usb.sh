@@ -1,6 +1,6 @@
 #!/bin/bash
 #%stage: device
-#%udevmodules: usbcore ohci_hcd uhci-hcd ehci_hcd xhci-hcd usbhid hid-logitech-dj
+#%udevmodules: usbcore ohci_hcd uhci-hcd ehci_hcd xhci-hcd usbhid hid-logitech-dj hid-generic
 #%if: "$use_usb"
 #
 ##### usb module helper

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 30 21:48:12 UTC 2012 - jeffm@suse.com
+
+- Added hid-generic to boot-usb.sh so keyboards are usable in initrd
+  (bnc#773559).
+
+-------------------------------------------------------------------
 Thu Jul 26 07:47:57 UTC 2012 - mmarek@suse.cz
 
 - Add purge-kernels.service to the filelist.
