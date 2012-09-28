@@ -38,27 +38,16 @@ source boot/$file
                 elif [ "${file:0:1}" = "/" ]; then # absolute path files have to stay alive
                         SOURCE=$file
                         [ ! -e $file -a -e /usr$file ] && SOURCE="/usr$file"
-                        DEST=".$file"
+                        DEST=".$SOURCE"
                 else
                         case "$(type -t "$file")" in
                         builtin) continue
                         esac
                         SOURCE=$(type -p "$file")
-                        DEST="./bin/"
+                        DEST=".$SOURCE"
                 fi
 
                 cp_bin "$SOURCE" "$DEST"
-
-                # if we're given a symlink, always copy the linked file too
-                if [ -L "$SOURCE" ]; then
-                    LINK=$(readlink -e "$SOURCE")
-                    if [ -e "$LINK" ]; then
-                        mkdir -p .$(dirname "$LINK")
-                        cp_bin "$LINK" ."$LINK"
-                    else
-                        echo 2>&1 "WARNING: $LINK is a dangling symlink"
-                    fi
-                fi
             done
         done
     fi

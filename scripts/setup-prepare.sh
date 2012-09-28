@@ -23,52 +23,72 @@
 ##
 
 # Install a binary file
-cp_link() {
-    # Copy the target of the given link $1 to the destination $2
-    # spaces and special characters in file names will break things
-    if [ -h "$1" ]; then
-        lnkTarget=$(readlink $1)
-        if [ -e $lnkTarget ];then
-	    cp -a $lnkTarget $2/$lnkTarget
-        else
-            # This link points to something in the same directory
-            lnkSrc="$1"
-            # Get the base bath of the link origin
-            lnkSrcBase=${lnkSrc%/*}
-            cp -a $lnkSrcBase/$lnkTarget $2/$lnkSrcBase/$lnkTarget
-        fi
-	return 1
-    fi
-    return 0
-}
-
+# cp_bin file target_filename
+# cp_bin file target_directory
+# cp_bin file file target_directory
+# file is either a regular file or a symlink. symlinks and all paths they point to will be copied
+# the "root" of target is $tmp_mnt, which is required to copy symlinks properly
 cp_bin() {
-    cp -a "$@" \
-    || exit_code=1
+    local -a files
+    local target
+    local file
 
-    if [ -h "$1" ]; then
-        lnkTarget=$1
-	# Determine the base bath of the target
-        targetPath="$2"
-        targetBase=${targetPath%$1*}
-        while [ 1 ]; do
-            cp_link $lnkTarget $targetBase
-            lnkCopied=$?
-            if [ $lnkCopied = 0 ]; then
-               if [ -e $lnkTarget ]; then
-                   initrd_bins[${#initrd_bins[@]}]=$lnkTarget
-               fi
-	       break
-            fi
-        done 
-    else
-        # Remember the binaries installed. We need the list for checking
-        # for dynamic libraries.
-        while [ $# -gt 1 ]; do
-            initrd_bins[${#initrd_bins[@]}]=$1
-            shift
-        done
+    # need at least two parameters, source and destination
+    if test $# -lt 2; then
+        return 0
     fi
+    # store source filenames
+    # (assigning array from $@ and setting target= from it does not work)
+    until test $# -eq 1; do
+        files=( ${files[@]} $1 )
+        shift
+    done
+    # store target, either file or directory
+    target=$1
+
+    # if more than two parameters, last entry must be a directory
+    if test ${#files[@]} -gt 1; then
+        if ! test -d ${target}; then
+            return 0
+        fi
+    fi
+
+    # copy all source files
+    for file in ${files[@]}; do
+        local src dst
+        src=${file}
+        dst=${target}
+        # copy requested soure file as is to requested destination
+        cp -a --remove-destination ${src} ${dst}
+        # copy symlinks recursivly
+        while [ 1 ]; do
+            local tmp_src
+            if test -L ${src}; then
+                # read link target
+                tmp_src=$(readlink ${src})
+                if test "${tmp_src:0:1}" = "/"; then
+                    # reuse absolute paths
+                    src=${tmp_src}
+                else
+                    # symlink is relative to current source
+                    src=${src%/*}/${tmp_src}
+                fi
+                cp -a --remove-destination --parents ${src} $tmp_mnt
+                # if link target exists, proceed to next symlink target
+                if test -e "${src}"; then
+                    continue
+                fi
+            fi
+            # exit loop in case of dead symlink or if final target of symlink was reached
+            break
+        done
+
+        # if source file exists, add it to list of binaries
+        # use source instead of target to avoid referencing symlinks
+        if test -e "${src}"; then
+            initrd_bins[${#initrd_bins[@]}]=${src}
+        fi
+    done
 }
 
 # check if we should use script or feature $1
