@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 28 17:58:01 CEST 2012 - ohering@suse.de
+
+- remove suid/sgid from binaries right before creating the initrd
+- make binaries in all four bin directories executable
+
+-------------------------------------------------------------------
 Mon Jul 30 23:12:39 UTC 2012 - jeffm@suse.com
 
 - Version 2.7.1.

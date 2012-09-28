@@ -68,11 +68,6 @@ cp_bin() {
             initrd_bins[${#initrd_bins[@]}]=$1
             shift
         done
-        # file may print '^setuid ELF ...'
-        # suid mount will fail if mkinitrd was called as user
-        if [ -d "$1" -o -f "$1" ]; then
-            find "$1" -type f -print0 | xargs -0 chmod 0755
-        fi
     fi
 }
 

@@ -12,7 +12,9 @@ then
 fi
 pushd . > /dev/null 2>&1
 cd $tmp_mnt
-find bin sbin -type f -print0 | xargs -0 chmod 0755
+# suid mount will fail if mkinitrd was called as user
+find . -type f \( -perm -4000 -o -perm -2000 \) -exec chmod 755 {} \;
+find *bin usr/*bin -type f -exec chmod 755 {} \;
 if ! find . ! -name "*~" | cpio --quiet -H newc --create | $COMPRESS > $tmp_initrd
 then
     oops 8 "Failed to build initrd"
