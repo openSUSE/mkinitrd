@@ -1,6 +1,17 @@
 #!/bin/bash
 #
 #%stage: setup
+#%programs: chmod
+#%programs: cp
+#%programs: dmesg
+#%programs: halt
+#%programs: kill
+#%programs: killall5
+#%programs: ls
+#%programs: mv
+#%programs: pidof
+#%programs: reboot
+#%programs: rm
 #
 #%dontshow
 #

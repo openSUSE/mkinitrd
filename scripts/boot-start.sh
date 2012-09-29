@@ -2,32 +2,29 @@
 #
 #%stage: boot
 #%depends: devfunctions
+
 #%programs: /lib/mkinitrd/bin/*
 #%programs: bash
 #%programs: cat
-#%programs: chmod
-#%programs: cp
 #%programs: date
-#%programs: dmesg
-#%programs: halt
-#%programs: insmod
-#%programs: kill
-#%programs: killall5
 #%programs: ln
-#%programs: ls
 #%programs: mkdir
 #%programs: mknod
-#%programs: modprobe
 #%programs: mount
-#%programs: mv
-#%programs: pidof
-#%programs: reboot
-#%programs: rm
-#%programs: sed
 #%programs: showconsole
 #%programs: sleep
 #%programs: true
 #%programs: umount
+
+# tools used by linuxrc/init
+#%programs: insmod
+#%programs: modprobe
+#%programs: sed
+
+# tools used by ipconfig.sh
+#%programs: ip
+#%programs: sed
+
 #%modules: $RESOLVED_INITRD_MODULES
 #%udevmodules: $RESOLVED_INITRD_MODULES_UDEV
 #%dontshow
