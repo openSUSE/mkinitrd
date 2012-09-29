@@ -2,6 +2,7 @@
 #
 #%stage: filesystem
 #%depends: mount
+#%programs: mount
 #
 #%dontshow
 #

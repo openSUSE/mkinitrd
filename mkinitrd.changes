@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Sep 29 22:34:07 CEST 2012 - ohering@suse.de
+
+- list all tools in boot-* scripts in a programs tag
+
+-------------------------------------------------------------------
 Sat Sep 29 21:41:09 CEST 2012 - ohering@suse.de
 
 - remove usage of absolute paths for executables

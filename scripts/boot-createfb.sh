@@ -1,5 +1,6 @@
 #!/bin/bash
 #%stage: setup
+#%programs: mknod
 #%dontshow
 #
 ##### framebuffer device node creator

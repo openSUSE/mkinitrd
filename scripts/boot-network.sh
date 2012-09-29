@@ -2,6 +2,7 @@
 #%stage: device
 #%depends: ibft
 #%programs: /sbin/dhcpcd /sbin/ip
+#%programs: ifup
 # dhcpcd reqires the af_packet module
 #%modules: af_packet $bonding_module
 #%udevmodules: $drvlink

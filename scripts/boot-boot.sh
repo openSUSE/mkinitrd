@@ -3,6 +3,10 @@
 #%stage: setup
 #%depends: killprogs
 #%programs: chroot
+#%programs: fsck
+#%programs: mount
+#%programs: sleep
+#%programs: umount
 #%modules:
 #%dontshow
 #

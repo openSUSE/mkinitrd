@@ -1,6 +1,7 @@
 #!/bin/bash
 #%stage: device
 #%modules: iscsi_ibft
+#%programs: cat
 #%if: "$ibft_available"
 #: ${ibft_nic:=/sys/firmware/ibft/ethernet0}
 #

@@ -5,6 +5,7 @@
 #%depends: start udev
 #
 #%modules: $kms_modules
+#%programs: cat
 #
 #%if: "$kms_modules"
 

@@ -4,6 +4,13 @@
 #%depends: resume
 #
 #%programs: /sbin/fsck $rootfsck $usrfsck
+#%programs: mkdir
+#%programs: mount
+#%programs: on_ac_power
+#%programs: reboot
+#%programs: showconsole
+#%programs: sed
+#%programs: udevadm
 #%if: ! "$root_already_mounted"
 #%dontshow
 #

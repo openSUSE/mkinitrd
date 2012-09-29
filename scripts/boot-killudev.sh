@@ -2,6 +2,8 @@
 #
 #%stage: setup
 #%provides: killprogs
+#%programs: kill
+#%programs: pidof
 #
 #%dontshow
 #

@@ -2,6 +2,10 @@
 #
 #%stage: boot
 #%programs: usleep
+# the following tools will be copied by other boot-*.sh scripts
+# multipath
+# vgchange
+# vgscan
 #%dontshow
 #
 ##### Device functions
