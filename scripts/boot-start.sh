@@ -2,7 +2,32 @@
 #
 #%stage: boot
 #%depends: devfunctions
-#%programs: /bin/bash /bin/umount /bin/mount /bin/mknod /bin/mkdir /bin/ln /bin/date /bin/sleep /bin/cat /bin/sed /sbin/insmod /sbin/modprobe /bin/kill /sbin/killall5 /sbin/halt /sbin/reboot /sbin/showconsole /bin/cp /sbin/pidof /bin/mv /bin/chmod /bin/rm /bin/true /bin/ls /lib/mkinitrd/bin/* /bin/dmesg
+#%programs: /lib/mkinitrd/bin/*
+#%programs: bash
+#%programs: cat
+#%programs: chmod
+#%programs: cp
+#%programs: date
+#%programs: dmesg
+#%programs: halt
+#%programs: insmod
+#%programs: kill
+#%programs: killall5
+#%programs: ln
+#%programs: ls
+#%programs: mkdir
+#%programs: mknod
+#%programs: modprobe
+#%programs: mount
+#%programs: mv
+#%programs: pidof
+#%programs: reboot
+#%programs: rm
+#%programs: sed
+#%programs: showconsole
+#%programs: sleep
+#%programs: true
+#%programs: umount
 #%modules: $RESOLVED_INITRD_MODULES
 #%udevmodules: $RESOLVED_INITRD_MODULES_UDEV
 #%dontshow

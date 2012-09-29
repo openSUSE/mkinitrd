@@ -1,8 +1,9 @@
 #!/bin/bash
 #%stage: device
 #%depends: ibft
-#%programs: /sbin/dhcpcd /sbin/ip
+#%programs: dhcpcd
 #%programs: ifup
+#%programs: ip
 # dhcpcd reqires the af_packet module
 #%modules: af_packet $bonding_module
 #%udevmodules: $drvlink

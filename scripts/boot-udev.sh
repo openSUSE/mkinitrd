@@ -1,7 +1,10 @@
 #!/bin/bash
 #%stage: boot
 #%depends: start dm
-#%programs: /sbin/udevd /sbin/udevadm /bin/uname /sbin/blkid
+#%programs: blkid
+#%programs: udevadm
+#%programs: udevd
+#%programs: uname
 #%dontshow
 #
 ##### udev initialization

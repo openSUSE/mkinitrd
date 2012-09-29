@@ -4,7 +4,8 @@
 #%depends: network
 #
 #%modules: netconsole
-#%programs: ping arp
+#%programs: arp
+#%programs: ping
 #%if: "$interface" -a "$NETCONSOLE"
 #
 ##### network console

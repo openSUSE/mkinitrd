@@ -3,7 +3,9 @@
 #%stage: filesystem
 #%depends: resume
 #
-#%programs: /sbin/fsck $rootfsck $usrfsck
+#%programs: fsck
+#%programs: $rootfsck
+#%programs: $usrfsck
 #%programs: mkdir
 #%programs: mount
 #%programs: on_ac_power

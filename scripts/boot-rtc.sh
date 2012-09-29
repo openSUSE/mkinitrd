@@ -4,7 +4,7 @@
 #%depends: start
 #%modules: rtc_cmos
 #%provides: rtc
-#%programs: /sbin/modprobe usleep
+#%programs: usleep
 #%if: -n "$(modprobe -C /dev/null --set-version $kernel_version --ignore-install --show-depends rtc_cmos 2>/dev/null)"
 #%dontshow
 
