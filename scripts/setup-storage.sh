@@ -76,7 +76,7 @@ beautify_blockdev() {
                 return
         esac
         # search for udev information
-        udevdevs=$(/sbin/udevadm info -q symlink --name=$olddev)
+        udevdevs=$(udevadm info -q symlink --name=$olddev)
         #   look up ata device links
         for dev in $udevdevs; do
                 if [ "$(echo $dev | grep /ata-)" ] ; then
@@ -104,7 +104,7 @@ beautify_blockdev() {
         done
 
         # get pretty name from device-mapper
-        if [ -x /sbin/dmsetup -a "$blockdriver" = "device-mapper" ]; then
+        if [ -n "$(type -p dmsetup)" -a "$blockdriver" = "device-mapper" ]; then
             dm_name=$(dmsetup info -c --noheadings -o name -j $blockmajor -m $blockminor)
             if [ "$dm_name" ] ; then
                 echo "/dev/mapper/$dm_name"
@@ -223,10 +223,10 @@ resolve_device() {
             echo "Could not expand $x to real device" >&2
             exit 1
         fi
-        realrootdev=$(/usr/bin/readlink -m $realrootdev)
+        realrootdev=$(readlink -m $realrootdev)
         ;;
       /dev/disk/*)
-        realrootdev=$(/usr/bin/readlink -m $realrootdev)
+        realrootdev=$(readlink -m $realrootdev)
         ;;
       *:*|//*)
         [ "$type" = "Root" ] && x="$rootfstype-root"
@@ -264,7 +264,7 @@ resolve_mountpoint()
     local cpio major minor x1
     local fstab_device fstab_mountpoint fstab_type fstab_options dummy
 
-    cpio=`echo "$mountpoint" | /bin/cpio --quiet -o -H newc`
+    cpio=`echo "$mountpoint" | cpio --quiet -o -H newc`
     major="$(echo $(( 0x${cpio:62:8} )) )"
     minor="$(echo $(( 0x${cpio:70:8} )) )"
 

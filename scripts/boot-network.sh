@@ -27,7 +27,7 @@ configure_static()
 {
     local ip=$1
 
-    /bin/ipconfig $ip
+    ipconfig $ip
     # dhcp information emulation
     IPADDR="${ip%%:*}"
     ip="${ip#*:}" # first entry => peeraddr
@@ -54,7 +54,7 @@ configure_dynamic()
     else
         echo "no response from dhcp server -- exiting to /bin/sh"
         cd /
-        PATH=$PATH PS1='$ ' /bin/sh -i
+        PATH=$PATH PS1='$ ' sh -i
     fi
     [ -e "/var/run/dhcpcd-$interface.pid" ] && kill -9 $(cat /var/run/dhcpcd-$interface.pid)
     if [ -n "$DNS" ]; then

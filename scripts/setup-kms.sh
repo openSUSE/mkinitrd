@@ -78,9 +78,9 @@ pciids_on_system()
     local IFS="
 "
 
-    [ -d /sys/bus/pci ] && [ -x /sbin/lspci ] || return 1
+    [ -d /sys/bus/pci ] && [ -n "$(type -p lspci)" ] || return 1
 
-    for line in $(/sbin/lspci -mn 2>/dev/null | tr "[:lower:]" "[:upper:]")
+    for line in $(lspci -mn 2>/dev/null | tr "[:lower:]" "[:upper:]")
     do
 	unset entries
 	ret=0
@@ -132,7 +132,7 @@ is_driver()
     local level=0
     local thislevel
     unset vendor device subvendor subdevice intf class
-    local pcilist=$(/sbin/modinfo -F alias -k $kernel_version $driver \
+    local pcilist=$(modinfo -F alias -k $kernel_version $driver \
 	| sed -n "s/pci:v\([0-9A-F\*]\+\)d\([0-9A-F\*]\+\)sv\([0-9A-F\*]\+\)sd\([0-9A-F\*]\+\)bc\([0-9A-F\*]\+\)sc\([0-9A-F\*]\+\)i\([0-9A-F\*]\+\).*/v=\1 d=\2 sv=\3 sd=\4 bc=\5 sc=\6 ii=\7/p")
     parse_pciids_from_driver "$pcilist"
     shopt -s nocasematch

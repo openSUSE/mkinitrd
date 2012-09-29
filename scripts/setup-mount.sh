@@ -4,27 +4,22 @@
 #
 # don't include a non-existant fsck
 
-rootfsck="/sbin/fsck.${rootfstype}"
-if [ ! -x "$rootfsck" ]; then
-    rootfsck=
+rootfsck="$(type -p fsck.${rootfstype})"
+if [ -z "$rootfsck" ]; then
     if [ "$rootfstype" != "nfs" -a "$rootfstype" != "xfs" -a "$rootfstype" != "cifs" ]; then
         echo "****************************"
         echo "*        WARNING           "
         echo "* No fsck for your rootfs  "
         echo "* could be found.          "
         echo "* This might be bad!       "
-        echo "* Please install: /sbin/fsck.$rootfstype"
+        echo "* Please install: fsck.$rootfstype"
         echo "****************************"
     fi
 fi
 
 verbose "[MOUNT] Root:\t$rootdev"
 
-usrfsck="/sbin/fsck.${usrfstype}"
-if [ ! -x "$usrfsck" ]; then
-   # just ignore it - we'll see later what happens
-   usrfsck=
-fi
+usrfsck="$(type -p fsck.${usrfstype})"
 
 for file in {/usr,}/bin/on_ac_power; do
     if test -e $file; then

@@ -28,6 +28,7 @@
 VERSION=2.7.1
 LOGDIR=/var/log/YaST2
 LOGFILE=$LOGDIR/mkinitrd.log
+PATH=/sbin:/usr/sbin:$PATH
 declare -a cmd_option
 declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name cmd_param_is_array
 shopt -s nullglob
@@ -102,7 +103,8 @@ beautify() {
     fi
 }
 
-[ -x /usr/bin/nroff -a -t 1 ] && nroff=1
+nroff=$(type -p nroff)
+[ -n "$nroff" -a -t 1 ] && nroff=1
 
 usage() {
 
@@ -144,10 +146,10 @@ EOF
 kernel_version_from_image() {
     local kernel_image=$1 kernel_image_gz=${1//uImage/vmlinux}.gz
 
-    if /sbin/get_kernel_version "$kernel_image" 2>/dev/null; then
+    if get_kernel_version "$kernel_image" 2>/dev/null; then
         return
     fi
-    /sbin/get_kernel_version "$kernel_image_gz" 2>/dev/null
+    get_kernel_version "$kernel_image_gz" 2>/dev/null
 }
 
 default_kernel_images() {
@@ -409,8 +411,6 @@ image_inodes=2048
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # should be nothing to change below...
 
-PATH=/sbin:/usr/sbin:$PATH
-
 # Fixup old installations
 unset CDPATH
 
@@ -526,7 +526,7 @@ scripts_mtime=${scripts_mtime%.*}
 setup_mtime=${setup_mtime%.*}
 boot_mtime=${boot_mtime%.*}
 if [ "$scripts_mtime" -gt "$setup_mtime" ] || [ "$scripts_mtime" -gt "$boot_mtime" ] ; then
-    /sbin/mkinitrd_setup
+    mkinitrd_setup
 fi
 
 #boot_modules="$modules"
@@ -566,13 +566,13 @@ done
 
 cleanup_finish
 
-if [ ! -x /sbin/update-bootloader ] ; then
+if [ -z "$(type -p update-bootloader)" ] ; then
     no_bootloader_update=1
 fi
 
 if [ "$exit_code" -eq 0 ] ; then
     if [ -z "$no_bootloader_update" ] ; then
-        /sbin/update-bootloader --refresh
+        update-bootloader --refresh
 	exit_code=$?
     else
         echo 2>&1 "Don't refresh the bootloader. You may have to do " \

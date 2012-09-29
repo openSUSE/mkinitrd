@@ -30,6 +30,6 @@ fi
 . /etc/rc.status
 echo "Removing old kernel packages..."
 rm -f /boot/do_purge_kernels
-/sbin/purge-kernels
+purge-kernels
 rc_status -v
 rc_exit

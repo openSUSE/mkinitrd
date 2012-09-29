@@ -60,10 +60,10 @@ read_only=${cmd_ro}
 if ! discover_root ; then
     echo "not found -- exiting to /bin/sh"
     cd /
-    PATH=$PATH PS1='$ ' /bin/sh -i
+    PATH=$PATH PS1='$ ' sh -i
 fi
 
-sysdev=$(/sbin/udevadm info -q path -n $rootdev)
+sysdev=$(udevadm info -q path -n $rootdev)
 # Fallback if rootdev is not controlled by udev
 if [ $? -ne 0 ] && [ -b "$rootdev" ] ; then
     devn=$(devnumber $rootdev)
@@ -76,20 +76,21 @@ if [ $? -ne 0 ] && [ -b "$rootdev" ] ; then
     unset maj
     unset min
 fi
-if [ -z "$rootfstype" -a -x /sbin/udevadm -a -n "$sysdev" ]; then
-    eval $(/sbin/udevadm info -q env -p $sysdev | sed -n '/ID_FS_TYPE/p')
+if [ -z "$rootfstype" -a -n "$(type -p udevadm)" -a -n "$sysdev" ]; then
+    eval $(udevadm info -q env -p $sysdev | sed -n '/ID_FS_TYPE/p')
     rootfstype=$ID_FS_TYPE
     [ -n "$rootfstype" ] && [ "$rootfstype" = "unknown" ] && rootfstype=
     ID_FS_TYPE=
 fi
 
+oacp=$(type -p on_ac_power)
 # check filesystem if possible
 if [ -z "$rootfstype" ]; then
     echo "invalid root filesystem -- exiting to /bin/sh"
     cd /
-    PATH=$PATH PS1='$ ' /bin/sh -i
+    PATH=$PATH PS1='$ ' sh -i
 # skip fsck if running on battery                                                                                                                                         
-elif [ -x /usr/bin/on_ac_power ] && ! /usr/bin/on_ac_power -q ; then
+elif [ -n "${oacp}" ] && ! ${oacp} -q ; then
     echo skipping fsck because running on batteries 
 # don't run fsck in the kdump kernel
 elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
@@ -98,7 +99,7 @@ elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # Display progress bar if possible
     fsckopts="-V -a"
     [ "$forcefsck" ] && fsckopts="$fsckopts -f"
-    console=`/sbin/showconsole`
+    console=`showconsole`
     [ "${console##*/}" = "tty1" ] && fsckopts="$fsckopts -C"
     # Check external journal for reiserfs
     [ "$rootfstype" = "reiserfs" -a -n "$journaldev" ] && fsckopts="-j $journaldev $fsckopts"
@@ -114,7 +115,7 @@ elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
         # reboot needed
         echo "fsck succeeded, but reboot is required."
         echo "Rebooting system."
-        /bin/reboot -d -f
+        reboot -d -f
     elif [ $ROOTFS_FSCK -gt 3 ] ; then
         echo "fsck failed. Mounting root device read-only."
         read_only=1
@@ -152,7 +153,7 @@ mount $opt $rootdev /root
 if [ $? -ne 0 ] ; then
     echo "could not mount root filesystem -- exiting to /bin/sh"
     cd /
-    PATH=$PATH PS1='$ ' /bin/sh -i
+    PATH=$PATH PS1='$ ' sh -i
 fi
 
 unset discover_root

@@ -14,7 +14,7 @@
 ##
 
 wait_for_events() {
-    /sbin/udevadm settle --timeout=$udev_timeout
+    udevadm settle --timeout=$udev_timeout
 }
 
 # Check for debugging
@@ -26,7 +26,7 @@ fi
 
 # Start udev
 echo "Creating device nodes with udev"
-/sbin/udevd --daemon
-/sbin/udevadm trigger --action=add
-/sbin/udevadm trigger --type=subsystems --action=add
+udevd --daemon
+udevadm trigger --action=add
+udevadm trigger --type=subsystems --action=add
 wait_for_events

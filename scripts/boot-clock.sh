@@ -12,7 +12,7 @@ then
 	while read line
 	do  if test "$line" = LOCAL
 	    then
-		/bin/warpclock
+		warpclock
 		> /dev/shm/warpclock
 	    fi
 	done < /etc/adjtime
@@ -20,7 +20,7 @@ then
     then
 	. /etc/sysconfig/clock
 	case "$HWCLOCK" in
-	*-l*) /bin/warpclock
+	*-l*) warpclock
 	   > /dev/shm/warpclock
 	esac
     fi

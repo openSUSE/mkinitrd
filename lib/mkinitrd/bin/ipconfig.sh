@@ -73,12 +73,12 @@ fi
 
 # Configure the interface
 if [ "$peer" ] ; then
-    /sbin/ip addr add ${client} peer ${peer}/$prefix dev $dev
+    ip addr add ${client} peer ${peer}/$prefix dev $dev
 else
-    /sbin/ip addr add ${client}/${prefix} dev $dev
+    ip addr add ${client}/${prefix} dev $dev
 fi
-/sbin/ip link set $dev up
+ip link set $dev up
 
 if [ "$gateway" ]; then
-    /sbin/ip route add to default via ${gateway}
+    ip route add to default via ${gateway}
 fi

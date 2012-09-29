@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Sep 29 21:41:09 CEST 2012 - ohering@suse.de
+
+- remove usage of absolute paths for executables
+
+-------------------------------------------------------------------
 Fri Sep 28 23:20:23 CEST 2012 - ohering@suse.de
 
 - update cp_bin to handle symlinks properly (bnc#778149)

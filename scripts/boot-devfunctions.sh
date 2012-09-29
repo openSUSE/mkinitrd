@@ -72,7 +72,7 @@ check_for_device() {
                         echo " ok"
                         retval=0
                         break;
-                    elif [ -x /sbin/multipath ] ; then
+                    elif [ -n "$(type -p multipath)" ] ; then
                         if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
                             vgchange --sysinit -a n
                         fi
@@ -103,7 +103,7 @@ check_for_device() {
             fi
         done
     fi
-    if [ -x /sbin/multipath ] && [ -n "$vg_root" -a -n "$vg_roots" ] ; then
+    if [ -n "$(type -p multipath)" ] && [ -n "$vg_root" -a -n "$vg_roots" ] ; then
         echo "Resetting LVM for multipath"
         vgchange --sysinit -a n
         multipath -v 0

@@ -78,19 +78,19 @@ selinux_load_policy()
 # Mount the /usr filesystem if possible
 # XXX: handle journaldev for the /usr device separately
 if test -n "$usrdev"; then
-        if /sbin/fsck -t $usrfstype $fsckopts $usrdev; then
+        if fsck -t $usrfstype $fsckopts $usrdev; then
             echo "Mounting /usr"
             fsoptions=$(get_options_from_fstab "/usr")
             if [ "$fsoptions" ]; then
                   fsoptions="-o $fsoptions"
             fi
-            /bin/mount -t $usrfstype $fsoptions $usrdev /root/usr
+            mount -t $usrfstype $fsoptions $usrdev /root/usr
         fi
 fi
 
 # Move device nodes
-/bin/mount --move /dev /root/dev
-/bin/mount -t proc proc /root/proc
+mount --move /dev /root/dev
+mount -t proc proc /root/proc
 if [ -d /root/run ]; then
 	mount --move /run /root/run
 else
@@ -112,6 +112,6 @@ unset check_for_device
 ROOTFS_BLKDEV="$rootdev"
 export ROOTFS_BLKDEV
 
-exec /bin/run-init -c ./dev/console /root $init ${kernel_cmdline[@]}
+exec run-init -c ./dev/console /root $init ${kernel_cmdline[@]}
 echo could not exec run-init!
 die 0
