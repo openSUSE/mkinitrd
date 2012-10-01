@@ -13,7 +13,6 @@
 #%programs: mount
 #%programs: showconsole
 #%programs: sleep
-#%programs: true
 #%programs: umount
 
 # tools used by linuxrc/init

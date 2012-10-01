@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct  1 14:40:31 CEST 2012 - ohering@suse.de
+
+- remove true(1) from program tags, functionality is provided by a script
+
+-------------------------------------------------------------------
 Mon Oct  1 10:05:20 CEST 2012 - ohering@suse.de
 
 - replace cp_bin usage in setup-network.sh with programs tags
