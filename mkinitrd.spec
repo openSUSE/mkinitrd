@@ -100,10 +100,15 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
+mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/bin
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates
 cp -a scripts/*.sh $RPM_BUILD_ROOT/lib/mkinitrd/scripts/
-cp -a lib/mkinitrd/bin $RPM_BUILD_ROOT/lib/mkinitrd/bin
+for i in lib/mkinitrd/bin/*
+do
+    n=`echo $i | sed 's@.sh$@@'`
+    cp -a $i $RPM_BUILD_ROOT/$n
+done
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
 install -D -m 644 man/mkinitrd.5 $RPM_BUILD_ROOT/%{_mandir}/man5/mkinitrd.5
