@@ -401,9 +401,6 @@ if [ -z "$kernel_images" -o -z "$initrd_images" ]; then
     default_kernel_images
 fi
 
-initrd_insmod=/sbin/insmod
-initrd_modprobe=/sbin/modprobe
-
 # maximum initrd size
 image_blocks=40960
 image_inodes=2048
