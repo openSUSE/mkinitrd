@@ -308,13 +308,6 @@ for f in /{lib,etc}/udev/rules.d/77-network.rules; do
     fi
     cp --parents "$f" $tmp_mnt/
 done
-# awk points to alternatives, need the directory
-mkdir -p $tmp_mnt/etc/alternatives
-cp_bin /bin/awk $tmp_mnt/bin/awk
-cp_bin /bin/grep $tmp_mnt/bin/grep
-cp_bin /sbin/ifup $tmp_mnt/sbin/ifup
-cp_bin /bin/logger $tmp_mnt/bin/logger
-cp_bin /bin/touch $tmp_mnt/bin/touch
 
 test -n "$static_interfaces" && verbose "[NETWORK]\tstatic: $static_interfaces"
 test -n "$dhcp_interfaces" && verbose "[NETWORK]\tdynamic: $dhcp_interfaces"

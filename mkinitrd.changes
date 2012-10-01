@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct  1 10:05:20 CEST 2012 - ohering@suse.de
+
+- replace cp_bin usage in setup-network.sh with programs tags
+
+-------------------------------------------------------------------
 Sat Sep 29 23:33:58 CEST 2012 - ohering@suse.de
 
 - move some programs tags from boot-start.sh to boot-shell.sh

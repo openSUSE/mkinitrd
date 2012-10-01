@@ -4,6 +4,11 @@
 #%programs: dhcpcd
 #%programs: ifup
 #%programs: ip
+# tools used by ifup
+#%programs: awk
+#%programs: grep
+#%programs: logger
+#%programs: touch
 # dhcpcd reqires the af_packet module
 #%modules: af_packet $bonding_module
 #%udevmodules: $drvlink
