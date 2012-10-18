@@ -112,8 +112,9 @@ done
 make -C sbin DESTDIR=$RPM_BUILD_ROOT install
 chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
 install -D -m 644 man/mkinitrd.5 $RPM_BUILD_ROOT/%{_mandir}/man5/mkinitrd.5
-install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
+install -D -m 644 man/cmdinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/cmdinitrd.8
 install -D -m 644 man/lsinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/lsinitrd.8
+install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
 mkdir -p $RPM_BUILD_ROOT/etc/rpm
 cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 #
@@ -174,6 +175,7 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %_unitdir/purge-kernels.service
 /lib/mkinitrd/scripts/*.sh
 /lib/mkinitrd/bin/*
+/bin/cmdinitrd
 /bin/lsinitrd
 /sbin/mkinitrd
 /sbin/mkinitrd_setup
@@ -182,7 +184,8 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 /sbin/purge-kernels
 /var/adm/fillup-templates/sysconfig.kernel-%name
 %doc %{_mandir}/man5/mkinitrd.5.gz
-%doc %{_mandir}/man8/mkinitrd.8.gz
+%doc %{_mandir}/man8/cmdinitrd.8.gz
 %doc %{_mandir}/man8/lsinitrd.8.gz
+%doc %{_mandir}/man8/mkinitrd.8.gz
 
 %changelog

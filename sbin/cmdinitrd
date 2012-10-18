@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# lsinitrd - show contents of an initrd image
+# cmdinitrd - use command on contents of an initrd image
 #
-# Copyright (C) 2008 SuSE Linux Products GmbH, Nuernberg, Germany
+# Copyright (C) 2012 SuSE Linux Products GmbH, Nuernberg, Germany
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,34 +25,57 @@
 #
 
 usage() {
-    echo "Usage: lsinitrd [-l] [-h] [-c] <initrd>"
+    echo "Usage: cmdinitrd <initrd> <cmd> [<opt>] <file> [<local>]"
 }
 
-config=0
+initrd="${1}"
+infile=
+typeset -a argv=()
+typeset -i argc=0
+shift
+
 while [ "$1" ] ; do
     case $1 in
-        -l|--long)
-            verbose=1
-            shift
-            ;;
-        -c|--config)
-            config=1
-            shift
-            ;;
-        -h)
-            usage
-            exit 1
-            ;;
         -*)
-            echo "Unknown option $1"
-            usage
-            exit 1
-            ;;
-        *)
-            break;
-            ;;
+	    argv[$argc]="$1"
+	    let argc++;
+	    shift
+	    ;;
+	*)  if ((argc == 0)) ; then
+		    argv[0]="$1"
+		    let argc++;
+		    shift
+	    else
+		    infile="$1"
+		    shift
+		    break
+	    fi
     esac
 done
+
+if [ -z "$initrd" ] ; then
+    echo "No initrd file specified"
+    usage
+    exit 1
+fi
+
+if [ ! -e "$initrd" ] ; then
+    echo "No initrd file \`$initrd' found"
+    usage
+    exit 1
+fi
+
+if [ -z "$infile" ] ; then
+    echo "No file of the initrd image specified"
+    usage
+    exit 1
+fi
+
+if ! type -p ${argv[0]} &> /dev/null ; then
+    echo "No command \`${argv[0]}' found"
+    usage
+    exit 1
+fi
 
 uncomp()
 {
@@ -66,28 +89,8 @@ uncomp()
 	command $uncompress -cdfq < "$1"
 }
 
+case "${argv[0]##*/}" in
+    diff)   test -n "$1" || set -- $infile ;;
+esac
 
-initrd=$1
-
-if [ -z "$initrd" ] ; then
-    echo "No initrd file specified"
-    usage
-    exit 1
-fi
-
-if [ "$verbose" ] ; then
-    args="-tv"
-else
-    args="-t"
-fi
-
-if [ "$config" -eq 1 ] ; then
-    # yes, that's snow, but doesn't use any temporary files :)
-    for configfile in $(uncomp $initrd | exec cpio --quiet -t | exec grep '^config/') ; do
-        echo "=========> $configfile <============"
-        uncomp $initrd | exec cpio --quiet -i --to-stdout $configfile
-        echo
-    done
-else
-    uncomp $initrd | exec cpio --quiet $args
-fi
+uncomp "$initrd" | exec cpio --quiet -i --to-stdout "${infile#/}" | exec ${argv[@]} - ${1+"$@"}
