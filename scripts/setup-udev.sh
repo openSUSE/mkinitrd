@@ -44,8 +44,4 @@ for rule in \
     fi
 done
 
-for bin in /sbin/blkid; do
-    cp_bin $bin ${tmp_mnt}${bin}
-done
-
 save_var udev_timeout

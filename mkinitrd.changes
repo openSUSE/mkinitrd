@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov  8 15:41:34 CET 2012 - ohering@suse.de
+
+- remove blkid handling from setup-udev.sh
+  it is already handled in boot-udev.sh
+
+-------------------------------------------------------------------
 Tue Oct 16 13:46:06 UTC 2012 - fcrozat@suse.com
 
 - handle udev from systemd 195.
