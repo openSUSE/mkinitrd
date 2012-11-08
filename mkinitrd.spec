@@ -1,7 +1,7 @@
 #
 # spec file for package mkinitrd
 #
-# Copyright (c) 2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2012 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -15,32 +15,40 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-# norootforbuild
-
 
 Name:           mkinitrd
-License:        GPL-2.0+
-Group:          System/Base
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
-BuildRequires:  asciidoc libxslt
+BuildRequires:  asciidoc
+BuildRequires:  libxslt
 %if 0%{?suse_version} >= 1210
-BuildRequires: systemd
+BuildRequires:  systemd
 %{?systemd_requires}
 %endif
-Requires:       coreutils modutils util-linux grep gzip sed cpio udev file perl-Bootloader
+Requires:       coreutils
+Requires:       cpio
+Requires:       file
+Requires:       grep
+Requires:       gzip
+Requires:       modutils
+Requires:       perl-Bootloader
+Requires:       sed
+Requires:       udev
+Requires:       util-linux
 Requires:       xz
 %if 0%{?suse_version} > 1120
-Requires:       sysvinit-tools sbin_init
+Requires:       sbin_init
+Requires:       sysvinit-tools
 %else
 Requires:       sysvinit
 %endif
-AutoReqProv:    on
 Version:        @@VERSION@@
-Release:        3
+Release:        0
 Conflicts:      udev < 118
 Requires:       dhcpcd
 PreReq:         %fillup_prereq
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
+License:        GPL-2.0+
+Group:          System/Base
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        mkinitrd.tar.bz2
 # Note: the whole package is maintained in this git repository, please
