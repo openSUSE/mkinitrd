@@ -7,9 +7,22 @@
 # Default udev timeout is 30 seconds
 udev_timeout=30
 
+mkdir -p $tmp_mnt/usr/lib/udev $tmp_mnt/usr/lib/systemd
+mkdir -p $tmp_mnt/lib/udev
+
+# copy helper
+for script in /usr/lib/udev/* /lib/udev/* /sbin/*_id ; do
+    if [ ! -d "$script" ] && [ -x "$script" ] ; then
+        cp_bin $script ${tmp_mnt}${script}
+    elif [ -f "$script" ] ; then
+        cp -pL $script ${tmp_mnt}${script}
+    fi
+done
+
+# copy needed rules
+mkdir -p $tmp_mnt/usr/lib/udev/rules.d
 mkdir -p $tmp_mnt/lib/udev/rules.d
 mkdir -p $tmp_mnt/etc/udev/rules.d
-# copy needed rules
 for rule in \
     05-udev-early.rules \
     50-udev-default.rules \
@@ -22,19 +35,12 @@ for rule in \
     64-md-raid.rules \
     79-kms.rules \
     80-drivers.rules; do
-    if [ -f /lib/udev/rules.d/$rule ]; then
+    if [ -f /usr/lib/udev/rules.d/$rule ]; then
+        cp /usr/lib/udev/rules.d/$rule $tmp_mnt/usr/lib/udev/rules.d
+    elif [ -f /lib/udev/rules.d/$rule ]; then
         cp /lib/udev/rules.d/$rule $tmp_mnt/lib/udev/rules.d
     elif [ -f /etc/udev/rules.d/$rule ]; then
         cp /etc/udev/rules.d/$rule $tmp_mnt/etc/udev/rules.d
-    fi
-done
-# copy helper
-mkdir -p $tmp_mnt/lib/udev
-for script in /lib/udev/* /sbin/*_id ; do
-    if [ ! -d "$script" ] && [ -x "$script" ] ; then
-        cp_bin $script ${tmp_mnt}${script}
-    elif [ -f "$script" ] ; then
-        cp -pL $script ${tmp_mnt}${script}
     fi
 done
 

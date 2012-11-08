@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 16 13:46:06 UTC 2012 - fcrozat@suse.com
+
+- handle udev from systemd 195.
+
+-------------------------------------------------------------------
 Mon Oct  1 15:05:46 CEST 2012 - ohering@suse.de
 
 - install ipconfig.sh as ipconfig, so that only one copy gets
