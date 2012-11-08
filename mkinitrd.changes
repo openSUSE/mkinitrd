@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov  8 15:51:38 CET 2012 - ohering@suse.de
+
+- wrap "_unitdir" file list entry in a suse_version check
+
+-------------------------------------------------------------------
 Thu Nov  8 15:41:34 CET 2012 - ohering@suse.de
 
 - remove blkid handling from setup-udev.sh

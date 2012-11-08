@@ -180,7 +180,9 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %config /etc/rpm/macros.mkinitrd
 /etc/init.d/boot.loadmodules
 /etc/init.d/purge-kernels
+%if 0%{?suse_version} >= 1210
 %_unitdir/purge-kernels.service
+%endif
 /lib/mkinitrd/scripts/*.sh
 /lib/mkinitrd/bin/*
 /bin/cmdinitrd
