@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov  9 18:37:49 CET 2012 - ohering@suse.de
+
+- Version 2.7.2.
+
+-------------------------------------------------------------------
 Fri Nov  9 18:35:28 CET 2012 - ohering@suse.de
 
 - put udev related files into /usr/lib/udev
