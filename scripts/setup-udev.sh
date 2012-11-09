@@ -7,8 +7,11 @@
 # Default udev timeout is 30 seconds
 udev_timeout=30
 
-mkdir -p $tmp_mnt/usr/lib/udev $tmp_mnt/usr/lib/systemd
-mkdir -p $tmp_mnt/lib/udev
+mkdir -p $tmp_mnt/etc/udev/rules.d
+mkdir -p $tmp_mnt/usr/lib/udev/rules.d
+mkdir -p $tmp_mnt/usr/lib/systemd
+mkdir -p $tmp_mnt/lib
+ln -sfn ../usr/lib/udev $tmp_mnt/lib/udev
 
 # copy helper
 for script in /usr/lib/udev/* /lib/udev/* /sbin/*_id ; do
@@ -20,9 +23,6 @@ for script in /usr/lib/udev/* /lib/udev/* /sbin/*_id ; do
 done
 
 # copy needed rules
-mkdir -p $tmp_mnt/usr/lib/udev/rules.d
-mkdir -p $tmp_mnt/lib/udev/rules.d
-mkdir -p $tmp_mnt/etc/udev/rules.d
 for rule in \
     05-udev-early.rules \
     50-udev-default.rules \

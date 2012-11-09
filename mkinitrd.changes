@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov  9 18:35:28 CET 2012 - ohering@suse.de
+
+- put udev related files into /usr/lib/udev
+  create /lib/udev as symlink
+
+-------------------------------------------------------------------
 Thu Nov  8 15:51:38 CET 2012 - ohering@suse.de
 
 - wrap "_unitdir" file list entry in a suse_version check
