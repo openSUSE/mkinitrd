@@ -23,7 +23,8 @@ usage() {
     echo "Usage: lsinitrd [-l] [-h] [-c] <initrd>"
 }
 
-config=0
+verbose=
+config=
 while [ "$1" ] ; do
     case $1 in
         -l|--long)
@@ -76,7 +77,7 @@ else
     args="-t"
 fi
 
-if [ "$config" -eq 1 ] ; then
+if [ "$config" ] ; then
     # yes, that's snow, but doesn't use any temporary files :)
     for configfile in $(uncomp $initrd | exec cpio --quiet -t | exec grep '^config/') ; do
         echo "=========> $configfile <============"
