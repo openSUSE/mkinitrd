@@ -375,6 +375,10 @@ for module in $resolved_modules; do
 			has_firmware=true
                     fi
                     echo -n "$fw "
+                    if test -e "$dir/$subdir/$fw.sig"; then
+                        cp -p --parents "$_" "$tmp_mnt"
+                        echo -n "$fw.sig "
+                    fi
                 fi
             done
         done
