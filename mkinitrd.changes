@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec  7 05:16:54 CET 2012 - jlee@suse.com
+
+- mkinitrd: copy firmware signature files to initrd (fate#314574).
+
+-------------------------------------------------------------------
 Fri Nov  9 18:37:49 CET 2012 - ohering@suse.de
 
 - Version 2.7.2.
