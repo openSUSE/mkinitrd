@@ -63,4 +63,10 @@ if [ -d $ibft_nic ]; then
     interface=$(ibft_get_ethdev)
     macaddress=$(ibft_get_att mac)
     InitiatorName=$(ibft_get_initiatorname)
+    if [ $nettype = 'dhcp' ] ; then
+	dhcp_macaddresses="$interface:$macaddress $dhcp_macaddresses"
+    else
+	static_macaddresses="$interface:$macaddress $static_macaddresses"
+	static_ips="$ip $static_ips"
+    fi
 fi

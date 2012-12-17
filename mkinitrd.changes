@@ -40,6 +40,12 @@ Mon Dec 17 16:07:27 UTC 2012 - mmarek@suse.cz
 - Fix typo in purge-kernels.service (bnc#792925).
 
 -------------------------------------------------------------------
+Mon Dec 17 14:55:27 UTC 2012 - lduncan@suse.com
+
+- Handle moving ibft interface between interfaces and subnets
+  (bnc#755642).
+
+-------------------------------------------------------------------
 Fri Dec  7 05:16:54 CET 2012 - jlee@suse.com
 
 - mkinitrd: copy firmware signature files to initrd (fate#314574).
