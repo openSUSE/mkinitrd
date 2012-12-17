@@ -181,7 +181,7 @@ if [ "$interface" = "default" ]; then
     if test -z "$static_interfaces$dhcp_interfaces"; then
         ifspec=$(get_default_interface)
         case "${ifspec##*/}" in
-            dhcp*)
+            dhcp*|ibft*)
                 dhcp_interfaces=${ifspec%%/*}
                 ;;
             *)
@@ -198,7 +198,7 @@ for iface in $interface; do
         eval $(grep BOOTPROTO "$cfg")
     fi
     case "$BOOTPROTO" in
-    dhcp*)
+    dhcp*|ibft*)
         dhcp_interfaces="$dhcp_interfaces $iface"
         ;;
     *)
