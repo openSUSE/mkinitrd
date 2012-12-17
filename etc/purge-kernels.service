@@ -1,11 +1,11 @@
 [Unit]
 Description=Purge old kernels
 After=local_fs.target
-ConditionPathExists=/boot/do_pure_kernels
+ConditionPathExists=/boot/do_purge_kernels
 
 [Service]
 Type=oneshot
-ExecStartPre=/bin/rm -f /boot/do_pure_kernels
+ExecStartPre=/bin/rm -f /boot/do_purge_kernels
 ExecStart=/sbin/purge-kernels
 
 [Install]
