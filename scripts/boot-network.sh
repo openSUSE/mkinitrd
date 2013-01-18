@@ -3,7 +3,7 @@
 #%depends: ibft
 #%programs: /sbin/dhcpcd /sbin/ip
 # dhcpcd reqires the af_packet module
-#%modules: af_packet $bonding_module
+#%modules: af_packet $drvlink_manual
 #%udevmodules: $drvlink
 #%if: "$interface" -o "$dhcp" -o "$ip" -o "$nfsaddrs" -o "$drvlink"
 #
@@ -117,6 +117,29 @@ configure_bonding()
     done
 }
 
+# configure_vlan iface "etherdev:eth0~vlanid:N"
+configure_vlan()
+{
+    local iface=$1 config=$2 etherdev vlanid
+
+    local saveifs="$IFS"
+    local IFS='~'
+    set -- $config
+    IFS="$saveifs"
+    for param; do
+        value=${param#*:}
+        case "$param" in
+        etherdev:*)
+            etherdev=$value
+            ;;
+        vlanid:*)
+            vlanid=$value
+            ;;
+        esac
+    done
+    ip link set "$etherdev" up
+    ip link add link "$etherdev" name "$iface" type vlan id "$vlanid"
+}
 
 # macaddr2if eth0:00:00:de:ad:be:ef
 macaddr2if()
@@ -151,6 +174,11 @@ for macaddr in $static_macaddresses -- $dhcp_macaddresses; do
         iface=${macaddr#*:}
         var=bonding_$iface
         configure_bonding "$iface" "${!var}"
+        ;;
+    VLAN:*)
+        iface=${macaddr#*:}
+        var=vlan_$iface
+        configure_vlan "$iface" "${!var}"
         ;;
     *)
         iface=$(macaddr2if "$macaddr")

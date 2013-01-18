@@ -243,8 +243,7 @@ for iface in $static_interfaces -- $dhcp_interfaces; do
         fi
     elif [ -d /sys/class/net/$iface/bonding ] ; then
         verbose "[NETWORK]\tConfigure bonding for $iface"
-        bonding_module=bonding
-        drvlink="$drvlink bonding"
+        drvlink_manual="$drvlink_manual bonding"
         config=
         for param in mode miimon arp_interval arp_ip_target; do
             config="${config:+$config~}$param:$(< /sys/class/net/$iface/bonding/$param)"
@@ -262,6 +261,21 @@ for iface in $static_interfaces -- $dhcp_interfaces; do
         else
             dhcp_macaddresses="$dhcp_macaddresses BONDING:$iface"
         fi
+    elif test -n "$(. /etc/sysconfig/network/ifcfg-$iface; echo $VLAN_ID)"; then
+        verbose "[NETWORK]\tConfigure vlan $iface"
+        drvlink_manual="$drvlink_manual 8021q"
+        etherdev=$(. /etc/sysconfig/network/ifcfg-$iface; echo $ETHERDEVICE)
+        vlanid=$(. /etc/sysconfig/network/ifcfg-$iface; echo $VLAN_ID)
+        drvlink="$drvlink $(get_network_module $etherdev)"
+        read vlan_$iface <<<"etherdev:$etherdev~vlanid:$vlanid"
+        save_var vlan_$iface
+        if $static; then
+            static_macaddresses="$static_macaddresses VLAN:$iface"
+        else
+            dhcp_macaddresses="$dhcp_macaddresses VLAN:$iface"
+        fi
+    else
+        echo "WARNING: Unhandled interface: $iface" >&2
     fi
 done
 
@@ -323,6 +337,6 @@ save_var static_macaddresses
 save_var static_ips
 save_var dhcp_macaddresses
 save_var drvlink
-save_var bonding_module
+save_var drvlink_manual
 
 # vim:sw=4:et
