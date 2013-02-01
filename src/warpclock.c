@@ -81,7 +81,7 @@ int main()
     struct timezone zone;
     time_t now, delta, gmtoff;
     struct stat st;
-    int universal = 1;
+    int universal = 0;
     int count, adj;
 
     err = "warpclock: /etc/localtime";

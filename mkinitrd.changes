@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb  1 19:04:15 CET 2013 - werner@suse.de
+
+- Fix boolean typo that is assume local time as default in warpclock.
+
+-------------------------------------------------------------------
 Mon Dec 17 16:07:27 UTC 2012 - mmarek@suse.cz
 
 - Fix typo in purge-kernels.service (bnc#792925).
