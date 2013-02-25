@@ -552,7 +552,12 @@ if [ "$exit_code" -eq 0 ] ; then
         /sbin/update-bootloader --refresh
 	exit_code=$?
     else
-        echo 2>&1 "Did not refresh the bootloader. You might need to refresh it manually."
+        case " $ADDITIONAL_FEATURES " in
+        *\ kdump\ *)
+            ;;
+        *)
+            echo 2>&1 "Did not refresh the bootloader. You might need to refresh it manually."
+        esac
     fi
 fi
 

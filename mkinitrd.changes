@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 25 14:27:14 UTC 2013 - mmarek@suse.cz
+
+- Do not tell the user to refresh the bootloader when generating the
+  kdump initrd. Also, fix the wording of the message (bnc#801984).
+
+-------------------------------------------------------------------
 Mon Dec 17 14:55:27 UTC 2012 - lduncan@suse.com
 
 - Handle moving ibft interface between interfaces and subnets
