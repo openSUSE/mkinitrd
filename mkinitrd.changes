@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 25 14:27:14 UTC 2013 - mmarek@suse.cz
+
+- Do not tell the user to refresh the bootloader when generating the
+  kdump initrd. Also, fix the wording of the message (bnc#801984).
+
+-------------------------------------------------------------------
 Fri Feb  1 19:04:15 CET 2013 - werner@suse.de
 
 - Fix boolean typo that is assume local time as default in warpclock.
