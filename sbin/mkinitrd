@@ -567,8 +567,7 @@ if [ "$exit_code" -eq 0 ] ; then
         update-bootloader --refresh
 	exit_code=$?
     else
-        echo 2>&1 "Don't refresh the bootloader. You may have to do " \
-                  "that manually!"
+        echo 2>&1 "Did not refresh the bootloader. You might need to refresh it manually."
     fi
 fi
 
