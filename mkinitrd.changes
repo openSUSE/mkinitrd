@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 26 16:11:51 UTC 2013 - mmarek@suse.cz
+
+- Fix typo in man lsinitrd.
+
+-------------------------------------------------------------------
 Mon Feb 25 14:27:14 UTC 2013 - mmarek@suse.cz
 
 - Do not tell the user to refresh the bootloader when generating the
