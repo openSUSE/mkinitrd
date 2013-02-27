@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 27 19:41:38 CET 2013 - agraf@suse.de
+
+- Add support for zImage on ARM
+
+-------------------------------------------------------------------
 Tue Feb 26 16:11:51 UTC 2013 - mmarek@suse.cz
 
 - Fix typo in man lsinitrd.
