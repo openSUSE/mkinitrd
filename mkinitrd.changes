@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  6 19:40:12 CET 2013 - ohering@suse.de
+
+- Include hyperv_fb if running in hyper-v guest (fate#314862)
+
+-------------------------------------------------------------------
 Wed Feb 27 19:41:38 CET 2013 - agraf@suse.de
 
 - Add support for zImage on ARM
