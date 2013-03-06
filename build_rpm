@@ -60,7 +60,15 @@ if ! git rev-parse "$BRANCH" >/dev/null; then
     exit 1
 fi
 
-rm -f "$DESTDIR"/*
+if test -f "$DESTDIR"/_link ; then
+    osc_link="`mktemp`"
+    cat "$DESTDIR"/_link > "$osc_link"
+    rm -f "$DESTDIR"/*
+    cat "$osc_link" > "$DESTDIR"/_link
+    rm -f "$osc_link"
+else
+    rm -f "$DESTDIR"/*
+fi
 if ! mkdir -p $DESTDIR ; then
     echo "Cannot create directory $DESTDIR"
     exit 1
