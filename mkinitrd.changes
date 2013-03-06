@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  6 19:40:12 CET 2013 - ohering@suse.de
+
+- Include hyperv_fb if running in hyper-v guest (fate#314862)
+
+-------------------------------------------------------------------
 Mon Feb 25 14:27:14 UTC 2013 - mmarek@suse.cz
 
 - Do not tell the user to refresh the bootloader when generating the
