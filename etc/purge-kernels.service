@@ -1,6 +1,6 @@
 [Unit]
 Description=Purge old kernels
-After=local_fs.target
+After=local-fs.target
 ConditionPathExists=/boot/do_purge_kernels
 
 [Service]
