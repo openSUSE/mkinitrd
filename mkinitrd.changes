@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 21 15:42:49 CET 2013 - arvidjaar@gmail.com
+
+- fix wrong target dependency (local_fs -> local-fs) (bnc#787075)
+
+-------------------------------------------------------------------
 Thu Mar 21 10:02:09 UTC 2013 - mmarek@suse.cz
 
 - Use the default gzip compression level (bnc#809742).
