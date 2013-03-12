@@ -150,10 +150,9 @@ echo "Mounting root $rootdev"
 # "rootflags" command line
 if [ -n "$rootflags" ] ; then
     opt="${opt},$rootflags"
-else
-    if [ -n "$rootfsopts" ] ; then
-        opt="${opt},$rootfsopts"
-    fi
+fi
+if [ -n "$rootfsopts" ] ; then
+    opt="${opt},$rootfsopts"
 fi
 
 [ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"

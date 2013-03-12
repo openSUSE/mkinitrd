@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 12 16:17:20 CET 2013 - ohering@suse.de
+
+- Handle both rootfsopts and rootflags when looking for mount options
+
+-------------------------------------------------------------------
 Wed Mar  6 19:40:12 CET 2013 - ohering@suse.de
 
 - Include hyperv_fb if running in hyper-v guest (fate#314862)
