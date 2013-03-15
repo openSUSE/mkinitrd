@@ -148,6 +148,7 @@ macaddr2if()
 i=0
 static_ips=($static_ips)
 static=true
+static_interfaces=""
 for macaddr in $static_macaddresses -- $dhcp_macaddresses; do
     if test "x$macaddr" = "x--"; then
         static=false
@@ -172,9 +173,15 @@ for macaddr in $static_macaddresses -- $dhcp_macaddresses; do
         ip=${ip%:*}
         tmpip=${ip%:*}
         ip="${tmpip}:${iface}:${nettype}"
+        static_interfaces="$iface $static_interfaces"
 
         configure_static "$ip"
     else
+        # Skip this interface if it was already configured static
+        case " $static_interfaces " in
+        *\ $iface\ *) continue;;
+        *) ;;
+        esac
         configure_dynamic "$iface"
     fi
 done

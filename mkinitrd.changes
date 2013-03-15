@@ -4,6 +4,12 @@ Thu Mar 21 10:02:09 UTC 2013 - mmarek@suse.cz
 - Use the default gzip compression level (bnc#809742).
 
 -------------------------------------------------------------------
+Fri Mar 15 10:56:16 UTC 2013 - josef.moellers@ts.fujitsu.com
+
+- Skip static interfaces when configuring dhcp interfaces
+  (bnc#755642).
+
+-------------------------------------------------------------------
 Fri Mar 15 10:42:01 UTC 2013 - hare@suse.de
 
 - Fix boot from mdraid on top of multipath devices (bnc#784613)
