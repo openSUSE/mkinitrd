@@ -506,6 +506,11 @@ if [ "$scripts_mtime" -gt "$setup_mtime" ] || [ "$scripts_mtime" -gt "$boot_mtim
     /sbin/mkinitrd_setup
 fi
 
+if test ${#kernel_images[@]} -eq 0; then
+	cleanup_finish
+	exit 0
+fi
+
 #boot_modules="$modules"
 #echo -e "User-defined Module list:\t$boot_modules ($domu_modules)"
 for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do

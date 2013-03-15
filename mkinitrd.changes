@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 15 14:49:36 UTC 2013 - mmarek@suse.cz
+
+- Do not refresh the bootloader if no kernels are installed
+  (bnc#804398).
+
+-------------------------------------------------------------------
 Fri Mar 15 10:56:16 UTC 2013 - josef.moellers@ts.fujitsu.com
 
 - Skip static interfaces when configuring dhcp interfaces
