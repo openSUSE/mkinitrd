@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 15 10:42:01 UTC 2013 - hare@suse.de
+
+- Fix boot from mdraid on top of multipath devices (bnc#784613)
+
+-------------------------------------------------------------------
 Mon Feb 25 14:27:14 UTC 2013 - mmarek@suse.cz
 
 - Do not tell the user to refresh the bootloader when generating the
