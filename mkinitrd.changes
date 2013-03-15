@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Mar 15 10:56:16 UTC 2013 - josef.moellers@ts.fujitsu.com
+
+- Skip static interfaces when configuring dhcp interfaces
+  (bnc#755642).
+
+-------------------------------------------------------------------
+Fri Mar 15 10:42:01 UTC 2013 - hare@suse.de
+
+- Fix boot from mdraid on top of multipath devices (bnc#784613)
+
+-------------------------------------------------------------------
 Wed Mar  6 19:40:12 CET 2013 - ohering@suse.de
 
 - Include hyperv_fb if running in hyper-v guest (fate#314862)

@@ -65,6 +65,11 @@ check_for_device() {
             if [ -e "$root" ]; then
                 udev_devn=$(devnumber $root)
                 udev_major=$(devmajor $udev_devn)
+                if [ -n "$md_major" -a "$udev_major" = "$md_major" ] ; then
+                    echo " ok"
+                    retval=0
+                    break;
+                fi
                 if [ -n "$dm_major" ] ; then
                     if [ "$udev_major" == "$dm_major" ] ; then
                         echo " ok"
