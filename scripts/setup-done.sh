@@ -4,7 +4,7 @@
 #%depends: progs sharedlibs
 #
 
-COMPRESS="gzip -9"
+COMPRESS="gzip"
 
 if [[ $(uname -m) =~ ppc ]]
 then

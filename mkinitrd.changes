@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 21 10:02:09 UTC 2013 - mmarek@suse.cz
+
+- Use the default gzip compression level (bnc#809742).
+
+-------------------------------------------------------------------
 Tue Mar 12 16:17:20 CET 2013 - ohering@suse.de
 
 - Handle both rootfsopts and rootflags when looking for mount options
