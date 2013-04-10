@@ -67,9 +67,7 @@ read_only=${cmd_ro}
 
 # And now for the real thing
 if ! discover_root ; then
-    echo "not found -- exiting to /bin/sh"
-    cd /
-    PATH=$PATH PS1='$ ' sh -i
+    emergency "not found"
 fi
 
 sysdev=$(udevadm info -q path -n $rootdev)
@@ -95,9 +93,7 @@ fi
 oacp=$(type -p on_ac_power)
 # check filesystem if possible
 if [ -z "$rootfstype" ]; then
-    echo "invalid root filesystem -- exiting to /bin/sh"
-    cd /
-    PATH=$PATH PS1='$ ' sh -i
+    emergency "invalid root filesystem"
 # skip fsck if running on battery                                                                                                                                         
 elif [ -n "${oacp}" ] && ! ${oacp} -q ; then
     echo skipping fsck because running on batteries 
@@ -159,9 +155,7 @@ fi
 echo mount $opt $rootdev /root
 mount $opt $rootdev /root
 if [ $? -ne 0 ] ; then
-    echo "could not mount root filesystem -- exiting to /bin/sh"
-    cd /
-    PATH=$PATH PS1='$ ' sh -i
+    emergency "could not mount root filesystem"
 fi
 
 unset discover_root

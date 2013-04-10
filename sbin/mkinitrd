@@ -279,7 +279,7 @@ find_tmpdir()
 {
     local dir st size last_size=0
 
-    for dir in "$TMPDIR" /dev/shm /tmp /var/tmp; do
+    for dir in ${TMPDIR:-/tmp} /dev/shm /tmp /var/tmp; do
         if test ! -w "$dir"; then
             continue
         fi
@@ -306,12 +306,13 @@ find_tmpdir()
 }
 find_tmpdir
 
-work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXX)
+work_dir=$(mktemp -qd $tmp_dir/${mkinit_name}.XXXXXXXX)
 if [ $? -ne 0 ]; then
         echo "$0: Can't create temp dir, exiting." >&2
         exit 1
 fi
-
+TMPDIR=$work_dir
+export TMPDIR
 
 saved_args=$@
 read_options

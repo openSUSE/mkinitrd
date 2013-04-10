@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 10 12:57:27 CEST 2013 - werner@suse.de
+
+- Switch plymouth and/or splash off before escaping to emergency
+  shell (bnc#809812)
+
+-------------------------------------------------------------------
 Thu Mar 21 15:42:49 CET 2013 - arvidjaar@gmail.com
 
 - fix wrong target dependency (local_fs -> local-fs) (bnc#787075)

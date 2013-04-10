@@ -59,9 +59,7 @@ configure_dynamic()
     if [ -s /var/lib/dhcpcd/dhcpcd-$interface.info ] ; then
         . /var/lib/dhcpcd/dhcpcd-$interface.info
     else
-        echo "no response from dhcp server -- exiting to /bin/sh"
-        cd /
-        PATH=$PATH PS1='$ ' sh -i
+        emergency "no response from dhcp server"
     fi
     [ -e "/var/run/dhcpcd-$interface.pid" ] && kill -9 $(cat /var/run/dhcpcd-$interface.pid)
     if [ -n "$DNS" ]; then
