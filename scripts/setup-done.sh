@@ -13,8 +13,12 @@ fi
 pushd . > /dev/null 2>&1
 cd $tmp_mnt
 # suid mount will fail if mkinitrd was called as user
-find . -type f \( -perm -4000 -o -perm -2000 \) -exec chmod 755 {} \;
-find *bin usr/*bin -type f -exec chmod 755 {} \;
+find . -type f -and \( -perm -4000 -or -perm -2000 \) -exec chmod 755 {} \+
+find *bin usr/*bin -type f -exec chmod 755 {} \+
+# find any files which are only readable by owner and/or group
+# if so make initrd only radable by the (super) user
+secure=$(find etc \( -type f -or -type d \) -and \! -perm -004 2>/dev/null | wc -l)
+(($secure == 0)) || umask 0066
 if ! find . ! -name "*~" | cpio --quiet -H newc --create | $COMPRESS > $tmp_initrd
 then
     oops 8 "Failed to build initrd"
@@ -28,8 +32,7 @@ if [[ $kernel_image =~ uImage ]]; then
    tmp_initrd=$tmp_initrd.uboot
 fi
 popd > /dev/null 2>&1
-if ! cp -f $tmp_initrd $initrd_image ; then
+if ! cp -pf $tmp_initrd $initrd_image ; then
     oops 8 "Failed to install initrd"
 fi
 rm -rf $tmp_mnt
-

@@ -9,6 +9,7 @@
 #%param_M: "System.map file to use." map sysmap
 #%param_A: "Create a so called \"monster initrd\" which includes all features and modules possible."
 #%param_B: "Do not update bootloader configuration."
+#%param_P: "Do not include the password of the super user (root)."
 #%param_v: "Verbose mode."
 #%param_R: "Print release (version)."
 #%param_L: "Disable logging."
@@ -215,21 +216,44 @@ for mod in $root_dir/etc/modprobe.conf $root_dir/etc/modprobe.conf.local \
     $root_dir/etc/modprobe.d ; do
     test -e $mod && cp -r $mod $tmp_mnt/etc
 done
-cat > $tmp_mnt/bin/true <<-EOF
-#! /bin/sh
-:
-EOF
+cat > $tmp_mnt/bin/true <<-'EOF'
+	#! /bin/sh
+	:
+	EOF
 chmod +x $tmp_mnt/bin/true
 
 mkdir -p $tmp_mnt/var/log
 
+# password support only if initrd is created by super user
+(($(id -u) == 0)) || param_P=yes
+if [ -z "$param_P" ]; then
+    pw=x
+else
+    pw=
+fi
+
 # all dev nodes belong to root, but some may be
 # owned by a group other than root
-# getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
-echo 'root::0:0:::' > $tmp_mnt/etc/passwd
-echo 'nobody::65534:65533:::' >> $tmp_mnt/etc/passwd
-getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
-(echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
+#  getent --service=files passwd | \
+#  sed -n "/^\(nobody\|root\):/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1:${pw}:\2:\3::\/:/p" > $tmp_mnt/etc/passwd
+cat > $tmp_mnt/etc/passwd <<-EOF
+	root:${pw}:0:0::/:
+	nobody:${pw}:65534:65533::/:
+	EOF
+getent --service=files group | sed -n 's/^\([^:+]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/p' > $tmp_mnt/etc/group
+cat > $tmp_mnt/etc/nsswitch.conf <<-'EOF'
+	passwd: files
+	shadow: files
+	group: files
+	EOF
+if [ -z "$param_P" ]; then
+    oumask=$(umask)
+    umask 0026
+    getent --service=files shadow | \
+    sed -n '/^\(nobody\|root\):/s/^\([^:]\+\):\([^:]\+\):\([0-9]*\):.*/\1:\2:\3::::::/p' > $tmp_mnt/etc/shadow
+    chgrp shadow $tmp_mnt/etc/shadow
+    umask $oumask
+fi
 
 # scsi_id config file
 f=/etc/scsi_id.config

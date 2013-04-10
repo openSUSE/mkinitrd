@@ -14,6 +14,7 @@
 #%programs: showconsole
 #%programs: sleep
 #%programs: umount
+#%programs: sulogin
 
 # tools used by linuxrc/init
 #%programs: insmod
@@ -45,11 +46,29 @@ export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 die() {
     umount /proc
     umount /sys
-    if [ "$devpts" = "yes" ]; then
-        umount -t devpts /dev/pts
-    fi
+    umount /dev/pts
     umount /dev
     exit $1
+}
+
+emergency() {
+    local plymouth sulogin
+    if plymouth=$(type -p plymouth 2> /dev/null) ; then
+	$plymouth quit
+	$plymouth --wait
+    fi
+    if test -w /proc/splash ; then
+	echo verbose >| /proc/splash
+    fi
+    cd /
+    echo -n "${1+$@} -- "
+    if sulogin=$(type -p sulogin 2> /dev/null); then
+	echo "exiting to $sulogin"
+	PATH=$PATH PS1='$ ' $sulogin /dev/console
+    else
+	echo "exiting to /bin/sh"
+	PATH=$PATH PS1='$ ' /bin/sh -i
+    fi
 }
 
 mount -t proc proc /proc

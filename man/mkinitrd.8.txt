@@ -142,6 +142,9 @@ created.  This  is  useful if you call mkinitrd(8) not for the running system
 but for example in a spec file to pre-generate an initrd or to  generate  a
 special  kdump  initrd (which *mkdumprd*(8) does).
 
+*-P*::
+Do not include the password of the super user (root).
+
 *-A*::
 Create  a so called "monster initrd" which includes all available features and
 modules.
