@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May  6 15:37:38 CEST 2013 - agraf@suse.de
+
+- include mmc drivers in monster initrd 
+
+-------------------------------------------------------------------
 Thu May  2 13:56:26 UTC 2013 - rmilasan@suse.com
 
 - setup-storage: Support /dev/md/ subdir
