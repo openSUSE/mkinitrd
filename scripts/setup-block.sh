@@ -163,7 +163,7 @@ update_blockmodules()
 }
 
 if [ "$create_monster_initrd" ]; then
-    for d in $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi,s390/block,s390/scsi}; do
+    for d in $root_dir/lib/modules/$kernel_version/kernel/drivers/{ata,ide,scsi,s390/block,s390/scsi,mmc}; do
         if [ -d "$d" ]; then
             for i in $(find "$d" -name "*.ko" -o -name "*.ko.gz"); do
                 i="${i%*.gz}"
