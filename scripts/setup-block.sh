@@ -61,6 +61,30 @@ handle_scsi()
 }
 
 # Brief
+#       Finds additional modules required for a block backend
+#
+# Parameters:
+#       device [in]:  the device
+#       result [out]: a string with a module name
+#
+# Return value:
+#       The function always returns 0.
+#
+find_blkmodule() {
+    local blkdev="$1"
+    local devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)
+
+    while [ $(basename "$devpath") != "sys" ]; do
+        devpath=$(cd -P "$devpath/.."; echo $PWD)
+        if [ -L "$devpath/driver/module" ] ; then
+            basename $(readlink $devpath/driver/module)
+            break
+        fi
+    done
+    return 0
+}
+
+# Brief
 #       Resolves the kernel modules needed for a device
 #
 # Parameters:
@@ -124,7 +148,8 @@ get_devmodule()
             echo "[BLOCK] WARNING: Loop device detected. Include the required drivers manually." >&2
             ;;
         mmc*)
-            result=mmc_block
+            result=$(find_blkmodule "$blkdev")
+            result="$result mmc_block"
             ;;
         fio*)
             result=iomemory-vsl
