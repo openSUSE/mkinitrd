@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May  2 13:56:26 UTC 2013 - rmilasan@suse.com
+
+- setup-storage: Support /dev/md/ subdir
+
+-------------------------------------------------------------------
 Wed Apr 10 12:57:27 CEST 2013 - werner@suse.de
 
 - Switch plymouth and/or splash off before escaping to emergency

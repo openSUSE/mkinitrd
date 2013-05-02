@@ -228,6 +228,9 @@ resolve_device() {
       /dev/disk/*)
         realrootdev=$(readlink -m $realrootdev)
         ;;
+      /dev/md/*)
+        realrootdev=$(/usr/bin/readlink -m $realrootdev)
+        ;;
       *:*|//*)
         [ "$type" = "Root" ] && x="$rootfstype-root"
         ;;
