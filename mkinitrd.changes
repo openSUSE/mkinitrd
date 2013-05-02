@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May  2 13:56:26 UTC 2013 - rmilasan@suse.com
+
+- setup-storage: Support /dev/md/ subdir
+
+-------------------------------------------------------------------
 Fri Mar 15 14:49:36 UTC 2013 - mmarek@suse.cz
 
 - Do not refresh the bootloader if no kernels are installed
