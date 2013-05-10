@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May 10 12:28:01 UTC 2013 - ptesarik@suse.cz
+
+- s390x: add support for scm devices (bnc#814540)
+
+-------------------------------------------------------------------
 Thu May  2 13:56:26 UTC 2013 - rmilasan@suse.com
 
 - setup-storage: Support /dev/md/ subdir
