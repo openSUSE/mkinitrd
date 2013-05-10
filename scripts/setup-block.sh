@@ -154,6 +154,9 @@ get_devmodule()
         fio*)
             result=iomemory-vsl
             ;;
+	scm*)
+            result=scm_block
+            ;;
         *)
             if [ ! -d /sys/block/$blkdev/device ] ; then
                 echo "Device $blkdev not handled" >&2
