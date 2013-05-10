@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May 10 12:28:01 UTC 2013 - ptesarik@suse.cz
+
+- s390x: add support for scm devices (bnc#814540)
+
+-------------------------------------------------------------------
 Mon May  6 15:39:12 CEST 2013 - agraf@suse.de
 
 - Find modalias for mmc driver
