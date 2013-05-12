@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun May 12 22:05:06 UTC 2013 - mmarek@suse.cz
+
+- Ignore update-bootloader errors if xen is not installed yet
+  (bnc#809617).
+
+-------------------------------------------------------------------
 Fri May 10 12:28:01 UTC 2013 - ptesarik@suse.cz
 
 - s390x: add support for scm devices (bnc#814540)

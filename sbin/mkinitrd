@@ -513,7 +513,12 @@ fi
 
 #boot_modules="$modules"
 #echo -e "User-defined Module list:\t$boot_modules ($domu_modules)"
+have_xen_kernel=false
 for ((i=0 ; $i<${#kernel_images[@]} ; i++)); do
+    case "${kernel_images[$i]}" in
+    *-xen)
+        have_xen_kernel=true
+    esac
     ( # start in a subshell so the different mkinitrd build processes
       # don't interfere
     echo
@@ -555,7 +560,17 @@ fi
 if [ "$exit_code" -eq 0 ] ; then
     if [ -z "$no_bootloader_update" ] ; then
         /sbin/update-bootloader --refresh
-	exit_code=$?
+	bootloader_exit=$?
+	if test $bootloader_exit -ne 0; then
+	    # Ignore bootloader errors if elilo (UEFI) and xen are used and
+	    # xen.efi is missing (bnc#809617)
+	    if $have_xen_kernel && test -e /etc/elilo.conf -a \
+		    "$(uname -m)" = x86_64 -a ! -e /usr/lib64/efi/xen.efi; then
+		echo 2>&1 "Ignoring update-bootloader error (xen package missing)."
+	    else
+		exit_code=$bootloader_exit
+	    fi
+	fi
     else
         case " $ADDITIONAL_FEATURES " in
         *\ kdump\ *)
