@@ -1,12 +1,12 @@
 -------------------------------------------------------------------
-Tue Oct 29 18:25:41 CET 2013 - ohering@suse.de
-
-- Fix code which handles missing or incomplete fstab (bnc#848038)
-
--------------------------------------------------------------------
 Fri Nov 29 13:58:34 CET 2013 - hare@suse.de
 
 - Wait for multipath devices when MD is active (bnc#848293).
+
+-------------------------------------------------------------------
+Tue Oct 29 18:25:41 CET 2013 - ohering@suse.de
+
+- Fix code which handles missing or incomplete fstab (bnc#848038)
 
 -------------------------------------------------------------------
 Sun Oct 27 21:24:20 CET 2013 - ohering@suse.de
@@ -206,6 +206,11 @@ Mon May 27 17:19:35 CEST 2013 - schwab@suse.de
 Thu May 23 11:02:38 CEST 2013 - ohering@suse.de
 
 - Package 61-msft.rules and sg_inq (bnc#805059)
+
+-------------------------------------------------------------------
+Mon May 13 19:10:09 UTC 2013 - mmarek@suse.com
+
+- Do not overwrite the drvlink variable (bnc#803760)
 
 -------------------------------------------------------------------
 Fri May 10 12:28:01 UTC 2013 - ptesarik@suse.cz

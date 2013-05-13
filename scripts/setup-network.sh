@@ -141,7 +141,7 @@ get_default_interface() {
 
 get_network_module()
 {
-    local interface=$1
+    local interface=$1 drvlink
 
     ifpath=$(cd -P /sys/class/net/$interface/device; echo $PWD)
     if [ -f /sys/class/net/$interface/device/modalias ] ; then
