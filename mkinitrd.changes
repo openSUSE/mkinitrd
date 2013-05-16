@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 16 14:25:14 UTC 2013 - mmarek@suse.cz
+
+- Check if /etc/elilo.conf refers to xen.efi, instead of looking at
+  what kernel flavors are passed to mkinitrd (bnc#809617).
+
+-------------------------------------------------------------------
 Sun May 12 22:05:06 UTC 2013 - mmarek@suse.cz
 
 - Ignore update-bootloader errors if xen is not installed yet
