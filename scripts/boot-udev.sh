@@ -2,6 +2,7 @@
 #%stage: boot
 #%depends: start dm
 #%programs: blkid
+#%programs: sg_inq
 #%programs: udevadm
 #%programs: udevd
 #%programs: uname
