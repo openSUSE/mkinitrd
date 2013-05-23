@@ -2,6 +2,7 @@
 #%stage: boot
 #%depends: start dm
 #%programs: /sbin/udevd /sbin/udevadm /bin/uname
+#%programs: sg_inq
 #%dontshow
 #
 ##### udev initialization
