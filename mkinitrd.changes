@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May 23 11:02:38 CEST 2013 - ohering@suse.de
+
+- Package 61-msft.rules and sg_inq (bnc#805059)
+
+-------------------------------------------------------------------
 Thu May  2 13:56:26 UTC 2013 - rmilasan@suse.com
 
 - setup-storage: Support /dev/md/ subdir
