@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May 23 11:02:38 CEST 2013 - ohering@suse.de
+
+- Package 61-msft.rules and sg_inq (bnc#805059)
+
+-------------------------------------------------------------------
 Fri May 10 12:28:01 UTC 2013 - ptesarik@suse.cz
 
 - s390x: add support for scm devices (bnc#814540)
