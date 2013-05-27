@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 27 17:19:35 CEST 2013 - schwab@suse.de
+
+- add support for aarch64
+
+-------------------------------------------------------------------
 Thu May 23 11:02:38 CEST 2013 - ohering@suse.de
 
 - Package 61-msft.rules and sg_inq (bnc#805059)
