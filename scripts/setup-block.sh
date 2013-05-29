@@ -89,7 +89,7 @@ get_devmodule() {
                 echo iomemory-vsl
                 ;;
             scm*)
-                echo scm_block
+                echo scm_block eadm_sch
                 ;;
             *)
                 if [ ! -d /sys/block/$blkdev/device ] ; then
