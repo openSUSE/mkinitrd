@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu May 30 20:36:59 UTC 2013 - mmarek@suse.cz
+
+-  Add support for root_no_dm=1 and roo_no_mpath=1 kernel
+   commandline options to tell the initrd not to insist that the
+   root device be device-mapper or multipath, respectively.
+   (bnc#815185)
+
+-------------------------------------------------------------------
 Wed May 29 11:46:04 UTC 2013 - ptesarik@suse.com
 
 - Add eadm_sch module to initrd for scm devices (bnc#820690)
