@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun  5 19:26:59 UTC 2013 - mmarek@suse.com
+
+- Add hid modules that are no longer builtin
+
+-------------------------------------------------------------------
 Mon May 27 17:19:35 CEST 2013 - schwab@suse.de
 
 - add support for aarch64
