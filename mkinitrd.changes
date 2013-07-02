@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul  3 15:25:44 CEST 2013 - schuetzm@gmx.net
+
+- Purge old kernels with low I/O priority
+  As this is run directly at startup, it competes for I/O with the
+  other boot processes.
+
+-------------------------------------------------------------------
 Wed Jun  5 19:26:59 UTC 2013 - mmarek@suse.com
 
 - Add hid modules that are no longer builtin

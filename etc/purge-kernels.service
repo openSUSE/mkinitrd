@@ -5,6 +5,8 @@ ConditionPathExists=/boot/do_purge_kernels
 
 [Service]
 Type=oneshot
+Nice=19
+IOSchedulingClass=idle
 ExecStartPre=/bin/rm -f /boot/do_purge_kernels
 ExecStart=/sbin/purge-kernels
 
