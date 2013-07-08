@@ -23,6 +23,11 @@ Thu May 16 14:25:14 UTC 2013 - mmarek@suse.cz
   what kernel flavors are passed to mkinitrd (bnc#809617).
 
 -------------------------------------------------------------------
+Mon May 13 19:10:09 UTC 2013 - mmarek@suse.com
+
+- Do not overwrite the drvlink variable (bnc#803760)
+
+-------------------------------------------------------------------
 Sun May 12 22:05:06 UTC 2013 - mmarek@suse.cz
 
 - Ignore update-bootloader errors if xen is not installed yet

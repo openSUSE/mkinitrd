@@ -19,7 +19,7 @@ ibft_set_iface() {
     iface=${iface##*/}
     if test -n "$iface"; then
 	interface=$iface
-	drvlink=$(get_network_module $interface)
+	drvlink="$drvlink $(get_network_module $interface)"
 	if [ ! "$nettype" -a -e $ibft_nic/dhcp ]; then
 	    nettype=dhcp
 	    read ibft_dhcp < $ibft_nic/dhcp
