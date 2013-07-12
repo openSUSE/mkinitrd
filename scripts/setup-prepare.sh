@@ -156,7 +156,7 @@ fi
 cp $INITRD_PATH/bin/linuxrc $linuxrc
 mkdir "$tmp_mnt/boot"
 
-mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys,root,config}
+mkdir -p $tmp_mnt/{sbin,bin,etc,dev,proc,sys,root,config,usr/bin,usr/sbin}
 
 mkdir -p -m 4777 $tmp_mnt/tmp
 
