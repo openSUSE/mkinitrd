@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jul 12 15:46:51 CEST 2013 - ohering@suse.de
+
+- Put sg_inq into /usr/bin to follow absolute path used in udev rule.
+  (bnc#805059)
+- Create /usr/{sbin,bin} directories upfront so that absolute paths
+  can be used in programs tags
+
+-------------------------------------------------------------------
 Thu May 30 20:36:59 UTC 2013 - mmarek@suse.cz
 
 -  Add support for root_no_dm=1 and roo_no_mpath=1 kernel
