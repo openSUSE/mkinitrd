@@ -47,7 +47,7 @@ configure_static()
     HOSTNAME="${ip%%:*}"
     ip="${ip#*:}" # first entry => iface
     INTERFACE="${ip%%:*}"
-    echo 'hosts: files dns' > /etc/nsswitch.conf
+    echo 'hosts: files dns' >> /etc/nsswitch.conf
 }
 
 configure_dynamic()
@@ -72,7 +72,7 @@ configure_dynamic()
         if [ -n "$DOMAIN" ]; then
                 echo "search $DOMAIN" >> /etc/resolv.conf
         fi
-        echo 'hosts: files dns' > /etc/nsswitch.conf
+        echo 'hosts: files dns' >> /etc/nsswitch.conf
     elif [ -n "$DNSSERVERS" ]; then
         oifs="$IFS"
         IFS=" "
@@ -83,7 +83,7 @@ configure_dynamic()
         if [ -n "$DNSDOMAIN" ]; then
                 echo "search $DNSDOMAIN" >> /etc/resolv.conf
         fi
-        echo 'hosts: files dns' > /etc/nsswitch.conf
+        echo 'hosts: files dns' >> /etc/nsswitch.conf
     fi
 }
 
