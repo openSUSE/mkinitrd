@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 16 10:46:21 CEST 2013 - ohering@suse.de
+
+- Remove usage of absolute path to readlink
+
+-------------------------------------------------------------------
 Mon May 27 17:19:35 CEST 2013 - schwab@suse.de
 
 - add support for aarch64
