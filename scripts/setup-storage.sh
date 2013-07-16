@@ -229,7 +229,7 @@ resolve_device() {
         realrootdev=$(readlink -m $realrootdev)
         ;;
       /dev/md/*)
-        realrootdev=$(/usr/bin/readlink -m $realrootdev)
+        realrootdev=$(readlink -m $realrootdev)
         ;;
       *:*|//*)
         [ "$type" = "Root" ] && x="$rootfstype-root"

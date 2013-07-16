@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 16 10:46:21 CEST 2013 - ohering@suse.de
+
+- Remove usage of absolute path to readlink
+
+-------------------------------------------------------------------
 Wed Jul  3 15:25:44 CEST 2013 - schuetzm@gmx.net
 
 - Purge old kernels with low I/O priority
