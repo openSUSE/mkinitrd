@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 16 11:12:11 CEST 2013 - ohering@suse.de
+
+- Preserve existing /etc/nsswitch.conf in boot-network.sh
+
+-------------------------------------------------------------------
 Tue Jul 16 10:46:21 CEST 2013 - ohering@suse.de
 
 - Remove usage of absolute path to readlink
