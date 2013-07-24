@@ -49,7 +49,7 @@ Fri May 10 12:28:01 UTC 2013 - ptesarik@suse.cz
 -------------------------------------------------------------------
 Thu May  2 13:56:26 UTC 2013 - rmilasan@suse.com
 
-- setup-storage: Support /dev/md/ subdir
+- setup-storage: Support /dev/md/ subdir (bnc#814692)
 
 -------------------------------------------------------------------
 Fri Mar 15 14:49:36 UTC 2013 - mmarek@suse.cz
