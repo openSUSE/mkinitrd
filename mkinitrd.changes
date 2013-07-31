@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 31 19:47:41 CEST 2013 - ohering@suse.de
+
+- Migrate /etc/sysconfig/kernel:MODULES_LOADED_ON_BOOT to
+  /etc/modules-load.d/MODULES_LOADED_ON_BOOT.conf (bnc#768423)
+
+-------------------------------------------------------------------
 Wed Jul 31 17:42:59 CEST 2013 - ohering@suse.de
 
 - Remove useless console output before starting splash (doing fast

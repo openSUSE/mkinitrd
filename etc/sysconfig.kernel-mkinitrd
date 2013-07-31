@@ -31,16 +31,6 @@ NO_KMS_IN_INITRD="no"
 #
 DOMU_INITRD_MODULES="xennet xenblk"
 
-## Type:		string
-## ServiceRestart:	boot.loadmodules
-#
-# This variable contains the list of modules to be loaded
-# once the main filesystem is active
-# You will find a few default modules for hardware which
-# can not be detected automatically.
-#
-MODULES_LOADED_ON_BOOT=""
-
 ## Type:        string
 ## Default:     ""
 #

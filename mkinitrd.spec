@@ -109,8 +109,6 @@ mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
 mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/bin
-mkdir -p $RPM_BUILD_ROOT/etc/init.d
-mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates
 cp -a scripts/*.sh $RPM_BUILD_ROOT/lib/mkinitrd/scripts/
 for i in lib/mkinitrd/bin/*
 do
@@ -130,8 +128,12 @@ cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 #
 %install_mkinitrd   /usr/bin/perl /sbin/mkinitrd_setup
 EOF
+%if 0%{?suse_version} < 1230
+mkdir -p $RPM_BUILD_ROOT/etc/init.d
 install -m 755 etc/boot.loadmodules $RPM_BUILD_ROOT/etc/init.d/
 install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
+%endif
+mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates
 install -m 644 etc/sysconfig.kernel-mkinitrd $RPM_BUILD_ROOT/var/adm/fillup-templates/
 
 %if 0%{?suse_version} >= 1210
@@ -151,8 +153,27 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 %post
 %{fillup_only -an kernel}
+%if 0%{?suse_version} < 1230
 %{insserv_force_if_yast /etc/init.d/boot.loadmodules}
 %{fillup_and_insserv -f -Y purge-kernels}
+%endif
+%if 0%{?suse_version} >= 1230
+%{remove_and_set -n kernel MODULES_LOADED_ON_BOOT}
+if test -n "${MODULES_LOADED_ON_BOOT}"
+then
+	mkdir -vp /etc/modules-load.d/
+	f=/etc/modules-load.d/MODULES_LOADED_ON_BOOT.conf
+	if test -f "${f}"
+	then
+		echo "${f} already exists. Module list: '${MODULES_LOADED_ON_BOOT}'"
+	else
+		for mod in ${MODULES_LOADED_ON_BOOT}
+		do
+			echo "${mod}"
+		done > "${f}"
+	fi
+fi
+%endif
 %if 0%{?suse_version} >= 1210
 %service_add_post purge-kernels.service
 %endif
@@ -178,8 +199,10 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %dir /lib/mkinitrd/boot
 %dir /lib/mkinitrd/setup
 %config /etc/rpm/macros.mkinitrd
+%if 0%{?suse_version} < 1230
 /etc/init.d/boot.loadmodules
 /etc/init.d/purge-kernels
+%endif
 %if 0%{?suse_version} >= 1210
 %_unitdir/purge-kernels.service
 %endif
