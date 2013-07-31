@@ -289,10 +289,6 @@ fi
 
 # parsing of '# SUSE INITRD' lines
 load_additional_dependencies
-resolved_modules="$(resolve_modules $kernel_version $modules)"
-if [ $? -ne 0 ] ; then
-    return 1
-fi
 
 # cut out all modules which have a minus preceding them
 modules=$(
@@ -308,6 +304,10 @@ for module in $modules; do
 done
 )
 
+resolved_modules="$(resolve_modules $kernel_version $modules)"
+if [ $? -ne 0 ] ; then
+    return 1
+fi
 if [ "$resolved_modules" ] ; then
     echo -ne "Kernel Modules:\t"
     for mod in $resolved_modules ; do

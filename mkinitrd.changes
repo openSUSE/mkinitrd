@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 31 17:21:07 CEST 2013 - ohering@suse.de
+
+- Fix parsing of disabled modules in INTRD_MODULES (bnc#696959)
+
+-------------------------------------------------------------------
 Wed Jul 31 16:59:53 CEST 2013 - ohering@suse.de
 
 - Add blacklist for unused /usr/lib/udev helpers (bnc#757706)
