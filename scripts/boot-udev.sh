@@ -29,7 +29,6 @@ else
 fi
 
 # Start udev
-echo "Creating device nodes with udev"
 udevd --daemon
 udevadm trigger --action=add
 udevadm trigger --type=subsystems --action=add

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 31 17:42:59 CEST 2013 - ohering@suse.de
+
+- Remove useless console output before starting splash (doing fast
+  boot, Creating device nodes with udev) (bnc#775982)
+
+-------------------------------------------------------------------
 Wed Jul 31 17:33:48 CEST 2013 - ohering@suse.de
 
 - Fix parsing of /etc/sysconfig/initrd (bnc#717590)
