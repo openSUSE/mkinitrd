@@ -476,7 +476,7 @@ oops() {
 save_var() {
         # sysconfig options override dynamically generated options
         if [ -e "/etc/sysconfig/initrd" ]; then
-                local override="$(cat /etc/sysconfig/initrd | egrep \"^$1=\")"
+                local override="$(egrep "^$1=" /etc/sysconfig/initrd)"
                 if [ "$override" ]; then
                         eval $override
                 fi
