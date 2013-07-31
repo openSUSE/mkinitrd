@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 31 16:59:53 CEST 2013 - ohering@suse.de
+
+- Add blacklist for unused /usr/lib/udev helpers (bnc#757706)
+
+-------------------------------------------------------------------
 Tue Jul 16 11:12:11 CEST 2013 - ohering@suse.de
 
 - Preserve existing /etc/nsswitch.conf in boot-network.sh

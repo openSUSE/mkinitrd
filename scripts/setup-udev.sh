@@ -15,6 +15,51 @@ ln -sfn ../usr/lib/udev $tmp_mnt/lib/udev
 
 # copy helper
 for script in /usr/lib/udev/* /lib/udev/* /sbin/*_id ; do
+    # some helpers are not needed 
+    case "${script##*/}" in
+    accelerometer) continue ;;
+    ata_id) ;;
+    bluetooth_serial) continue ;;
+    cdrom_id) ;;
+    collect) ;;
+    collect_lvm) ;;
+    findkeyboards) continue ;;
+    gpsd.sh) continue ;;
+    hid2hci) continue ;;
+    hwdb.d) continue ;;
+    idedma.sh) continue ;;
+    ift-load) continue ;;
+    iphone-set-info) continue ;;
+    ipod-set-info) continue ;;
+    isdn.sh) continue ;;
+    iwlwifi-led.sh) continue ;;
+    keyboard-force-release.sh) continue ;;
+    keymap) continue ;;
+    kpartx_id) ;;
+    lmt-udev) continue ;;
+    lomoco.sh) continue ;;
+    mtd_probe) ;;
+    mtp-probe) ;;
+    numlock-on) continue ;;
+    openct_pcmcia) continue ;;
+    openct_serial) continue ;;
+    openct_usb) continue ;;
+    pcmcia-check-broken-cis) continue ;;
+    pcmcia-socket-startup) continue ;;
+    scsi_id) ;;
+    udev-acl) continue ;;
+    udev-add-printer) continue ;;
+    udev-configure-printer) continue ;;
+    udevmountd) continue ;;
+    udisks-dm-export) ;;
+    udisks-part-id) ;;
+    udisks-probe-ata-smart) ;;
+    udisks-probe-sas-expander) ;;
+    usb_modeswitch) continue ;;
+    v4l_id) continue ;;
+    write_dev_root_rule) continue ;;
+    *) ;;
+    esac
     if [ ! -d "$script" ] && [ -x "$script" ] ; then
         cp_bin $script ${tmp_mnt}${script}
     elif [ -f "$script" ] ; then
