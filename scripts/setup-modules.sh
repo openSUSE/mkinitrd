@@ -320,6 +320,9 @@ fi
 
 # Copy all modules into the initrd
 has_firmware=false
+mkdir -p $tmp_mnt/lib/firmware
+mkdir -p $tmp_mnt/usr/lib
+ln -sfbn ../../lib/firmware $tmp_mnt/usr/lib/firmware
 for module in $resolved_modules; do
     if [ ! -r $root_dir/$module ]; then
         oops 9 "Module $module not found."
