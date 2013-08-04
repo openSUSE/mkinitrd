@@ -60,6 +60,10 @@ fi
 RESOLVED_INITRD_MODULES_UDEV=
 RESOLVED_INITRD_MODULES_NEW=
 for m in $RESOLVED_INITRD_MODULES ; do
+   # cut out all modules which have a minus preceding them
+    case "$m" in
+    	-*) continue ;;
+    esac
     if [ $(modinfo -k $kernel_version -F firmware $m 2> /dev/null | wc -l) -gt 0 ] ; then
         verbose "[SETUP]\tDon't load $m on boot with modprobe because "\
                 "it requires firmware"

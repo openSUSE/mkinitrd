@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Aug  4 10:47:08 CEST 2013 - ohering@suse.de
+
+- Fix parsing of disabled modules in RESOLVED_INITRD_MODULES (bnc#696959)
+
+-------------------------------------------------------------------
 Wed Jul 31 19:47:41 CEST 2013 - ohering@suse.de
 
 - Migrate /etc/sysconfig/kernel:MODULES_LOADED_ON_BOOT to
