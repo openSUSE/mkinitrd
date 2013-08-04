@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Aug  4 16:29:03 CEST 2013 - ohering@suse.de
+
+- Print copied firmware files only once
+
+-------------------------------------------------------------------
 Sun Aug  4 16:27:35 CEST 2013 - ohering@suse.de
 
 - Include firmware files only once, in /lib/firmware (bnc#713126)

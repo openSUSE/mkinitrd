@@ -320,6 +320,7 @@ fi
 
 # Copy all modules into the initrd
 has_firmware=false
+declare -A fw_array
 mkdir -p $tmp_mnt/lib/firmware
 mkdir -p $tmp_mnt/usr/lib
 ln -sfbn ../../lib/firmware $tmp_mnt/usr/lib/firmware
@@ -343,7 +344,11 @@ for module in $resolved_modules; do
                         echo -ne "Firmware:\t"
 			has_firmware=true
                     fi
-                    echo -n "$fw "
+                    if test -z "${fw_array[$fw]}"
+                    then
+                        fw_array[$fw]=$fw
+                        echo -n "$fw "
+                    fi
                     if test -e "$dir/$subdir/$fw.sig"; then
                         cp -p --parents "$_" "$tmp_mnt"
                         echo -n "$fw.sig "
@@ -357,6 +362,7 @@ if $has_firmware; then
     echo
 fi
 unset has_firmware
+unset fw_array
 
 if [ "$resolved_modules" ] ; then
     [ ! -d $tmp_mnt/lib/modules/$kernel_version ] && oops 10 "No modules have been installed"
