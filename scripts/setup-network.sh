@@ -174,28 +174,18 @@ for addfeature in $ADDITIONAL_FEATURES; do
     fi
 done
 
-ip=
-# get the default interface if requested by some script
-if [ "$interface" = "default" ]; then
-    interface=
-    if test -z "$static_interfaces$dhcp_interfaces"; then
-        ifspec=$(get_default_interface)
-        case "${ifspec##*/}" in
-            dhcp*|ibft*)
-                dhcp_interfaces=${ifspec%%/*}
-                ;;
-            *)
-                static_interfaces=${ifspec%%/*}
-                ;;
-        esac
-    fi
-fi
-
 for iface in $interface; do
-    cfg=/etc/sysconfig/network/ifcfg-$iface
-    BOOTPROTO=
-    if test -e "$cfg"; then
-        eval $(grep BOOTPROTO "$cfg")
+    if [ "$iface" = "default" ]; then
+        test -z "$static_interfaces$dhcp_interfaces" || continue
+        ifspec=$(get_default_interface)
+        iface="${ifspec%%/*}"
+        BOOTPROTO="${ifspec##*/}"
+    else
+        cfg=/etc/sysconfig/network/ifcfg-$iface
+        BOOTPROTO=
+        if test -e "$cfg"; then
+            eval $(grep BOOTPROTO "$cfg")
+        fi
     fi
     case "$BOOTPROTO" in
     dhcp*|ibft*)
@@ -217,6 +207,7 @@ fi
 
 static=true
 seen_interfaces=
+static_ips=
 for iface in $static_interfaces -- $dhcp_interfaces; do
     if test "x$iface" = "x--"; then
         static=false
@@ -277,6 +268,10 @@ for iface in $static_interfaces -- $dhcp_interfaces; do
     else
         echo "WARNING: Unhandled interface: $iface" >&2
     fi
+    # Get static IP configuration if requested
+    if $static; then
+        static_ips="$static_ips $(get_ip_config $iface)"
+    fi
 done
 
 # Copy ifcfg settings
@@ -302,11 +297,6 @@ fi
 
 # Copy netcfg files (bnc#468090, bnc#714945)
 cp /etc/{hosts,protocols,services,netconfig} $tmp_mnt/etc
-
-# Get static IP configuration if requested
-for iface in $static_interfaces; do
-    static_ips="$static_ips $(get_ip_config $iface)"
-done
 
 mkdir -p $tmp_mnt/var/lib/dhcpcd
 mkdir -p $tmp_mnt/var/run
