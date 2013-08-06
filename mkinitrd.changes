@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  6 11:40:04 UTC 2013 - ptesarik@suse.cz
+
+- Recognize default network interface if more than one is present
+  (bnc#803760)
+
+-------------------------------------------------------------------
 Fri Jul 12 15:46:51 CEST 2013 - ohering@suse.de
 
 - Put sg_inq into /usr/bin to follow absolute path used in udev rule.

@@ -174,28 +174,18 @@ for addfeature in $ADDITIONAL_FEATURES; do
     fi
 done
 
-ip=
-# get the default interface if requested by some script
-if [ "$interface" = "default" ]; then
-    interface=
-    if test -z "$static_interfaces$dhcp_interfaces"; then
-        ifspec=$(get_default_interface)
-        case "${ifspec##*/}" in
-            dhcp*|ibft*)
-                dhcp_interfaces=${ifspec%%/*}
-                ;;
-            *)
-                static_interfaces=${ifspec%%/*}
-                ;;
-        esac
-    fi
-fi
-
 for iface in $interface; do
-    cfg=/etc/sysconfig/network/ifcfg-$iface
-    BOOTPROTO=
-    if test -e "$cfg"; then
-        eval $(grep BOOTPROTO "$cfg")
+    if [ "$iface" = "default" ]; then
+        test -z "$static_interfaces$dhcp_interfaces" || continue
+        ifspec=$(get_default_interface)
+        iface="${ifspec%%/*}"
+        BOOTPROTO="${ifspec##*/}"
+    else
+        cfg=/etc/sysconfig/network/ifcfg-$iface
+        BOOTPROTO=
+        if test -e "$cfg"; then
+            eval $(grep BOOTPROTO "$cfg")
+        fi
     fi
     case "$BOOTPROTO" in
     dhcp*|ibft*)
