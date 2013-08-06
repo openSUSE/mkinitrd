@@ -207,6 +207,7 @@ fi
 
 static=true
 seen_interfaces=
+static_ips=
 for iface in $static_interfaces -- $dhcp_interfaces; do
     if test "x$iface" = "x--"; then
         static=false
@@ -253,6 +254,10 @@ for iface in $static_interfaces -- $dhcp_interfaces; do
             dhcp_macaddresses="$dhcp_macaddresses BONDING:$iface"
         fi
     fi
+    # Get static IP configuration if requested
+    if $static; then
+        static_ips="$static_ips $(get_ip_config $iface)"
+    fi
 done
 
 # Copy ifcfg settings
@@ -278,11 +283,6 @@ fi
 
 # Copy netcfg files (bnc#468090, bnc#714945)
 cp /etc/{hosts,protocols,services,netconfig} $tmp_mnt/etc
-
-# Get static IP configuration if requested
-for iface in $static_interfaces; do
-    static_ips="$static_ips $(get_ip_config $iface)"
-done
 
 mkdir -p $tmp_mnt/var/lib/dhcpcd
 mkdir -p $tmp_mnt/var/run
