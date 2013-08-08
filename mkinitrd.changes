@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug  8 10:21:25 CEST 2013 - ohering@suse.de
+
+- Include /etc/e2fsck.conf to get broken_system_clock=1 (bnc#775268)
+
+-------------------------------------------------------------------
 Thu Aug  8 08:30:17 UTC 2013 - mmarek@suse.cz
 
 - Include modules.order in the initrd.
