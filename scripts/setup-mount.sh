@@ -27,6 +27,10 @@ for file in {/usr,}/bin/on_ac_power; do
         break
     fi
 done
+if test -e /etc/e2fsck.conf
+then
+	cp -aL "$_" "$tmp_mnt$_"
+fi
 
 save_var rootdev
 save_var rootfsck
