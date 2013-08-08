@@ -366,9 +366,11 @@ unset fw_array
 
 if [ "$resolved_modules" ] ; then
     [ ! -d $tmp_mnt/lib/modules/$kernel_version ] && oops 10 "No modules have been installed"
-    if test -e "/lib/modules/$kernel_version/modules.builtin"; then
-	    cp "$_" "$tmp_mnt/lib/modules/$kernel_version/"
-    fi
+    for f in "/lib/modules/$kernel_version/"modules.{builtin,order}; do
+        if test -e "$f"; then
+            cp "$f" "$tmp_mnt/lib/modules/$kernel_version/"
+        fi
+    done
     depmod -b $tmp_mnt -e -F $map $kernel_version
 fi
 

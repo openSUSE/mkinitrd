@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug  8 08:30:17 UTC 2013 - mmarek@suse.cz
+
+- Include modules.order in the initrd.
+
+-------------------------------------------------------------------
 Sun Aug  4 16:29:03 CEST 2013 - ohering@suse.de
 
 - Print copied firmware files only once
