@@ -288,11 +288,11 @@ fi
 saved_args=$@
 read_options
 while getopts $( cmd_getopts ) a ; do
-    case $a in
+    case "$a" in
         h)  usage
             exit 0
             ;;
-        *)  if cmd_docmd $a; then
+        *)  if cmd_docmd "$a"; then
                 if next_param; then
                     if $cmd_param_is_array; then
                         eval "$cmd_param_name=\"\$$cmd_param_name $OPTARG\""
@@ -300,7 +300,7 @@ while getopts $( cmd_getopts ) a ; do
                         eval "$cmd_param_name='$OPTARG'"
                     fi
                 fi
-                eval param_$a=1
+                read "param_$a" < <(echo 1)
             else
                 exit 1
             fi
