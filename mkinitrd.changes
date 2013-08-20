@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 26 12:49:34 UTC 2013 - mmarek@suse.com
+
+- Quote options when parsing them (bnc#835479).
+
+-------------------------------------------------------------------
 Thu Aug  8 10:31:25 CEST 2013 - ohering@suse.de
 
 - Include /etc/e2fsck.conf to get broken_system_clock=1 (bnc#775268)
