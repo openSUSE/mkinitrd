@@ -282,13 +282,13 @@ fi
 saved_args=$@
 read_options
 while getopts $( cmd_getopts ) a ; do
-    case $a in
+    case "$a" in
         h)  usage
             exit 0
             ;;
-        *)  if cmd_docmd $a; then
+        *)  if cmd_docmd "$a"; then
                 next_param && eval "$cmd_param_name='$OPTARG'"
-                eval param_$a=1
+                read "param_$a" < <(echo 1)
             else
                 exit 1
             fi

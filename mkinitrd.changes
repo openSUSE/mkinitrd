@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 27 11:07:42 UTC 2013 - mmarek@suse.cz
+
+- Quote options when parsing them (bnc#835479).
+
+-------------------------------------------------------------------
 Thu May  3 11:59:35 UTC 2012 - mmarek@suse.cz
 
 - Avoid accidental tilde expansion when parsing parameters
