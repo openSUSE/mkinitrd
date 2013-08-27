@@ -98,7 +98,7 @@ fi
 for script in scripts/*.sh; do
     if ! bash -n $script; then
         exit 1;
-	break;
+        break;
     fi
 done
 
