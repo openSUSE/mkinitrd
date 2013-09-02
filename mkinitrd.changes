@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep  2 20:51:19 CEST 2013 - ohering@suse.de
+
+- Use loop instead of ipv6 in check_supported_kernel to avoid
+  bogus error in mkinitrd.log. loop will most likely remain a
+  module.
+
+-------------------------------------------------------------------
 Mon Sep  2 19:46:02 CEST 2013 - ohering@suse.de
 
 - Fix mkinitrd -b <dir> without -k/i option (bnc#510767)

@@ -74,7 +74,7 @@ check_supported_kernel() {
     local kernel_version=$1
     local output=
 
-    output=$(modinfo -k "$kernel_version" -F supported ipv6 2>/dev/null)
+    output=$(modinfo -k "$kernel_version" -F supported loop 2>/dev/null)
     if [ "$?" -ne 0 ] ; then
         # If the command existed with an error, assume that the kernel is
         # supported. That is just the same behaviour as before we did that
