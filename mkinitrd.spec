@@ -55,7 +55,7 @@ Source0:        mkinitrd.tar.bz2
 # don't change it in the build service without sending the author a
 # pull request or patch first. Otherwise, you risk that your changes will be
 # silently overwritten by the next submission.
-Url:            http://gitorious.org/opensuse/mkinitrd
+Url:            https://github.com/openSUSE/mkinitrd
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk
