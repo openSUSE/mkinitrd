@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 30 22:45:38 UTC 2013 - jengelh@inai.de
+
+- Do not ship boot.loadmodules for <= 11.4 (includes SLE11),
+  because aaa_base owns it
+
+-------------------------------------------------------------------
 Mon Aug 26 12:49:34 UTC 2013 - mmarek@suse.com
 
 - Quote options when parsing them (bnc#835479).
