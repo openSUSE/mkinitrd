@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  2 13:02:07 UTC 2013 - mmarek@suse.cz
+
+- Always include ipv6.ko when iBFT is used (bnc#830621)
+
+-------------------------------------------------------------------
 Mon Aug 26 12:50:27 UTC 2013 - mmarek@suse.com
 
 - Quote options when parsing them (bnc#835479).
