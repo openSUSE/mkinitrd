@@ -130,7 +130,10 @@ cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
 EOF
 %if 0%{?suse_version} < 1230
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
+%if 0%{?suse_version} > 1140
+# This file is in aaa_base in older versions
 install -m 755 etc/boot.loadmodules $RPM_BUILD_ROOT/etc/init.d/
+%endif
 install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
 %endif
 mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates
@@ -154,7 +157,9 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %post
 %{fillup_only -an kernel}
 %if 0%{?suse_version} < 1230
+%if 0%{?suse_version} > 1140
 %{insserv_force_if_yast /etc/init.d/boot.loadmodules}
+%endif
 %{fillup_and_insserv -f -Y purge-kernels}
 %endif
 %if 0%{?suse_version} >= 1230
@@ -200,7 +205,9 @@ fi
 %dir /lib/mkinitrd/setup
 %config /etc/rpm/macros.mkinitrd
 %if 0%{?suse_version} < 1230
+%if 0%{?suse_version} > 1140
 /etc/init.d/boot.loadmodules
+%endif
 /etc/init.d/purge-kernels
 %endif
 %if 0%{?suse_version} >= 1210
