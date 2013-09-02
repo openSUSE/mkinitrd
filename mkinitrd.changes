@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  2 13:02:07 UTC 2013 - mmarek@suse.cz
+
+- Always include ipv6.ko when iBFT is used (bnc#830621)
+
+-------------------------------------------------------------------
 Fri Aug 30 22:45:38 UTC 2013 - jengelh@inai.de
 
 - Do not ship boot.loadmodules for <= 11.4 (includes SLE11),
