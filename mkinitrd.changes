@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  2 19:46:02 CEST 2013 - ohering@suse.de
+
+- Fix mkinitrd -b <dir> without -k/i option (bnc#510767)
+
+-------------------------------------------------------------------
 Mon Sep  2 13:02:07 UTC 2013 - mmarek@suse.cz
 
 - Always include ipv6.ko when iBFT is used (bnc#830621)
