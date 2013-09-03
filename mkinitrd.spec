@@ -164,7 +164,7 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %endif
 %if 0%{?suse_version} >= 1230
 %{remove_and_set -n kernel MODULES_LOADED_ON_BOOT}
-if test -n "${MODULES_LOADED_ON_BOOT}"
+if test -n "${MODULES_LOADED_ON_BOOT}" -a "${MODULES_LOADED_ON_BOOT}" != "no"
 then
 	mkdir -vp /etc/modules-load.d/
 	f=/etc/modules-load.d/MODULES_LOADED_ON_BOOT.conf
