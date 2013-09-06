@@ -55,14 +55,12 @@ add_module() {
 #       the kernel and then just loads the kernel module, we can safely include
 #       such modules on such systems in initrd.
 #
-#       The check is done by checking if 'ipv6.ko' is supported. Since we
-#       have to supported ipv6 for a very long period of time from now because
-#       it's our standard file system, and that module exists on every
-#       architecture and does not depend on the hardware and even exists in
-#       the base package of the kernel because we need it in a virtualised
-#       environment, that module is suitable for that check. I didn't know any
-#       better method of checking if the kernel is supported so I implemented
-#       that hack. Better than nothing. :-)
+#       The check is done by checking if 'loop.ko' is supported. Since we have
+#       supported loop for a very long period of time, and that module exists on
+#       every architecture and does not depend on the hardware, that module is
+#       suitable for that check. I didn't know any better method of checking if
+#       the kernel is supported so I implemented that hack. Better than nothing.
+#       :-)
 #
 # Parameters
 #       kernelver: the kernel version
