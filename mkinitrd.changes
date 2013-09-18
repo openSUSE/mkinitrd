@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Thu Sep 12 01:02:49 UTC 2013 - nfbrown@suse.com
+
+- Two improvements for md
+  1/ Don't install the udev rules file 64-md-raid.rules.
+     It has been renamed to 2 different files, and the mdadm
+     package installs it now.
+  2/ Run "mdadm -IRs" at half-time when waiting for the root
+     device to appear.
+     This will start any newly-degraded array (weren't degraded
+     when machine was shut down).
+
+-------------------------------------------------------------------
 Tue Sep  3 10:38:29 CEST 2013 - ohering@suse.de
 
 - Fix MODULES_LOADED_ON_BOOT migration, handle unset variable
