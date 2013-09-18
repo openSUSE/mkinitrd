@@ -44,6 +44,7 @@ Requires:       sysvinit
 Version:        @@VERSION@@
 Release:        0
 Conflicts:      udev < 118
+Conflicts:      mdadm < 3.3
 Requires:       dhcpcd
 PreReq:         %fillup_prereq
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
