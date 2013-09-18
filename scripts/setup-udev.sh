@@ -78,7 +78,6 @@ for rule in \
     61-msft.rules \
     62-dm_linear.rules \
     64-device-mapper.rules \
-    64-md-raid.rules \
     79-kms.rules \
     80-drivers.rules; do
     if [ -f /usr/lib/udev/rules.d/$rule ]; then

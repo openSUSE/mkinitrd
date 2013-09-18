@@ -67,6 +67,7 @@ check_for_device() {
     fi
     if [ -n "$root" ]; then
         echo -n "Waiting for device $root to appear: "
+        let halftime=$timeout/2
         while [ $timeout -gt 0 ]; do
             if [ -e "$root" ]; then
                 udev_devn=$(devnumber $root)
@@ -101,6 +102,10 @@ check_for_device() {
             usleep 25000
             ((timeout % 40 == 1)) && echo -n "."
             let timeout--
+            if [ "$need_mdadm" = "1" -a "$timeout" -eq "$halftime" ] ; then
+                # time to start any newly-degraded md arrays
+                mdadm -IRs
+            fi
             # Recheck for LVM volumes
             if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
                 vgscan
