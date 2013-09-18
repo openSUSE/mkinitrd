@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Wed Sep 18 15:48:09 CEST 2013 - ohering@suse.de
 
-- Conflicts with mdadm older than 3.3 after previous change
+- Conflicts with mdadm older than 3.3 after previous change (bnc#838777)
 
 -------------------------------------------------------------------
 Thu Sep 12 01:02:49 UTC 2013 - nfbrown@suse.com
