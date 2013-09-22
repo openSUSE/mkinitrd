@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun Sep 22 19:19:25 CEST 2013 - ohering@suse.de
+
+- Check if kver/kernel/drivers/scsi/device_handler/ exists before
+  searching for scsi_dh_* modules (bnc#727428)
+
+-------------------------------------------------------------------
 Wed Sep 18 15:48:09 CEST 2013 - ohering@suse.de
 
 - Conflicts with mdadm older than 3.3 after previous change (bnc#838777)
