@@ -1179,6 +1179,11 @@ Tue May 19 21:37:10 CEST 2009 - jeffm@suse.de
 - Added firmware rules to udev (bnc#494199)
 
 -------------------------------------------------------------------
+Thu Apr 30 10:00:34 CEST 2009 - hare@suse.de
+
+- Using ifup for network initialisation (bnc#487723)
+
+-------------------------------------------------------------------
 Mon May  4 17:53:55 CEST 2009 - werner@suse.de
 
 - Do not include binaries for bash builtins
