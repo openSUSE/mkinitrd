@@ -1204,9 +1204,9 @@ Tue Apr 28 16:10:31 CEST 2009 - werner@suse.de
 - sed is powerfull, use it instead using several pipes
 - use usleep for waiting on events
 - use the settimeofday feature to warp the system clock for
-  systems which use the localtime in the UTC
+  systems which use the localtime in the UTC (bnc#550697)
 - add scripts from aaa_base for loading rtc module and warp
-  the clock for systems with local time in RTC
+  the clock for systems with local time in RTC (bnc#550697)
 
 -------------------------------------------------------------------
 Mon Feb  9 09:56:22 CET 2009 - bwalle@suse.de
