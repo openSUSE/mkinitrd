@@ -1160,7 +1160,7 @@ Wed Jun 24 16:23:12 CEST 2009 - thomas@novell.com
 -------------------------------------------------------------------
 Tue Jun 23 07:38:22 CEST 2009 - thomas@novell.com
 
-- mounting /root/proc for SELinux (bnc#457984) 
+- mounting /root/proc for SELinux (bnc#457984, bnc#467342) 
 
 -------------------------------------------------------------------
 Mon May 25 12:15:08 CEST 2009 - ro@suse.de
