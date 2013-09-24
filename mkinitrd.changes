@@ -1001,7 +1001,7 @@ Tue Jan 26 16:58:03 CET 2010 - eich@freedesktop.org
 -------------------------------------------------------------------
 Mon Jan 25 16:03:04 CET 2010 - eich@freedesktop.org
 
-- Add support for KMS.
+- Add support for KMS. (bnc#560419)
 
 -------------------------------------------------------------------
 Tue Jan 19 11:34:09 CET 2010 - mmarek@suse.cz
