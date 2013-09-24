@@ -1288,7 +1288,7 @@ Mon Jan 12 14:08:52 CET 2009 - bwalle@suse.de
 Thu Jan 08 18:16:29 CET 2009 - bwalle@suse.de
 
 - Fix handling of minor device numbers greater than 255
-  (bnc #447968).
+  (bnc #447968, bnc#471815).
 
 -------------------------------------------------------------------
 Thu Jan 08 11:07:14 CET 2009 - bwalle@suse.de
