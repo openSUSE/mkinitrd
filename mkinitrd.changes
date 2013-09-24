@@ -1065,7 +1065,7 @@ Wed Oct 28 00:35:44 CET 2009 - ro@suse.de
 -------------------------------------------------------------------
 Thu Oct 22 16:54:45 CEST 2009 - ro@suse.de
 
-- add any required firmware to the initrd
+- add any required firmware to the initrd (bnc#564857)
 
 -------------------------------------------------------------------
 Thu Oct 22 16:13:21 CEST 2009 - mmarek@suse.cz
