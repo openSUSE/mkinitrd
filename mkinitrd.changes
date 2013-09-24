@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 24 15:32:46 CEST 2013 - ohering@suse.de
+
+- Add a support for "tmpfs_options" option on command line
+  (bnc#483965).
+
+-------------------------------------------------------------------
 Sun Sep 22 19:19:25 CEST 2013 - ohering@suse.de
 
 - Check if kver/kernel/drivers/scsi/device_handler/ exists before

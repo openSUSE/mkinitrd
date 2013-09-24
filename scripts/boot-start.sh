@@ -38,6 +38,7 @@
 ##
 ## console              the device we should redirect the output to (ttyS0 for serial console)
 ## linuxrc=trace        activates debugging for the initrd process
+## tmpfs_options	tmpfs extra mount options (for /dev)
 ## [module].param=value sets a kernel module parameter
 ##
 
@@ -73,11 +74,11 @@ emergency() {
 
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
-if mount -t devtmpfs -o mode=0755,nr_inodes=0 devtmpfs /dev; then
+if mount -t devtmpfs -o mode=0755,nr_inodes=0${tmpfs_options:+,$tmpfs_options} devtmpfs /dev; then
     have_devtmpfs=true
 else
     have_devtmpfs=false
-    mount -t tmpfs -o mode=0755,nr_inodes=0 udev /dev
+    mount -t tmpfs -o mode=0755,nr_inodes=0${tmpfs_options:+,$tmpfs_options} udev /dev
 
     mknod -m 0666 /dev/tty     c 5 0
     mknod -m 0600 /dev/console c 5 1
