@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct  1 18:30:59 CEST 2013 - ohering@suse.de
+
+- Include hyperv-keyboard if running in hyper-v guest (fate#315887)
+
+-------------------------------------------------------------------
 Tue Oct  1 15:56:32 UTC 2013 - mkubecek@suse.cz
 
 - Fix iSCSI boot over IPv6 (bnc#830621)

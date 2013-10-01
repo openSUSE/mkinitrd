@@ -39,7 +39,7 @@ check_xen_PVonHVM() {
 }
 
 if check_hyperv_guest ; then
-  fv_guest_modules="hv_storvsc hv_netvsc hyperv_fb"
+  fv_guest_modules="hv_storvsc hv_netvsc hyperv_fb hyperv-keyboard"
 elif check_xen_PVonHVM ; then
   # Use aliases because the module names differ in xenlinux and pv_ops kernel:
   # xen:vbd xen-vbd  xen-blkfront
