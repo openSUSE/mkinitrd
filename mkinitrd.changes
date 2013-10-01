@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct  1 15:56:32 UTC 2013 - mkubecek@suse.cz
+
+- Fix iSCSI boot over IPv6 (bnc#830621)
+
+-------------------------------------------------------------------
 Mon Sep  2 13:02:07 UTC 2013 - mmarek@suse.cz
 
 - Always include ipv6.ko when iBFT is used (bnc#830621)

@@ -29,8 +29,15 @@ configure_static()
 
     /bin/ipconfig $ip
     # dhcp information emulation
-    IPADDR="${ip%%:*}"
-    ip="${ip#*:}" # first entry => peeraddr
+    if [ "${ip:0:1}" = "[" ]; then
+        # address in brackets (necessary for IPv6)
+        ip="${ip:1}"
+        IPADDR="${ip%%]:*}"
+        ip="${ip#*]:}"
+    else
+        IPADDR="${ip%%:*}"
+        ip="${ip#*:}"
+    fi # first entry => peeraddr
     PEERADDR="${ip%%:*}"
     ip="${ip#*:}" # first entry => gwaddr
     GATEWAY="${ip%%:*}"
