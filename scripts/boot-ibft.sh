@@ -59,7 +59,17 @@ if [ -d $ibft_nic ]; then
     else
 	nettype='static'
     fi
-    ip="$(ibft_get_att ip-addr)::$(ibft_get_att gateway):$(ibft_get_att subnet-mask):$ibft_hostname:$(ibft_get_ethdev):$nettype"
+    ipaddr="$(ibft_get_att ip-addr)"
+    case "$ipaddr" in
+        *:*)
+            netmask=64
+            ipaddr="[$ipaddr]"
+            ;;
+        *)
+            netmask="$(ibft_get_att subnet-mask)"
+            ;;
+    esac
+    ip="$ipaddr::$(ibft_get_att gateway):$netmask:$ibft_hostname:$(ibft_get_ethdev):$nettype"
     interface=$(ibft_get_ethdev)
     macaddress=$(ibft_get_att mac)
     InitiatorName=$(ibft_get_initiatorname)

@@ -28,12 +28,39 @@ calc_prefix() {
     echo $prefix
 }
 
-ipcfg=$(echo $1 | sed 's/:/_:/g')
+parse_prefix() {
+    local arg="$1"
+
+    case "$arg" in
+        *.*)
+            # a.b.c.d IPv4 address
+            calc_prefix "$arg"
+            ;;
+        /*)
+            # /n
+            arg="${arg:1}"
+            echo $[arg]
+            ;;
+        *)
+            # prefix length
+            echo $[arg]
+            ;;
+    esac
+}
+
+if [ "${1:0:1}" = "[" ]; then
+    cfg="${1:1}"
+    client="${cfg%%]:*}"
+    cfg="${cfg#*]:}"
+else
+    client="${1%%:*}"
+    cfg="${1#*:}"
+fi
+
+ipcfg=$(echo "$cfg" | sed 's/:/_:/g')
 
 set -- $(IFS=: ; echo $ipcfg )
 
-client=${1%%_}
-shift
 if [ "$1" != "_" ] ; then
     peer=${1%%_}
 fi
@@ -65,9 +92,12 @@ shift
 prefix=${client%%*/}
 if [ "$prefix" == "$client" ] ; then
     if [ -n "$netmask" ] ; then
-        prefix=$(calc_prefix $netmask)
+        prefix=$(parse_prefix $netmask)
     else
-        prefix=24
+        case "$client" in
+            *:*) prefix=64 ;;
+            *)   prefix=24 ;;
+        esac
     fi
 fi
 
