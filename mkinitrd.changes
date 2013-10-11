@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct  9 20:27:02 UTC 2013 - jeffm@suse.com
+
+- Add missing PCI USB HCI modules (bnc#839071).
+
+-------------------------------------------------------------------
 Tue Oct  1 18:30:59 CEST 2013 - ohering@suse.de
 
 - Include hyperv-keyboard if running in hyper-v guest (fate#315887)
