@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 15 12:25:46 CEST 2013 - ohering@suse.de
+
+- setup-block: really include mmc_block driver (bnc#480808).
+
+-------------------------------------------------------------------
 Tue Oct  1 15:56:32 UTC 2013 - mkubecek@suse.cz
 
 - Fix iSCSI boot over IPv6 (bnc#830621)

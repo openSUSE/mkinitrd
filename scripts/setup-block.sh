@@ -83,7 +83,7 @@ get_devmodule() {
 		echo "[BLOCK] WARNING: Loop device detected. Include the required drivers manually." >&2
 		;;
             mmc*)
-                result=mmc_block
+                echo mmc_block
                 ;;
             fio*)
                 echo iomemory-vsl
