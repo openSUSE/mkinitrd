@@ -77,12 +77,14 @@ check_for_device() {
                     retval=0
                     break;
                 fi
-                if [ -n "$dm_major" ] ; then
+                # Do not wait for dm or mpath if root_no_(dm|mpath)=1 is
+                # passed on the kernel commandline (bnc#815185)
+                if [ -n "$dm_major" -a -z "$cmd_root_no_dm" ] ; then
                     if [ "$udev_major" == "$dm_major" ] ; then
                         echo " ok"
                         retval=0
                         break;
-                    elif [ -n "$(type -p multipath)" ] ; then
+                    elif [ -n "$(type -p multipath)" -a -z "$cmd_root_no_mpath" ] ; then
                         if [ -n "$vg_root" -a -n "$vg_roots" ] ; then
                             vgchange --sysinit -a n
                         fi
