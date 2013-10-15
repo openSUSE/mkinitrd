@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 15 12:32:27 CEST 2013 - ptesarik@suse.com
+
+- Add eadm_sch module to initrd for scm devices (bnc#820690)
+
+-------------------------------------------------------------------
 Wed Oct  9 20:27:02 UTC 2013 - jeffm@suse.com
 
 - Add missing PCI USB HCI modules (bnc#839071).

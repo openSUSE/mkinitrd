@@ -155,7 +155,7 @@ get_devmodule()
             result=iomemory-vsl
             ;;
 	scm*)
-            result=scm_block
+            result="scm_block eadm_sch"
             ;;
         *)
             if [ ! -d /sys/block/$blkdev/device ] ; then
