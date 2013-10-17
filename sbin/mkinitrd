@@ -20,7 +20,7 @@
 # https://github.com/openSUSE/mkinitrd.git
 #
 
-VERSION=2.8.0
+VERSION=2.8.1
 LOGDIR=/var/log/YaST2
 LOGFILE=$LOGDIR/mkinitrd.log
 PATH=/sbin:/usr/sbin:$PATH
