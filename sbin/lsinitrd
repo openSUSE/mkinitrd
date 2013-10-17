@@ -16,7 +16,7 @@
 
 # This file is kept in the following git repository:
 #
-# git://git.opensuse.org/projects/mkinitrd.git
+# https://github.com/openSUSE/mkinitrd.git
 #
 
 usage() {
