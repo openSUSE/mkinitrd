@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 17 11:03:47 CEST 2013 - rmilasan@suse.com
+
+- Add support for predictable network interface names (bnc#820407)
+
+-------------------------------------------------------------------
 Tue Oct 15 12:48:36 CEST 2013 - mmarek@suse.cz
 
 -  Add support for root_no_dm=1 and root_no_mpath=1 kernel
