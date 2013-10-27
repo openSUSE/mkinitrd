@@ -64,48 +64,58 @@ shared_object_files() {
     done
 }
 
-verbose -ne "Shared libs:\t"
-# Copy all required shared libraries and the symlinks that
-# refer to them.
-lib_files=$(shared_object_files "${initrd_bins[@]}")
-[ $? -eq 0 ] || return 1
-if [ -n "$lib_files" ]; then
-    for lib in $lib_files; do
-        [ -L $root_dir/$lib ] || verbose -n "$lib "
-        ( cd ${root_dir:-/} ; cp -dp --parents $lib $tmp_mnt )
-    done
-    lib_files=
+copy_shared_libs() {
+    local bins=( "$@" )
+    local extra_lib_files lib_files lib i
+
+    # First see what nss and other libs are required. This can be 64bit or 32bit,
+    # depending on the host and the already copied binaries.
     case "$(uname -m)" in
         ia64)
+            # this is a known location
             mkdir -p $tmp_mnt/lib
-            lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/lib{gcc_s,unwind}.so*`"
+            extra_lib_files="`echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/lib{gcc_s,unwind}.so*`"
             ;;
         *)
-            # no symlinks, most point into the running system
-            for i in `LANG=C LC_ALL=C file -b $tmp_mnt/{,usr/}{lib*/udev/,{,s}bin}/* | sed -n 's/^ELF \([0-9][0-9]-bit\) .*/\1/p' | sort -u`
+            # Skip symlinks, they may point into the running system instead of $tmp_mnt
+            for i in `LANG=C LC_ALL=C file -b $tmp_mnt/{,usr/}{lib*/udev,{,s}bin}/* | sed -n 's/^ELF \([0-9][0-9]-bit\) .*/\1/p' | sort -u`
             do
                 case "$i" in
                     32-bit)
                         mkdir -p $tmp_mnt/lib
-                        lib_files="$lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
+                        extra_lib_files="$extra_lib_files `echo $root_dir/lib/libnss_{dns,files}* $root_dir/lib/libgcc_s.so*`"
                         ;;
                     64-bit)
                         mkdir -p $tmp_mnt/lib64
-                        lib_files="$lib_files `echo $root_dir/lib64/libnss_{dns,files}* $root_dir/lib64/libgcc_s.so*`"
+                        extra_lib_files="$extra_lib_files `echo $root_dir/lib64/libnss_{dns,files}* $root_dir/lib64/libgcc_s.so*`"
                         ;;
                 esac
             done
             ;;
     esac
 
-    for lib in $lib_files ; do
-        if [ -f $lib ] ; then
-            verbose -n "${lib##$root_dir/} "
-            cp -dp --parents $lib $tmp_mnt
-        fi
-    done
-    verbose
-else
-    verbose "none"
-fi
+    verbose -ne "Shared libs:\t"
 
+    # Now collect a list of libraries on which the binaries and extra libs depend on
+    lib_files=$( shared_object_files ${bins[@]} $extra_lib_files )
+    if [ $? -eq 0 ]
+    then
+        if [ -n "$lib_files" ]
+        then
+            # Finally copy dependencies and extra libs
+            for lib in $lib_files $extra_lib_files
+            do
+                [ -L $root_dir/$lib ] || verbose -n "$lib "
+                ( cd ${root_dir:-/} ; cp -dp --parents $lib $tmp_mnt )
+            done
+            verbose
+        else
+            verbose "none"
+        fi
+    else
+        return 1
+    fi
+}
+
+# Copy all required shared libraries and the symlinks that refer to them.
+copy_shared_libs "${initrd_bins[@]}"
