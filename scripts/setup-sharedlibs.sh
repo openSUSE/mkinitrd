@@ -26,7 +26,7 @@ ldd_files() {
 # Resolve dynamic library dependencies. Returns a list of symbolic links
 # to shared objects and shared object files for the binaries in $*.
 shared_object_files() {
-    local CHROOT initrd_libs lib_files lib_links lib link
+    local initrd_libs lib link
 
     initrd_libs=( $(ldd_files "$@") )
 
