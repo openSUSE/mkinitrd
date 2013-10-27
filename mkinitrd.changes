@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Oct 27 21:24:20 CET 2013 - ohering@suse.de
+
+- Resolve also library dependencies of libnss (bnc#847785)
+
+-------------------------------------------------------------------
 Thu Oct 17 11:13:30 CEST 2013 - ohering@suse.de
 
 - Version 2.8.1
