@@ -308,6 +308,13 @@ resolve_mountpoint()
         dev="${!var_dev}"
     fi
 
+    #if any of the above fails, use whats currently in use for the mountpoint
+    if [ -z "$fstype" -a -z "$dev" ] ; then
+        grep -E "^[^[:space:]]+ $mountpoint " < /proc/mounts | tail -n 1 > "$work_dir/pipe"
+        # get device, type and options from current state
+        read dev dummy fstype fsopts dummy < "$work_dir/pipe"
+    fi
+
     #if we don't know where the device belongs to
     if [ -z "$fstype" ] ; then
       # get type from /etc/fstab or /proc/mounts (actually not needed)
