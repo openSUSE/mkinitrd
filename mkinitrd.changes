@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov 29 13:58:34 CET 2013 - hare@suse.de
+
+- Wait for multipath devices when MD is active (bnc#848293).
+
+-------------------------------------------------------------------
 Tue Oct 15 12:25:46 CEST 2013 - ohering@suse.de
 
 - setup-block: really include mmc_block driver (bnc#480808).
