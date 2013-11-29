@@ -4,6 +4,11 @@ Tue Oct 29 18:25:41 CET 2013 - ohering@suse.de
 - Fix code which handles missing or incomplete fstab (bnc#848038)
 
 -------------------------------------------------------------------
+Fri Nov 29 13:58:34 CET 2013 - hare@suse.de
+
+- Wait for multipath devices when MD is active (bnc#848293).
+
+-------------------------------------------------------------------
 Sun Oct 27 21:24:20 CET 2013 - ohering@suse.de
 
 - Resolve also library dependencies of libnss (bnc#847785)

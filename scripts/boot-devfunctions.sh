@@ -100,6 +100,10 @@ check_for_device() {
                     retval=0
                     break;
                 fi
+            elif [ -x "$(type -p multipath)" -a -z "$cmd_root_no_mpath" ] ; then
+                echo -n "!"
+                multipath -v 0
+                wait_for_events
             fi
             usleep 25000
             ((timeout % 40 == 1)) && echo -n "."
