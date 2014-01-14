@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 14 12:25:42 CET 2014 - hare@suse.de
+
+- Add cciss compat rules to mkinitrd (bnc#858663)
+
+-------------------------------------------------------------------
 Thu Dec 19 18:55:23 UTC 2013 - lduncan@suse.com
 
 - Support second ibft iscsi interface (bnc#830968)

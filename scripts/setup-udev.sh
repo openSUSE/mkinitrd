@@ -21,6 +21,7 @@ for rule in \
     62-dm_linear.rules \
     64-device-mapper.rules \
     64-md-raid.rules \
+    65-cciss-compat.rules \
     79-kms.rules \
     80-drivers.rules; do
     if [ -f /lib/udev/rules.d/$rule ]; then
