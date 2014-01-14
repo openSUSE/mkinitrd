@@ -79,7 +79,7 @@ for rule in \
     61-msft.rules \
     62-dm_linear.rules \
     64-device-mapper.rules \
-    75-net-description.rules \
+    65-cciss-compat.rules \
     79-kms.rules \
     80-drivers.rules \
     80-net-name-slot.rules \
