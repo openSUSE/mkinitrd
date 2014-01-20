@@ -31,6 +31,7 @@ ibft_set_iface() {
 }
 
 ibft_nic=/sys/firmware/ibft/ethernet0
+ibft_nic2=/sys/firmware/ibft/ethernet1
 ibft_hostname=$(hostname)
 
 if [ "$root_iscsi" = 1 -a -d $ibft_nic ]; then
