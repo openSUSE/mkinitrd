@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec 19 18:55:23 UTC 2013 - lduncan@suse.com
+
+- Support second ibft iscsi interface (bnc#830968)
+
+-------------------------------------------------------------------
 Fri Nov 29 13:58:34 CET 2013 - hare@suse.de
 
 - Wait for multipath devices when MD is active (bnc#848293).
