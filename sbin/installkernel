@@ -15,6 +15,7 @@
 KERNEL_VERSION=$1
 BOOTIMAGE=$2
 MAPFILE=$3
+CONFIGFILE=config-$KERNEL_VERSION
 
 case "$(uname -m)" in
     s390|s390x)
@@ -56,12 +57,19 @@ if [ -f $INSTALL_PATH/System.map-$KERNEL_VERSION ]; then
         $INSTALL_PATH/System.map-$KERNEL_VERSION.old; 
 fi
 
+
+if [ -f $INSTALL_PATH/$CONFIGFILE ]; then
+    mv $INSTALL_PATH/$CONFIGFILE \
+        $INSTALL_PATH/$CONFIGFILE.old;
+fi
+
 #
 # Install new files
 #
 
 cp -fp $BOOTIMAGE $INSTALL_PATH/$BOOTFILE-$KERNEL_VERSION
 cp -fp $MAPFILE $INSTALL_PATH/System.map-$KERNEL_VERSION
+cp -fp .config $INSTALL_PATH/$CONFIGFILE
 
 KERNTYPES=$(dirname $MAPFILE)/init/kerntypes.o
 if [ -e $KERNTYPES ]; then
