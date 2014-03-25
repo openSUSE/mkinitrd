@@ -4,7 +4,13 @@
 #%depends: progs sharedlibs
 #
 
-COMPRESS="gzip"
+# Use parallel compressing tool if installed
+if [ -x /usr/bin/pigz ];then
+    COMPRESS="pigz"
+else
+    COMPRESS="gzip"
+fi
+
 
 if [[ $(uname -m) =~ ppc ]]
 then
