@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr  9 14:41:33 UTC 2014 - mmarek@suse.cz
+
+- Do not warn when -f ifup is used (bnc#872435)
+
+-------------------------------------------------------------------
 Tue Jan 14 12:25:42 CET 2014 - hare@suse.de
 
 - Add cciss compat rules to mkinitrd (bnc#858663)

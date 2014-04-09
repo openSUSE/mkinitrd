@@ -90,6 +90,10 @@ use_script() {
 feature_exists() {
     local feature=$1 script
 
+    if test "$feature" = "ifup"; then
+        # ifup is a fake feature used by setup-network.sh
+        return 0
+    fi
     for script in $INITRD_PATH/boot/*-$feature.sh; do
         if test ! -e "$script"; then
             return 1
