@@ -265,7 +265,7 @@ if [ -z "$rootdev" ] ; then
 
   # get opts from fstab and device too if stat failed
   sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab >"$work_dir/pipe"
-  while read fstab_device fstab_mountpoint fstab_type fstab_options dummy ; do
+  while read fstab_device fstab_mountpoint fstab_type fstab_options fs_freq fs_passno; do
     if [ "$fstab_mountpoint" = "/" ]; then
       update_blockdev "$fstab_device" # get major and minor
       # let's see if the stat device is the same as the fstab device
@@ -275,6 +275,8 @@ if [ -z "$rootdev" ] ; then
       fi
       rootfstype="$fstab_type"
       rootfsopts="$fstab_options"
+      rootfs_passno="$fs_passno"
+      rootfs_freq="$fs_freq"
       break
     fi
   done < "$work_dir/pipe"
@@ -382,5 +384,7 @@ save_var resumedev
 save_var journaldev
 save_var dumpdev
 save_var rootfsopts
+save_var rootfs_freq
+save_var rootfs_passno
 blockdev="$(resolve_device Root $rootdev) $(resolve_device Resume $resumedev) $(resolve_device Journal $journaldev) $(resolve_device Dump $dumpdev)"
 

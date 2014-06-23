@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 23 13:30:59 UTC 2014 - alnovak@suse.com
+
+- Respect the sixth field (fs_passno) in /etc/fstab for the root
+  device entry (bnc#858023)
+
+-------------------------------------------------------------------
 Wed Apr  9 14:41:33 UTC 2014 - mmarek@suse.cz
 
 - Do not warn when -f ifup is used (bnc#872435)

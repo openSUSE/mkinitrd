@@ -92,6 +92,13 @@ if [ -z "$rootfstype" ]; then
 elif [ -n "$cmd_readonlyroot" -a -z "$cmd_noreadonlyroot" ] ; then
     echo "Skipping fsck of shared read-only root filesystem."
     read_only=1
+elif [ 0$rootfs_passno -lt 1 ] ; then
+    # filesystem has fs_passno (last field in /etc/fstab) == 0, therefore
+    # it shouldn't be fscked
+    ROOTFS_FSCK=0
+    export ROOTFS_FSCK
+    ROOTFS_FSTYPE=$rootfstype
+    export ROOTFS_FSTYPE
 # don't run fsck in the kdump kernel
 elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     # fsck is unhappy without it
