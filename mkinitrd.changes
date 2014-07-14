@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul  1 18:17:14 PDT 2014 - lduncan@suse.com
+
+- Complete support of 2nd ibft iscsi interface (bnc#830968)
+
+-------------------------------------------------------------------
 Mon Jun 23 13:30:59 UTC 2014 - alnovak@suse.com
 
 - Respect the sixth field (fs_passno) in /etc/fstab for the root

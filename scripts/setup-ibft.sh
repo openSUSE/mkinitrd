@@ -41,3 +41,4 @@ fi
 save_var ibft_available
 save_var ibft_hostname
 save_var ibft_nic
+save_var ibft_nic2
