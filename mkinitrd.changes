@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 18 20:30:10 UTC 2014 - mmarek@suse.com
+
+- setup-storage: Fix matching of device numbers in /proc/partitions
+  (bnc#887683)
+
+-------------------------------------------------------------------
 Fri Jul 18 20:27:05 UTC 2014 - mmarek@suse.com
 
 - setup-mount: Check for both nfs and nfs4 (bnc#881550)

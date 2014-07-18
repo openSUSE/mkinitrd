@@ -58,7 +58,7 @@ majorminor2blockdev() {
         if [ $major -lt 0 ] ; then
             return
         fi
-        local retval=$(cat /proc/partitions | egrep "^[ ]*$major[ ]*$minor ")
+        local retval=$(egrep "^ *$major +$minor " /proc/partitions)
         if [ -z "$retval" ]; then
             echo "WARNING: Partition $major:$minor not available" >&2
             return
