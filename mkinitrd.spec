@@ -1,7 +1,7 @@
 #
 # spec file for package mkinitrd
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -17,15 +17,23 @@
 
 
 Name:           mkinitrd
+Version:        2.8.1
+Release:        0
+Summary:        Creates an Initial RAM Disk Image for Preloading Modules
+License:        GPL-2.0+
+Group:          System/Base
+# Note: the whole package is maintained in this git repository, please
+# don't change it in the build service without sending the author a
+# pull request or patch first. Otherwise, you risk that your changes will be
+# silently overwritten by the next submission.
+Url:            https://github.com/openSUSE/mkinitrd
+Source0:        %{name}.tar.bz2
 #!BuildIgnore:  module-init-tools e2fsprogs udev reiserfs fop
 BuildRequires:  asciidoc
 BuildRequires:  libxslt
-%if 0%{?suse_version} >= 1210
-BuildRequires:  systemd
-%{?systemd_requires}
-%endif
 Requires:       coreutils
 Requires:       cpio
+Requires:       dhcpcd
 Requires:       file
 Requires:       grep
 Requires:       gzip
@@ -35,28 +43,20 @@ Requires:       sed
 Requires:       udev
 Requires:       util-linux
 Requires:       xz
+PreReq:         %fillup_prereq
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Conflicts:      udev < 118
+Conflicts:      mdadm < 3.3
+%if 0%{?suse_version} >= 1210
+BuildRequires:  systemd
+%{?systemd_requires}
+%endif
 %if 0%{?suse_version} > 1120
 Requires:       sbin_init
 Requires:       sysvinit-tools
 %else
 Requires:       sysvinit
 %endif
-Version:        @@VERSION@@
-Release:        0
-Conflicts:      udev < 118
-Conflicts:      mdadm < 3.3
-Requires:       dhcpcd
-PreReq:         %fillup_prereq
-Summary:        Creates an Initial RAM Disk Image for Preloading Modules
-License:        GPL-2.0+
-Group:          System/Base
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Source0:        mkinitrd.tar.bz2
-# Note: the whole package is maintained in this git repository, please
-# don't change it in the build service without sending the author a
-# pull request or patch first. Otherwise, you risk that your changes will be
-# silently overwritten by the next submission.
-Url:            https://github.com/openSUSE/mkinitrd
 
 %description
 Mkinitrd creates file system images for use as initial RAM disk
@@ -85,15 +85,15 @@ Authors:
     Alexander Graf <agraf@suse.de>
 
 %prep
-%setup
+%setup -q
 
 %build
-%__cc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/run-init src/run-init.c
-%__cc $RPM_OPT_FLAGS -Wall -Os -o lib/mkinitrd/bin/warpclock src/warpclock.c
-make -C man
-sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/mkinitrd
+gcc %{optflags} -Wall -Os -o lib/%{name}/bin/run-init src/run-init.c
+gcc %{optflags} -Wall -Os -o lib/%{name}/bin/warpclock src/warpclock.c
+make -C man %{?_smp_mflags}
+sed -i "s/@BUILD_DAY@/`env LC_ALL=C date -ud yesterday '+%Y%m%d'`/" sbin/%{name}
 echo "Checking scripts:"
-if ! bash -n sbin/mkinitrd; then
+if ! bash -n sbin/%{name}; then
     exit 1
 fi
 for script in scripts/*.sh; do
@@ -104,45 +104,46 @@ for script in scripts/*.sh; do
 done
 
 %install
-mkdir -p $RPM_BUILD_ROOT/usr/share/mkinitrd
-mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/dev
-mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/scripts
-mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/setup
-mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/boot
-mkdir -p $RPM_BUILD_ROOT/lib/mkinitrd/bin
-cp -a scripts/*.sh $RPM_BUILD_ROOT/lib/mkinitrd/scripts/
-for i in lib/mkinitrd/bin/*
+## create folders
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mkdir -p %{buildroot}/lib/%{name}/{bin,boot,dev,scripts,setup}
+cp -a scripts/*.sh %{buildroot}/lib/%{name}/scripts/
+for i in lib/%{name}/bin/*
 do
     n=`echo $i | sed 's@.sh$@@'`
-    cp -a $i $RPM_BUILD_ROOT/$n
+    cp -a $i %{buildroot}/$n
 done
-make -C sbin DESTDIR=$RPM_BUILD_ROOT install
-chmod -R 755 $RPM_BUILD_ROOT/lib/mkinitrd
-install -D -m 644 man/mkinitrd.5 $RPM_BUILD_ROOT/%{_mandir}/man5/mkinitrd.5
-install -D -m 644 man/cmdinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/cmdinitrd.8
-install -D -m 644 man/lsinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/lsinitrd.8
-install -D -m 644 man/mkinitrd.8 $RPM_BUILD_ROOT/%{_mandir}/man8/mkinitrd.8
-mkdir -p $RPM_BUILD_ROOT/etc/rpm
-cat > $RPM_BUILD_ROOT/etc/rpm/macros.mkinitrd <<EOF
+make -C sbin DESTDIR=%{buildroot} install
+chmod -R 755 %{buildroot}/lib/%{name}
+install -D -m 644 man/%{name}.5 %{buildroot}/%{_mandir}/man5/%{name}.5
+install -D -m 644 man/cmdinitrd.8 %{buildroot}/%{_mandir}/man8/cmdinitrd.8
+install -D -m 644 man/lsinitrd.8 %{buildroot}/%{_mandir}/man8/lsinitrd.8
+install -D -m 644 man/%{name}.8 %{buildroot}/%{_mandir}/man8/%{name}.8
+## create folder
+mkdir -p %{buildroot}%{_sysconfdir}/rpm
+cat > %{buildroot}%{_sysconfdir}/rpm/macros.%{name} <<EOF
 #
 # Update links for mkinitrd scripts
 #
-%install_mkinitrd   /usr/bin/perl /sbin/mkinitrd_setup
+%install_mkinitrd   %{_bindir}/perl /sbin/%{name}_setup
 EOF
 %if 0%{?suse_version} < 1230
-mkdir -p $RPM_BUILD_ROOT/etc/init.d
+## create folder
+mkdir -p %{buildroot}%{_sysconfdir}/init.d
 %if 0%{?suse_version} > 1140
 # This file is in aaa_base in older versions
-install -m 755 etc/boot.loadmodules $RPM_BUILD_ROOT/etc/init.d/
+install -m 755 etc/boot.loadmodules %{buildroot}%{_initddir}/
 %endif
-install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
+install -m 755 etc/purge-kernels.init %{buildroot}%{_initddir}/purge-kernels
 %endif
-mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates
-install -m 644 etc/sysconfig.kernel-mkinitrd $RPM_BUILD_ROOT/var/adm/fillup-templates/
+## create folder
+mkdir -p %{buildroot}%{_localstatedir}/adm/fillup-templates
+install -m 644 etc/sysconfig.kernel-%{name} %{buildroot}%{_localstatedir}/adm/fillup-templates/
 
 %if 0%{?suse_version} >= 1210
-mkdir -p $RPM_BUILD_ROOT/%{_unitdir}/
-install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
+## create folder
+mkdir -p %{buildroot}/%{_unitdir}/
+install -m 644 etc/purge-kernels.service %{buildroot}/%{_unitdir}/
 %endif
 
 %pre
@@ -159,7 +160,7 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %{fillup_only -an kernel}
 %if 0%{?suse_version} < 1230
 %if 0%{?suse_version} > 1140
-%{insserv_force_if_yast /etc/init.d/boot.loadmodules}
+%{insserv_force_if_yast %{_initddir}/boot.loadmodules}
 %endif
 %{fillup_and_insserv -f -Y purge-kernels}
 %endif
@@ -167,8 +168,8 @@ install -m 644 etc/purge-kernels.service $RPM_BUILD_ROOT/%{_unitdir}/
 %{remove_and_set -n kernel MODULES_LOADED_ON_BOOT}
 if test -n "${MODULES_LOADED_ON_BOOT}" -a "${MODULES_LOADED_ON_BOOT}" != "no"
 then
-	mkdir -vp /etc/modules-load.d/
-	f=/etc/modules-load.d/MODULES_LOADED_ON_BOOT.conf
+	mkdir -vp %{_sysconfdir}/modules-load.d/
+	f=%{_sysconfdir}/modules-load.d/MODULES_LOADED_ON_BOOT.conf
 	if test -f "${f}"
 	then
 		echo "${f} already exists. Module list: '${MODULES_LOADED_ON_BOOT}'"
@@ -191,42 +192,42 @@ fi
 %endif
 
 %posttrans
-/sbin/mkinitrd_setup
-/sbin/mkinitrd
+/sbin/%{name}_setup
+/sbin/%{name}
 
 %files
 %defattr(-,root,root)
-%dir /etc/rpm
-%dir /usr/share/mkinitrd
-%dir /lib/mkinitrd
-%dir /lib/mkinitrd/dev
-%dir /lib/mkinitrd/bin
-%dir /lib/mkinitrd/scripts
-%dir /lib/mkinitrd/boot
-%dir /lib/mkinitrd/setup
-%config /etc/rpm/macros.mkinitrd
+%dir %{_sysconfdir}/rpm
+%dir %{_datadir}/%{name}
+%dir /lib/%{name}
+%dir /lib/%{name}/dev
+%dir /lib/%{name}/bin
+%dir /lib/%{name}/scripts
+%dir /lib/%{name}/boot
+%dir /lib/%{name}/setup
+%config %{_sysconfdir}/rpm/macros.%{name}
 %if 0%{?suse_version} < 1230
 %if 0%{?suse_version} > 1140
-/etc/init.d/boot.loadmodules
+%{_initddir}/boot.loadmodules
 %endif
-/etc/init.d/purge-kernels
+%{_initddir}/purge-kernels
 %endif
 %if 0%{?suse_version} >= 1210
-%_unitdir/purge-kernels.service
+%{_unitdir}/purge-kernels.service
 %endif
-/lib/mkinitrd/scripts/*.sh
-/lib/mkinitrd/bin/*
+/lib/%{name}/scripts/*.sh
+/lib/%{name}/bin/*
 /bin/cmdinitrd
 /bin/lsinitrd
-/sbin/mkinitrd
-/sbin/mkinitrd_setup
+/sbin/%{name}
+/sbin/%{name}_setup
 /sbin/module_upgrade
 /sbin/installkernel
 /sbin/purge-kernels
-/var/adm/fillup-templates/sysconfig.kernel-%name
-%doc %{_mandir}/man5/mkinitrd.5.gz
+%{_localstatedir}/adm/fillup-templates/sysconfig.kernel-%{name}
+%doc %{_mandir}/man5/%{name}.5.gz
 %doc %{_mandir}/man8/cmdinitrd.8.gz
 %doc %{_mandir}/man8/lsinitrd.8.gz
-%doc %{_mandir}/man8/mkinitrd.8.gz
+%doc %{_mandir}/man8/%{name}.8.gz
 
 %changelog
