@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Jul 19 08:03:01 UTC 2014 - devel.openSUSE.org@gmail.com
+
+- Spec cleanup 
+
+-------------------------------------------------------------------
 Tue Jan 14 12:25:42 CET 2014 - hare@suse.de
 
 - Add cciss compat rules to mkinitrd (bnc#858663)
