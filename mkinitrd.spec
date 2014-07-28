@@ -17,7 +17,7 @@
 
 
 Name:           mkinitrd
-Version:        2.8.1
+Version:        @@VERSION@@
 Release:        0
 Summary:        Creates an Initial RAM Disk Image for Preloading Modules
 License:        GPL-2.0+
