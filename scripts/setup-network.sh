@@ -287,15 +287,6 @@ if [ "$nettype" = "ifup" ] ; then
 	fi
     done
     interface=
-    if [ -f /etc/udev/rules.d/77-network.rules ] ; then
-        cp /etc/udev/rules.d/77-network.rules $tmp_mnt/etc/udev/rules.d
-    fi
-    mkdir -p $tmp_mnt/etc/alternatives
-    for bin in /bin/{g,}awk /etc/alternatives/awk; do
-        if test -e $bin; then
-            cp_bin $bin $tmp_mnt/$bin
-        fi
-    done
 fi
 
 # Copy the /etc/resolv.conf when the IP is static
@@ -313,6 +304,21 @@ mkdir -p $tmp_mnt/var/run
 cp_bin /lib/mkinitrd/bin/ipconfig.sh $tmp_mnt/bin/ipconfig
 if [ -f /etc/udev/rules.d/70-persistent-net.rules ] ; then
     cp /etc/udev/rules.d/70-persistent-net.rules $tmp_mnt/etc/udev/rules.d
+fi
+# XXX: This belongs to the if [ "$nettype" = "ifup" ] branch above, but we
+# are being bug-compatible with previous versions of mkinitrd, which
+# included these files unconditionally (bnc#891573).
+if [ -f /etc/udev/rules.d/77-network.rules ] ; then
+    cp /etc/udev/rules.d/77-network.rules $tmp_mnt/etc/udev/rules.d
+    mkdir -p $tmp_mnt/etc/alternatives
+    for bin in /bin/{g,}awk /etc/alternatives/awk; do
+        if test -e $bin; then
+            cp_bin $bin $tmp_mnt/$bin
+        fi
+    done
+    cp_bin /bin/grep $tmp_mnt/bin/grep
+    cp_bin /bin/logger $tmp_mnt/bin/logger
+    cp_bin /bin/touch $tmp_mnt/bin/touch
 fi
 
 test -n "$static_interfaces" && verbose "[NETWORK]\tstatic: $static_interfaces"
