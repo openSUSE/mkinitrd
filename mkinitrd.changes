@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 27 14:17:13 UTC 2014 - mmarek@suse.cz
+
+- Install more programs for ifup (bnc#891573)
+  netconfig, sysctl, md5sum, mktemp
+
+-------------------------------------------------------------------
 Tue Aug 19 14:09:59 UTC 2014 - mmarek@suse.cz
 
 - setup-network: Include ifup dependencies even if ifup is not used
