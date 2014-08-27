@@ -63,7 +63,10 @@ configure_dynamic()
         cd /
         PATH=$PATH PS1='$ ' /bin/sh -i
     fi
-    [ -e "/var/run/dhcpcd-$interface.pid" ] && kill -9 $(cat /var/run/dhcpcd-$interface.pid)
+    if test -e "/var/run/dhcpcd-$interface.pid"; then
+        kill -9 $(cat /var/run/dhcpcd-$interface.pid)
+        rm /var/run/dhcpcd-$interface.pid
+    fi
     if [ -n "$DNS" ]; then
         oifs="$IFS"
         IFS=","
