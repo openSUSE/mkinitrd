@@ -11,11 +11,6 @@ Fri Jul 18 20:30:10 UTC 2014 - mmarek@suse.com
   (bnc#887683)
 
 -------------------------------------------------------------------
-Fri Jul 18 20:27:05 UTC 2014 - mmarek@suse.com
-
-- setup-mount: Check for both nfs and nfs4 (bnc#881550)
-
--------------------------------------------------------------------
 Tue Jul  1 18:17:14 PDT 2014 - lduncan@suse.com
 
 - Complete support of 2nd ibft iscsi interface (bnc#830968)
