@@ -103,6 +103,10 @@ install -m 755 etc/purge-kernels.init $RPM_BUILD_ROOT/etc/init.d/purge-kernels
 
 %postun
 %insserv_cleanup
+if test $1 -eq 0; then
+	# Remove the boot and setup symlinks (bnc#892507)
+	rm -rf /lib/mkinitrd/{boot,setup}
+fi
 
 %posttrans
 /sbin/mkinitrd_setup
