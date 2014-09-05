@@ -151,13 +151,45 @@ else
     fi
 fi
 
+retry_mount()
+{
+    local timeout=$udev_timeout
+    local retval=0
+
+    echo -n "Waiting for $rootdev to become available: "
+    while [ $timeout -gt 0 ]; do
+        if [ $timeout -gt 1 ]; then
+            mount $opt $rootdev /root 2>/dev/null
+        else
+            # print errors from the last attempt
+            mount $opt $rootdev /root
+        fi
+        retval=$?
+        if [ $retval -eq 0 ]; then
+            echo " ok"
+            break
+        fi
+        sleep 1
+        echo -n "."
+        timeout=$(( $timeout - 1 ))
+    done
+    return $retval
+}
+
 [ -n "$rootfstype" ] && opt="${opt} -t $rootfstype"
 echo mount $opt $rootdev /root
 mount $opt $rootdev /root
-if [ $? -ne 0 ] ; then
+mount_result=$?
+if [ $mount_result -ne 0 -a "$rootfstype" = "nfs" ]; then
+    # When using nfs, there is no device node to wait for (cf. discover_root()
+    # above). But when using -f ifup, the network comes up asynchronously.
+    retry_mount
+    mount_result=$?
+fi
+if [ $mount_result -ne 0 ] ; then
     echo "could not mount root filesystem -- exiting to /bin/sh"
     cd /
     PATH=$PATH PS1='$ ' /bin/sh -i
 fi
 
-unset discover_root
+unset discover_root retry_mount

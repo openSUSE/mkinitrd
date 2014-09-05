@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  5 10:18:43 UTC 2014 - mmarek@suse.cz
+
+- Retry nfs mount if network is not yet up (bnc#891573).
+
+-------------------------------------------------------------------
 Wed Aug 27 14:42:50 UTC 2014 - mmarek@suse.cz
 
 - Kill the dhdpcd client in ifup mode (bnc#891573)
