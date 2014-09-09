@@ -7,10 +7,7 @@
 rootfsck="/sbin/fsck.${rootfstype}"
 if [ ! -x "$rootfsck" ]; then
     rootfsck=
-    case "$rootfstype" in
-    nfs | nfs4 | xfs | cifs)
-        ;;
-    *)
+    if [ "$rootfstype" != "nfs" -a "$rootfstype" != "xfs" -a "$rootfstype" != "cifs" ]; then
         echo "****************************"
         echo "*        WARNING           "
         echo "* No fsck for your rootfs  "
@@ -18,7 +15,7 @@ if [ ! -x "$rootfsck" ]; then
         echo "* This might be bad!       "
         echo "* Please install: /sbin/fsck.$rootfstype"
         echo "****************************"
-    esac
+    fi
 fi
 
 verbose "[MOUNT] Root:\t$rootdev"
