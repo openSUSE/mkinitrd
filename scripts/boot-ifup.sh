@@ -1,4 +1,4 @@
 #!/bin/bash
 #%stage: device
-#%programs: ifup ifup-dhcp ps
+#%programs: /sbin/ifup /sbin/ifup-dhcp /sbin/netconfig /sbin/sysctl /bin/md5sum mktemp ps
 #%if: ""

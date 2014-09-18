@@ -1,7 +1,23 @@
 -------------------------------------------------------------------
+Fri Sep  5 10:18:43 UTC 2014 - mmarek@suse.cz
+
+- Retry nfs mount if network is not yet up (bnc#891573).
+
+-------------------------------------------------------------------
 Wed Sep  3 15:22:44 UTC 2014 - mmarek@suse.cz
 
 - Remove /lib/mkinitrd/{boot,setups} in postun (bnc#892507)
+
+-------------------------------------------------------------------
+Wed Aug 27 14:42:50 UTC 2014 - mmarek@suse.cz
+
+- Kill the dhdpcd client in ifup mode (bnc#891573)
+
+-------------------------------------------------------------------
+Wed Aug 27 14:17:13 UTC 2014 - mmarek@suse.cz
+
+- Install more programs for ifup (bnc#891573)
+  netconfig, sysctl, md5sum, mktemp
 
 -------------------------------------------------------------------
 Tue Aug 19 14:09:59 UTC 2014 - mmarek@suse.cz

@@ -278,6 +278,7 @@ done
 if [ "$nettype" = "ifup" ] ; then
     mkdir -p $tmp_mnt/etc/sysconfig
     cp -rp /etc/sysconfig/network $tmp_mnt/etc/sysconfig
+    cp -rp /etc/netconfig.d $tmp_mnt/etc/
     for i in /etc/sysconfig/network/ifcfg-*; do
 	interface=${i##*/ifcfg-}
 	if [ -d /sys/class/net/$interface/device ] ; then
