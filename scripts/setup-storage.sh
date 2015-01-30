@@ -268,11 +268,8 @@ if [ -z "$rootdev" ] ; then
   while read fstab_device fstab_mountpoint fstab_type fstab_options fs_freq fs_passno; do
     if [ "$fstab_mountpoint" = "/" ]; then
       update_blockdev "$fstab_device" # get major and minor
-      # let's see if the stat device is the same as the fstab device
-      if [ "$rootmajor" -eq 0 ] || [ "$blockmajor" -eq "$rootmajor" -a "$blockminor" -eq "$rootminor" ]; then # if both match
-        rootdev="$fstab_device" # use the fstab device so the user can decide
-                                # how to access the root device
-      fi
+      # use the fstab device so the user can decide how to access the root device
+      rootdev="$fstab_device"
       rootfstype="$fstab_type"
       rootfsopts="$fstab_options"
       rootfs_passno="$fs_passno"

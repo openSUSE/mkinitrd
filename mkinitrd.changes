@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 30 14:51:47 CET 2015 - ohering@suse.de
+
+- Use mount-by setting from fstab if booted without root= (bnc#915548)
+
+-------------------------------------------------------------------
 Fri Sep  5 10:18:43 UTC 2014 - mmarek@suse.cz
 
 - Retry nfs mount if network is not yet up (bnc#891573).
