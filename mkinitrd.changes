@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct  6 22:35:35 UTC 2014 - wbauer@tmo.at
+
+- Added fix-purge-kernel-with-git-versioning.patch:
+  fix purge-kernels for Tumbleweed and Kernel:xxx repos (boo#820367)
+
+-------------------------------------------------------------------
 Tue Jul  8 16:52:47 UTC 2014 - trenn@suse.de
 
 - Make booting from bcache devices possible
