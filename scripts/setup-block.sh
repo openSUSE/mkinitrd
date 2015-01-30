@@ -157,7 +157,10 @@ get_devmodule()
 	scm*)
             result="scm_block eadm_sch"
             ;;
-        *)
+        bcache*)
+            result="bcache"
+            ;;
+         *)
             if [ ! -d /sys/block/$blkdev/device ] ; then
                 echo "Device $blkdev not handled" >&2
                 return 1

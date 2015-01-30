@@ -1,4 +1,27 @@
 -------------------------------------------------------------------
+Fri Jan 30 14:46:26 CET 2015 - ohering@suse.de
+
+- Remove patches which should should have be placed into git
+  fix-purge-kernel-with-git-versioning.patch
+  mkinitrd-check_for_bcache_block_device.patch
+  mkinitrd-add_bcache_udev_rule.patch
+
+-------------------------------------------------------------------
+Mon Oct  6 22:35:35 UTC 2014 - wbauer@tmo.at
+
+- Added fix-purge-kernel-with-git-versioning.patch:
+  fix purge-kernels for Tumbleweed and Kernel:xxx repos (boo#820367)
+
+-------------------------------------------------------------------
+Tue Jul  8 16:52:47 UTC 2014 - trenn@suse.de
+
+- Make booting from bcache devices possible
+  bnc#880846
+  Add mkinitrd-check_for_bcache_block_device.patch
+  bnc#880845
+  Add mkinitrd-add_bcache_udev_rule.patch
+
+-------------------------------------------------------------------
 Tue Jan 14 12:25:42 CET 2014 - hare@suse.de
 
 - Add cciss compat rules to mkinitrd (bnc#858663)

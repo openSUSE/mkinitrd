@@ -21,6 +21,7 @@ for script in /usr/lib/udev/* /lib/udev/* /sbin/*_id ; do
     accelerometer) continue ;;
     ata_id) ;;
     bluetooth_serial) continue ;;
+    bcache-register) ;;
     cdrom_id) ;;
     collect) ;;
     collect_lvm) ;;
@@ -47,6 +48,7 @@ for script in /usr/lib/udev/* /lib/udev/* /sbin/*_id ; do
     openct_usb) continue ;;
     pcmcia-check-broken-cis) continue ;;
     pcmcia-socket-startup) continue ;;
+    probe-bcache) ;;
     scsi_id) ;;
     udev-acl) continue ;;
     udev-add-printer) continue ;;
@@ -80,6 +82,7 @@ for rule in \
     62-dm_linear.rules \
     64-device-mapper.rules \
     65-cciss-compat.rules \
+    69-bcache.rules \
     79-kms.rules \
     80-drivers.rules \
     80-net-name-slot.rules \
