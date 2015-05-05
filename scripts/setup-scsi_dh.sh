@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 #%stage: device
@@ -8,9 +7,7 @@
 #
 
 scsi_dh_modules=
-for bd in $blockdev ; do
-    update_blockdev $bd
-    devpath=/sys/dev/block/${blockmajor}:${blockminor}/device
+for devpath in /sys/block/*/device ; do
     [ -L ${devpath} ] || continue
     [ -f ${devpath}/dh_state ] || continue
     dh_name=$(cat ${devpath}/dh_state)
