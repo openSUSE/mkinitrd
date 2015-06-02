@@ -244,7 +244,7 @@ resolve_device() {
     [ "$x" != "$realrootdev" ] && x="$x ($realrootdev)"
 
     # FIXME: we should really print this to stdout
-    echo -en "$type device:\t$x" >&2
+    printf "%s device:\t%s" "$type" "$x" >&2
     if [ "$type" = "Root" ]; then
         echo " (mounted on ${root_dir:-/} as $rootfstype)" >&2
     else
@@ -265,7 +265,7 @@ if [ -z "$rootdev" ] ; then
 
   # get opts from fstab and device too if stat failed
   sed -e '/^[ \t]*#/d' < $root_dir/etc/fstab >"$work_dir/pipe"
-  while read fstab_device fstab_mountpoint fstab_type fstab_options fs_freq fs_passno; do
+  while read -r fstab_device fstab_mountpoint fstab_type fstab_options fs_freq fs_passno; do
     if [ "$fstab_mountpoint" = "/" ]; then
       update_blockdev "$fstab_device" # get major and minor
       # use the fstab device so the user can decide how to access the root device

@@ -125,9 +125,9 @@ while next_var; do
     # set local variables too, in case somehow the kernel does not do this correctly
     value="${var#*=}"
     value=${value:=1}
-    read $cmd_key < <(echo "$value")
+    read -r $cmd_key < <(echo "$value")
     if test -n "$key"; then
-        read $key < <(echo "$value")
+        read -r $key < <(echo "$value")
     fi
 done
 unset next_char next_var c pos cmdline key cmd_key value var
