@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 19 07:49:06 UTC 2015 - ohering@suse.de
+
+- Start emergency shell if fsck left filesystem errors uncorrected
+  instead of booting into the system (bnc#873919)
+- Handle all fsck exit codes
+
+-------------------------------------------------------------------
 Fri Jan 30 14:46:26 CET 2015 - ohering@suse.de
 
 - Remove patches which should have been placed into git

@@ -116,14 +116,29 @@ elif [ -x "$rootfsck" ] && ! [ -s /proc/vmcore ] ; then
     echo $ROOTFS_FSCK >/run/initramfs/root-fsck
     ROOTFS_FSTYPE=$rootfstype
     export ROOTFS_FSTYPE
-    if [ $ROOTFS_FSCK -gt 1 -a $ROOTFS_FSCK -lt 4 ]; then
-        # reboot needed
-        echo "fsck succeeded, but reboot is required."
-        echo "Rebooting system."
-        reboot -d -f
-    elif [ $ROOTFS_FSCK -gt 3 ] ; then
-        echo "fsck failed. Mounting root device read-only."
-        read_only=1
+    fsck_corrected=$(( $ROOTFS_FSCK & 1 ))
+    fsck_reboot=$(( $ROOTFS_FSCK & 2 ))
+    fsck_uncorrected=$(( $ROOTFS_FSCK & 4 ))
+    fsck_other=$(( $ROOTFS_FSCK & (255 << 3) ))
+    if [ $ROOTFS_FSCK -gt 1 ]; then
+        if [ $fsck_other -gt 0 ]; then
+            echo "fsck reported unhandled exit code: $ROOTFS_FSCK"
+            echo "Mounting root device read-only."
+            read_only=1
+        fi
+        if [ $fsck_corrected -gt 0 ]; then
+            echo "Filesystem errors corrected."
+        fi
+        if [ $fsck_reboot -gt 0 ]; then
+            echo "System should be rebooted."
+        fi
+        if [ $fsck_uncorrected -gt 0 ]; then
+            emergency "Filesystem errors left uncorrected."
+        fi
+        if [ $fsck_reboot -gt 0 ]; then
+            echo "Rebooting system."
+            reboot -d -f
+        fi
     else
         if [ "$read_only" ]; then
             echo "fsck succeeded. Mounting root device read-only."
