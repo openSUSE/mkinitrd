@@ -9,6 +9,12 @@ Mon Jul 20 06:39:35 UTC 2015 - mmarek@suse.com
 - setup-block: Find driver for nvme devices (bnc#938470).
 
 -------------------------------------------------------------------
+Tue Jun 16 01:59:16 UTC 2015 - lduncan@suse.com
+
+- Set NIC link up for ibft devices. Needed for BCM and
+  can't hurt for others. (bsc#932038, bsc#840288)
+
+-------------------------------------------------------------------
 Tue Jun  2 14:32:23 UTC 2015 - mmarek@suse.cz
 
 - Handle devices symlinks with '\' in their names (bnc#930487)
