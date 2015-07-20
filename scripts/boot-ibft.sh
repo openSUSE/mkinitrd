@@ -1,5 +1,6 @@
 #!/bin/bash
 #%stage: device
+#%programs: /sbin/ip
 #%modules: iscsi_ibft ipv6
 #%if: "$ibft_available"
 #: ${ibft_nic:=/sys/firmware/ibft/ethernet0}
@@ -54,7 +55,9 @@ print_par() {
 
 setup_ibft_nic() {
     local nic=$1
+    local eth=$(ibft_get_ethdev $nic)
 
+    /sbin/ip link set dev $eth up 2>/dev/null
     if [ -s $nic/dhcp ]; then
 	nettype='dhcp'
 	read ibft_dhcp < $nic/dhcp
