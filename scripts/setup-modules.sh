@@ -192,6 +192,22 @@ load_additional_dependencies()
                 verbose "[MODULES]\tIncluding $requirement per initrd comment"
             # module dependency
             else
+                requirement_=
+                for r in $requirement; do
+                    x=$(/sbin/modprobe -C /dev/null \
+                        --set-version $kernel_version --ignore-install \
+                        --show-depends "$r" 2>&1)
+                    if test $? -ne 0; then
+                        verbose "[MODULES]\tIgnoring non-existent dependency \"$r\""
+                        continue
+                    fi
+                    requirement_="$requirement_ $r"
+                done
+                requirement=$requirement_
+                if test -z "$requirement"; then
+                    continue
+                fi
+                verbose "[MODULES]\tIncluding $requirement per initrd comment"
                 number=0
                 added=0
                 for entry in "${additional_module_dependencies[@]}" ; do

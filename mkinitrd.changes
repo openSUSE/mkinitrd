@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 20 07:19:53 UTC 2015 - mmarek@suse.com
+
+- setup-modules: Ignore non-existent extra dependencies (bnc#932042).
+
+-------------------------------------------------------------------
 Mon Jul 20 06:39:35 UTC 2015 - mmarek@suse.com
 
 - setup-block: Find driver for nvme devices (bnc#938470).
