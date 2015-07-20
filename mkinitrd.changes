@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 20 06:39:35 UTC 2015 - mmarek@suse.com
+
+- setup-block: Find driver for nvme devices (bnc#938470).
+
+-------------------------------------------------------------------
 Tue Jun  2 14:32:23 UTC 2015 - mmarek@suse.cz
 
 - Handle devices symlinks with '\' in their names (bnc#930487)

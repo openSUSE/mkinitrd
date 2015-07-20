@@ -98,6 +98,9 @@ get_devmodule() {
                 fi
                 devpath=$(cd -P "/sys/block/$blkdev/device"; echo $PWD)
                 if [ ! -f "$devpath/modalias" ] ; then
+                    devpath=$(cd -P "$devpath/../.."; echo $PWD)
+                fi
+                if [ ! -f "$devpath/modalias" ] ; then
                     echo "No modalias for device $blkdev" >&2
                     return 1
                 fi
