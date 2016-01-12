@@ -92,7 +92,7 @@ if [ -z "$rootfstype" ]; then
 elif [ -n "$cmd_readonlyroot" -a -z "$cmd_noreadonlyroot" ] ; then
     echo "Skipping fsck of shared read-only root filesystem."
     read_only=1
-elif [ 0$rootfs_passno -lt 1 ] ; then
+elif [ 0$rootfs_passno -lt 1 -o -n "$cmd_fastboot" ] ; then
     # filesystem has fs_passno (last field in /etc/fstab) == 0, therefore
     # it shouldn't be fscked
     ROOTFS_FSCK=0
