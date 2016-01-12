@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 12 10:34:10 UTC 2016 - mmarek@suse.cz
+
+- Do not run fsck if fastboot is given on the kernel command line
+  (bsc#958722).
+
+-------------------------------------------------------------------
 Mon Jul 20 07:19:53 UTC 2015 - mmarek@suse.com
 
 - setup-modules: Ignore non-existent extra dependencies (bnc#932042).
