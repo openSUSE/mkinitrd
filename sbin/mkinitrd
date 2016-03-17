@@ -30,6 +30,7 @@ LOGFILE=$LOGDIR/mkinitrd.log
 declare -a cmd_option
 declare cmd_option_name cmd_option_desc cmd_option_param cmd_param_desc cmd_param_name cmd_param_is_array
 shopt -s nullglob
+unset GREP_OPTIONS
 
 read_options_eval() {
     [ "$#" = 0 ] && return
