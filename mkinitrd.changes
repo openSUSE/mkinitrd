@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May  5 13:20:55 UTC 2015 - hare@suse.de
+
+- scsi_dh: modify to include only required modules (bsc#926440).
+
+-------------------------------------------------------------------
 Fri Jan 30 14:51:47 CET 2015 - ohering@suse.de
 
 - Use mount-by setting from fstab if booted without root= (bnc#915548)
