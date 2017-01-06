@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan  6 16:47:13 UTC 2017 - mmarek@suse.cz
+
+- boot-usb: Explicitly load usb modules in single user mode
+  (bsc#1006705).
+
+-------------------------------------------------------------------
 Fri Aug 26 13:09:42 UTC 2016 - mmarek@suse.cz
 
 - Only copy /etc/group to the initrd and do not call getent
