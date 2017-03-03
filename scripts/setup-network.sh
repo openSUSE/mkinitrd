@@ -288,7 +288,9 @@ if test -n "$static_interfaces"; then
 fi
 
 # Copy netcfg files (bnc#468090, bnc#714945)
-cp /etc/{hosts,protocols,services,netconfig} $tmp_mnt/etc
+for file in /etc/{hosts,protocols,services,netconfig}; do
+  test -f "$file" && cp "$file" $tmp_mnt/etc
+done
 
 # Get static IP configuration if requested
 for iface in $static_interfaces; do
