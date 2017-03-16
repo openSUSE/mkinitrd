@@ -23,6 +23,11 @@ Fri Jan  6 16:47:13 UTC 2017 - mmarek@suse.cz
   (bsc#1006705).
 
 -------------------------------------------------------------------
+Thu Mar 17 15:39:21 CET 2016 - mmarek@suse.cz
+
+- Clear the GREP_OPTIONS variable (bsc#968863).
+
+-------------------------------------------------------------------
 Tue Jan 12 10:34:10 UTC 2016 - mmarek@suse.cz
 
 - Do not run fsck if fastboot is given on the kernel command line
