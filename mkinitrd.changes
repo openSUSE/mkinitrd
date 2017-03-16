@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Fri Kan  6 16:47:13 UTC 2017 - mmarek@suse.cz
+Fri Jan  6 16:47:13 UTC 2017 - mmarek@suse.cz
 
 - boot-usb: Explicitly load usb modules in single user mode
   (bsc#1006705).
