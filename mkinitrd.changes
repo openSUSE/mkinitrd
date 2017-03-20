@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar  3 10:24:02 CET 2017 - dmolkentin@suse.com
+
+- Prevent false error messages from setup-network.sh (bnc#1027452).
+
+-------------------------------------------------------------------
 Fri Jan  6 16:47:13 UTC 2017 - mmarek@suse.cz
 
 - boot-usb: Explicitly load usb modules in single user mode
