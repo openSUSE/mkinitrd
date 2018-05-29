@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 29 20:02:33 UTC 2018 - mwilck@suse.com
+
+- check_for_device: match only udev symlinks by major number
+  (bnc#726313)
+
+-------------------------------------------------------------------
 Fri Mar  3 10:24:02 CET 2017 - dmolkentin@suse.com
 
 - Prevent false error messages from setup-network.sh (bnc#1027452).
