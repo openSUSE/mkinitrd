@@ -59,6 +59,11 @@ check_for_device() {
     else
         dm_major=
     fi
+    # Only do major number matches for udev-managed symlinks
+    case "$root" in
+	*/disk/by-id/*|*/disk/by-uuid/*|*/disk/by-label/*|*/mapper/*) ;;
+	*) dm_major= ;;
+    esac
     if [ -n "$root" ]; then
         echo -n "Waiting for device $root to appear: "
         while [ $timeout -gt 0 ]; do
