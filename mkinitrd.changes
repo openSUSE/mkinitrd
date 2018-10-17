@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct  5 15:49:05 UTC 2018 - Michal Suchanek <msuchanek@suse.de>
+
+- purge-kernels: add kernel-syms to packages to be removed by
+  purge-kernels; if kernel cannot be removed due to dependencies
+  continue removing other kernels (bsc#1104090).
+
+-------------------------------------------------------------------
 Fri Mar  3 10:24:02 CET 2017 - dmolkentin@suse.com
 
 - Prevent false error messages from setup-network.sh (bnc#1027452).
