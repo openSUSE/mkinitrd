@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov  7 20:25:20 UTC 2018 - Martin Wilck <mwilck@suse.com>
+
+- make mkinitrd content private
+  (bsc#742884, bsc#1072711, bsc#1111603)
+
+-------------------------------------------------------------------
 Wed Nov  7 16:24:22 UTC 2018 - Martin Wilck <mwilck@suse.com>
 
 - Workaround for HPE 57810 adapter in offload mode with static IP
