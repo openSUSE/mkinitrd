@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov  7 16:24:22 UTC 2018 - Martin Wilck <mwilck@suse.com>
+
+- Workaround for HPE 57810 adapter in offload mode with static IP
+  (bsc#950426)
+
+-------------------------------------------------------------------
 Fri Oct  5 15:49:05 UTC 2018 - Michal Suchanek <msuchanek@suse.de>
 
 - purge-kernels: add kernel-syms to packages to be removed by
