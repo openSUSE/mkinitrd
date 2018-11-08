@@ -23,12 +23,6 @@ Fri Jan  6 16:47:13 UTC 2017 - mmarek@suse.cz
   (bsc#1006705).
 
 -------------------------------------------------------------------
-Fri Aug 26 13:09:42 UTC 2016 - mmarek@suse.cz
-
-- Only copy /etc/group to the initrd and do not call getent
-  (bsc#995634).
-
--------------------------------------------------------------------
 Tue Jan 12 10:34:10 UTC 2016 - mmarek@suse.cz
 
 - Do not run fsck if fastboot is given on the kernel command line

@@ -177,9 +177,10 @@ mkdir -p $tmp_mnt/var/log
 
 # all dev nodes belong to root, but some may be
 # owned by a group other than root
+# getent passwd | sed '/^root:/s/^\([^:]\+\):[^:]*:\([^:]\+\):\([^:]\+\):.*/\1::\2:\3:::/p;d' > $tmp_mnt/etc/passwd
 echo 'root::0:0:::' > $tmp_mnt/etc/passwd
 echo 'nobody::65534:65533:::' >> $tmp_mnt/etc/passwd
-sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' /etc/group >$tmp_mnt/etc/group
+getent group | sed 's/^\([^:]\+\):[^:]*:\([^:]\+\):.*/\1::\2:/' > $tmp_mnt/etc/group
 (echo 'passwd: files';echo 'group: files') > $tmp_mnt/etc/nsswitch.conf
 
 # scsi_id config file
