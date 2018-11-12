@@ -23,19 +23,8 @@ then
 fi
 popd > /dev/null 2>&1
 
-# Make sure the permissions are safe while copying to final path.
-tmp_initrd_1=$(mktemp "$initrd_image".XXXXXX)
-initrd_ok=no
-if [ -n "$tmp_initrd_1" ]; then
-    if cp -f "$tmp_initrd" "$tmp_initrd_1"; then
-	if mv -fT "$tmp_initrd_1" "$initrd_image"; then
-	    initrd_ok=yes
-	else
-	    rm -f "$tmp_initrd_1"
-	fi
-    fi
-fi
-if [ o"$initrd_ok" != oyes ]; then
+rm -f $initrd_image
+if ! cp -f $tmp_initrd $initrd_image ; then
     oops 8 "Failed to install initrd"
 fi
 rm -rf $tmp_mnt
