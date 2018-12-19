@@ -24,7 +24,7 @@
 
 # Install a binary file
 cp_bin() {
-    cp -a "$@" \
+    cp -aL "$@" \
     || exit_code=1
 
     # Remember the binaries installed. We need the list for checking
