@@ -144,11 +144,15 @@ sub sort_versions {
 	return @versions;
 }
 
-# return true if VER1 is a prefix of VER2 (to handle the .x rebuild counter)
+# return true if VER1 == VER2 or VER1 == (VER2 minus rebuild counter)
 sub version_match {
 	my ($ver1, $ver2) = @_;
 
-	return ($ver1 eq substr($ver2, 0, length($ver1)));
+	return 1 if $ver1 eq $ver2;
+
+	# copied from kernel-source/rpm/kernel-spec-macros
+	$ver2 =~ s/\.[0-9]+($|\.[^.]*[^.0-9][^.]*$)/$1/;
+	return $ver1 eq $ver2;
 }
 
 sub list_old_versions {
@@ -277,7 +281,7 @@ sub find_package {
 	my $name = shift @_;
 	my $version = shift @_;
 	my @packages = @_;
-	my $expr = "^" . quotemeta("$name-$version");
+	my $expr = "^" . ($version ? quotemeta("$name-$version") : quotemeta($name));
 	my @found = grep { $_ =~ $expr } @packages;
 	return @found if @found;
 	$expr = "^" . quotemeta($name) . " = " . quotemeta($version) . "\$";
@@ -334,17 +338,17 @@ sub remove_packages {
 		my %old_packages = map { $_ => 1 } @packages;
 		my %new_packages;
 		for (@out) {
-			if (/ is needed by \(installed\) (kernel-syms-.*|.*-kmp-.*)/ &&
+			if (/ is needed by \(installed\) (kernel-syms-.*|kgraft-patch-.*|kernel-livepatch-.*|.*-kmp-.*)/ &&
 				!$old_packages{$1} && !$taboo_packages{$1}) {
 				push(@packages, $1) unless $new_packages{$1};
 				$new_packages{$1} = 1;
 				$retry = 1;
-			} elsif (/([^ \t]*) = ([^ \t]*) is needed by \(installed\) /) {
+			} elsif (/([^ \t]*)(?: = ([^ \t]*))? is needed by \(installed\) /) {
 				my @unremovable = find_package($1, $2, @packages);
 				my $match = $unremovable[$#unremovable];
 				if ($match) {
 					print STDERR "$0: $_\n";
-					print STDERR "$0: Keeping $1 = $2 ($match)\n";
+					print STDERR "$0: Keeping " . ($2 ? "$1 = $2" : $1) . " ($match)\n";
 					@packages = grep { $_ !~ $match } @packages;
 					$taboo_packages{$match} = 1;
 					$retry = 1;
